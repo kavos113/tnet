@@ -4,7 +4,7 @@ import fs from 'fs/promises';
 
 const CONFIG_FILE_NAME = 'config.json';
 
-interface GlobalConfig {
+export interface GlobalConfig {
   lastOpenedDirectory?: string;
 }
 

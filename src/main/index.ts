@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
+import { createFile, getFileTree, loadSession, readFile, saveSession, writeFile } from './file';
 
 function createWindow(): void {
   // Create the browser window.
@@ -51,6 +52,13 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'));
+
+  ipcMain.handle('getFileTree', getFileTree);
+  ipcMain.handle('readFile', readFile);
+  ipcMain.handle('writeFile', writeFile);
+  ipcMain.handle('createFile', createFile);
+  ipcMain.handle('saveSession', saveSession);
+  ipcMain.handle('loadSession', loadSession);
 
   createWindow();
 

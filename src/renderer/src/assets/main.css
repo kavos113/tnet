@@ -6,6 +6,12 @@
   --main-light: #91e451;
   --folder: #e4ac10;
   --gray: #c9c9c9;
+
+  --tab-bg: #f4f4f4;
+  --tab-active-bg: #fbfbfb;
+  --tab-hover-bg: #e8e8e8;
+  --tab-border: #dddddd;
+  --tab-modified: #0078d7;
 }
 
 p {

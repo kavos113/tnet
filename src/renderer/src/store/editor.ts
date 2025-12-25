@@ -1,17 +1,24 @@
 import { defineStore } from 'pinia';
-import { ViewMode } from 'src/types/viewMode';
+import { ViewMode } from '@fixtures/viewMode';
+
+export interface OpenFile {
+  path: string;
+  content: string;
+  isModified: boolean;
+  displayName: string;
+}
 
 interface EditorState {
-  openedPaths: string[];
-  activePath: string;
+  openedFiles: OpenFile[];
+  activeIndex: number;
   viewMode: ViewMode;
 }
 
-export const useEditorState = defineStore('editor', {
+export const useEditorStore = defineStore('editor', {
   state: (): EditorState => {
     return {
-      openedPaths: [],
-      activePath: '',
+      openedFiles: [],
+      activeIndex: 0,
       viewMode: 'split'
     };
   }
