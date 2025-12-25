@@ -1,13 +1,15 @@
 import { defineStore } from 'pinia';
 
 interface ExplorerState {
-  selectedPath: string;
+  selectedPath: string | null;
+  expandPaths: Set<string>;
 }
 
 export const useExplorerStore = defineStore('explorer', {
   state: (): ExplorerState => {
     return {
-      selectedPath: ''
+      selectedPath: null,
+      expandPaths: new Set<string>()
     };
   }
 });

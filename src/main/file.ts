@@ -1,6 +1,6 @@
-import { FileItem } from '../types/file';
 import path from 'path';
 import fs from 'fs/promises';
+import { FileItem } from '@fixtures/file';
 
 const SETTINGS_DIR_PATH = '.tnet';
 const SESSION_FILE_NAME = 'session.json';
