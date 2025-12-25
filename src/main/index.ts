@@ -2,7 +2,15 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
-import { createFile, getFileTree, loadSession, readFile, saveSession, writeFile } from './file';
+import {
+  createFile,
+  getFileTree,
+  loadKeywords,
+  loadSession,
+  readFile,
+  saveSession,
+  writeFile
+} from './file';
 
 function createWindow(): void {
   // Create the browser window.
@@ -59,6 +67,7 @@ app.whenReady().then(() => {
   ipcMain.handle('createFile', createFile);
   ipcMain.handle('saveSession', saveSession);
   ipcMain.handle('loadSession', loadSession);
+  ipcMain.handle('loadKeywords', loadKeywords);
 
   createWindow();
 

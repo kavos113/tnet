@@ -12,7 +12,8 @@ const electronFileAPI = {
   createFile: (filePath: string) => ipcRenderer.invoke('createFile', filePath),
   saveSession: (rootDir: string, filePaths: string[]) =>
     ipcRenderer.invoke('saveSession', rootDir, filePaths),
-  loadSession: (rootDir: string) => ipcRenderer.invoke('loadSession', rootDir)
+  loadSession: (rootDir: string) => ipcRenderer.invoke('loadSession', rootDir),
+  loadKeywords: (rootDir: string) => ipcRenderer.invoke('loadKeywords', rootDir)
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

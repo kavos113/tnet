@@ -115,6 +115,15 @@ export const loadSession = async (rootDir: string): Promise<string[]> => {
   return filePaths;
 };
 
+export const loadKeywords = async (rootDir: string): Promise<Record<string, string>> => {
+  if (rootDir == '') {
+    return {};
+  }
+
+  const keywords: Record<string, string> = JSON.parse(await readFile(keywordsFilePath(rootDir)));
+  return keywords;
+};
+
 const ensureSettingDirExists = async (rootDir: string): Promise<void> => {
   await fs.mkdir(path.join(rootDir, SETTINGS_DIR_PATH), { recursive: true });
 };

@@ -8,6 +8,7 @@ interface ElectronFileAPI {
   createFile: (filePath: string) => Promise<void>;
   saveSession: (rootDir: string, filePaths: string[]) => Promise<void>;
   loadSession: (rootDir: string) => Promise<string[]>;
+  loadKeywords: (rootDir: string) => Promise<Record<string, string>>;
 }
 
 declare global {
