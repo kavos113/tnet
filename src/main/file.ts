@@ -102,8 +102,8 @@ export const createFile = async (filePath: string): Promise<void> => {
 };
 
 export const saveSession = async (rootDir: string, filePaths: string[]): Promise<void> => {
-  ensureSettingDirExists(rootDir);
-  writeFileRaw(sessionFilePath(rootDir), JSON.stringify(filePaths));
+  await ensureSettingDirExists(rootDir);
+  await writeFileRaw(sessionFilePath(rootDir), JSON.stringify(filePaths));
 };
 
 export const loadSession = async (rootDir: string): Promise<string[]> => {
@@ -139,14 +139,23 @@ const extractAndSaveKeywords = async (
   content: string,
   rootDir: string
 ): Promise<void> => {
-  ensureSettingDirExists(rootDir);
-  const keywords: Record<string, string> = JSON.parse(await readFile(keywordsFilePath(rootDir)));
+  await ensureSettingDirExists(rootDir);
+
+  let keywords: Record<string, string>;
+  try {
+    const raw = await fs.readFile(keywordsFilePath(rootDir), 'utf-8');
+    keywords = JSON.parse(raw);
+  } catch {
+    keywords = {};
+  }
+
   for (const [key, value] of Object.entries(keywords)) {
     if (value == filePath) {
       delete keywords[key];
     }
   }
 
+  KEYWORD_REGEX.lastIndex = 0;
   let array: RegExpExecArray | null;
   while ((array = KEYWORD_REGEX.exec(content)) !== null) {
     if (array.length > 1) {
