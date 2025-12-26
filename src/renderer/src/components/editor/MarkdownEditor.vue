@@ -53,6 +53,20 @@ watch(
   { immediate: true }
 );
 
+const handleInternalLinkClick = (event: MouseEvent): void => {
+  const target = event.target as HTMLElement;
+  const link = target.closest('a[data-internal-link="true"]');
+
+  if (link) {
+    event.preventDefault();
+    const path = link.getAttribute('data-path');
+
+    if (path) {
+      store.open(path);
+    }
+  }
+};
+
 const handleContentChange = (event: Event): void => {
   const target = event.target as HTMLTextAreaElement;
   localContent.value = target.value;
@@ -94,6 +108,7 @@ const saveFile = async (): Promise<void> => {
       localContent.value,
       rootPath.value
     );
+    store.openedFiles[activeIndex.value].content = localContent.value;
   } catch (err) {
     console.error('error saving file', err);
   } finally {
@@ -210,6 +225,18 @@ const removeScrollListeners = (): void => {
   }
 };
 
+const setupLinkListener = (): void => {
+  if (previewContainer.value) {
+    previewContainer.value.addEventListener('click', handleInternalLinkClick);
+  }
+};
+
+const removeLinkListener = (): void => {
+  if (previewContainer.value) {
+    previewContainer.value.removeEventListener('click', handleInternalLinkClick);
+  }
+};
+
 watch(viewMode, (newMode) => {
   removeScrollListeners();
   if (newMode === 'split') {
@@ -237,6 +264,7 @@ onMounted(async () => {
       rootPath.value
     );
   }
+  setupLinkListener();
 });
 
 onUnmounted(() => {
@@ -245,6 +273,7 @@ onUnmounted(() => {
   if (codeMirrorInstance.value) {
     codeMirrorInstance.value.destroy();
   }
+  removeLinkListener();
 });
 </script>
 

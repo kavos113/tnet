@@ -7,6 +7,7 @@ const isSettingsOpen = ref<boolean>(false);
 
 const handleKeyDown = (e: KeyboardEvent): void => {
   if (e.ctrlKey && e.key == ',') {
+    e.preventDefault();
     isSettingsOpen.value = true;
   }
 };
