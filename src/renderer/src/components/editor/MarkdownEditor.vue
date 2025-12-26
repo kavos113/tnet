@@ -90,6 +90,13 @@ const saveFile = async (): Promise<void> => {
   }
 };
 
+const handleKeyDown = async (event: KeyboardEvent): Promise<void> => {
+  if (event.ctrlKey && event.key === 's') {
+    event.preventDefault();
+    await saveFile();
+  }
+};
+
 const startResize = (event: MouseEvent): void => {
   event.preventDefault();
   isResizing.value = true;
@@ -137,6 +144,8 @@ const getPreviewWidth = (): string => {
 };
 
 onMounted(async () => {
+  document.addEventListener('keydown', handleKeyDown);
+
   await nextTick();
   if (editorContainer.value) {
     codeMirrorInstance.value = createCodeMirrorEditor(
@@ -150,6 +159,8 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyDown);
+
   if (codeMirrorInstance.value) {
     codeMirrorInstance.value.destroy();
   }

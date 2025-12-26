@@ -38,16 +38,16 @@ watch(selectedPath, (newPath) => {
   display: flex;
   flex: 1;
   overflow: hidden;
+  height: 100%;
 }
 
 .sidebar {
   width: 250px;
-  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: var(--backgound-dark);
   border-right: 1px solid var(--gray);
-  overflow: hidden;
+  overflow: auto;
 }
 
 .main-content {
