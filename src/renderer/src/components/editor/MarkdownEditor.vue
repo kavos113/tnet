@@ -23,6 +23,8 @@ const filePath = ref<string>('');
 const isResizing = ref<boolean>(false);
 const editorWidth = ref<number>(50); // percent
 
+const isSyncingScroll = ref<boolean>(false);
+
 watch(
   activeIndex,
   (newIndex) => {
@@ -142,6 +144,76 @@ const getPreviewWidth = (): string => {
     return '0%';
   }
 };
+
+let editorScroller: HTMLElement | null = null;
+
+const handleEditorScroll = (): void => {
+  if (isSyncingScroll.value || !editorScroller || !previewContainer.value) {
+    return;
+  }
+  isSyncingScroll.value = true;
+
+  const editorScrollRatio =
+    editorScroller.scrollTop / (editorScroller.scrollHeight - editorScroller.clientHeight);
+  previewContainer.value.scrollTop =
+    editorScrollRatio * (previewContainer.value.scrollHeight - previewContainer.value.clientHeight);
+
+  requestAnimationFrame(() => {
+    isSyncingScroll.value = false;
+  });
+};
+
+const handlePreviewScroll = (): void => {
+  if (isSyncingScroll.value || !editorScroller || !previewContainer.value) return;
+  isSyncingScroll.value = true;
+
+  const previewScrollRatio =
+    previewContainer.value.scrollTop /
+    (previewContainer.value.scrollHeight - previewContainer.value.clientHeight);
+  editorScroller.scrollTop =
+    previewScrollRatio * (editorScroller.scrollHeight - editorScroller.clientHeight);
+
+  requestAnimationFrame(() => {
+    isSyncingScroll.value = false;
+  });
+};
+
+const setupScrollListeners = (): void => {
+  if (viewMode.value !== 'split') return;
+
+  nextTick(() => {
+    if (codeMirrorInstance.value && previewContainer.value) {
+      editorScroller = editorContainer.value?.querySelector('.cm-scroller') as HTMLElement;
+      if (editorScroller) {
+        editorScroller.addEventListener('scroll', handleEditorScroll);
+        previewContainer.value.addEventListener('scroll', handlePreviewScroll);
+      }
+    }
+  });
+};
+
+const removeScrollListeners = (): void => {
+  if (editorScroller) {
+    editorScroller.removeEventListener('scroll', handleEditorScroll);
+  }
+  if (previewContainer.value) {
+    previewContainer.value.removeEventListener('scroll', handlePreviewScroll);
+  }
+};
+
+watch(viewMode, (newMode) => {
+  removeScrollListeners();
+  if (newMode === 'split') {
+    setupScrollListeners();
+  }
+});
+
+watch(activeIndex, () => {
+  removeScrollListeners();
+  if (viewMode.value === 'split') {
+    setupScrollListeners();
+  }
+});
 
 onMounted(async () => {
   document.addEventListener('keydown', handleKeyDown);
