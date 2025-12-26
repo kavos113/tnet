@@ -1,0 +1,28 @@
+@import 'katex/dist/katex.min.css';
+
+.markdown-preview :deep(.katex) {
+  font-size: 1.1em;
+}
+
+.markdown-preview :deep(.katex-display) {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.markdown-preview :deep(.katex-display .katex) {
+  text-align: left;
+}
+
+.markdown-preview :deep(.katex:not(.katex-display)) {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-preview :deep(.katex) {
+  color: var(--foreground);
+}
+
+.markdown-preview :deep(.katex .base) {
+  color: var(--foreground);
+}

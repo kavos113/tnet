@@ -1,73 +1,17 @@
 <script setup lang="ts">
-import { OpenFile, useEditorStore } from '@renderer/store/editor';
+import { useEditorStore } from '@renderer/store/editor';
 import { storeToRefs } from 'pinia';
 
 const store = useEditorStore();
 const { openedFiles, activeIndex } = storeToRefs(store);
 
-const getDisplayName = (filePath: string): string => {
-  const fileName = filePath.includes('\\') ? filePath.split('\\').pop() : filePath.split('/').pop();
-  return fileName ? fileName : filePath;
-};
-
-const openFileInTab = async (filePath: string): Promise<void> => {
-  try {
-    const existingIndex = openedFiles.value.findIndex((file) => file.path == filePath);
-    if (existingIndex !== -1) {
-      store.activeIndex = existingIndex;
-      return;
-    }
-
-    const content = await window.electronAPI.readFile(filePath);
-
-    const newFile: OpenFile = {
-      path: filePath,
-      content: content,
-      isModified: false,
-      displayName: getDisplayName(filePath)
-    };
-
-    store.openedFiles.push(newFile);
-    store.activeIndex = openedFiles.value.length - 1;
-  } catch (err) {
-    console.error('error in reading files', err);
-
-    const newFile: OpenFile = {
-      path: filePath,
-      content: 'error: reading file',
-      isModified: false,
-      displayName: getDisplayName(filePath)
-    };
-    store.openedFiles.push(newFile);
-    store.activeIndex = openedFiles.value.length - 1;
-  }
-};
-
 const closeTab = (index: number): void => {
-  if (index < 0 || index >= openedFiles.value.length) return;
-
-  store.openedFiles.splice(index, 1);
-
-  if (openedFiles.value.length === 0) {
-    store.activeIndex = -1;
-  } else if (index <= activeIndex.value) {
-    if (activeIndex.value > 0) {
-      store.activeIndex--;
-    } else {
-      store.activeIndex = 0;
-    }
-  }
+  store.close(index);
 };
 
 const switchTab = (index: number): void => {
-  if (index >= 0 && index < openedFiles.value.length) {
-    store.activeIndex = index;
-  }
+  store.switch(index);
 };
-
-defineExpose({
-  openFileInTab
-});
 </script>
 
 <template>

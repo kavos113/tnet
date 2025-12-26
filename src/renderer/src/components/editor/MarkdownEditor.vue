@@ -5,6 +5,8 @@ import { useEditorStore } from '@renderer/store/editor';
 import { useWorkspaceStore } from '@renderer/store/workspace';
 import { storeToRefs } from 'pinia';
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import '../../assets/katex.css';
+import 'highlight.js/styles/github.css';
 
 const store = useEditorStore();
 const { openedFiles, activeIndex, viewMode } = storeToRefs(store);
@@ -555,10 +557,10 @@ onUnmounted(() => {
 .markdown-preview :deep(.keyword) {
   margin-top: 10px;
   padding: 0.5em;
-  border: 3px solid var(--accent-color);
+  border: 3px solid var(--main-dark);
   border-radius: 5px;
   box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);
-  background-color: var(--sidebar-bg);
+  background-color: var(--background);
 }
 
 .markdown-preview :deep(.keyword-title) {

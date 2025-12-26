@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { watch } from 'vue';
 import MarkdownEditor from './editor/MarkdownEditor.vue';
 import TabBar from './editor/TabBar.vue';
 import FileExplorer from './explorer/FileExplorer.vue';
 import { useExplorerStore } from '@renderer/store/explorer';
 import { storeToRefs } from 'pinia';
-
-const tabBarRef = ref<InstanceType<typeof TabBar> | null>(null);
+import { useEditorStore } from '@renderer/store/editor';
 
 const explorerStore = useExplorerStore();
 const { selectedPath } = storeToRefs(explorerStore);
 
+const editorStore = useEditorStore();
+const { activeIndex } = storeToRefs(editorStore);
+
 watch(selectedPath, (newPath) => {
-  if (tabBarRef.value) {
-    if (newPath !== null) {
-      tabBarRef.value.openFileInTab(newPath);
-    }
+  if (newPath) {
+    editorStore.open(newPath);
   }
 });
 </script>
@@ -25,9 +25,12 @@ watch(selectedPath, (newPath) => {
       <FileExplorer />
     </div>
     <div class="main-content">
-      <TabBar ref="tabBarRef" />
-      <div class="editor-container">
+      <TabBar />
+      <div v-if="activeIndex >= 0" class="editor-container">
         <MarkdownEditor />
+      </div>
+      <div v-else>
+        <p>No Contents Selected</p>
       </div>
     </div>
   </div>

@@ -38,6 +38,8 @@
     "@electron-toolkit/utils": "^4.0.0",
     "codemirror": "^6.0.2",
     "electron-updater": "^6.3.9",
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.27",
     "material-icons": "^1.13.14",
     "mermaid": "^11.12.2",
     "pinia": "^3.0.4",
