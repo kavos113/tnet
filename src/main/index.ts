@@ -5,6 +5,7 @@ import icon from '../../resources/icon.png?asset';
 import {
   createFile,
   getFileTree,
+  getNewFileTree,
   loadKeywords,
   loadSession,
   readFile,
@@ -61,13 +62,31 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'));
 
-  ipcMain.handle('getFileTree', getFileTree);
-  ipcMain.handle('readFile', readFile);
-  ipcMain.handle('writeFile', writeFile);
-  ipcMain.handle('createFile', createFile);
-  ipcMain.handle('saveSession', saveSession);
-  ipcMain.handle('loadSession', loadSession);
-  ipcMain.handle('loadKeywords', loadKeywords);
+  ipcMain.handle('getNewFileTree', getNewFileTree);
+  ipcMain.handle('getFileTree', async (_event, dirPath: string) => {
+    return await getFileTree(dirPath);
+  });
+  ipcMain.handle('readFile', async (_event, filePath: string) => {
+    return await readFile(filePath);
+  });
+  ipcMain.handle(
+    'writeFile',
+    async (_event, filePath: string, content: string, rootDir: string) => {
+      return await writeFile(filePath, content, rootDir);
+    }
+  );
+  ipcMain.handle('createFile', async (_event, filePath: string) => {
+    return await createFile(filePath);
+  });
+  ipcMain.handle('saveSession', async (_event, rootDir: string, filePaths: string[]) => {
+    return await saveSession(rootDir, filePaths);
+  });
+  ipcMain.handle('loadSession', async (_event, rootDir: string) => {
+    return await loadSession(rootDir);
+  });
+  ipcMain.handle('loadKeywords', async (_event, rootDir: string) => {
+    return await loadKeywords(rootDir);
+  });
 
   createWindow();
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import FileExplorer from './components/explorer/FileExplorer.vue';
+import MainLayout from './components/MainLayout.vue';
 </script>
 
 <template>
-  <FileExplorer />
+  <MainLayout />
 </template>

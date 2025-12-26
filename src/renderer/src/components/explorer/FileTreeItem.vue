@@ -10,10 +10,14 @@ const props = defineProps<{
 }>();
 
 const store = useExplorerStore();
-const { expandPaths } = storeToRefs(store);
+const { selectedPath, expandPaths } = storeToRefs(store);
 
 const isExpand = computed(() => {
   return expandPaths.value.has(props.item.path);
+});
+
+const isSelected = computed(() => {
+  return props.item.path === selectedPath.value;
 });
 
 const handleClick = (): void => {
@@ -31,7 +35,11 @@ const handleClick = (): void => {
 
 <template>
   <li>
-    <div class="file-tree-item" @click="handleClick">
+    <div
+      class="file-tree-item"
+      :class="{ 'file-item-is-selected': isSelected }"
+      @click="handleClick"
+    >
       <span
         v-if="props.item.isDirectory"
         class="material-icons-round file-item-chevron"
@@ -84,5 +92,9 @@ const handleClick = (): void => {
   list-style-type: none;
   margin: 0;
   padding: 0 0 0 12px;
+}
+
+.file-item-is-selected {
+  background-color: var(--main-light);
 }
 </style>

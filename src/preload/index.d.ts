@@ -2,6 +2,7 @@ import { ElectronAPI } from '@electron-toolkit/preload';
 import { FileItem } from '@fixtures/file';
 
 interface ElectronFileAPI {
+  getNewFileTree: () => Promise<{ rootPath: string; fileTree: FileItem[] }>;
   getFileTree: (dirPath: string) => Promise<FileItem[]>;
   readFile: (filePath: string) => Promise<string>;
   writeFile: (filePath: string, content: string, rootDir: string) => Promise<void>;

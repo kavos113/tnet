@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { FileItem } from '@fixtures/file';
+import { app, dialog } from 'electron';
 
 const SETTINGS_DIR_PATH = '.tnet';
 const SESSION_FILE_NAME = 'session.json';
@@ -24,6 +25,29 @@ keywords.json
 
 name: path
 */
+
+export const getNewFileTree = async (): Promise<{
+  rootPath: string;
+  fileTree: FileItem[];
+}> => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+    title: 'フォルダ選択',
+    defaultPath: app.getPath('documents')
+  });
+
+  if (canceled) {
+    return {
+      rootPath: '',
+      fileTree: []
+    };
+  } else {
+    return {
+      rootPath: filePaths[0],
+      fileTree: await getFileTree(filePaths[0])
+    };
+  }
+};
 
 export const getFileTree = async (dirPath: string): Promise<FileItem[]> => {
   try {

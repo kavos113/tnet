@@ -5,6 +5,7 @@ import { electronAPI } from '@electron-toolkit/preload';
 const api = {};
 
 const electronFileAPI = {
+  getNewFileTree: () => ipcRenderer.invoke('getNewFileTree'),
   getFileTree: (dirPath: string) => ipcRenderer.invoke('getFileTree', dirPath),
   readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
   writeFile: (filePath: string, content: string, rootDir: string) =>
