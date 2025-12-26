@@ -13,6 +13,8 @@ import {
   saveSession,
   writeFile
 } from './file';
+import { loadConfig, saveConfig } from './config';
+import { GlobalConfig } from '@fixtures/config';
 
 function createWindow(): void {
   // Create the browser window.
@@ -96,6 +98,11 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('loadKeywords', async (_event, rootDir: string) => {
     return await loadKeywords(rootDir);
+  });
+
+  ipcMain.handle('loadConfig', loadConfig);
+  ipcMain.handle('saveConfig', async (_event, config: GlobalConfig) => {
+    return await saveConfig(config);
   });
 
   createWindow();

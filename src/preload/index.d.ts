@@ -1,4 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
+import { GlobalConfig } from '@fixtures/config';
 import { FileItem } from '@fixtures/file';
 
 interface ElectronFileAPI {
@@ -12,10 +13,16 @@ interface ElectronFileAPI {
   loadKeywords: (rootDir: string) => Promise<Record<string, string>>;
 }
 
+interface ElectronConfigAPI {
+  loadConfig: () => Promise<GlobalConfig>;
+  saveConfig: (config: GlobalConfig) => Promise<void>;
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI;
     electronAPI: ElectronFileAPI;
+    electronConfigAPI: ElectronConfigAPI;
     api: unknown;
   }
 }

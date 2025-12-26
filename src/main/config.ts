@@ -1,12 +1,9 @@
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs/promises';
+import { GlobalConfig } from '@fixtures/config';
 
 const CONFIG_FILE_NAME = 'config.json';
-
-export interface GlobalConfig {
-  lastOpenedDirectory?: string;
-}
 
 export const loadConfig = async (): Promise<GlobalConfig> => {
   const rawFile = await fs.readFile(configPath(), 'utf-8');

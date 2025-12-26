@@ -6,16 +6,34 @@ import FileExplorer from './explorer/FileExplorer.vue';
 import { useExplorerStore } from '@renderer/store/explorer';
 import { storeToRefs } from 'pinia';
 import { useEditorStore } from '@renderer/store/editor';
+import { useWorkspaceStore } from '@renderer/store/workspace';
 
 const explorerStore = useExplorerStore();
 const { selectedPath } = storeToRefs(explorerStore);
 
 const editorStore = useEditorStore();
-const { activeIndex } = storeToRefs(editorStore);
+const { openedFiles, activeIndex } = storeToRefs(editorStore);
 
-watch(selectedPath, (newPath) => {
+const workspaceStore = useWorkspaceStore();
+const { rootPath } = storeToRefs(workspaceStore);
+
+watch(selectedPath, async (newPath) => {
   if (newPath) {
     editorStore.open(newPath);
+
+    const openedPaths = openedFiles.value.map((file) => file.path);
+    await window.electronAPI.saveSession(rootPath.value, openedPaths);
+  }
+});
+
+watch(rootPath, async (newPath) => {
+  if (newPath !== '') {
+    const filePaths = await window.electronAPI.loadSession(rootPath.value);
+    if (filePaths && filePaths.length > 0) {
+      for (const path of filePaths) {
+        editorStore.open(path);
+      }
+    }
   }
 });
 </script>

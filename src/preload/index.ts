@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
+import { GlobalConfig } from '@fixtures/config';
 
 // Custom APIs for renderer
 const api = {};
@@ -17,6 +18,11 @@ const electronFileAPI = {
   loadKeywords: (rootDir: string) => ipcRenderer.invoke('loadKeywords', rootDir)
 };
 
+const electronConfigAPI = {
+  loadConfig: () => ipcRenderer.invoke('loadConfig'),
+  saveConfig: (config: GlobalConfig) => ipcRenderer.invoke('saveConfig', config)
+};
+
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -24,6 +30,7 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI);
     contextBridge.exposeInMainWorld('electronAPI', electronFileAPI);
+    contextBridge.exposeInMainWorld('electronConfigAPI', electronConfigAPI);
     contextBridge.exposeInMainWorld('api', api);
   } catch (error) {
     console.error(error);
@@ -33,6 +40,8 @@ if (process.contextIsolated) {
   window.electron = electronAPI;
   // @ts-ignore (define in dts)
   window.electronAPI = electronFileAPI;
+  // @ts-ignore (define in dts)
+  window.electronConfigAPI = electronConfigAPI;
   // @ts-ignore (define in dts)
   window.api = api;
 }

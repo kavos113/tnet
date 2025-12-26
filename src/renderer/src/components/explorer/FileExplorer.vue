@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useWorkspaceStore } from '@renderer/store/workspace';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { FileItem } from '@fixtures/file';
 import FileTreeItem from './FileTreeItem.vue';
 import { storeToRefs } from 'pinia';
@@ -10,11 +10,29 @@ const { rootPath } = storeToRefs(workspaceStore);
 
 const fileItemTree = ref<FileItem[]>([]);
 
+onMounted(async () => {
+  try {
+    const config = await window.electronConfigAPI.loadConfig();
+    if (config.lastOpenedDirectory) {
+      workspaceStore.rootPath = config.lastOpenedDirectory;
+
+      const fileTree = await window.electronAPI.getFileTree(config.lastOpenedDirectory);
+      fileItemTree.value = fileTree;
+    }
+  } catch {
+    console.log('error loading config');
+  }
+});
+
 const openFolder = async (): Promise<void> => {
   try {
     const { rootPath, fileTree } = await window.electronAPI.getNewFileTree();
     fileItemTree.value = fileTree;
     workspaceStore.rootPath = rootPath;
+
+    await window.electronConfigAPI.saveConfig({
+      lastOpenedDirectory: rootPath
+    });
   } catch {
     console.error('error in selecting workspace');
   }
