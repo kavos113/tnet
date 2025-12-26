@@ -30,12 +30,9 @@ const isSyncingScroll = ref<boolean>(false);
 watch(
   activeIndex,
   (newIndex) => {
-    console.log(newIndex);
     if (newIndex < 0 || newIndex >= openedFiles.value.length) {
       return;
     }
-
-    console.log(openedFiles.value[newIndex].content);
 
     localContent.value = openedFiles.value[newIndex].content;
     filePath.value = openedFiles.value[newIndex].path;
@@ -293,6 +290,11 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 200px;
+}
+
+.editor-header {
+  font-size: 12px;
+  border-bottom: solid 1px var(--gray);
 }
 
 .preview-pane {

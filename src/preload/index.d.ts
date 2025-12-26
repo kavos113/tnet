@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload';
-import { GlobalConfig } from '@fixtures/config';
+import { GlobalConfig, ProjectConfig } from '@fixtures/config';
 import { FileItem } from '@fixtures/file';
 
 interface ElectronFileAPI {
@@ -16,6 +16,8 @@ interface ElectronFileAPI {
 interface ElectronConfigAPI {
   loadConfig: () => Promise<GlobalConfig>;
   saveConfig: (config: GlobalConfig) => Promise<void>;
+  loadProjectConfig: (rootDir: string) => Promise<ProjectConfig>;
+  saveProjectConfig: (rootDir: string, config: ProjectConfig) => Promise<void>;
 }
 
 declare global {

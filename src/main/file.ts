@@ -2,10 +2,12 @@ import path from 'path';
 import fs from 'fs/promises';
 import { FileItem } from '@fixtures/file';
 import { app, dialog } from 'electron';
+import { ProjectConfig } from '@fixtures/config';
 
 const SETTINGS_DIR_PATH = '.tnet';
 const SESSION_FILE_NAME = 'session.json';
 const KEYWORDS_FILE_NAME = 'keywords.json';
+const SETTINGS_FILE_NAME = 'settings.json';
 const FILE_TEMPLATE = `<keyword name="">
 ### 変数・条件
 
@@ -148,6 +150,16 @@ export const loadKeywords = async (rootDir: string): Promise<Record<string, stri
   return keywords;
 };
 
+export const saveProjectConfig = async (rootDir: string, config: ProjectConfig): Promise<void> => {
+  await ensureSettingDirExists(rootDir);
+  await writeFileRaw(settingsFIlePath(rootDir), JSON.stringify(config));
+};
+
+export const loadProjectConfig = async (rootDir: string): Promise<ProjectConfig> => {
+  const config = await readFile(settingsFIlePath(rootDir));
+  return JSON.parse(config);
+};
+
 const ensureSettingDirExists = async (rootDir: string): Promise<void> => {
   await fs.mkdir(path.join(rootDir, SETTINGS_DIR_PATH), { recursive: true });
 };
@@ -156,6 +168,8 @@ const sessionFilePath = (rootDir: string): string =>
   path.join(rootDir, SETTINGS_DIR_PATH, SESSION_FILE_NAME);
 const keywordsFilePath = (rootDir: string): string =>
   path.join(rootDir, SETTINGS_DIR_PATH, KEYWORDS_FILE_NAME);
+const settingsFIlePath = (rootDir: string): string =>
+  path.join(rootDir, SETTINGS_DIR_PATH, SETTINGS_FILE_NAME);
 
 const writeFileRaw = async (filePath: string, content: string): Promise<void> => {
   try {

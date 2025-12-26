@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
-import { GlobalConfig } from '@fixtures/config';
+import { GlobalConfig, ProjectConfig } from '@fixtures/config';
 
 // Custom APIs for renderer
 const api = {};
@@ -20,7 +20,10 @@ const electronFileAPI = {
 
 const electronConfigAPI = {
   loadConfig: () => ipcRenderer.invoke('loadConfig'),
-  saveConfig: (config: GlobalConfig) => ipcRenderer.invoke('saveConfig', config)
+  saveConfig: (config: GlobalConfig) => ipcRenderer.invoke('saveConfig', config),
+  loadProjectConfig: (rootDir: string) => ipcRenderer.invoke('loadProjectConfig', rootDir),
+  saveProjectConfig: (rootDir: string, config: ProjectConfig) =>
+    ipcRenderer.invoke('saveProjectConfig', rootDir, config)
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

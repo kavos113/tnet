@@ -8,19 +8,21 @@ import {
   getFileTree,
   getNewFileTree,
   loadKeywords,
+  loadProjectConfig,
   loadSession,
   readFile,
+  saveProjectConfig,
   saveSession,
   writeFile
 } from './file';
 import { loadConfig, saveConfig } from './config';
-import { GlobalConfig } from '@fixtures/config';
+import { GlobalConfig, ProjectConfig } from '@fixtures/config';
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1920,
+    height: 1080,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -103,6 +105,12 @@ app.whenReady().then(async () => {
   ipcMain.handle('loadConfig', loadConfig);
   ipcMain.handle('saveConfig', async (_event, config: GlobalConfig) => {
     return await saveConfig(config);
+  });
+  ipcMain.handle('loadProjectConfig', async (_event, rootDir: string) => {
+    return await loadProjectConfig(rootDir);
+  });
+  ipcMain.handle('saveProjectConfig', async (_event, rootDir: string, config: ProjectConfig) => {
+    return await saveProjectConfig(rootDir, config);
   });
 
   createWindow();

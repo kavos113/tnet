@@ -537,7 +537,8 @@ export const createCodeMirrorEditor = (
     editorTheme,
     autocompletion({
       override: [keywordAutocompletion(rootDir), katexAutocompletion()]
-    })
+    }),
+    EditorView.lineWrapping
   ];
 
   if (isDarkTheme) {
@@ -571,10 +572,6 @@ export const createCodeMirrorEditor = (
     getContent: () => view.state.doc.toString(),
     destroy: () => view.destroy(),
     setEditorStyle: (style: Record<string, string>) => {
-      // CodeMirrorのスタイルを動的に更新
-      // EditorView.themeは一度作成すると変更できないため、
-      // 直接DOMを操作するか、新しいテーマを適用する必要があります。
-      // ここでは簡易的にDOMを操作します。
       const cmElement = view.dom;
       if (cmElement) {
         if (style.fontFamily) {

@@ -251,7 +251,7 @@ const rehypeKeywordMarkdown = () => {
           for (const child of children) {
             if (child.type === 'text') {
               content += child.value;
-              console.log(child.value);
+              // console.log(child.value);
             } else if (child.type === 'element' && child.children) {
               collectText(child.children);
             }
@@ -269,7 +269,7 @@ const rehypeKeywordMarkdown = () => {
         const mdast = processor.parse(content);
         const hast = processor.runSync(mdast);
 
-        console.log(hast);
+        // console.log(hast);
 
         parent.children[index] = {
           type: 'element',
