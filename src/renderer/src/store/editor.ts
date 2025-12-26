@@ -18,7 +18,7 @@ export const useEditorStore = defineStore('editor', {
   state: (): EditorState => {
     return {
       openedFiles: [],
-      activeIndex: 0,
+      activeIndex: -1,
       viewMode: 'split'
     };
   }
