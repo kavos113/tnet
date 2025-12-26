@@ -11,17 +11,13 @@ const tabBarRef = ref<InstanceType<typeof TabBar> | null>(null);
 const explorerStore = useExplorerStore();
 const { selectedPath } = storeToRefs(explorerStore);
 
-watch(
-  () => selectedPath,
-  (newPath) => {
-    console.log(newPath.value);
-    if (tabBarRef.value) {
-      if (newPath.value !== null) {
-        tabBarRef.value.openFileInTab(newPath.value);
-      }
+watch(selectedPath, (newPath) => {
+  if (tabBarRef.value) {
+    if (newPath !== null) {
+      tabBarRef.value.openFileInTab(newPath);
     }
   }
-);
+});
 </script>
 <template>
   <div class="main-area">
