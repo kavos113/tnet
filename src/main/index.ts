@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import icon from '../../resources/icon.png?asset';
 import {
   createFile,
@@ -48,9 +49,18 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron');
+
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const name = await installExtension(VUEJS_DEVTOOLS);
+      console.log('extension installed: ', name);
+    } catch (err) {
+      console.log('error install extension', err);
+    }
+  }
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

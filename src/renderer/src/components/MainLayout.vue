@@ -1,7 +1,27 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue';
 import MarkdownEditor from './editor/MarkdownEditor.vue';
 import TabBar from './editor/TabBar.vue';
 import FileExplorer from './explorer/FileExplorer.vue';
+import { useExplorerStore } from '@renderer/store/explorer';
+import { storeToRefs } from 'pinia';
+
+const tabBarRef = ref<InstanceType<typeof TabBar> | null>(null);
+
+const explorerStore = useExplorerStore();
+const { selectedPath } = storeToRefs(explorerStore);
+
+watch(
+  () => selectedPath,
+  (newPath) => {
+    console.log(newPath.value);
+    if (tabBarRef.value) {
+      if (newPath.value !== null) {
+        tabBarRef.value.openFileInTab(newPath.value);
+      }
+    }
+  }
+);
 </script>
 <template>
   <div class="main-area">
@@ -9,7 +29,7 @@ import FileExplorer from './explorer/FileExplorer.vue';
       <FileExplorer />
     </div>
     <div class="main-content">
-      <TabBar />
+      <TabBar ref="tabBarRef" />
       <div class="editor-container">
         <MarkdownEditor />
       </div>
