@@ -4,7 +4,7 @@ import { markdownToHtml, renderMermaid } from '@renderer/scripts/markdownUtils';
 import { useEditorStore } from '@renderer/store/editor';
 import { useWorkspaceStore } from '@renderer/store/workspace';
 import { storeToRefs } from 'pinia';
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import '../../assets/katex.css';
 import 'highlight.js/styles/github.css';
 
@@ -12,7 +12,7 @@ const store = useEditorStore();
 const { openedFiles, activeIndex, viewMode } = storeToRefs(store);
 
 const workspaceStore = useWorkspaceStore();
-const { rootPath } = storeToRefs(workspaceStore);
+const { rootPath, settings } = storeToRefs(workspaceStore);
 
 const editorContainer = ref<HTMLElement>();
 const previewContainer = ref<HTMLElement>();
@@ -26,6 +26,16 @@ const isResizing = ref<boolean>(false);
 const editorWidth = ref<number>(50); // percent
 
 const isSyncingScroll = ref<boolean>(false);
+
+const editorStyle = computed(() => ({
+  fontFamily: settings.value.editorFontFamily,
+  fontSize: `${settings.value.editorFontSize}px`
+}));
+
+const previewStyle = computed(() => ({
+  fontFamily: settings.value.previewFontFamily,
+  fontSize: `${settings.value.previewFontSize}px`
+}));
 
 watch(
   activeIndex,
@@ -245,17 +255,23 @@ onUnmounted(() => {
     </div>
     <div class="editor-content-split">
       <div v-if="viewMode !== 'preview'" class="editor-pane" :style="{ width: getEditorWidth() }">
-        <div ref="editorContainer" class="codemirror-container"></div>
+        <div ref="editorContainer" class="codemirror-container" :style="editorStyle"></div>
         <textarea
           v-model="localContent"
           class="markdown-editor hidden"
+          :style="editorStyle"
           @input="handleContentChange"
         ></textarea>
       </div>
       <div v-if="viewMode === 'split'" class="resizer" @mousedown="startResize"></div>
       <div v-if="viewMode !== 'editor'" class="preview-pane" :style="{ width: getPreviewWidth() }">
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div ref="previewContainer" class="markdown-preview" v-html="htmlPreview"></div>
+        <div
+          ref="previewContainer"
+          class="markdown-preview"
+          :style="previewStyle"
+          v-html="htmlPreview"
+        ></div>
       </div>
     </div>
   </div>
@@ -303,15 +319,6 @@ onUnmounted(() => {
   min-width: 200px;
 }
 
-.pane-header {
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-color);
-  background-color: var(--sidebar-header-bg);
-  border-bottom: 1px solid var(--border-color);
-}
-
 .markdown-editor {
   flex: 1;
   padding: 12px;
@@ -319,8 +326,8 @@ onUnmounted(() => {
   outline: none;
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
+  font-family: 'Migu 1M', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
   line-height: 1.6;
   resize: none;
   white-space: pre-wrap;
@@ -588,5 +595,12 @@ onUnmounted(() => {
   border-radius: 4px;
   padding: 10px;
   font-family: 'Fira Code', 'Courier New', monospace;
+}
+</style>
+
+<style>
+.cm-editor {
+  font-family: 'Migu 1M', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
 }
 </style>
