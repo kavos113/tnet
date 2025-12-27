@@ -236,6 +236,7 @@ const remarkInternalLinks = () => {
         parent.children.splice(index, 1, ...newNodes);
         return index + newNodes.length;
       }
+      return newNodes.length;
     });
   };
 };

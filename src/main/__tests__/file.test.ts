@@ -3,7 +3,15 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
 
-import { createFile, getFileTree, loadSession, readFile, saveSession, writeFile } from '../file';
+import {
+  createDirectory,
+  createFile,
+  getFileTree,
+  loadSession,
+  readFile,
+  saveSession,
+  writeFile
+} from '../file';
 
 const readJson = async (filePath: string): Promise<unknown> => {
   const raw = await fs.readFile(filePath, 'utf-8');
@@ -51,6 +59,36 @@ describe('src/main/file.ts', () => {
     expect(content).toContain('<keyword name="">');
     expect(content).toContain('### 変数・条件');
     expect(content).toContain('<details>');
+  });
+
+  it('createFile: 既存ファイルがある場合は失敗する', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-create-exists-'));
+    const filePath = path.join(root, 'exists.md');
+    await fs.writeFile(filePath, 'already', 'utf-8');
+
+    await expect(createFile(filePath)).rejects.toThrow('error writing file');
+    spy.mockRestore();
+  });
+
+  it('createDirectory: ネストしたディレクトリを作成できる', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-mkdir-'));
+    const dirPath = path.join(root, 'a', 'b', 'c');
+
+    await createDirectory(dirPath);
+
+    const stat = await fs.stat(dirPath);
+    expect(stat.isDirectory()).toBe(true);
+  });
+
+  it('createDirectory: 既存ディレクトリがある場合は失敗する', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-mkdir-exists-'));
+    const dirPath = path.join(root, 'dir');
+    await fs.mkdir(dirPath);
+
+    await expect(createDirectory(dirPath)).rejects.toThrow('error creating directory');
+    spy.mockRestore();
   });
 
   it('saveSession/loadSession: セッションを保存・復元できる', async () => {

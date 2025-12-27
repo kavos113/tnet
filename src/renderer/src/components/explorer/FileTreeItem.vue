@@ -3,32 +3,77 @@ import { FileItem } from '@fixtures/file';
 import { useExplorerStore } from '@renderer/store/explorer';
 import 'material-icons/iconfont/material-icons.css';
 import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+import { computed, inject, nextTick, ref, watch, type Ref } from 'vue';
+
+type NewEntryMode = 'file' | 'directory';
+
+type NewEntryState = {
+  isActive: boolean;
+  mode: NewEntryMode;
+  parentPath: string | null;
+  name: string;
+};
+
+type NewEntryContext = {
+  state: Ref<NewEntryState>;
+  confirm: () => Promise<void>;
+  cancel: () => void;
+};
 
 const props = defineProps<{
   item: FileItem;
 }>();
 
 const store = useExplorerStore();
-const { selectedPath, expandPaths } = storeToRefs(store);
+const { selectedPath, selectedDirPath, expandPaths } = storeToRefs(store);
 
 const isExpand = computed(() => {
   return expandPaths.value.has(props.item.path);
 });
 
 const isSelected = computed(() => {
-  return props.item.path === selectedPath.value;
+  return props.item.path === (selectedPath.value ?? selectedDirPath.value);
 });
+
+const newEntry = inject<NewEntryContext>('newEntry', null);
+const inputRef = ref<HTMLInputElement | null>(null);
+
+const shouldShowNewEntryHere = computed(() => {
+  if (!newEntry?.state.value.isActive) return false;
+  return newEntry.state.value.parentPath === props.item.path;
+});
+
+watch(
+  () => shouldShowNewEntryHere.value,
+  async (visible) => {
+    if (visible) {
+      await nextTick();
+      inputRef.value?.focus();
+      inputRef.value?.select();
+    }
+  }
+);
 
 const handleClick = (): void => {
   if (props.item.isDirectory) {
-    if (isExpand.value) {
-      store.expandPaths.delete(props.item.path);
-    } else {
-      store.expandPaths.add(props.item.path);
-    }
+    store.selectedPath = null;
+    store.selectedDirPath = props.item.path;
+    if (isExpand.value) store.expandPaths.delete(props.item.path);
+    else store.expandPaths.add(props.item.path);
   } else {
+    store.selectedDirPath = null;
     store.selectedPath = props.item.path;
+  }
+};
+
+const onNewEntryKeydown = async (event: KeyboardEvent): Promise<void> => {
+  if (!newEntry) return;
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await newEntry.confirm();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    newEntry.cancel();
   }
 };
 </script>
@@ -54,6 +99,25 @@ const handleClick = (): void => {
       </p>
     </div>
     <ul v-if="props.item.isDirectory && props.item.children && isExpand" class="file-item-children">
+      <li v-if="shouldShowNewEntryHere" class="file-item-new">
+        <div class="file-tree-item">
+          <span class="material-icons-round file-item-chevron file-item-icon-placeholder"
+            >chevron_right</span
+          >
+          <span
+            class="material-icons file-item-folder"
+            :class="{ 'file-item-icon-placeholder': newEntry?.state.value.mode !== 'directory' }"
+            >folder</span
+          >
+          <input
+            ref="inputRef"
+            v-model="newEntry!.state.value.name"
+            class="file-item-new-input"
+            @keydown="onNewEntryKeydown"
+            @blur="newEntry!.cancel"
+          />
+        </div>
+      </li>
       <FileTreeItem v-for="child in props.item.children" :key="child.path" :item="child" />
     </ul>
   </li>
@@ -96,5 +160,18 @@ const handleClick = (): void => {
 
 .file-item-is-selected {
   background-color: var(--main-light);
+}
+
+.file-item-new {
+  list-style-type: none;
+}
+
+.file-item-new-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.file-item-icon-placeholder {
+  visibility: hidden;
 }
 </style>

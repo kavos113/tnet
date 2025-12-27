@@ -5,6 +5,7 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import icon from '../../resources/icon.png?asset';
 import {
   createFile,
+  createDirectory,
   getFileTree,
   getNewFileTree,
   loadKeywords,
@@ -91,6 +92,9 @@ app.whenReady().then(async () => {
   );
   ipcMain.handle('createFile', async (_event, filePath: string) => {
     return await createFile(filePath);
+  });
+  ipcMain.handle('createDirectory', async (_event, dirPath: string) => {
+    return await createDirectory(dirPath);
   });
   ipcMain.handle('saveSession', async (_event, rootDir: string, filePaths: string[]) => {
     return await saveSession(rootDir, filePaths);

@@ -19,4 +19,3 @@ const configPath = (): string => {
   const userDataPath = app.getPath('userData');
   return path.join(userDataPath, CONFIG_FILE_NAME);
 };
-

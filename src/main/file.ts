@@ -119,11 +119,30 @@ export const writeFile = async (
 
 export const createFile = async (filePath: string): Promise<void> => {
   try {
+    const exists = await fs
+      .access(filePath)
+      .then(() => true)
+      .catch(() => false);
+    if (exists) throw new Error('already exists');
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, FILE_TEMPLATE, 'utf-8');
   } catch (err) {
     console.error('error writing file: ', err);
     throw new Error('error writing file');
+  }
+};
+
+export const createDirectory = async (dirPath: string): Promise<void> => {
+  try {
+    const exists = await fs
+      .access(dirPath)
+      .then(() => true)
+      .catch(() => false);
+    if (exists) throw new Error('already exists');
+    await fs.mkdir(dirPath, { recursive: true });
+  } catch (err) {
+    console.error('error creating directory: ', err);
+    throw new Error('error creating directory');
   }
 };
 
