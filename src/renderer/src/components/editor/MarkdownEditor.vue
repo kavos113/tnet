@@ -90,15 +90,17 @@ const normalizeTooltipContent = (raw: string): string => {
   return collapsed.slice(0, maxLen) + '…';
 };
 
-const showInternalLinkTooltip = (event: MouseEvent, content: string): void => {
+const showInternalLinkTooltip = async (event: MouseEvent, content: string): Promise<void> => {
   if (!previewContainer.value) return;
+
+  const htmlContent = await markdownToHtml(content);
 
   const rect = previewContainer.value.getBoundingClientRect();
   internalLinkTooltip.value = {
     visible: true,
     x: Math.max(8, event.clientX - rect.left + 12),
     y: Math.max(8, event.clientY - rect.top + 12),
-    content
+    content: htmlContent
   };
 };
 
@@ -399,10 +401,13 @@ onUnmounted(() => {
         <div
           v-if="internalLinkTooltip.visible"
           class="internal-link-tooltip"
-          :style="{ left: internalLinkTooltip.x + 'px', top: internalLinkTooltip.y + 'px' }"
-        >
-          {{ internalLinkTooltip.content }}
-        </div>
+          :style="{
+            left: internalLinkTooltip.x + 'px',
+            top: internalLinkTooltip.y + 'px',
+            ...previewStyle
+          }"
+          v-html="internalLinkTooltip.content"
+        ></div>
       </div>
     </div>
   </div>
@@ -421,15 +426,15 @@ onUnmounted(() => {
 .internal-link-tooltip {
   position: absolute;
   z-index: 50;
-  max-width: 520px;
-  max-height: 320px;
   overflow: auto;
-  white-space: pre-wrap;
   padding: 8px 10px;
   border: 1px solid var(--gray);
   background-color: var(--background);
   color: var(--foreground);
   pointer-events: none;
+  border: 2px solid var(--main-light);
+  border-radius: 5px;
+  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);
 }
 
 .resizer {
@@ -511,7 +516,8 @@ onUnmounted(() => {
   color: var(--text-color);
 }
 
-.markdown-preview :deep(h1) {
+.markdown-preview :deep(h1),
+.internal-link-tooltip :deep(h1) {
   font-size: 2em;
   font-weight: bold;
   margin: 0.67em 0;
@@ -519,7 +525,8 @@ onUnmounted(() => {
   padding-bottom: 0.3em;
 }
 
-.markdown-preview :deep(h2) {
+.markdown-preview :deep(h2),
+.internal-link-tooltip :deep(h2) {
   font-size: 1.5em;
   font-weight: bold;
   margin: 0.83em 0;
@@ -527,33 +534,39 @@ onUnmounted(() => {
   padding-bottom: 0.3em;
 }
 
-.markdown-preview :deep(h3) {
+.markdown-preview :deep(h3),
+.internal-link-tooltip :deep(h3) {
   font-size: 1.17em;
   font-weight: bold;
   margin: 1em 0;
 }
 
-.markdown-preview :deep(h4) {
+.markdown-preview :deep(h4),
+.internal-link-tooltip :deep(h4) {
   font-size: 1em;
   font-weight: bold;
   margin: 1.33em 0;
 }
 
-.markdown-preview :deep(h5) {
+.markdown-preview :deep(h5),
+.internal-link-tooltip :deep(h5) {
   font-size: 0.83em;
   margin: 1.67em 0;
 }
 
-.markdown-preview :deep(h6) {
+.markdown-preview :deep(h6),
+.internal-link-tooltip :deep(h6) {
   font-size: 0.67em;
   margin: 2.33em 0;
 }
 
-.markdown-preview :deep(p) {
+.markdown-preview :deep(p),
+.internal-link-tooltip :deep(p) {
   margin: 1em 0;
 }
 
-.markdown-preview :deep(blockquote) {
+.markdown-preview :deep(blockquote),
+.internal-link-tooltip :deep(blockquote) {
   margin: 1em 0;
   padding-left: 1em;
   border-left: 4px solid var(--accent-color);
@@ -562,20 +575,25 @@ onUnmounted(() => {
 }
 
 .markdown-preview :deep(ul),
-.markdown-preview :deep(ol) {
+.internal-link-tooltip :deep(ul),
+.markdown-preview :deep(ol),
+.internal-link-tooltip :deep(ol) {
   margin: 1em 0;
   padding-left: 2em;
 }
 
-.markdown-preview :deep(ul) {
+.markdown-preview :deep(ul),
+.internal-link-tooltip :deep(ul) {
   list-style-type: disc;
 }
 
-.markdown-preview :deep(ol) {
+.markdown-preview :deep(ol),
+.internal-link-tooltip :deep(ol) {
   list-style-type: decimal;
 }
 
-.markdown-preview :deep(code) {
+.markdown-preview :deep(code),
+.internal-link-tooltip :deep(code) {
   background-color: var(--sidebar-bg);
   padding: 0.2em 0.4em;
   border-radius: 3px;
@@ -583,7 +601,8 @@ onUnmounted(() => {
   font-size: 0.9em;
 }
 
-.markdown-preview :deep(pre) {
+.markdown-preview :deep(pre),
+.internal-link-tooltip :deep(pre) {
   background-color: var(--sidebar-bg);
   padding: 1em;
   border-radius: 5px;
@@ -591,7 +610,8 @@ onUnmounted(() => {
   margin: 1em 0;
 }
 
-.markdown-preview :deep(pre code) {
+.markdown-preview :deep(pre code),
+.internal-link-tooltip :deep(pre code) {
   background-color: transparent;
   padding: 0;
   border-radius: 0;
@@ -599,28 +619,34 @@ onUnmounted(() => {
   font-size: 0.9em;
 }
 
-.markdown-preview :deep(table) {
+.markdown-preview :deep(table),
+.internal-link-tooltip :deep(table) {
   border-collapse: collapse;
   margin: 1em 0;
 }
 
 .markdown-preview :deep(th),
-.markdown-preview :deep(td) {
+.internal-link-tooltip :deep(th),
+.markdown-preview :deep(td),
+.internal-link-tooltip :deep(td) {
   border: 1px solid var(--border-color);
   padding: 0.5em;
   text-align: left;
 }
 
-.markdown-preview :deep(th) {
+.markdown-preview :deep(th),
+.internal-link-tooltip :deep(th) {
   background-color: var(--sidebar-header-bg);
   font-weight: bold;
 }
 
-.markdown-preview :deep(strong) {
+.markdown-preview :deep(strong),
+.internal-link-tooltip :deep(strong) {
   font-weight: bold;
 }
 
-.markdown-preview :deep(.mermaid) {
+.markdown-preview :deep(.mermaid),
+.internal-link-tooltip :deep(.mermaid) {
   background-color: var(--bg-color);
   padding: 1em;
   border-radius: 5px;
@@ -628,11 +654,13 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.markdown-preview :deep(.card-link-container) {
+.markdown-preview :deep(.card-link-container),
+.internal-link-tooltip :deep(.card-link-container) {
   width: 100%;
 }
 
-.markdown-preview :deep(.card-link) {
+.markdown-preview :deep(.card-link),
+.internal-link-tooltip :deep(.card-link) {
   display: flex;
   background-color: #ffffff;
   border: 1px solid #b1b8bd;
@@ -645,11 +673,13 @@ onUnmounted(() => {
     box-shadow 0.2s ease-in-out;
 }
 
-.markdown-preview :deep(.card-link:hover) {
+.markdown-preview :deep(.card-link:hover),
+.internal-link-tooltip :deep(.card-link:hover) {
   background-color: #f0f0f0;
 }
 
-.markdown-preview :deep(.card-content) {
+.markdown-preview :deep(.card-content),
+.internal-link-tooltip :deep(.card-content) {
   flex: 1;
   padding: 10px;
   display: flex;
@@ -658,7 +688,8 @@ onUnmounted(() => {
   min-width: 0; /* Flexboxでのテキストオーバーフロー問題を防止 */
 }
 
-.markdown-preview :deep(.card-title) {
+.markdown-preview :deep(.card-title),
+.internal-link-tooltip :deep(.card-title) {
   font-weight: 600;
   margin: 0 0 4px;
   white-space: nowrap;
@@ -666,7 +697,8 @@ onUnmounted(() => {
   text-overflow: ellipsis;
 }
 
-.markdown-preview :deep(.card-description) {
+.markdown-preview :deep(.card-description),
+.internal-link-tooltip :deep(.card-description) {
   color: #657786;
   margin: 0 0 12px;
   flex-grow: 1;
@@ -679,39 +711,45 @@ onUnmounted(() => {
   line-height: 1.4;
 }
 
-.markdown-preview :deep(.card-footer) {
+.markdown-preview :deep(.card-footer),
+.internal-link-tooltip :deep(.card-footer) {
   display: flex;
   align-items: center;
   color: #657786;
 }
 
-.markdown-preview :deep(.card-favicon) {
+.markdown-preview :deep(.card-favicon),
+.internal-link-tooltip :deep(.card-favicon) {
   width: 16px;
   height: 16px;
   margin-right: 8px;
   flex-shrink: 0;
 }
 
-.markdown-preview :deep(.card-url) {
+.markdown-preview :deep(.card-url),
+.internal-link-tooltip :deep(.card-url) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.markdown-preview :deep(.card-thumbnail) {
+.markdown-preview :deep(.card-thumbnail),
+.internal-link-tooltip :deep(.card-thumbnail) {
   width: 130px;
   flex-shrink: 0;
   background-color: #f5f8fa;
 }
 
-.markdown-preview :deep(.card-thumbnail) img {
+.markdown-preview :deep(.card-thumbnail),
+.internal-link-tooltip :deep(.card-thumbnail) img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-left: 1px solid #e1e8ed;
 }
 
-.markdown-preview :deep(.keyword) {
+.markdown-preview :deep(.keyword),
+.internal-link-tooltip :deep(.keyword) {
   margin-top: 10px;
   padding: 0.5em;
   border: 3px solid var(--main-dark);
@@ -720,7 +758,8 @@ onUnmounted(() => {
   background-color: var(--background);
 }
 
-.markdown-preview :deep(.keyword-title) {
+.markdown-preview :deep(.keyword-title),
+.internal-link-tooltip :deep(.keyword-title) {
   font-weight: bold;
   margin: 0;
   padding: 5px 5px 0 5px;
@@ -728,17 +767,22 @@ onUnmounted(() => {
   border-bottom: 2px solid var(--color-text);
 }
 
-.markdown-preview :deep(.keyword-content) p,
-.markdown-preview :deep(.keyword-content) ul,
-.markdown-preview :deep(.keyword-content) ol {
+.markdown-preview :deep(.keyword-content),
+.internal-link-tooltip :deep(.keyword-content) p,
+.markdown-preview :deep(.keyword-content),
+.internal-link-tooltip :deep(.keyword-content) ul,
+.markdown-preview :deep(.keyword-content),
+.internal-link-tooltip :deep(.keyword-content) ol {
   margin: 0;
 }
 
-.markdown-preview :deep(.keyword-content) h3 {
+.markdown-preview :deep(.keyword-content),
+.internal-link-tooltip :deep(.keyword-content) h3 {
   margin-bottom: 5px;
 }
 
-.markdown-preview :deep(.cm-codeblock) {
+.markdown-preview :deep(.cm-codeblock),
+.internal-link-tooltip :deep(.cm-codeblock) {
   background-color: #2c313a;
   border-radius: 4px;
   padding: 10px;
