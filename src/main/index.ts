@@ -7,6 +7,7 @@ import {
   createFile,
   createDirectory,
   deleteFile,
+  getKeywordContent,
   getFileTree,
   getNewFileTree,
   loadKeywords,
@@ -85,6 +86,9 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('readFile', async (_event, filePath: string) => {
     return await readFile(filePath);
+  });
+  ipcMain.handle('getKeywordContent', async (_event, filePath: string, name: string) => {
+    return await getKeywordContent(filePath, name);
   });
   ipcMain.handle(
     'writeFile',

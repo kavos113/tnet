@@ -6,6 +6,7 @@ interface ElectronFileAPI {
   getNewFileTree: () => Promise<{ rootPath: string; fileTree: FileItem[] }>;
   getFileTree: (dirPath: string) => Promise<FileItem[]>;
   readFile: (filePath: string) => Promise<string>;
+  getKeywordContent: (filePath: string, name: string) => Promise<string | null>;
   writeFile: (filePath: string, content: string, rootDir: string) => Promise<void>;
   createFile: (filePath: string) => Promise<void>;
   createDirectory: (dirPath: string) => Promise<void>;

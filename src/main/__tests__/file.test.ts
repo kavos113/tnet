@@ -7,6 +7,7 @@ import {
   createDirectory,
   createFile,
   deleteFile,
+  getKeywordContent,
   getFileTree,
   loadSession,
   renamePath,
@@ -197,5 +198,32 @@ describe('src/main/file.ts', () => {
     >;
     expect(keywords).toMatchObject({ K1: newPath });
     spy.mockRestore();
+  });
+
+  it('getKeywordContent: 指定した<keyword name="...">の内容を返す', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-keyword-content-'));
+    const target = path.join(root, 'doc.md');
+
+    const content = [
+      '<keyword name="K1">',
+      '### タイトル',
+      '',
+      '本文1',
+      '</keyword>',
+      '<keyword name="K2">本文2</keyword>'
+    ].join('\n');
+    await fs.writeFile(target, content, 'utf-8');
+
+    const got = await getKeywordContent(target, 'K1');
+    expect(got).toContain('### タイトル');
+    expect(got).toContain('本文1');
+  });
+
+  it('getKeywordContent: 見つからない場合はnull', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-keyword-content-missing-'));
+    const target = path.join(root, 'doc.md');
+    await fs.writeFile(target, '<keyword name="K1">x</keyword>', 'utf-8');
+
+    await expect(getKeywordContent(target, 'NOPE')).resolves.toBeNull();
   });
 });

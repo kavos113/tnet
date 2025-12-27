@@ -9,6 +9,8 @@ const electronFileAPI = {
   getNewFileTree: () => ipcRenderer.invoke('getNewFileTree'),
   getFileTree: (dirPath: string) => ipcRenderer.invoke('getFileTree', dirPath),
   readFile: (filePath: string) => ipcRenderer.invoke('readFile', filePath),
+  getKeywordContent: (filePath: string, name: string) =>
+    ipcRenderer.invoke('getKeywordContent', filePath, name),
   writeFile: (filePath: string, content: string, rootDir: string) =>
     ipcRenderer.invoke('writeFile', filePath, content, rootDir),
   createFile: (filePath: string) => ipcRenderer.invoke('createFile', filePath),

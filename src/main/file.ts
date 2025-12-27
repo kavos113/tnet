@@ -22,6 +22,18 @@ const FILE_TEMPLATE = `<keyword name="">
 </details>`;
 const KEYWORD_REGEX = /<keyword name="([^>"]*)">([\s\S]*?)<\/keyword>/g;
 
+export const getKeywordContent = async (filePath: string, name: string): Promise<string | null> => {
+  if (!filePath || !name) return null;
+
+  try {
+    const content = await readFile(filePath);
+    return extractKeywordContentFromText(content, name);
+  } catch (err) {
+    console.error('error getting keyword content: ', err);
+    return null;
+  }
+};
+
 /*
 keywords.json
 
@@ -105,6 +117,17 @@ export const readFile = async (filePath: string): Promise<string> => {
     console.error('error reading file: ', err);
     throw new Error('error reading file');
   }
+};
+
+const extractKeywordContentFromText = (content: string, name: string): string | null => {
+  KEYWORD_REGEX.lastIndex = 0;
+  let array: RegExpExecArray | null;
+  while ((array = KEYWORD_REGEX.exec(content)) !== null) {
+    if (array.length >= 3 && array[1] === name) {
+      return array[2];
+    }
+  }
+  return null;
 };
 
 export const writeFile = async (

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable vue/no-v-html */
 import { CodeMirrorInstance, createCodeMirrorEditor } from '@renderer/scripts/codeMirrorUtils';
 import { markdownToHtml, renderMermaid } from '@renderer/scripts/markdownUtils';
 import { useEditorStore } from '@renderer/store/editor';
@@ -21,6 +22,20 @@ const isSaving = ref<boolean>(false);
 const localContent = ref<string>('');
 const htmlPreview = ref<string>('');
 const filePath = ref<string>('');
+
+const internalLinkTooltip = ref<{
+  visible: boolean;
+  x: number;
+  y: number;
+  content: string;
+}>({
+  visible: false,
+  x: 0,
+  y: 0,
+  content: ''
+});
+
+const internalLinkTooltipCache = new Map<string, string | null>();
 
 const isResizing = ref<boolean>(false);
 const editorWidth = ref<number>(50); // percent
@@ -65,6 +80,82 @@ const handleInternalLinkClick = (event: MouseEvent): void => {
       store.open(path);
     }
   }
+};
+
+const normalizeTooltipContent = (raw: string): string => {
+  const normalized = raw.replace(/\r\n/g, '\n').trim();
+  const collapsed = normalized.replace(/\n{3,}/g, '\n\n');
+  const maxLen = 800;
+  if (collapsed.length <= maxLen) return collapsed;
+  return collapsed.slice(0, maxLen) + '…';
+};
+
+const showInternalLinkTooltip = (event: MouseEvent, content: string): void => {
+  if (!previewContainer.value) return;
+
+  const rect = previewContainer.value.getBoundingClientRect();
+  internalLinkTooltip.value = {
+    visible: true,
+    x: Math.max(8, event.clientX - rect.left + 12),
+    y: Math.max(8, event.clientY - rect.top + 12),
+    content
+  };
+};
+
+const hideInternalLinkTooltip = (): void => {
+  internalLinkTooltip.value.visible = false;
+};
+
+const handleInternalLinkHover = async (event: MouseEvent): Promise<void> => {
+  const target = event.target as HTMLElement;
+  const link = target.closest('a[data-internal-link="true"]') as HTMLAnchorElement | null;
+  if (!link) return;
+
+  const path = link.getAttribute('data-path') || '';
+  const name = (link.textContent || '').trim();
+  if (!path || !name) return;
+
+  const cacheKey = `${path}::${name}`;
+  link.dataset.keywordHoverKey = cacheKey;
+  showInternalLinkTooltip(event, '読み込み中…');
+
+  if (internalLinkTooltipCache.has(cacheKey)) {
+    const cached = internalLinkTooltipCache.get(cacheKey);
+    if (cached) {
+      showInternalLinkTooltip(event, cached);
+    } else {
+      showInternalLinkTooltip(event, 'キーワードが見つかりません');
+    }
+    return;
+  }
+
+  try {
+    const content = await window.electronAPI.getKeywordContent(path, name);
+    if (link.dataset.keywordHoverKey !== cacheKey) return;
+
+    const tooltip = content ? normalizeTooltipContent(content) : null;
+    internalLinkTooltipCache.set(cacheKey, tooltip);
+    if (tooltip) {
+      showInternalLinkTooltip(event, tooltip);
+    } else {
+      showInternalLinkTooltip(event, 'キーワードが見つかりません');
+    }
+  } catch (err) {
+    console.error('error getting keyword content', err);
+    internalLinkTooltipCache.set(cacheKey, null);
+    showInternalLinkTooltip(event, 'キーワードが見つかりません');
+  }
+};
+
+const handleInternalLinkOut = (event: MouseEvent): void => {
+  const target = event.target as HTMLElement;
+  const link = target.closest('a[data-internal-link="true"]') as HTMLAnchorElement | null;
+  if (!link) return;
+
+  const related = event.relatedTarget as HTMLElement | null;
+  if (related && link.contains(related)) return;
+
+  hideInternalLinkTooltip();
 };
 
 const handleContentChange = (event: Event): void => {
@@ -228,12 +319,16 @@ const removeScrollListeners = (): void => {
 const setupLinkListener = (): void => {
   if (previewContainer.value) {
     previewContainer.value.addEventListener('click', handleInternalLinkClick);
+    previewContainer.value.addEventListener('mouseover', handleInternalLinkHover);
+    previewContainer.value.addEventListener('mouseout', handleInternalLinkOut);
   }
 };
 
 const removeLinkListener = (): void => {
   if (previewContainer.value) {
     previewContainer.value.removeEventListener('click', handleInternalLinkClick);
+    previewContainer.value.removeEventListener('mouseover', handleInternalLinkHover);
+    previewContainer.value.removeEventListener('mouseout', handleInternalLinkOut);
   }
 };
 
@@ -274,6 +369,7 @@ onUnmounted(() => {
     codeMirrorInstance.value.destroy();
   }
   removeLinkListener();
+  hideInternalLinkTooltip();
 });
 </script>
 
@@ -294,23 +390,46 @@ onUnmounted(() => {
       </div>
       <div v-if="viewMode === 'split'" class="resizer" @mousedown="startResize"></div>
       <div v-if="viewMode !== 'editor'" class="preview-pane" :style="{ width: getPreviewWidth() }">
-        <!-- eslint-disable-next-line vue/no-v-html -->
         <div
           ref="previewContainer"
           class="markdown-preview"
           :style="previewStyle"
           v-html="htmlPreview"
         ></div>
+        <div
+          v-if="internalLinkTooltip.visible"
+          class="internal-link-tooltip"
+          :style="{ left: internalLinkTooltip.x + 'px', top: internalLinkTooltip.y + 'px' }"
+        >
+          {{ internalLinkTooltip.content }}
+        </div>
       </div>
     </div>
   </div>
 </template>
-
 <style scoped>
 .markdown-editor-container {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.preview-pane {
+  position: relative;
+}
+
+.internal-link-tooltip {
+  position: absolute;
+  z-index: 50;
+  max-width: 520px;
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--gray);
+  background-color: var(--background);
+  color: var(--foreground);
+  pointer-events: none;
 }
 
 .resizer {
