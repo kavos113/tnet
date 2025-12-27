@@ -177,6 +177,14 @@ watch(
       return;
     }
 
+    if (activeIndex.value >= 0 && activeIndex.value < openedFiles.value.length) {
+      const file = store.openedFiles[activeIndex.value];
+      if (file.content !== newContent) {
+        file.content = newContent;
+        file.isModified = true;
+      }
+    }
+
     try {
       htmlPreview.value = await markdownToHtml(newContent);
       await nextTick();
@@ -202,6 +210,7 @@ const saveFile = async (): Promise<void> => {
       rootPath.value
     );
     store.openedFiles[activeIndex.value].content = localContent.value;
+    store.openedFiles[activeIndex.value].isModified = false;
   } catch (err) {
     console.error('error saving file', err);
   } finally {
