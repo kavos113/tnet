@@ -28,6 +28,7 @@ function createWindow(): void {
     width: 1920,
     height: 1080,
     show: false,
+    title: 'tnet',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
