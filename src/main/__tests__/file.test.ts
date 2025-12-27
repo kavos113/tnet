@@ -6,8 +6,10 @@ import fs from 'fs/promises';
 import {
   createDirectory,
   createFile,
+  deleteFile,
   getFileTree,
   loadSession,
+  renamePath,
   readFile,
   saveSession,
   writeFile
@@ -148,5 +150,52 @@ describe('src/main/file.ts', () => {
       string
     >;
     expect(keywords).toMatchObject({ K1: target });
+  });
+
+  it('deleteFile: ファイルを削除し、session/keywordsからも除去する', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-delete-'));
+
+    const target = path.join(root, 'a.md');
+    await fs.writeFile(target, '<keyword name="K1">x</keyword>', 'utf-8');
+    await writeFile(target, '<keyword name="K1">x</keyword>', root);
+
+    await saveSession(root, [target]);
+
+    await deleteFile(target, root);
+
+    await expect(fs.access(target)).rejects.toBeDefined();
+
+    await expect(loadSession(root)).resolves.toEqual([]);
+    const keywords = (await readJson(path.join(root, '.tnet', 'keywords.json'))) as Record<
+      string,
+      string
+    >;
+    expect(keywords.K1).toBeUndefined();
+    spy.mockRestore();
+  });
+
+  it('renamePath: パスを変更し、session/keywordsの参照も更新する', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-rename-'));
+
+    const oldPath = path.join(root, 'old.md');
+    const newPath = path.join(root, 'new.md');
+
+    await writeFile(oldPath, '<keyword name="K1">x</keyword>', root);
+    await saveSession(root, [oldPath]);
+
+    await renamePath(oldPath, newPath, root);
+
+    await expect(fs.access(oldPath)).rejects.toBeDefined();
+    await expect(fs.access(newPath)).resolves.toBeUndefined();
+
+    await expect(loadSession(root)).resolves.toEqual([newPath]);
+    const keywords = (await readJson(path.join(root, '.tnet', 'keywords.json'))) as Record<
+      string,
+      string
+    >;
+    expect(keywords).toMatchObject({ K1: newPath });
+    spy.mockRestore();
   });
 });

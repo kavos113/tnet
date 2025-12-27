@@ -146,6 +146,45 @@ export const createDirectory = async (dirPath: string): Promise<void> => {
   }
 };
 
+export const deleteFile = async (filePath: string, rootDir: string): Promise<void> => {
+  try {
+    const stat = await fs.stat(filePath);
+    if (stat.isDirectory()) {
+      throw new Error('path is directory');
+    }
+
+    await fs.unlink(filePath);
+    await removePathFromSession(rootDir, filePath);
+    await removePathFromKeywords(rootDir, filePath);
+  } catch (err) {
+    console.error('error deleting file: ', err);
+    throw new Error('error deleting file');
+  }
+};
+
+export const renamePath = async (
+  oldPath: string,
+  newPath: string,
+  rootDir: string
+): Promise<void> => {
+  try {
+    const exists = await fs
+      .access(newPath)
+      .then(() => true)
+      .catch(() => false);
+    if (exists) throw new Error('already exists');
+
+    await fs.mkdir(path.dirname(newPath), { recursive: true });
+    await fs.rename(oldPath, newPath);
+
+    await replacePathInSession(rootDir, oldPath, newPath);
+    await replacePathInKeywords(rootDir, oldPath, newPath);
+  } catch (err) {
+    console.error('error renaming path: ', err);
+    throw new Error('error renaming path');
+  }
+};
+
 export const saveSession = async (rootDir: string, filePaths: string[]): Promise<void> => {
   await ensureSettingDirExists(rootDir);
   await writeFileRaw(sessionFilePath(rootDir), JSON.stringify(filePaths));
@@ -198,6 +237,63 @@ const writeFileRaw = async (filePath: string, content: string): Promise<void> =>
     console.error('error writing file: ', err);
     throw new Error('error writing file');
   }
+};
+
+const readJsonFileOrDefault = async <T>(filePath: string, defaultValue: T): Promise<T> => {
+  try {
+    const raw = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(raw) as T;
+  } catch {
+    return defaultValue;
+  }
+};
+
+const removePathFromSession = async (rootDir: string, targetPath: string): Promise<void> => {
+  if (!rootDir) return;
+  await ensureSettingDirExists(rootDir);
+  const filePath = sessionFilePath(rootDir);
+  const paths = await readJsonFileOrDefault<string[]>(filePath, []);
+  const next = paths.filter((p) => p !== targetPath);
+  await writeFileRaw(filePath, JSON.stringify(next));
+};
+
+const replacePathInSession = async (
+  rootDir: string,
+  oldPath: string,
+  newPath: string
+): Promise<void> => {
+  if (!rootDir) return;
+  await ensureSettingDirExists(rootDir);
+  const filePath = sessionFilePath(rootDir);
+  const paths = await readJsonFileOrDefault<string[]>(filePath, []);
+  const next = paths.map((p) => (p === oldPath ? newPath : p));
+  await writeFileRaw(filePath, JSON.stringify(next));
+};
+
+const removePathFromKeywords = async (rootDir: string, targetPath: string): Promise<void> => {
+  if (!rootDir) return;
+  await ensureSettingDirExists(rootDir);
+  const filePath = keywordsFilePath(rootDir);
+  const keywords = await readJsonFileOrDefault<Record<string, string>>(filePath, {});
+  for (const [key, value] of Object.entries(keywords)) {
+    if (value === targetPath) delete keywords[key];
+  }
+  await writeFileRaw(filePath, JSON.stringify(keywords));
+};
+
+const replacePathInKeywords = async (
+  rootDir: string,
+  oldPath: string,
+  newPath: string
+): Promise<void> => {
+  if (!rootDir) return;
+  await ensureSettingDirExists(rootDir);
+  const filePath = keywordsFilePath(rootDir);
+  const keywords = await readJsonFileOrDefault<Record<string, string>>(filePath, {});
+  for (const [key, value] of Object.entries(keywords)) {
+    if (value === oldPath) keywords[key] = newPath;
+  }
+  await writeFileRaw(filePath, JSON.stringify(keywords));
 };
 
 const extractAndSaveKeywords = async (

@@ -6,11 +6,13 @@ import icon from '../../resources/icon.png?asset';
 import {
   createFile,
   createDirectory,
+  deleteFile,
   getFileTree,
   getNewFileTree,
   loadKeywords,
   loadProjectConfig,
   loadSession,
+  renamePath,
   readFile,
   saveProjectConfig,
   saveSession,
@@ -96,6 +98,15 @@ app.whenReady().then(async () => {
   ipcMain.handle('createDirectory', async (_event, dirPath: string) => {
     return await createDirectory(dirPath);
   });
+  ipcMain.handle('deleteFile', async (_event, filePath: string, rootDir: string) => {
+    return await deleteFile(filePath, rootDir);
+  });
+  ipcMain.handle(
+    'renamePath',
+    async (_event, oldPath: string, newPath: string, rootDir: string) => {
+      return await renamePath(oldPath, newPath, rootDir);
+    }
+  );
   ipcMain.handle('saveSession', async (_event, rootDir: string, filePaths: string[]) => {
     return await saveSession(rootDir, filePaths);
   });

@@ -20,6 +20,18 @@ type NewEntryContext = {
   cancel: () => void;
 };
 
+type RenameEntryState = {
+  isActive: boolean;
+  targetPath: string | null;
+  name: string;
+};
+
+type RenameEntryContext = {
+  state: Ref<RenameEntryState>;
+  confirm: () => Promise<void>;
+  cancel: () => void;
+};
+
 const props = defineProps<{
   item: FileItem;
 }>();
@@ -36,11 +48,18 @@ const isSelected = computed(() => {
 });
 
 const newEntry = inject<NewEntryContext>('newEntry', null);
+const renameEntry = inject<RenameEntryContext>('renameEntry', null);
 const inputRef = ref<HTMLInputElement | null>(null);
+const renameInputRef = ref<HTMLInputElement | null>(null);
 
 const shouldShowNewEntryHere = computed(() => {
   if (!newEntry?.state.value.isActive) return false;
   return newEntry.state.value.parentPath === props.item.path;
+});
+
+const shouldShowRenameHere = computed(() => {
+  if (!renameEntry?.state.value.isActive) return false;
+  return renameEntry.state.value.targetPath === props.item.path;
 });
 
 watch(
@@ -50,6 +69,17 @@ watch(
       await nextTick();
       inputRef.value?.focus();
       inputRef.value?.select();
+    }
+  }
+);
+
+watch(
+  () => shouldShowRenameHere.value,
+  async (visible) => {
+    if (visible) {
+      await nextTick();
+      renameInputRef.value?.focus();
+      renameInputRef.value?.select();
     }
   }
 );
@@ -76,6 +106,17 @@ const onNewEntryKeydown = async (event: KeyboardEvent): Promise<void> => {
     newEntry.cancel();
   }
 };
+
+const onRenameKeydown = async (event: KeyboardEvent): Promise<void> => {
+  if (!renameEntry) return;
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    await renameEntry.confirm();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    renameEntry.cancel();
+  }
+};
 </script>
 
 <template>
@@ -94,7 +135,19 @@ const onNewEntryKeydown = async (event: KeyboardEvent): Promise<void> => {
       <span v-if="props.item.isDirectory" class="material-icons file-item-folder">
         {{ isExpand ? 'folder_open' : 'folder' }}
       </span>
-      <p class="file-item-name" :class="{ 'file-item-not-directory': !props.item.isDirectory }">
+      <input
+        v-if="shouldShowRenameHere"
+        ref="renameInputRef"
+        v-model="renameEntry!.state.value.name"
+        class="file-item-new-input"
+        @keydown="onRenameKeydown"
+        @blur="renameEntry!.cancel"
+      />
+      <p
+        v-else
+        class="file-item-name"
+        :class="{ 'file-item-not-directory': !props.item.isDirectory }"
+      >
         {{ props.item.name }}
       </p>
     </div>

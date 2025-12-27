@@ -13,6 +13,10 @@ const electronFileAPI = {
     ipcRenderer.invoke('writeFile', filePath, content, rootDir),
   createFile: (filePath: string) => ipcRenderer.invoke('createFile', filePath),
   createDirectory: (dirPath: string) => ipcRenderer.invoke('createDirectory', dirPath),
+  deleteFile: (filePath: string, rootDir: string) =>
+    ipcRenderer.invoke('deleteFile', filePath, rootDir),
+  renamePath: (oldPath: string, newPath: string, rootDir: string) =>
+    ipcRenderer.invoke('renamePath', oldPath, newPath, rootDir),
   saveSession: (rootDir: string, filePaths: string[]) =>
     ipcRenderer.invoke('saveSession', rootDir, filePaths),
   loadSession: (rootDir: string) => ipcRenderer.invoke('loadSession', rootDir),

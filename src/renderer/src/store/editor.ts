@@ -76,6 +76,17 @@ export const useEditorStore = defineStore('editor', {
         }
       }
     },
+    closeByPath(path: string): void {
+      const index = this.openedFiles.findIndex((file) => file.path === path);
+      if (index === -1) return;
+      this.close(index);
+    },
+    renameOpenedPath(oldPath: string, newPath: string): void {
+      const idx = this.openedFiles.findIndex((file) => file.path === oldPath);
+      if (idx === -1) return;
+      this.openedFiles[idx].path = newPath;
+      this.openedFiles[idx].displayName = getDisplayName(newPath);
+    },
     switch(index: number): void {
       if (index >= 0 && index < this.openedFiles.length) {
         this.activeIndex = index;
