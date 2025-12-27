@@ -47,8 +47,8 @@ const isSelected = computed(() => {
   return props.item.path === (selectedPath.value ?? selectedDirPath.value);
 });
 
-const newEntry = inject<NewEntryContext>('newEntry', null);
-const renameEntry = inject<RenameEntryContext>('renameEntry', null);
+const newEntry = inject<NewEntryContext | null>('newEntry', null);
+const renameEntry = inject<RenameEntryContext | null>('renameEntry', null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const renameInputRef = ref<HTMLInputElement | null>(null);
 
