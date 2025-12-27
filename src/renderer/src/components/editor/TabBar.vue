@@ -38,7 +38,6 @@ const switchTab = (index: number): void => {
   overflow-x: auto;
   overflow-y: hidden;
   flex-shrink: 0;
-  height: 40px;
   white-space: nowrap;
 }
 
@@ -62,7 +61,7 @@ const switchTab = (index: number): void => {
 .tab {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 4px 8px;
   background-color: var(--tab-bg);
   border-right: 1px solid var(--tab-border);
   cursor: pointer;
