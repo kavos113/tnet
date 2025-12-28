@@ -153,6 +153,37 @@ describe('src/main/file.ts', () => {
     expect(keywords).toMatchObject({ K1: target });
   });
 
+  it('writeFile: number-class/prefixのみのkeywordに自動採番したnameを本文へ付与して保存する', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-keywords-autoname-'));
+    const target = path.join(root, 'doc.md');
+
+    const content = [
+      '<keyword number-class="1" prefix="定理">A</keyword>',
+      '<keyword number-class="1" prefix="定理">B</keyword>'
+    ].join('\n');
+
+    await writeFile(target, content, root);
+
+    const saved = await fs.readFile(target, 'utf-8');
+    expect(saved).toContain('name="定理 1.1"');
+    expect(saved).toContain('name="定理 1.2"');
+
+    const keywords = (await readJson(path.join(root, '.tnet', 'keywords.json'))) as Record<
+      string,
+      string
+    >;
+    expect(keywords).toMatchObject({
+      '定理 1.1': target,
+      '定理 1.2': target
+    });
+
+    const latest = (await readJson(path.join(root, '.tnet', 'latest.json'))) as Record<
+      string,
+      number
+    >;
+    expect(latest).toMatchObject({ '1': 2 });
+  });
+
   it('deleteFile: ファイルを削除し、session/keywordsからも除去する', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-delete-'));
