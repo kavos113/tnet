@@ -8,6 +8,7 @@ const SETTINGS_DIR_PATH = '.tnet';
 const SESSION_FILE_NAME = 'session.json';
 const KEYWORDS_FILE_NAME = 'keywords.json';
 const SETTINGS_FILE_NAME = 'settings.json';
+const LATEST_FILE_NAME = 'latest.json';
 const FILE_TEMPLATE = `<keyword name="">
 ### 変数・条件
 
@@ -20,7 +21,10 @@ const FILE_TEMPLATE = `<keyword name="">
 <summary>証明</summary>
 
 </details>`;
-const KEYWORD_REGEX = /<keyword name="([^>"]*)">([\s\S]*?)<\/keyword>/g;
+const KEYWORD_REGEX = /<keyword([\s\S]*?)>([\s\S]*?)<\/keyword>/g;
+const KEYWORD_NAME_REGEX = /name="([^"]*)"/g;
+const KEYWORD_NUMBER_CLASS_REGEX = /number-class="([^"]*)"/g;
+const KEYWORD_PREFIX_REGEX = /prefix="([^"]*)"/g;
 
 export const getKeywordContent = async (filePath: string, name: string): Promise<string | null> => {
   if (!filePath || !name) return null;
@@ -251,6 +255,8 @@ const keywordsFilePath = (rootDir: string): string =>
   path.join(rootDir, SETTINGS_DIR_PATH, KEYWORDS_FILE_NAME);
 const settingsFIlePath = (rootDir: string): string =>
   path.join(rootDir, SETTINGS_DIR_PATH, SETTINGS_FILE_NAME);
+const latestFilePath = (rootDir: string): string =>
+  path.join(rootDir, SETTINGS_DIR_PATH, LATEST_FILE_NAME);
 
 const writeFileRaw = async (filePath: string, content: string): Promise<void> => {
   try {
@@ -344,9 +350,59 @@ const extractAndSaveKeywords = async (
   let array: RegExpExecArray | null;
   while ((array = KEYWORD_REGEX.exec(content)) !== null) {
     if (array.length > 1) {
-      keywords[array[1]] = filePath;
+      if (array[1].includes('noindex')) {
+        continue;
+      }
+      const name = await getKeywordName(array[1], rootDir);
+      if (name === '') {
+        continue;
+      }
+      keywords[name] = filePath;
     }
   }
 
   await writeFileRaw(keywordsFilePath(rootDir), JSON.stringify(keywords));
+};
+
+const readLatest = async (rootDir: string): Promise<Record<string, number>> => {
+  const filePath = latestFilePath(rootDir);
+
+  try {
+    const content = await readFile(filePath);
+    return JSON.parse(content);
+  } catch {
+    await fs.writeFile(filePath, '');
+    return {};
+  }
+};
+
+const updateLatest = async (rootDir: string, key: string, value: number): Promise<void> => {
+  const filePath = latestFilePath(rootDir);
+  const latests = await readLatest(rootDir);
+
+  latests[key] = value;
+  await fs.writeFile(filePath, JSON.stringify(latests));
+};
+
+const getKeywordName = async (attr: string, rootDir: string): Promise<string> => {
+  const name = KEYWORD_NAME_REGEX.exec(attr);
+  if (name !== null && name.length > 1) {
+    return name[1];
+  }
+
+  const numberClass = KEYWORD_NUMBER_CLASS_REGEX.exec(attr);
+  if (numberClass !== null && numberClass.length > 1) {
+    const prefixMatch = KEYWORD_PREFIX_REGEX.exec(attr);
+    const prefix = prefixMatch !== null && prefixMatch.length > 1 ? prefixMatch[1] : '命題';
+
+    const latest = await readLatest(rootDir);
+    if (numberClass[1] in latest) {
+      await updateLatest(rootDir, numberClass[1], latest[numberClass[1]] + 1);
+      return `${prefix} ${numberClass[1]}.${latest[numberClass[1]] + 1}`;
+    } else {
+      await updateLatest(rootDir, numberClass[1], 1);
+      return `${prefix} ${numberClass[1]}.1`;
+    }
+  }
+  return '';
 };
