@@ -184,6 +184,35 @@ describe('src/main/file.ts', () => {
     expect(latest).toMatchObject({ '1': 2 });
   });
 
+  it('writeFile: noindexありのkeywordでも自動採番したnameを本文へ付与して保存する（keywords.jsonには登録しない）', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-keywords-noindex-name-'));
+    const target = path.join(root, 'doc.md');
+
+    const content = [
+      '<keyword noindex number-class="9" prefix="補題">X</keyword>',
+      '<keyword noindex number-class="9" prefix="補題">Y</keyword>'
+    ].join('\n');
+
+    await writeFile(target, content, root);
+
+    const saved = await fs.readFile(target, 'utf-8');
+    expect(saved).toContain('name="補題 9.1"');
+    expect(saved).toContain('name="補題 9.2"');
+
+    const keywords = (await readJson(path.join(root, '.tnet', 'keywords.json'))) as Record<
+      string,
+      string
+    >;
+    expect(keywords['補題 9.1']).toBeUndefined();
+    expect(keywords['補題 9.2']).toBeUndefined();
+
+    const latest = (await readJson(path.join(root, '.tnet', 'latest.json'))) as Record<
+      string,
+      number
+    >;
+    expect(latest).toMatchObject({ '9': 2 });
+  });
+
   it('deleteFile: ファイルを削除し、session/keywordsからも除去する', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-delete-'));
