@@ -209,6 +209,12 @@ const saveFile = async (): Promise<void> => {
       localContent.value,
       rootPath.value
     );
+    localContent.value = await window.electronAPI.readFile(
+      openedFiles.value[activeIndex.value].path
+    );
+    if (codeMirrorInstance.value) {
+      codeMirrorInstance.value.updateContent(localContent.value);
+    }
     store.openedFiles[activeIndex.value].content = localContent.value;
     store.openedFiles[activeIndex.value].isModified = false;
   } catch (err) {
