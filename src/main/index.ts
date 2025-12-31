@@ -64,8 +64,7 @@ app.whenReady().then(async () => {
 
   if (process.env.NODE_ENV === 'development') {
     try {
-      const name = await installExtension(VUEJS_DEVTOOLS);
-      console.log('extension installed: ', name);
+      await installExtension(VUEJS_DEVTOOLS);
     } catch (err) {
       console.log('error install extension', err);
     }

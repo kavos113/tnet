@@ -10,7 +10,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
 import { visit } from 'unist-util-visit';
 import mermaid from 'mermaid';
-import type { Element, Root, ElementContent } from 'hast';
+import type { Element, Root } from 'hast';
 import type { Root as RemarkRoot, Text } from 'mdast';
 import rehypeRaw from 'rehype-raw';
 
@@ -241,24 +241,17 @@ const remarkInternalLinks = () => {
   };
 };
 
-const rehypeKeywordMarkdown = () => {
+const KEYWORD_REGEX = /<keyword[^>]*>([\s\S]*?)<\/keyword>/;
+
+const rehypeKeywordMarkdown = (source: string) => () => {
   return (tree: Root) => {
     visit(tree, 'element', (node: Element, index?: number, parent?: Root | Element) => {
       if (node.tagName === 'keyword' && parent?.children && index !== undefined) {
         const nameAttr = node.properties?.name as string;
 
-        let content = '';
-        const collectText = (children: ElementContent[]): void => {
-          for (const child of children) {
-            if (child.type === 'text') {
-              content += child.value;
-              // console.log(child.value);
-            } else if (child.type === 'element' && child.children) {
-              collectText(child.children);
-            }
-          }
-        };
-        collectText(node.children);
+        const keywordStr = source.slice(node.position?.start.offset, node.position?.end.offset);
+        const regArray = KEYWORD_REGEX.exec(keywordStr);
+        const content = regArray !== null && regArray.length > 1 ? regArray[1] : '';
 
         const processor = unified()
           .use(remarkParse)
@@ -269,8 +262,6 @@ const rehypeKeywordMarkdown = () => {
 
         const mdast = processor.parse(content);
         const hast = processor.runSync(mdast);
-
-        // console.log(hast);
 
         parent.children[index] = {
           type: 'element',
@@ -307,7 +298,7 @@ export const markdownToHtml = async (markdown: string): Promise<string> => {
     .use(remarkMath)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
-    .use(rehypeKeywordMarkdown)
+    .use(rehypeKeywordMarkdown(markdown))
     .use(rehypeSlug)
     .use(rehypeKatex)
     .use(rehypeHighlight)
