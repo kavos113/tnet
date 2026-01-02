@@ -77,6 +77,7 @@ const handleInternalLinkClick = (event: MouseEvent): void => {
     const path = link.getAttribute('data-path');
 
     if (path) {
+      internalLinkTooltip.value.visible = false;
       store.open(path);
     }
   }

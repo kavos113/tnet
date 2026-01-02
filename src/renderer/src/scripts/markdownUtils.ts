@@ -258,8 +258,8 @@ const rehypeKeywordMarkdown = (source: string) => () => {
           .use(remarkBreaks)
           .use(remarkGfm)
           .use(remarkMath)
-          .use(remarkRehype, { allowDangerousHtml: true })
-          .use(remarkInternalLinks);
+          .use(remarkInternalLinks)
+          .use(remarkRehype, { allowDangerousHtml: true });
 
         const mdast = processor.parse(content);
         const hast = processor.runSync(mdast);
