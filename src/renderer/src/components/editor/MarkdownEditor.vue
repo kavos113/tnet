@@ -766,11 +766,9 @@ onUnmounted(() => {
 
 .markdown-preview :deep(.keyword),
 .internal-link-tooltip :deep(.keyword) {
-  margin-top: 10px;
-  padding: 0.5em;
-  border: 3px solid var(--main-dark);
-  border-radius: 5px;
-  box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+  padding: 0.5em 1.5em;
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.5);
   background-color: var(--background);
 }
 
@@ -780,7 +778,7 @@ onUnmounted(() => {
   margin: 0;
   padding: 5px 5px 0 5px;
   font-size: 1.5em;
-  border-bottom: 2px solid var(--color-text);
+  border-bottom: 2px solid var(--main-dark);
 }
 
 .markdown-preview :deep(.keyword-content),
