@@ -45,17 +45,17 @@ const tagAutocompletion = () => {
     },
     {
       label: 'keyword prop',
-      apply: 'keyword number-class="" prefix="命題">\n\n</keyword>',
+      apply: 'keyword noindex number-class="" prefix="命題">\n\n</keyword>',
       type: 'keyword'
     },
     {
       label: 'keyword lemma',
-      apply: 'keyword number-class="" prefix="補題">\n\n</keyword>',
+      apply: 'keyword noindex number-class="" prefix="補題">\n\n</keyword>',
       type: 'keyword'
     },
     {
       label: 'keyword cor',
-      apply: 'keyword number-class="" prefix="系">\n\n</keyword>',
+      apply: 'keyword noindex number-class="" prefix="系">\n\n</keyword>',
       type: 'keyword'
     },
     {
