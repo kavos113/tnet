@@ -197,6 +197,10 @@ const onRenameKeydown = async (event: KeyboardEvent): Promise<void> => {
   cursor: pointer;
 }
 
+.file-tree-item:hover {
+  background-color: var(--gray);
+}
+
 .file-item-name {
   margin: 0;
 }

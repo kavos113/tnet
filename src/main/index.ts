@@ -26,7 +26,7 @@ function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 1920,
-    height: 1080,
+    height: 1200,
     show: false,
     title: 'tnet',
     autoHideMenuBar: true,

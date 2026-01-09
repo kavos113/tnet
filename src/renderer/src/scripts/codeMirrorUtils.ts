@@ -36,6 +36,54 @@ const keywordAutocompletion =
     };
   };
 
+const tagAutocompletion = () => {
+  const commands = [
+    {
+      label: 'keyword name',
+      apply: 'keyword name="">\n\n</keyword>',
+      type: 'keyword'
+    },
+    {
+      label: 'keyword prop',
+      apply: 'keyword number-class="" prefix="命題">\n\n</keyword>',
+      type: 'keyword'
+    },
+    {
+      label: 'keyword lemma',
+      apply: 'keyword number-class="" prefix="補題">\n\n</keyword>',
+      type: 'keyword'
+    },
+    {
+      label: 'keyword cor',
+      apply: 'keyword number-class="" prefix="系">\n\n</keyword>',
+      type: 'keyword'
+    },
+    {
+      label: 'detail proof',
+      apply: 'details>\n<summary>証明</summary>\n\n</details>',
+      type: 'keyword'
+    }
+  ];
+
+  return (context: CompletionContext): CompletionResult | null => {
+    const match = context.matchBefore(/<([a-zA-Z]*)$/);
+    if (!match) {
+      return null;
+    }
+    const word = match.text.slice(1); // Remove the leading '<'
+
+    const filteredOptions = commands.filter((cmd) =>
+      cmd.apply.toLowerCase().startsWith(`${word.toLowerCase()}`)
+    );
+
+    return {
+      from: match.from + 1, // Start completion after '<'
+      options: filteredOptions,
+      validFor: /^<([a-zA-Z]*)$/
+    };
+  };
+};
+
 const katexAutocompletion = () => {
   const latexCommands = [
     { label: '\\alpha', apply: 'alpha', type: 'keyword' },
@@ -102,6 +150,7 @@ const katexAutocompletion = () => {
     { label: '\\emptyset', apply: 'emptyset', type: 'keyword' },
     { label: '\\mathbb{R}', apply: 'mathbb{R}', type: 'keyword' },
     { label: '\\mathbb{C}', apply: 'mathbb{C}', type: 'keyword' },
+    { label: '\\mathcal{}', apply: 'mathcal{}', type: 'keyword' },
     {
       label: '\\begin{pmatrix}\\end{pmatrix}',
       apply: 'begin{pmatrix}\n\n\\end{pmatrix}',
@@ -536,7 +585,7 @@ export const createCodeMirrorEditor = (
     }),
     editorTheme,
     autocompletion({
-      override: [keywordAutocompletion(rootDir), katexAutocompletion()]
+      override: [keywordAutocompletion(rootDir), katexAutocompletion(), tagAutocompletion()]
     }),
     EditorView.lineWrapping
   ];
