@@ -802,6 +802,12 @@ onUnmounted(() => {
   padding: 10px;
   font-family: 'Fira Code', 'Courier New', monospace;
 }
+
+.markdown-preview :deep(.katex),
+.internal-link-tooltip :deep(.katex) {
+  margin-left: 2px;
+  margin-right: 2px;
+}
 </style>
 
 <style>
