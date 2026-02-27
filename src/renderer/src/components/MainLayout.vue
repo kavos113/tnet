@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import MarkdownEditor from './editor/MarkdownEditor.vue';
 import TabBar from './editor/TabBar.vue';
 import FileExplorer from './explorer/FileExplorer.vue';
@@ -9,7 +9,7 @@ import { useEditorStore } from '@renderer/store/editor';
 import { useWorkspaceStore } from '@renderer/store/workspace';
 
 const explorerStore = useExplorerStore();
-const { selectedPath } = storeToRefs(explorerStore);
+const { selectedPath, expandPaths } = storeToRefs(explorerStore);
 
 const editorStore = useEditorStore();
 const { openedFiles, activeIndex } = storeToRefs(editorStore);
@@ -17,22 +17,38 @@ const { openedFiles, activeIndex } = storeToRefs(editorStore);
 const workspaceStore = useWorkspaceStore();
 const { rootPath } = storeToRefs(workspaceStore);
 
+const openedPaths = computed(() => openedFiles.value.map((file) => file.path));
+const expandedFolders = computed(() => [...expandPaths.value]);
+
 watch(selectedPath, async (newPath) => {
   if (newPath) {
-    editorStore.open(newPath);
-
-    const openedPaths = openedFiles.value.map((file) => file.path);
-    await window.electronAPI.saveSession(rootPath.value, openedPaths);
+    await editorStore.open(newPath);
   }
 });
 
+watch(
+  [openedPaths, expandedFolders],
+  async ([paths, folders]) => {
+    if (rootPath.value) {
+      await window.electronAPI.saveSession(rootPath.value, {
+        openedFiles: paths,
+        expandedFolders: folders
+      });
+    }
+  },
+  { deep: true }
+);
+
 watch(rootPath, async (newPath) => {
   if (newPath !== '') {
-    const filePaths = await window.electronAPI.loadSession(rootPath.value);
-    if (filePaths && filePaths.length > 0) {
-      for (const path of filePaths) {
-        editorStore.open(path);
+    const session = await window.electronAPI.loadSession(rootPath.value);
+    if (session.openedFiles && session.openedFiles.length > 0) {
+      for (const path of session.openedFiles) {
+        await editorStore.open(path);
       }
+    }
+    if (session.expandedFolders && session.expandedFolders.length > 0) {
+      explorerStore.expandPaths = new Set(session.expandedFolders);
     }
   }
 

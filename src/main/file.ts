@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { FileItem } from '@fixtures/file';
+import { FileItem, SessionData } from '@fixtures/file';
 import { app, dialog } from 'electron';
 import { ProjectConfig } from '@fixtures/config';
 
@@ -218,18 +218,24 @@ export const renamePath = async (
   }
 };
 
-export const saveSession = async (rootDir: string, filePaths: string[]): Promise<void> => {
+export const saveSession = async (rootDir: string, session: SessionData): Promise<void> => {
   await ensureSettingDirExists(rootDir);
-  await writeFileRaw(sessionFilePath(rootDir), JSON.stringify(filePaths));
+  await writeFileRaw(sessionFilePath(rootDir), JSON.stringify(session));
 };
 
-export const loadSession = async (rootDir: string): Promise<string[]> => {
+export const loadSession = async (rootDir: string): Promise<SessionData> => {
   if (rootDir == '') {
-    return [];
+    return { openedFiles: [], expandedFolders: [] };
   }
 
-  const filePaths: string[] = JSON.parse(await readFile(sessionFilePath(rootDir)));
-  return filePaths;
+  const raw = JSON.parse(await readFile(sessionFilePath(rootDir)));
+
+  // 旧形式（string[]）との後方互換
+  if (Array.isArray(raw)) {
+    return { openedFiles: raw, expandedFolders: [] };
+  }
+
+  return raw as SessionData;
 };
 
 export const loadKeywords = async (rootDir: string): Promise<Record<string, string>> => {
@@ -287,9 +293,12 @@ const removePathFromSession = async (rootDir: string, targetPath: string): Promi
   if (!rootDir) return;
   await ensureSettingDirExists(rootDir);
   const filePath = sessionFilePath(rootDir);
-  const paths = await readJsonFileOrDefault<string[]>(filePath, []);
-  const next = paths.filter((p) => p !== targetPath);
-  await writeFileRaw(filePath, JSON.stringify(next));
+  const session = await readJsonFileOrDefault<SessionData>(filePath, {
+    openedFiles: [],
+    expandedFolders: []
+  });
+  session.openedFiles = session.openedFiles.filter((p) => p !== targetPath);
+  await writeFileRaw(filePath, JSON.stringify(session));
 };
 
 const replacePathInSession = async (
@@ -300,9 +309,13 @@ const replacePathInSession = async (
   if (!rootDir) return;
   await ensureSettingDirExists(rootDir);
   const filePath = sessionFilePath(rootDir);
-  const paths = await readJsonFileOrDefault<string[]>(filePath, []);
-  const next = paths.map((p) => (p === oldPath ? newPath : p));
-  await writeFileRaw(filePath, JSON.stringify(next));
+  const session = await readJsonFileOrDefault<SessionData>(filePath, {
+    openedFiles: [],
+    expandedFolders: []
+  });
+  session.openedFiles = session.openedFiles.map((p) => (p === oldPath ? newPath : p));
+  session.expandedFolders = session.expandedFolders.map((p) => (p === oldPath ? newPath : p));
+  await writeFileRaw(filePath, JSON.stringify(session));
 };
 
 const removePathFromKeywords = async (rootDir: string, targetPath: string): Promise<void> => {

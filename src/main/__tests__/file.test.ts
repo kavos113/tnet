@@ -97,13 +97,33 @@ describe('src/main/file.ts', () => {
   it('saveSession/loadSession: セッションを保存・復元できる', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-session-'));
     const filePaths = [path.join(root, 'a.md'), path.join(root, 'b.md')];
+    const expandedFolders = [path.join(root, 'dir1'), path.join(root, 'dir2')];
 
-    await saveSession(root, filePaths);
-    await expect(loadSession(root)).resolves.toEqual(filePaths);
+    await saveSession(root, { openedFiles: filePaths, expandedFolders });
+    await expect(loadSession(root)).resolves.toEqual({
+      openedFiles: filePaths,
+      expandedFolders
+    });
   });
 
-  it("loadSession: rootDirが''のとき空配列", async () => {
-    await expect(loadSession('')).resolves.toEqual([]);
+  it("loadSession: rootDirが''のとき空セッション", async () => {
+    await expect(loadSession('')).resolves.toEqual({
+      openedFiles: [],
+      expandedFolders: []
+    });
+  });
+
+  it('loadSession: 旧形式(string[])のsession.jsonを読み込める', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-session-compat-'));
+    const settingsDir = path.join(root, '.tnet');
+    await fs.mkdir(settingsDir, { recursive: true });
+    const filePaths = [path.join(root, 'a.md')];
+    await fs.writeFile(path.join(settingsDir, 'session.json'), JSON.stringify(filePaths), 'utf-8');
+
+    await expect(loadSession(root)).resolves.toEqual({
+      openedFiles: filePaths,
+      expandedFolders: []
+    });
   });
 
   it('writeFile: keywords.jsonに<keyword name="...">を抽出して保存する（上書きで古いキーも消える）', async () => {
@@ -221,13 +241,14 @@ describe('src/main/file.ts', () => {
     await fs.writeFile(target, '<keyword name="K1">x</keyword>', 'utf-8');
     await writeFile(target, '<keyword name="K1">x</keyword>', root);
 
-    await saveSession(root, [target]);
+    await saveSession(root, { openedFiles: [target], expandedFolders: [] });
 
     await deleteFile(target, root);
 
     await expect(fs.access(target)).rejects.toBeDefined();
 
-    await expect(loadSession(root)).resolves.toEqual([]);
+    const session = await loadSession(root);
+    expect(session.openedFiles).toEqual([]);
     const keywords = (await readJson(path.join(root, '.tnet', 'keywords.json'))) as Record<
       string,
       string
@@ -244,14 +265,16 @@ describe('src/main/file.ts', () => {
     const newPath = path.join(root, 'new.md');
 
     await writeFile(oldPath, '<keyword name="K1">x</keyword>', root);
-    await saveSession(root, [oldPath]);
+    await saveSession(root, { openedFiles: [oldPath], expandedFolders: [root] });
 
     await renamePath(oldPath, newPath, root);
 
     await expect(fs.access(oldPath)).rejects.toBeDefined();
     await expect(fs.access(newPath)).resolves.toBeUndefined();
 
-    await expect(loadSession(root)).resolves.toEqual([newPath]);
+    const session = await loadSession(root);
+    expect(session.openedFiles).toEqual([newPath]);
+    expect(session.expandedFolders).toEqual([root]);
     const keywords = (await readJson(path.join(root, '.tnet', 'keywords.json'))) as Record<
       string,
       string

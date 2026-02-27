@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 import { GlobalConfig, ProjectConfig } from '@fixtures/config';
+import { SessionData } from '@fixtures/file';
 
 // Custom APIs for renderer
 const api = {};
@@ -19,8 +20,8 @@ const electronFileAPI = {
     ipcRenderer.invoke('deleteFile', filePath, rootDir),
   renamePath: (oldPath: string, newPath: string, rootDir: string) =>
     ipcRenderer.invoke('renamePath', oldPath, newPath, rootDir),
-  saveSession: (rootDir: string, filePaths: string[]) =>
-    ipcRenderer.invoke('saveSession', rootDir, filePaths),
+  saveSession: (rootDir: string, session: SessionData) =>
+    ipcRenderer.invoke('saveSession', rootDir, session),
   loadSession: (rootDir: string) => ipcRenderer.invoke('loadSession', rootDir),
   loadKeywords: (rootDir: string) => ipcRenderer.invoke('loadKeywords', rootDir)
 };

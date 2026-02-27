@@ -21,6 +21,7 @@ import {
 } from './file';
 import { loadConfig, saveConfig } from './config';
 import { GlobalConfig, ProjectConfig } from '@fixtures/config';
+import { SessionData } from '@fixtures/file';
 
 function createWindow(): void {
   // Create the browser window.
@@ -111,8 +112,8 @@ app.whenReady().then(async () => {
       return await renamePath(oldPath, newPath, rootDir);
     }
   );
-  ipcMain.handle('saveSession', async (_event, rootDir: string, filePaths: string[]) => {
-    return await saveSession(rootDir, filePaths);
+  ipcMain.handle('saveSession', async (_event, rootDir: string, session: SessionData) => {
+    return await saveSession(rootDir, session);
   });
   ipcMain.handle('loadSession', async (_event, rootDir: string) => {
     return await loadSession(rootDir);

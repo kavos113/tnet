@@ -4,3 +4,8 @@ export interface FileItem {
   isDirectory: boolean;
   children?: FileItem[];
 }
+
+export interface SessionData {
+  openedFiles: string[];
+  expandedFolders: string[];
+}
