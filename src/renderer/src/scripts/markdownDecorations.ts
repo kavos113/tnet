@@ -154,6 +154,34 @@ export function buildDecorations(view: EditorView): DecorationSet {
     });
   }
 
+  // KaTeX 数式のデコレーション（$...$ と $$...$$）
+  // Markdown パーサーは数式ノードを持たないため、テキストベースで検出する
+  const docText = view.state.doc.toString();
+
+  // $$...$$ (display math) を先にマッチ
+  const displayMathRegex = /\$\$([\s\S]+?)\$\$/g;
+  let displayMatch: RegExpExecArray | null;
+  while ((displayMatch = displayMathRegex.exec(docText)) !== null) {
+    const matchFrom = displayMatch.index;
+    const matchTo = displayMatch.index + displayMatch[0].length;
+    // ブロック全体にデコレーションを付与
+    const startLine = view.state.doc.lineAt(matchFrom);
+    const endLine = view.state.doc.lineAt(matchTo);
+    for (let i = startLine.number; i <= endLine.number; i++) {
+      const line = view.state.doc.line(i);
+      decos.push(Decoration.line({ class: 'cm-md-display-math' }).range(line.from));
+    }
+  }
+
+  // $...$ (inline math) をマッチ（$$ は除外）
+  const inlineMathRegex = /(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g;
+  let inlineMatch: RegExpExecArray | null;
+  while ((inlineMatch = inlineMathRegex.exec(docText)) !== null) {
+    const matchFrom = inlineMatch.index;
+    const matchTo = inlineMatch.index + inlineMatch[0].length;
+    decos.push(Decoration.mark({ class: 'cm-md-inline-math' }).range(matchFrom, matchTo));
+  }
+
   return Decoration.set(decos, true);
 }
 

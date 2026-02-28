@@ -38,6 +38,19 @@ watch(
   { immediate: true }
 );
 
+watch(
+  settings,
+  (newSettings) => {
+    if (codeMirrorInstance.value) {
+      codeMirrorInstance.value.setEditorStyle({
+        fontFamily: newSettings.editorFontFamily,
+        fontSize: `${newSettings.editorFontSize}px`
+      });
+    }
+  },
+  { deep: true }
+);
+
 const getEditorScroller = (): HTMLElement | null => {
   return editorContainer.value?.querySelector('.cm-scroller') as HTMLElement | null;
 };

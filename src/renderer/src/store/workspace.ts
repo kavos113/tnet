@@ -19,6 +19,15 @@ export const useWorkspaceStore = defineStore('workspace', {
     };
   },
   actions: {
+    async loadSettings() {
+      if (!this.rootPath) return;
+      try {
+        const loaded = await window.electronConfigAPI.loadProjectConfig(this.rootPath);
+        this.settings = loaded;
+      } catch {
+        console.error('failed to load project settings');
+      }
+    },
     async saveSettings(settings: ProjectConfig) {
       this.settings = settings;
       await window.electronConfigAPI.saveProjectConfig(

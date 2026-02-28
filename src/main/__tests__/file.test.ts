@@ -10,9 +10,11 @@ import {
   deleteFile,
   getKeywordContent,
   getFileTree,
+  loadProjectConfig,
   loadSession,
   renamePath,
   readFile,
+  saveProjectConfig,
   saveSession,
   writeFile
 } from '../file';
@@ -309,5 +311,33 @@ describe('src/main/file.ts', () => {
     await fs.writeFile(target, '<keyword name="K1">x</keyword>', 'utf-8');
 
     await expect(getKeywordContent(target, 'NOPE')).resolves.toBeNull();
+  });
+
+  it('saveProjectConfig/loadProjectConfig: 設定を保存・読み込みできる', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-projconfig-'));
+    const config = {
+      editorFontFamily: 'Consolas',
+      editorFontSize: 14,
+      previewFontFamily: 'Georgia',
+      previewFontSize: 18
+    };
+
+    await saveProjectConfig(root, config);
+    const loaded = await loadProjectConfig(root);
+
+    expect(loaded).toEqual(config);
+  });
+
+  it('loadProjectConfig: settings.jsonが存在しない場合はデフォルト値を返す', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-projconfig-default-'));
+
+    const loaded = await loadProjectConfig(root);
+
+    expect(loaded).toEqual({
+      editorFontFamily: 'monospace',
+      editorFontSize: 16,
+      previewFontFamily: 'sans-serif',
+      previewFontSize: 16
+    });
   });
 });

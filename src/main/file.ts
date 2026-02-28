@@ -253,8 +253,13 @@ export const saveProjectConfig = async (rootDir: string, config: ProjectConfig):
 };
 
 export const loadProjectConfig = async (rootDir: string): Promise<ProjectConfig> => {
-  const config = await readFile(settingsFIlePath(rootDir));
-  return JSON.parse(config);
+  const defaultConfig: ProjectConfig = {
+    editorFontFamily: 'monospace',
+    editorFontSize: 16,
+    previewFontFamily: 'sans-serif',
+    previewFontSize: 16
+  };
+  return await readJsonFileOrDefault<ProjectConfig>(settingsFIlePath(rootDir), defaultConfig);
 };
 
 const ensureSettingDirExists = async (rootDir: string): Promise<void> => {

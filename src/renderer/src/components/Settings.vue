@@ -2,7 +2,7 @@
 import { ProjectConfig } from '@fixtures/config';
 import { useWorkspaceStore } from '@renderer/store/workspace';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -15,10 +15,22 @@ const emit = defineEmits<{
 const store = useWorkspaceStore();
 const { settings } = storeToRefs(store);
 
-const projectSettings = ref<ProjectConfig>(settings.value);
+const projectSettings = ref<ProjectConfig>({ ...settings.value });
+
+// モーダルが開かれるたびに最新の設定を読み込む
+watch(
+  () => props.isOpen,
+  async (isOpen) => {
+    if (isOpen) {
+      await store.loadSettings();
+      projectSettings.value = { ...settings.value };
+    }
+  }
+);
 
 const saveSettings = async (): Promise<void> => {
   await store.saveSettings(projectSettings.value);
+  emit('close');
 };
 </script>
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import Settings from '../Settings.vue';
 import { useWorkspaceStore } from '@renderer/store/workspace';
@@ -7,7 +7,12 @@ import { useWorkspaceStore } from '@renderer/store/workspace';
 const mockElectronConfigAPI = {
   loadConfig: vi.fn(),
   saveConfig: vi.fn(),
-  loadProjectConfig: vi.fn(),
+  loadProjectConfig: vi.fn().mockResolvedValue({
+    editorFontFamily: 'monospace',
+    editorFontSize: 16,
+    previewFontFamily: 'sans-serif',
+    previewFontSize: 16
+  }),
   saveProjectConfig: vi.fn().mockResolvedValue(undefined)
 };
 
@@ -37,8 +42,9 @@ describe('Settings.vue', () => {
     expect(wrapper.find('.modal-content').exists()).toBe(true);
   });
 
-  it('設定フォームが正しい初期値を持つ', () => {
+  it('設定フォームが正しい初期値を持つ', async () => {
     const store = useWorkspaceStore();
+    store.rootPath = '/workspace';
     store.settings = {
       editorFontFamily: 'Consolas',
       editorFontSize: 14,
@@ -46,9 +52,18 @@ describe('Settings.vue', () => {
       previewFontSize: 18
     };
 
+    mockElectronConfigAPI.loadProjectConfig.mockResolvedValue({
+      editorFontFamily: 'Consolas',
+      editorFontSize: 14,
+      previewFontFamily: 'Georgia',
+      previewFontSize: 18
+    });
+
     const wrapper = mount(Settings, {
       props: { isOpen: true }
     });
+
+    await flushPromises();
 
     const editorFontInput = wrapper.find('#editor-font-family');
     expect((editorFontInput.element as HTMLInputElement).value).toBe('Consolas');
@@ -68,7 +83,7 @@ describe('Settings.vue', () => {
     expect(wrapper.emitted('close')!.length).toBe(1);
   });
 
-  it('保存ボタンでsaveProjectConfigが呼ばれる', async () => {
+  it('保存ボタンでsaveProjectConfigが呼ばれcloseイベントが発火する', async () => {
     const store = useWorkspaceStore();
     store.rootPath = '/workspace';
 
@@ -77,8 +92,10 @@ describe('Settings.vue', () => {
     });
 
     await wrapper.find('.btn-primary').trigger('click');
+    await flushPromises();
 
     expect(mockElectronConfigAPI.saveProjectConfig).toHaveBeenCalled();
+    expect(wrapper.emitted('close')).toBeTruthy();
   });
 
   it('オーバーレイクリックでcloseイベントが発火する', async () => {

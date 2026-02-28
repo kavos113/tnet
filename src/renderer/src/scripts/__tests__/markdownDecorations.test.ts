@@ -197,5 +197,58 @@ describe('markdownDecorations', () => {
         view.dispatch({ selection: { anchor: pos, head: pos } });
       }
     });
+
+    it('インライン数式 $...$ を含むドキュメントでデコレーションが生成される', () => {
+      const doc = 'The formula $x^2 + y^2 = z^2$ is famous.';
+      view = createEditorView(doc, 0);
+
+      const decos = buildDecorations(view);
+      const collected: { from: number; to: number }[] = [];
+      const iter = decos.iter();
+      while (iter.value) {
+        collected.push({ from: iter.from, to: iter.to });
+        iter.next();
+      }
+      // インライン数式のデコレーション（マークデコレーション）が存在する
+      expect(collected.length).toBeGreaterThan(0);
+      // $x^2 + y^2 = z^2$ の範囲を含むマークデコレーションが存在する
+      const dollarStart = doc.indexOf('$');
+      const dollarEnd = doc.indexOf('$', dollarStart + 1) + 1;
+      const mathDeco = collected.find((d) => d.from === dollarStart && d.to === dollarEnd);
+      expect(mathDeco).toBeDefined();
+    });
+
+    it('ディスプレイ数式 $$...$$ を含むドキュメントでデコレーションが生成される', () => {
+      const doc = 'Text\n\n$$\nx = \\frac{-b}{2a}\n$$\n\nMore text';
+      view = createEditorView(doc, 0);
+
+      const decos = buildDecorations(view);
+      const collected: { from: number; to: number }[] = [];
+      const iter = decos.iter();
+      while (iter.value) {
+        collected.push({ from: iter.from, to: iter.to });
+        iter.next();
+      }
+      // ディスプレイ数式のラインデコレーションが存在する
+      expect(collected.length).toBeGreaterThan(0);
+    });
+
+    it('$$ はインライン数式としてマッチしない', () => {
+      const doc = '$$x^2$$';
+      view = createEditorView(doc, 0);
+
+      const decos = buildDecorations(view);
+      const collected: { from: number; to: number }[] = [];
+      const iter = decos.iter();
+      while (iter.value) {
+        collected.push({ from: iter.from, to: iter.to });
+        iter.next();
+      }
+      // display math のラインデコレーションのみ（inline math は 0 件）
+      expect(collected.length).toBeGreaterThan(0);
+      // インラインマークが存在しないことを確認（全てラインデコレーション = from === to）
+      const markDecos = collected.filter((d) => d.from !== d.to);
+      expect(markDecos.length).toBe(0);
+    });
   });
 });

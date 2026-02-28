@@ -1,4 +1,4 @@
-import { EditorState } from '@codemirror/state';
+import { Compartment, EditorState, Extension } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
@@ -443,16 +443,23 @@ export const createCodeMirrorEditor = (
   isDarkTheme = false,
   rootDir: string
 ): CodeMirrorInstance => {
+  const fontCompartment = new Compartment();
+
+  const createFontTheme = (fontSize: string, fontFamily: string): Extension =>
+    EditorView.theme({
+      '&': {
+        fontSize,
+        fontFamily
+      }
+    });
+
   const editorTheme = EditorView.theme({
     // --- ベースレイアウト ---
     '&': {
-      height: '100%',
-      fontSize: '16px',
-      fontFamily:
-        '"Rounded Mplus 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      height: '100%'
     },
     '.cm-content': {
-      padding: '24px 48px',
+      padding: '12px 12px',
       minHeight: '100%',
       caretColor: 'var(--foreground)'
     },
@@ -460,8 +467,10 @@ export const createCodeMirrorEditor = (
       height: '100%'
     },
     '.cm-scroller': {
-      fontFamily: 'inherit',
-      lineHeight: '1.8'
+      fontFamily:
+        '"Rounded Mplus 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontSize: '12px',
+      lineHeight: '1.'
     },
     '.cm-line': {
       padding: '1px 2px'
@@ -566,6 +575,17 @@ export const createCodeMirrorEditor = (
       fontSize: '0.9em'
     },
 
+    // --- KaTeX 数式 ---
+    '.cm-md-inline-math': {
+      fontFamily: '"Migu 1M", "Consolas", "Monaco", monospace',
+      fontSize: '0.95em'
+    },
+    '.cm-md-display-math': {
+      fontFamily: '"Migu 1M", "Consolas", "Monaco", monospace',
+      fontWeight: 'bold',
+      fontSize: '0.95em'
+    },
+
     // --- 構文マーク（アクティブ行で表示） ---
     '.cm-md-syntax-mark': {
       color: '#999',
@@ -628,6 +648,12 @@ export const createCodeMirrorEditor = (
       }
     }),
     editorTheme,
+    fontCompartment.of(
+      createFontTheme(
+        '16px',
+        '"Rounded Mplus 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+      )
+    ),
     markdownDecorationPlugin,
     autocompletion({
       override: [keywordAutocompletion(rootDir), katexAutocompletion(), tagAutocompletion()]
@@ -666,15 +692,13 @@ export const createCodeMirrorEditor = (
     getContent: () => view.state.doc.toString(),
     destroy: () => view.destroy(),
     setEditorStyle: (style: Record<string, string>) => {
-      const cmElement = view.dom;
-      if (cmElement) {
-        if (style.fontFamily) {
-          cmElement.style.fontFamily = style.fontFamily;
-        }
-        if (style.fontSize) {
-          cmElement.style.fontSize = style.fontSize;
-        }
-      }
+      const fontSize = style.fontSize || '16px';
+      const fontFamily =
+        style.fontFamily ||
+        '"Rounded Mplus 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      view.dispatch({
+        effects: fontCompartment.reconfigure(createFontTheme(fontSize, fontFamily))
+      });
     }
   };
 };

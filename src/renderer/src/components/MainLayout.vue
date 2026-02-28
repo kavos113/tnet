@@ -53,8 +53,7 @@ watch(rootPath, async (newPath) => {
   }
 
   try {
-    const settings = await window.electronConfigAPI.loadProjectConfig(rootPath.value);
-    workspaceStore.settings = settings;
+    await workspaceStore.loadSettings();
   } catch {
     console.error('failed to load settings');
   }

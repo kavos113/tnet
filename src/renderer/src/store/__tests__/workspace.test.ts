@@ -76,4 +76,52 @@ describe('useWorkspaceStore', () => {
       );
     });
   });
+
+  describe('loadSettings', () => {
+    it('loadProjectConfigから設定を読み込んでstoreに反映する', async () => {
+      const store = useWorkspaceStore();
+      store.rootPath = '/workspace';
+
+      const loadedSettings = {
+        editorFontFamily: 'Consolas',
+        editorFontSize: 14,
+        previewFontFamily: 'Georgia',
+        previewFontSize: 18
+      };
+
+      mockElectronConfigAPI.loadProjectConfig.mockResolvedValue(loadedSettings);
+
+      await store.loadSettings();
+
+      expect(store.settings).toEqual(loadedSettings);
+      expect(mockElectronConfigAPI.loadProjectConfig).toHaveBeenCalledWith('/workspace');
+    });
+
+    it('rootPathが空の場合は読み込みをスキップする', async () => {
+      const store = useWorkspaceStore();
+      store.rootPath = '';
+
+      await store.loadSettings();
+
+      expect(mockElectronConfigAPI.loadProjectConfig).not.toHaveBeenCalled();
+    });
+
+    it('読み込みエラー時はデフォルト設定を維持する', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const store = useWorkspaceStore();
+      store.rootPath = '/workspace';
+
+      mockElectronConfigAPI.loadProjectConfig.mockRejectedValue(new Error('file not found'));
+
+      await store.loadSettings();
+
+      expect(store.settings).toEqual({
+        editorFontFamily: 'monospace',
+        editorFontSize: 16,
+        previewFontFamily: 'sans-serif',
+        previewFontSize: 16
+      });
+      spy.mockRestore();
+    });
+  });
 });
