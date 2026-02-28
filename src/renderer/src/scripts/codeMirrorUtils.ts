@@ -24,11 +24,19 @@ const keywordAutocompletion =
     }
 
     const keywords = await window.electronAPI.loadKeywords(rootDir);
-    const options = Object.entries(keywords).map(([name, path]) => ({
-      label: name,
-      apply: `${path}|${name}`,
-      type: 'keyword'
-    }));
+    const normalizedRoot = rootDir.replace(/\\/g, '/').replace(/\/$/, '');
+    const options = Object.entries(keywords).map(([name, filePath]) => {
+      const normalized = filePath.replace(/\\/g, '/');
+      const relativePath = normalized.startsWith(normalizedRoot + '/')
+        ? normalized.slice(normalizedRoot.length + 1)
+        : normalized;
+      return {
+        label: name,
+        detail: relativePath,
+        apply: `${filePath}|${name}`,
+        type: 'keyword' as const
+      };
+    });
 
     return {
       from: match.from + 2,
@@ -633,6 +641,17 @@ export const createCodeMirrorEditor = (
     },
     '.cm-meta': {
       color: '#abb2bf'
+    },
+
+    // --- 補完ドロップダウン ---
+    '.cm-tooltip-autocomplete': {
+      fontSize: '10px'
+    },
+    '.cm-tooltip-autocomplete .cm-completionDetail': {
+      color: '#999',
+      fontStyle: 'italic',
+      marginLeft: '8px',
+      fontSize: '0.9em'
     }
   });
 
