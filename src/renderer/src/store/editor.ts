@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import { ViewMode } from '@fixtures/viewMode';
+import { markdownService } from '@renderer/services/markdownService';
+import { nextTick } from 'vue';
 
 interface OpenFile {
   path: string;
@@ -12,6 +14,9 @@ interface EditorState {
   openedFiles: OpenFile[];
   activeIndex: number;
   viewMode: ViewMode;
+  localContent: string;
+  htmlPreview: string;
+  filePath: string;
 }
 
 const getDisplayName = (filePath: string): string => {
@@ -24,7 +29,10 @@ export const useEditorStore = defineStore('editor', {
     return {
       openedFiles: [],
       activeIndex: -1,
-      viewMode: 'split'
+      viewMode: 'split',
+      localContent: '',
+      htmlPreview: '',
+      filePath: ''
     };
   },
   actions: {
@@ -90,6 +98,36 @@ export const useEditorStore = defineStore('editor', {
     switch(index: number): void {
       if (index >= 0 && index < this.openedFiles.length) {
         this.activeIndex = index;
+      }
+    },
+    syncFromActiveFile(): void {
+      if (this.activeIndex >= 0 && this.activeIndex < this.openedFiles.length) {
+        this.localContent = this.openedFiles[this.activeIndex].content;
+        this.filePath = this.openedFiles[this.activeIndex].path;
+      }
+    },
+    updateLocalContent(content: string): void {
+      this.localContent = content;
+      if (this.activeIndex >= 0 && this.activeIndex < this.openedFiles.length) {
+        const file = this.openedFiles[this.activeIndex];
+        if (file.content !== content) {
+          file.content = content;
+          file.isModified = true;
+        }
+      }
+    },
+    async updatePreview(): Promise<void> {
+      if (this.localContent === null || this.localContent === undefined) {
+        this.htmlPreview = '';
+        return;
+      }
+      try {
+        this.htmlPreview = await markdownService.parse(this.localContent);
+        await nextTick();
+        markdownService.renderMermaidDiagrams();
+      } catch (err) {
+        console.error('error rendering markdown', err);
+        this.htmlPreview = '<p>error rendering markdown</p>';
       }
     }
   }
