@@ -253,7 +253,18 @@ onUnmounted(() => {
 
 <style>
 .cm-editor {
+  font-family:
+    'Rounded Mplus 1c',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 16px;
+}
+
+.cm-editor .cm-md-fenced-code,
+.cm-editor .cm-md-inline-code {
   font-family: 'Migu 1M', 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 12px;
 }
 </style>

@@ -5,6 +5,7 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { autocompletion, CompletionContext, CompletionResult } from '@codemirror/autocomplete';
+import { markdownDecorationPlugin } from './markdownDecorations';
 
 export interface CodeMirrorInstance {
   view: EditorView;
@@ -443,43 +444,136 @@ export const createCodeMirrorEditor = (
   rootDir: string
 ): CodeMirrorInstance => {
   const editorTheme = EditorView.theme({
+    // --- ベースレイアウト ---
     '&': {
       height: '100%',
-      fontSize: '14px',
-      fontFamily: '"Consolas", "Monaco", "Courier New", monospace'
+      fontSize: '16px',
+      fontFamily:
+        '"Rounded Mplus 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     },
     '.cm-content': {
-      padding: '12px',
-      minHeight: '100%'
+      padding: '24px 48px',
+      minHeight: '100%',
+      caretColor: 'var(--foreground)'
     },
     '.cm-editor': {
       height: '100%'
     },
     '.cm-scroller': {
-      fontFamily: 'inherit'
+      fontFamily: 'inherit',
+      lineHeight: '1.8'
     },
     '.cm-line': {
-      padding: '0 2px'
+      padding: '1px 2px'
     },
     '.cm-gutters': {
-      backgroundColor: 'var(--bg-color)',
-      borderRight: '1px solid var(--border-color)'
+      display: 'none'
     },
     '.cm-activeLine': {
-      backgroundColor: 'var(--sidebar-bg)'
+      backgroundColor: 'rgba(0, 0, 0, 0.02)'
     },
     '.cm-activeLineGutter': {
-      backgroundColor: 'var(--sidebar-bg)'
+      backgroundColor: 'transparent'
     },
     '.cm-selectionMatch': {
-      backgroundColor: 'var(--accent-color-light)'
+      backgroundColor: 'rgba(0, 180, 0, 0.12)'
     },
-    '.cm-link': {
-      color: 'var(--accent-color)'
+    '.cm-cursor': {
+      borderLeftColor: 'var(--foreground)',
+      borderLeftWidth: '2px'
     },
-    '.cm-url': {
-      color: 'var(--accent-color)'
+
+    // --- 見出しデコレーション ---
+    '.cm-md-heading': {
+      lineHeight: '1.4'
     },
+    '.cm-md-heading-1': {
+      fontSize: '2em',
+      fontWeight: '700',
+      borderBottom: '1px solid var(--gray)',
+      paddingBottom: '6px',
+      marginBottom: '4px'
+    },
+    '.cm-md-heading-2': {
+      fontSize: '1.6em',
+      fontWeight: '700'
+    },
+    '.cm-md-heading-3': {
+      fontSize: '1.3em',
+      fontWeight: '600'
+    },
+    '.cm-md-heading-4': {
+      fontSize: '1.1em',
+      fontWeight: '600'
+    },
+    '.cm-md-heading-5': {
+      fontSize: '1em',
+      fontWeight: '600'
+    },
+    '.cm-md-heading-6': {
+      fontSize: '0.9em',
+      fontWeight: '600',
+      color: '#888'
+    },
+
+    // --- インライン装飾 ---
+    '.cm-md-bold': {
+      fontWeight: 'bold'
+    },
+    '.cm-md-italic': {
+      fontStyle: 'italic'
+    },
+    '.cm-md-strikethrough': {
+      textDecoration: 'line-through',
+      opacity: '0.6'
+    },
+    '.cm-md-inline-code': {
+      backgroundColor: 'rgba(0, 0, 0, 0.06)',
+      borderRadius: '3px',
+      padding: '1px 4px',
+      fontFamily: '"Migu 1M", "Consolas", "Monaco", monospace',
+      fontSize: '0.9em'
+    },
+    '.cm-md-link': {
+      color: 'var(--main-dark)',
+      textDecoration: 'underline',
+      textDecorationColor: 'rgba(0, 180, 0, 0.4)',
+      textUnderlineOffset: '2px'
+    },
+
+    // --- ブロック装飾 ---
+    '.cm-md-blockquote': {
+      borderLeft: '3px solid var(--main-dark)',
+      paddingLeft: '16px',
+      color: '#666',
+      fontStyle: 'italic'
+    },
+    '.cm-md-fenced-code': {
+      backgroundColor: 'rgba(0, 0, 0, 0.03)',
+      fontFamily: '"Migu 1M", "Consolas", "Monaco", monospace',
+      fontSize: '0.9em'
+    },
+
+    // --- 水平線 ---
+    '.cm-md-hr': {
+      borderBottom: '2px solid var(--gray)',
+      paddingBottom: '8px'
+    },
+
+    // --- URL ---
+    '.cm-md-link-url': {
+      color: '#999',
+      fontSize: '0.9em'
+    },
+
+    // --- 構文マーク（アクティブ行で表示） ---
+    '.cm-md-syntax-mark': {
+      color: '#999',
+      fontWeight: 'normal',
+      fontStyle: 'normal'
+    },
+
+    // --- 既存のシンタックスハイライト（コードブロック内等） ---
     '.cm-keyword': {
       color: '#c678dd'
     },
@@ -508,9 +602,6 @@ export const createCodeMirrorEditor = (
     '.cm-property': {
       color: '#e06c75'
     },
-    '.cm-className': {
-      color: '#e5c07b'
-    },
     '.cm-tag': {
       color: '#e06c75'
     },
@@ -520,55 +611,8 @@ export const createCodeMirrorEditor = (
     '.cm-attributeValue': {
       color: '#98c379'
     },
-    '.cm-qualifier': {
-      color: '#e5c07b'
-    },
     '.cm-meta': {
       color: '#abb2bf'
-    },
-    '.cm-hr': {
-      color: '#abb2bf'
-    },
-    '.cm-quote': {
-      color: '#98c379',
-      fontStyle: 'italic'
-    },
-    '.cm-header': {
-      color: '#61afef',
-      fontWeight: 'bold'
-    },
-    '.cm-strong': {
-      fontWeight: 'bold'
-    },
-    '.cm-emphasis': {
-      fontStyle: 'italic'
-    },
-    '.cm-strikethrough': {
-      textDecoration: 'line-through'
-    },
-    '.cm-atom': {
-      color: '#d19a66'
-    },
-    '.cm-def': {
-      color: '#e06c75'
-    },
-    '.cm-bracket': {
-      color: '#abb2bf'
-    },
-    '.cm-builtin': {
-      color: '#e5c07b'
-    },
-    '.cm-error': {
-      color: '#e06c75'
-    },
-    '.cm-invalid': {
-      color: '#e06c75'
-    },
-    '.cm-codeblock': {
-      backgroundColor: '#2c313a',
-      borderRadius: '4px',
-      padding: '10px',
-      fontFamily: '"Fira Code", "Courier New", monospace'
     }
   });
 
@@ -584,6 +628,7 @@ export const createCodeMirrorEditor = (
       }
     }),
     editorTheme,
+    markdownDecorationPlugin,
     autocompletion({
       override: [keywordAutocompletion(rootDir), katexAutocompletion(), tagAutocompletion()]
     }),
