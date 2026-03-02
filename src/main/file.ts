@@ -9,7 +9,7 @@ const SESSION_FILE_NAME = 'session.json';
 const KEYWORDS_FILE_NAME = 'keywords.json';
 const SETTINGS_FILE_NAME = 'settings.json';
 const LATEST_FILE_NAME = 'latest.json';
-const FILE_TEMPLATE = `<keyword name="">
+const FILE_TEMPLATE = `<keyword name="" type="n">
 ### 変数・条件
 
 

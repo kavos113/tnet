@@ -248,6 +248,7 @@ const rehypeKeywordMarkdown = (source: string) => () => {
     visit(tree, 'element', (node: Element, index?: number, parent?: Root | Element) => {
       if (node.tagName === 'keyword' && parent?.children && index !== undefined) {
         const nameAttr = node.properties?.name as string;
+        const typeAttr = node.properties?.type as string;
 
         const keywordStr = source.slice(node.position?.start.offset, node.position?.end.offset);
         const regArray = KEYWORD_REGEX.exec(keywordStr);
@@ -264,11 +265,20 @@ const rehypeKeywordMarkdown = (source: string) => () => {
         const mdast = processor.parse(content);
         const hast = processor.runSync(mdast);
 
+        let keywordClass = '';
+        if (typeAttr === 'n') {
+          keywordClass = 'keyword-normal';
+        } else if (typeAttr === 'e') {
+          keywordClass = 'keyword-emphasized';
+        } else {
+          keywordClass = 'keyword-normal';
+        }
+
         parent.children[index] = {
           type: 'element',
           tagName: 'div',
           properties: {
-            className: ['keyword']
+            className: ['keyword', keywordClass]
           },
           children: [
             {

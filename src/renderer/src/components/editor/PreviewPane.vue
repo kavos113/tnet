@@ -455,12 +455,19 @@ defineExpose({
   border-left: 1px solid #e1e8ed;
 }
 
-.markdown-preview :deep(.keyword),
-.internal-link-tooltip :deep(.keyword) {
+.markdown-preview :deep(.keyword-emphasized),
+.internal-link-tooltip :deep(.keyword-emphasized) {
   margin: 20px 0;
   padding: 0.5em 1.5em;
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.5);
   background-color: var(--background);
+}
+
+.markdown-preview :deep(.keyword-normal),
+.internal-link-tooltip :deep(.keyword-normal) {
+  margin: 20px 0;
+  padding: 0.5em 1.5em;
+  border-left: 2px solid var(--main-light);
 }
 
 .markdown-preview :deep(.keyword-title),
