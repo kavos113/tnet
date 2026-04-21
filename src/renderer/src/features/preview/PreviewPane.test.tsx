@@ -107,9 +107,10 @@ describe('PreviewPane', () => {
 
   it('hides the tooltip when the cursor leaves or the link is clicked', async () => {
     keywordGetContent.mockResolvedValue('Tooltip body');
+    const store = createAppStore();
 
     render(
-      <Provider store={createAppStore()}>
+      <Provider store={store}>
         <PreviewPane markdown="See [[/docs/keyword.md|Keyword]]." />
       </Provider>
     );
@@ -118,8 +119,9 @@ describe('PreviewPane', () => {
     fireEvent.mouseOver(link);
     expect(await screen.findByText('Tooltip body')).toBeInTheDocument();
 
+    const visibleLink = await screen.findByRole('link', { name: 'Keyword' });
     act(() => {
-      link.dispatchEvent(
+      visibleLink.dispatchEvent(
         new window.MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body })
       );
     });
@@ -132,10 +134,76 @@ describe('PreviewPane', () => {
     expect(await screen.findByText('Tooltip body')).toBeInTheDocument();
 
     const linkWithTooltip = await screen.findByRole('link', { name: 'Keyword' });
-    fireEvent.click(linkWithTooltip);
+    act(() => {
+      linkWithTooltip.dispatchEvent(
+        new window.MouseEvent('click', { bubbles: true, cancelable: true })
+      );
+    });
     await waitFor(() => {
       expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
+      expect(fileRead).toHaveBeenCalledWith('/docs/keyword.md');
+      expect(store.getState().editor.openedFiles[0]).toMatchObject({
+        path: '/docs/keyword.md',
+        content: 'opened content'
+      });
     });
-    expect(fileRead).toHaveBeenCalledWith('/docs/keyword.md');
+  });
+
+  it('does not restore a loading tooltip after the link is clicked', async () => {
+    let resolveKeyword: (content: string) => void = () => {};
+    keywordGetContent.mockReturnValue(
+      new Promise((resolve) => {
+        resolveKeyword = resolve;
+      })
+    );
+
+    render(
+      <Provider store={createAppStore()}>
+        <PreviewPane markdown="See [[/docs/keyword.md|Keyword]]." />
+      </Provider>
+    );
+
+    const link = await screen.findByRole('link', { name: 'Keyword' });
+    fireEvent.mouseOver(link);
+    expect(await screen.findByText('Loading...')).toBeInTheDocument();
+
+    const loadingLink = await screen.findByRole('link', { name: 'Keyword' });
+    act(() => {
+      loadingLink.dispatchEvent(
+        new window.MouseEvent('click', { bubbles: true, cancelable: true })
+      );
+    });
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+
+    await act(async () => resolveKeyword('Tooltip body'));
+    expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
+  });
+
+  it('opens an internal link when the click target is the link text node', async () => {
+    const store = createAppStore();
+
+    render(
+      <Provider store={store}>
+        <PreviewPane markdown="See [[/docs/text-target.md|Text Target]]." />
+      </Provider>
+    );
+
+    const link = await screen.findByRole('link', { name: 'Text Target' });
+    const textNode = link.firstChild;
+    expect(textNode).not.toBeNull();
+
+    act(() => {
+      textNode?.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      expect(fileRead).toHaveBeenCalledWith('/docs/text-target.md');
+      expect(store.getState().editor.openedFiles[0]).toMatchObject({
+        path: '/docs/text-target.md',
+        content: 'opened content'
+      });
+    });
   });
 });

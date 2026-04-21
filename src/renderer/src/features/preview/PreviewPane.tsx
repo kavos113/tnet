@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { openFile } from '@renderer/features/editor/editorSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import { useAppDispatch } from '@renderer/app/hooks';
@@ -39,6 +40,12 @@ const normalizeTooltipContent = (content: string): string => {
 
 const missingKeywordMessage = 'Keyword not found.';
 
+const closestInternalLink = (target: EventTarget | null): HTMLAnchorElement | null => {
+  const element =
+    target instanceof HTMLElement ? target : target instanceof Text ? target.parentElement : null;
+  return element?.closest<HTMLAnchorElement>('a[data-internal-link="true"]') ?? null;
+};
+
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
   ({ markdown }, ref): React.JSX.Element => {
     const dispatch = useAppDispatch();
@@ -47,6 +54,23 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
     const tooltipCacheRef = useRef<Map<string, string | null>>(new Map());
     const [html, setHtml] = useState('');
     const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip);
+
+    const hideTooltip = (link?: HTMLAnchorElement): void => {
+      if (link) delete link.dataset.keywordHoverKey;
+      activeTooltipKeyRef.current = null;
+      flushSync(() => setTooltip(emptyTooltip));
+    };
+
+    const openInternalLink = (filePath: string): void => {
+      tnetApi.file
+        .read(filePath)
+        .then((content) => {
+          dispatch(openFile({ path: filePath, content }));
+        })
+        .catch((error: unknown) => {
+          console.error('Failed to open internal link', error);
+        });
+    };
 
     useImperativeHandle(
       ref,
@@ -85,57 +109,6 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       const container = containerRef.current;
       if (!container) return;
 
-      const onLinkMouseOut = (event: MouseEvent): void => {
-        const link = event.currentTarget as HTMLAnchorElement;
-        const related = event.relatedTarget;
-        if (related instanceof Node && link.contains(related)) return;
-
-        delete link.dataset.keywordHoverKey;
-        activeTooltipKeyRef.current = null;
-        setTooltip(emptyTooltip);
-      };
-
-      const onLinkClick = (event: MouseEvent): void => {
-        const link = event.currentTarget as HTMLAnchorElement;
-
-        event.preventDefault();
-        event.stopPropagation();
-        activeTooltipKeyRef.current = null;
-        setTooltip(emptyTooltip);
-
-        const filePath = link.getAttribute('data-path');
-        if (!filePath) return;
-
-        tnetApi.file
-          .read(filePath)
-          .then((content) => {
-            dispatch(openFile({ path: filePath, content }));
-          })
-          .catch((error: unknown) => {
-            console.error('Failed to open internal link', error);
-          });
-      };
-
-      const links = Array.from(
-        container.querySelectorAll<HTMLAnchorElement>('a[data-internal-link="true"]')
-      );
-      links.forEach((link) => {
-        link.addEventListener('mouseout', onLinkMouseOut);
-        link.addEventListener('click', onLinkClick);
-      });
-
-      return () => {
-        links.forEach((link) => {
-          link.removeEventListener('mouseout', onLinkMouseOut);
-          link.removeEventListener('click', onLinkClick);
-        });
-      };
-    }, [dispatch, html]);
-
-    useEffect(() => {
-      const container = containerRef.current;
-      if (!container) return;
-
       const renderTooltip = async (
         event: MouseEvent,
         content: string,
@@ -154,8 +127,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       };
 
       const onMouseOver = (event: MouseEvent): void => {
-        const target = event.target as HTMLElement;
-        const link = target.closest<HTMLAnchorElement>('a[data-internal-link="true"]');
+        const link = closestInternalLink(event.target);
         if (!link) return;
 
         const related = event.relatedTarget;
@@ -208,48 +180,35 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       };
 
       const onMouseOut = (event: MouseEvent): void => {
-        const target = event.target as HTMLElement;
-        const link = target.closest<HTMLAnchorElement>('a[data-internal-link="true"]');
+        const link = closestInternalLink(event.target);
         if (!link) return;
 
         const related = event.relatedTarget;
         if (related instanceof Node && link.contains(related)) return;
 
-        delete link.dataset.keywordHoverKey;
-        activeTooltipKeyRef.current = null;
-        setTooltip(emptyTooltip);
+        hideTooltip(link);
       };
 
-      const onClick = (event: MouseEvent): void => {
-        const target = event.target as HTMLElement;
-        const link = target.closest('a[data-internal-link="true"]');
-        if (!link) return;
+      const onDocumentClick = (event: MouseEvent): void => {
+        const link = closestInternalLink(event.target);
+        if (!link || !container.contains(link)) return;
 
         event.preventDefault();
-        activeTooltipKeyRef.current = null;
-        setTooltip(emptyTooltip);
-        const filePath = link.getAttribute('data-path');
-        if (!filePath) return;
+        hideTooltip(link);
 
-        tnetApi.file
-          .read(filePath)
-          .then((content) => {
-            dispatch(openFile({ path: filePath, content }));
-          })
-          .catch((error: unknown) => {
-            console.error('Failed to open internal link', error);
-          });
+        const filePath = link.getAttribute('data-path');
+        if (filePath) openInternalLink(filePath);
       };
 
       container.addEventListener('mouseover', onMouseOver);
       container.addEventListener('mouseout', onMouseOut, true);
-      container.addEventListener('click', onClick);
+      document.addEventListener('click', onDocumentClick, true);
       return () => {
         container.removeEventListener('mouseover', onMouseOver);
         container.removeEventListener('mouseout', onMouseOut, true);
-        container.removeEventListener('click', onClick);
+        document.removeEventListener('click', onDocumentClick, true);
       };
-    }, [dispatch]);
+    }, []);
 
     return (
       <div className="preview-pane-root">
