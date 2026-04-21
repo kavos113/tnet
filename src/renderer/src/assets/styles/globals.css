@@ -288,14 +288,24 @@ textarea {
   background: var(--gray);
 }
 
-.markdown-preview {
+.preview-pane-root {
+  position: relative;
+  display: flex;
   flex: 1;
   min-width: 200px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.markdown-preview {
+  flex: 1;
+  width: 100%;
   padding: 12px;
   overflow-y: auto;
   color: var(--foreground);
   background: var(--background);
-  font-size: 14px;
+  font-family: var(--preview-font-family);
+  font-size: var(--preview-font-size);
   line-height: 1.6;
 }
 
@@ -350,6 +360,32 @@ textarea {
   padding: 1em;
   text-align: center;
   background: var(--background);
+}
+
+.internal-link-tooltip {
+  position: absolute;
+  z-index: 50;
+  max-width: 420px;
+  max-height: 280px;
+  padding: 8px 10px;
+  overflow: auto;
+  color: var(--foreground);
+  pointer-events: none;
+  background: var(--background);
+  border: 2px solid var(--main-light);
+  border-radius: 5px;
+  box-shadow: 0 6px 14px rgb(0 0 0 / 18%);
+  font-family: var(--preview-font-family);
+  font-size: calc(var(--preview-font-size) * 0.92);
+  line-height: 1.55;
+}
+
+.internal-link-tooltip > :first-child {
+  margin-top: 0;
+}
+
+.internal-link-tooltip > :last-child {
+  margin-bottom: 0;
 }
 
 .keyword-normal,
@@ -451,4 +487,84 @@ textarea {
   align-items: center;
   justify-content: center;
   color: #777777;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 50%);
+}
+
+.modal-content {
+  width: 500px;
+  max-width: 90%;
+  padding: 20px;
+  background: var(--background);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.modal-content h2 {
+  padding-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.settings-group {
+  margin-bottom: 20px;
+}
+
+.settings-group h3 {
+  margin: 0 0 15px;
+  font-size: 1.1em;
+}
+
+.form-item {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.form-item span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.form-item input {
+  width: 100%;
+  padding: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 0;
+  border-radius: 4px;
+}
+
+.btn-primary {
+  color: white;
+  background: var(--main-dark);
+}
+
+.btn-secondary {
+  color: var(--foreground);
+  background: var(--gray);
 }

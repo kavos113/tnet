@@ -8,9 +8,8 @@ export const markdownEditorTheme = EditorView.theme({
     height: '100%'
   },
   '.cm-scroller': {
-    fontFamily:
-      '"Rounded Mplus 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    fontSize: '14px',
+    fontFamily: 'var(--editor-font-family)',
+    fontSize: 'var(--editor-font-size)',
     lineHeight: '1.6'
   },
   '.cm-content': {

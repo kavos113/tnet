@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import {
   createMarkdownEditor,
   type MarkdownEditorInstance
@@ -10,29 +10,45 @@ interface EditorPaneProps {
   onChange: (content: string) => void;
 }
 
-export const EditorPane = ({ content, rootDir, onChange }: EditorPaneProps): React.JSX.Element => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const editorRef = useRef<MarkdownEditorInstance | null>(null);
+export interface EditorPaneHandle {
+  getScroller: () => HTMLElement | null;
+}
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
+  ({ content, rootDir, onChange }, ref): React.JSX.Element => {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const editorRef = useRef<MarkdownEditorInstance | null>(null);
 
-    editorRef.current = createMarkdownEditor({
-      parent: containerRef.current,
-      content,
-      rootDir,
-      onChange
-    });
+    useImperativeHandle(
+      ref,
+      () => ({
+        getScroller: () => containerRef.current?.querySelector<HTMLElement>('.cm-scroller') ?? null
+      }),
+      []
+    );
 
-    return () => {
-      editorRef.current?.destroy();
-      editorRef.current = null;
-    };
-  }, [rootDir]);
+    useEffect(() => {
+      if (!containerRef.current) return;
 
-  useEffect(() => {
-    editorRef.current?.updateContent(content);
-  }, [content]);
+      editorRef.current = createMarkdownEditor({
+        parent: containerRef.current,
+        content,
+        rootDir,
+        onChange
+      });
 
-  return <div ref={containerRef} className="codemirror-container" />;
-};
+      return () => {
+        editorRef.current?.destroy();
+        editorRef.current = null;
+      };
+    }, [rootDir]);
+
+    useEffect(() => {
+      editorRef.current?.updateContent(content);
+    }, [content]);
+
+    return <div ref={containerRef} className="codemirror-container" />;
+  }
+);
+
+EditorPane.displayName = 'EditorPane';

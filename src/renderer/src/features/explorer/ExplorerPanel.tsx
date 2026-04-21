@@ -2,12 +2,20 @@ import { useMemo } from 'react';
 import { basename, dirname, joinPath } from '@shared/path/pathUtils';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { closeFileByPath, renameOpenedPath } from '@renderer/features/editor/editorSlice';
-import { setFileTree, setWorkspace } from '@renderer/features/workspace/workspaceSlice';
+import {
+  setFileTree,
+  setSettings,
+  setWorkspace
+} from '@renderer/features/workspace/workspaceSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import { clearSelection } from './explorerSlice';
 import { FileTree } from './FileTree';
 
-export const ExplorerPanel = (): React.JSX.Element => {
+interface ExplorerPanelProps {
+  onOpenSettings: () => void;
+}
+
+export const ExplorerPanel = ({ onOpenSettings }: ExplorerPanelProps): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const { rootPath, fileTree } = useAppSelector((state) => state.workspace);
   const { selectedPath, selectedDirPath } = useAppSelector((state) => state.explorer);
@@ -31,6 +39,7 @@ export const ExplorerPanel = (): React.JSX.Element => {
 
     dispatch(setWorkspace(result));
     await tnetApi.config.saveGlobal({ lastOpenedDirectory: result.rootPath });
+    dispatch(setSettings(await tnetApi.config.loadProject(result.rootPath)));
   };
 
   const createEntry = async (mode: 'file' | 'directory'): Promise<void> => {
@@ -91,6 +100,14 @@ export const ExplorerPanel = (): React.JSX.Element => {
             onClick={openWorkspace}
           >
             O
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Open settings"
+            onClick={onOpenSettings}
+          >
+            S
           </button>
           <button
             type="button"
