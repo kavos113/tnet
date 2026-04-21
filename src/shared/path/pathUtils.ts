@@ -11,3 +11,14 @@ export const toWorkspaceRelativePath = (rootDir: string, filePath: string): stri
   const target = normalizeToSlash(filePath);
   return target.startsWith(`${root}/`) ? target.slice(root.length + 1) : target;
 };
+
+export const dirname = (filePath: string): string => {
+  const separator = filePath.includes('\\') ? '\\' : '/';
+  const index = Math.max(filePath.lastIndexOf('\\'), filePath.lastIndexOf('/'));
+  return index === -1 ? '' : filePath.slice(0, index).replace(/[\\/]$/, '') || separator;
+};
+
+export const joinPath = (parent: string, child: string): string => {
+  const separator = parent.includes('\\') ? '\\' : '/';
+  return parent.endsWith(separator) ? `${parent}${child}` : `${parent}${separator}${child}`;
+};

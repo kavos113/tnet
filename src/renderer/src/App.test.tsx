@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Provider } from 'react-redux';
 import { App } from './App';
+import { createAppStore } from './app/store';
 
 describe('App', () => {
   beforeEach(() => {
@@ -38,7 +40,11 @@ describe('App', () => {
   });
 
   it('renders the React shell', async () => {
-    render(<App />);
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
 
     expect(await screen.findByText('Files')).toBeInTheDocument();
     expect(screen.getByText('Open Folder')).toBeInTheDocument();

@@ -1,29 +1,46 @@
 import type { FileItem } from '@shared/types/file';
+import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
+import { openFile } from '@renderer/features/editor/editorSlice';
+import { tnetApi } from '@renderer/lib/tnetApi';
 import { FileTree } from './FileTree';
-import { useExplorerStore } from './explorerStore';
+import { selectDirectory, selectFile } from './explorerSlice';
 
 interface FileTreeItemProps {
   item: FileItem;
 }
 
 export const FileTreeItem = ({ item }: FileTreeItemProps): React.JSX.Element => {
-  const selectedPath = useExplorerStore((state) => state.selectedPath);
-  const selectedDirPath = useExplorerStore((state) => state.selectedDirPath);
-  const expandedPaths = useExplorerStore((state) => state.expandedPaths);
-  const selectFile = useExplorerStore((state) => state.selectFile);
-  const selectDirectory = useExplorerStore((state) => state.selectDirectory);
+  const dispatch = useAppDispatch();
+  const { selectedPath, selectedDirPath, expandedPaths } = useAppSelector(
+    (state) => state.explorer
+  );
 
-  const isExpanded = expandedPaths.has(item.path);
+  const isExpanded = expandedPaths.includes(item.path);
   const isSelected = item.path === (selectedPath ?? selectedDirPath);
+
+  const handleClick = async (): Promise<void> => {
+    if (item.isDirectory) {
+      dispatch(selectDirectory(item.path));
+      return;
+    }
+
+    dispatch(selectFile(item.path));
+    const content = await tnetApi.file.read(item.path);
+    dispatch(openFile({ path: item.path, content }));
+  };
 
   return (
     <li>
       <button
         className={`file-tree-item ${isSelected ? 'is-selected' : ''}`}
         type="button"
-        onClick={() => (item.isDirectory ? selectDirectory(item.path) : selectFile(item.path))}
+        onClick={() => {
+          handleClick().catch((error: unknown) => {
+            console.error('Failed to open file tree item', error);
+          });
+        }}
       >
-        <span className="file-tree-icon">{item.isDirectory ? (isExpanded ? '▾' : '▸') : ''}</span>
+        <span className="file-tree-icon">{item.isDirectory ? (isExpanded ? 'v' : '>') : ''}</span>
         <span className="file-tree-name">{item.name}</span>
       </button>
       {item.isDirectory && item.children && isExpanded ? <FileTree items={item.children} /> : null}
