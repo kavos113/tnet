@@ -1,0 +1,81 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { markdownToHtml } from './markdownToHtml';
+import { getProjectRoot, setProjectRoot } from './projectRoot';
+import { renderMermaid } from './renderMermaid';
+
+vi.mock('mermaid', () => ({
+  default: {
+    initialize: vi.fn(),
+    run: vi.fn().mockResolvedValue(undefined)
+  }
+}));
+
+describe('markdown preview pipeline', () => {
+  beforeEach(() => {
+    setProjectRoot('');
+  });
+
+  it('converts common Markdown features to HTML', async () => {
+    const html = await markdownToHtml('# Hello\n\n| A | B |\n| - | - |\n| 1 | 2 |');
+
+    expect(html).toContain('<h1');
+    expect(html).toContain('Hello');
+    expect(html).toContain('<table>');
+  });
+
+  it('converts internal links to clickable preview links', async () => {
+    const html = await markdownToHtml('See [[/docs/file.md|File Name]].');
+
+    expect(html).toContain('data-internal-link="true"');
+    expect(html).toContain('data-path="/docs/file.md"');
+    expect(html).toContain('File Name');
+  });
+
+  it('converts mermaid and cardlink code blocks', async () => {
+    const html = await markdownToHtml(
+      [
+        '```mermaid',
+        'graph TD;',
+        'A-->B;',
+        '```',
+        '',
+        '```cardlink',
+        'url: https://example.com',
+        'title: Example',
+        'host: example.com',
+        '```'
+      ].join('\n')
+    );
+
+    expect(html).toContain('class="mermaid"');
+    expect(html).toContain('card-link-container');
+    expect(html).toContain('href="https://example.com"');
+  });
+
+  it('renders keyword tags as styled preview sections', async () => {
+    const html = await markdownToHtml('<keyword name="Definition" type="e">**Body**</keyword>');
+
+    expect(html).toContain('keyword-emphasized');
+    expect(html).toContain('Definition');
+    expect(html).toContain('<strong>Body</strong>');
+  });
+
+  it('converts Obsidian image links using the project root', async () => {
+    setProjectRoot('C:\\workspace');
+
+    const html = await markdownToHtml('![[image.png]]');
+
+    expect(getProjectRoot()).toBe('C:/workspace');
+    expect(html).toContain('file:///C:/workspace/_images/image.png');
+  });
+
+  it('runs Mermaid rendering for existing diagram nodes', async () => {
+    document.body.innerHTML = '<div class="mermaid">graph TD; A-->B;</div>';
+    const mermaid = await import('mermaid');
+
+    await renderMermaid(document);
+
+    expect(mermaid.default.initialize).toHaveBeenCalledWith({ startOnLoad: false });
+    expect(mermaid.default.run).toHaveBeenCalled();
+  });
+});

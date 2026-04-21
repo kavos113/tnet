@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
+import { PreviewPane } from '@renderer/features/preview/PreviewPane';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import { markActiveSaved, setViewMode, updateActiveContent } from './editorSlice';
+import { EditorPane } from './EditorPane';
 import { TabBar } from './TabBar';
 
 export const EditorWorkspace = (): React.JSX.Element => {
@@ -79,18 +81,14 @@ export const EditorWorkspace = (): React.JSX.Element => {
           </div>
           <div className="editor-content-split">
             {viewMode !== 'preview' ? (
-              <textarea
-                className="editor-textarea"
-                value={activeFile.content}
-                onChange={(event) => dispatch(updateActiveContent(event.target.value))}
+              <EditorPane
+                content={activeFile.content}
+                rootDir={rootPath}
+                onChange={(content) => dispatch(updateActiveContent(content))}
               />
             ) : null}
             {viewMode === 'split' ? <div className="resizer" /> : null}
-            {viewMode !== 'editor' ? (
-              <div className="preview-placeholder">
-                <div className="preview-empty">Markdown preview will be migrated next.</div>
-              </div>
-            ) : null}
+            {viewMode !== 'editor' ? <PreviewPane markdown={activeFile.content} /> : null}
           </div>
         </>
       ) : (
