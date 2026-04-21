@@ -1,12 +1,2 @@
-node_modules
-dist
-out
-.DS_Store
-.eslintcache
-*.log*
-
-.vscode
-.idea
-.build
-
-.github/copilot-instructions.md
+old
+AGENTS.md
