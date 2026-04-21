@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@renderer/app/store';
 import { PreviewPane } from './PreviewPane';
 
@@ -12,6 +12,7 @@ vi.mock('mermaid', () => ({
 }));
 
 const keywordGetContent = vi.fn();
+const fileRead = vi.fn();
 
 const installTnetApi = (): void => {
   Object.defineProperty(window, 'tnet', {
@@ -21,7 +22,7 @@ const installTnetApi = (): void => {
         getFileTree: vi.fn()
       },
       file: {
-        read: vi.fn().mockResolvedValue('opened content'),
+        read: fileRead.mockResolvedValue('opened content'),
         write: vi.fn(),
         create: vi.fn(),
         createDirectory: vi.fn(),
@@ -48,8 +49,13 @@ const installTnetApi = (): void => {
 };
 
 describe('PreviewPane', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     keywordGetContent.mockReset();
+    fileRead.mockReset();
     installTnetApi();
   });
 
@@ -71,6 +77,13 @@ describe('PreviewPane', () => {
     fireEvent.mouseOver(link, { clientX: 20, clientY: 30 });
 
     expect(await screen.findByText('Loading...')).toBeInTheDocument();
+    const loadingTooltip = screen.getByText('Loading...').closest('.internal-link-tooltip');
+    expect(loadingTooltip).toHaveStyle({ left: '32px', top: '42px' });
+
+    fireEvent.mouseOver(link, { clientX: 80, clientY: 90, relatedTarget: link });
+    expect(keywordGetContent).toHaveBeenCalledTimes(1);
+    expect(loadingTooltip).toHaveStyle({ left: '32px', top: '42px' });
+
     await act(async () => resolveKeyword('**Tooltip** body'));
 
     expect(await screen.findByText('Tooltip')).toBeInTheDocument();
@@ -90,5 +103,39 @@ describe('PreviewPane', () => {
     fireEvent.mouseOver(link);
 
     expect(await screen.findByText('Keyword not found.')).toBeInTheDocument();
+  });
+
+  it('hides the tooltip when the cursor leaves or the link is clicked', async () => {
+    keywordGetContent.mockResolvedValue('Tooltip body');
+
+    render(
+      <Provider store={createAppStore()}>
+        <PreviewPane markdown="See [[/docs/keyword.md|Keyword]]." />
+      </Provider>
+    );
+
+    const link = await screen.findByRole('link', { name: 'Keyword' });
+    fireEvent.mouseOver(link);
+    expect(await screen.findByText('Tooltip body')).toBeInTheDocument();
+
+    act(() => {
+      link.dispatchEvent(
+        new window.MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body })
+      );
+    });
+    await waitFor(() => {
+      expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
+    });
+
+    const linkAfterHide = await screen.findByRole('link', { name: 'Keyword' });
+    fireEvent.mouseOver(linkAfterHide);
+    expect(await screen.findByText('Tooltip body')).toBeInTheDocument();
+
+    const linkWithTooltip = await screen.findByRole('link', { name: 'Keyword' });
+    fireEvent.click(linkWithTooltip);
+    await waitFor(() => {
+      expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
+    });
+    expect(fileRead).toHaveBeenCalledWith('/docs/keyword.md');
   });
 });

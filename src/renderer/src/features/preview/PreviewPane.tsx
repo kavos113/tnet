@@ -85,6 +85,57 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       const container = containerRef.current;
       if (!container) return;
 
+      const onLinkMouseOut = (event: MouseEvent): void => {
+        const link = event.currentTarget as HTMLAnchorElement;
+        const related = event.relatedTarget;
+        if (related instanceof Node && link.contains(related)) return;
+
+        delete link.dataset.keywordHoverKey;
+        activeTooltipKeyRef.current = null;
+        setTooltip(emptyTooltip);
+      };
+
+      const onLinkClick = (event: MouseEvent): void => {
+        const link = event.currentTarget as HTMLAnchorElement;
+
+        event.preventDefault();
+        event.stopPropagation();
+        activeTooltipKeyRef.current = null;
+        setTooltip(emptyTooltip);
+
+        const filePath = link.getAttribute('data-path');
+        if (!filePath) return;
+
+        tnetApi.file
+          .read(filePath)
+          .then((content) => {
+            dispatch(openFile({ path: filePath, content }));
+          })
+          .catch((error: unknown) => {
+            console.error('Failed to open internal link', error);
+          });
+      };
+
+      const links = Array.from(
+        container.querySelectorAll<HTMLAnchorElement>('a[data-internal-link="true"]')
+      );
+      links.forEach((link) => {
+        link.addEventListener('mouseout', onLinkMouseOut);
+        link.addEventListener('click', onLinkClick);
+      });
+
+      return () => {
+        links.forEach((link) => {
+          link.removeEventListener('mouseout', onLinkMouseOut);
+          link.removeEventListener('click', onLinkClick);
+        });
+      };
+    }, [dispatch, html]);
+
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
       const renderTooltip = async (
         event: MouseEvent,
         content: string,
@@ -107,11 +158,16 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
         const link = target.closest<HTMLAnchorElement>('a[data-internal-link="true"]');
         if (!link) return;
 
+        const related = event.relatedTarget;
+        if (related instanceof Node && link.contains(related)) return;
+
         const filePath = link.getAttribute('data-path');
         const name = link.textContent?.trim();
         if (!filePath || !name) return;
 
         const cacheKey = `${filePath}::${name}`;
+        if (activeTooltipKeyRef.current === cacheKey) return;
+
         activeTooltipKeyRef.current = cacheKey;
         link.dataset.keywordHoverKey = cacheKey;
 
@@ -156,6 +212,9 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
         const link = target.closest<HTMLAnchorElement>('a[data-internal-link="true"]');
         if (!link) return;
 
+        const related = event.relatedTarget;
+        if (related instanceof Node && link.contains(related)) return;
+
         delete link.dataset.keywordHoverKey;
         activeTooltipKeyRef.current = null;
         setTooltip(emptyTooltip);
@@ -183,11 +242,11 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       };
 
       container.addEventListener('mouseover', onMouseOver);
-      container.addEventListener('mouseout', onMouseOut);
+      container.addEventListener('mouseout', onMouseOut, true);
       container.addEventListener('click', onClick);
       return () => {
         container.removeEventListener('mouseover', onMouseOver);
-        container.removeEventListener('mouseout', onMouseOut);
+        container.removeEventListener('mouseout', onMouseOut, true);
         container.removeEventListener('click', onClick);
       };
     }, [dispatch]);

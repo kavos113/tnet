@@ -366,9 +366,7 @@ textarea {
   position: absolute;
   z-index: 50;
   max-width: 420px;
-  max-height: 280px;
   padding: 8px 10px;
-  overflow: auto;
   color: var(--foreground);
   pointer-events: none;
   background: var(--background);
