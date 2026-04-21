@@ -1,2 +1,8 @@
 old
 AGENTS.md
+node_modules
+.pnpm-store
+dist
+out
+.eslintcache
+docs

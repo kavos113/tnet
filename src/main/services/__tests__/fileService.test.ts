@@ -1,0 +1,106 @@
+// @vitest-environment node
+import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+import { describe, expect, it } from 'vitest';
+import { createDirectory, createFile, deleteFile, renamePath, writeFile } from '../fileService';
+import { getFileTree } from '../fileTreeService';
+import { loadKeywordIndex } from '../keywordService';
+import { loadSession, saveSession } from '../sessionService';
+
+const tempDir = async (name: string): Promise<string> => {
+  return fs.mkdtemp(path.join(os.tmpdir(), `tnet-${name}-`));
+};
+
+const readJson = async <T>(filePath: string): Promise<T> => {
+  return JSON.parse(await fs.readFile(filePath, 'utf-8')) as T;
+};
+
+describe('main file services', () => {
+  it('sorts directories before files in file trees', async () => {
+    const root = await tempDir('tree');
+    await fs.mkdir(path.join(root, 'b-dir'));
+    await fs.mkdir(path.join(root, 'a-dir'));
+    await fs.writeFile(path.join(root, 'b.md'), 'b', 'utf-8');
+    await fs.writeFile(path.join(root, 'a.md'), 'a', 'utf-8');
+
+    const tree = await getFileTree(root);
+
+    expect(tree.map((item) => item.name)).toEqual(['a-dir', 'b-dir', 'a.md', 'b.md']);
+  });
+
+  it('creates markdown files with the restored UTF-8 template', async () => {
+    const root = await tempDir('create-file');
+    const filePath = path.join(root, 'nested', 'new.md');
+
+    await createFile(filePath);
+
+    const content = await fs.readFile(filePath, 'utf-8');
+    expect(content).toContain('Variables and Conditions');
+    expect(content).toContain('Proof');
+  });
+
+  it('creates directories recursively and rejects existing directories', async () => {
+    const root = await tempDir('create-dir');
+    const dirPath = path.join(root, 'a', 'b');
+
+    await createDirectory(dirPath);
+    await expect(fs.stat(dirPath)).resolves.toMatchObject({});
+    await expect(createDirectory(dirPath)).rejects.toThrow('already exists');
+  });
+
+  it('writes keyword indexes and injects generated keyword names', async () => {
+    const root = await tempDir('keywords');
+    const filePath = path.join(root, 'doc.md');
+
+    await writeFile(
+      filePath,
+      [
+        '<keyword name="Manual">manual body</keyword>',
+        '<keyword number-class="1" prefix="定理">generated body</keyword>'
+      ].join('\n'),
+      root
+    );
+
+    const saved = await fs.readFile(filePath, 'utf-8');
+    expect(saved).toContain('name="定理 1.1"');
+
+    const keywords = await loadKeywordIndex(root);
+    expect(keywords).toMatchObject({
+      Manual: filePath,
+      '定理 1.1': filePath
+    });
+
+    const latest = await readJson<Record<string, number>>(path.join(root, '.tnet', 'latest.json'));
+    expect(latest).toMatchObject({ '1': 1 });
+  });
+
+  it('loads legacy session arrays as SessionData', async () => {
+    const root = await tempDir('legacy-session');
+    await fs.mkdir(path.join(root, '.tnet'));
+    await fs.writeFile(path.join(root, '.tnet', 'session.json'), JSON.stringify(['a.md']));
+
+    await expect(loadSession(root)).resolves.toEqual({
+      openedFiles: ['a.md'],
+      expandedFolders: []
+    });
+  });
+
+  it('updates session and keyword indexes when deleting and renaming files', async () => {
+    const root = await tempDir('mutations');
+    const oldPath = path.join(root, 'old.md');
+    const newPath = path.join(root, 'new.md');
+
+    await writeFile(oldPath, '<keyword name="K1">body</keyword>', root);
+    await saveSession(root, { openedFiles: [oldPath], expandedFolders: [root] });
+    await renamePath(oldPath, newPath, root);
+
+    expect(await loadSession(root)).toEqual({ openedFiles: [newPath], expandedFolders: [root] });
+    expect(await loadKeywordIndex(root)).toMatchObject({ K1: newPath });
+
+    await deleteFile(newPath, root);
+
+    expect(await loadSession(root)).toEqual({ openedFiles: [], expandedFolders: [root] });
+    expect((await loadKeywordIndex(root)).K1).toBeUndefined();
+  });
+});
