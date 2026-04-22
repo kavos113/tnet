@@ -5,7 +5,7 @@ import type {
 } from '@shared/llm/inlineCompletionTypes';
 import { textByteLength } from '@shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
-import { openFile } from '@renderer/features/editor/editorSlice';
+import { openFile, type EditorGroupId } from '@renderer/features/editor/editorSlice';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { tnetApi } from '@renderer/lib/tnetApi';
 
@@ -20,7 +20,7 @@ export interface ActiveWorkspaceApi {
     contentBase64: string;
   }) => Promise<string | null>;
   readImageDataUrl: (filename: string) => Promise<string | null>;
-  openFile: (filePath: string) => Promise<void>;
+  openFile: (filePath: string, options?: { targetGroupId?: EditorGroupId }) => Promise<void>;
   loadKeywordIndex: () => Promise<Record<string, string>>;
   getKeywordContent: (filePath: string, name: string) => Promise<string | null>;
   getInlineCompletion: (
@@ -84,13 +84,20 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
   );
 
   const openWorkspaceFile = useCallback(
-    async (filePath: string): Promise<void> => {
+    async (filePath: string, options: { targetGroupId?: EditorGroupId } = {}): Promise<void> => {
       const startedAt = performance.now();
       const content = await tnetApi.file.read(toWorkspacePathRequest(filePath));
       if (import.meta.env.DEV) {
         console.debug('File read', Math.round(performance.now() - startedAt), 'ms');
       }
-      dispatch(openFile({ path: filePath, content, sizeBytes: textByteLength(content) }));
+      dispatch(
+        openFile({
+          path: filePath,
+          content,
+          sizeBytes: textByteLength(content),
+          targetGroupId: options.targetGroupId
+        })
+      );
     },
     [dispatch, toWorkspacePathRequest]
   );

@@ -12,17 +12,39 @@ export const usePersistSession = ({
   debounceMs = 150
 }: UsePersistSessionOptions): void => {
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
-  const openedFiles = useAppSelector((state) => state.editor.openedFiles);
+  const editor = useAppSelector((state) => state.editor);
   const expandedPaths = useAppSelector((state) => state.explorer.expandedPaths);
 
   useEffect(() => {
     if (!enabled || !rootPath) return;
 
     const timeoutId = window.setTimeout(() => {
+      const openedFiles = Array.from(
+        new Set([...editor.groups.primary.tabs, ...editor.groups.secondary.tabs])
+      );
       tnetApi.session
         .save(rootPath, {
-          openedFiles: openedFiles.map((file) => file.path),
-          expandedFolders: expandedPaths
+          openedFiles,
+          expandedFolders: expandedPaths,
+          editorLayout: {
+            activeGroupId: editor.activeGroupId,
+            isSecondaryGroupVisible: editor.isSecondaryGroupVisible,
+            groupWidthPercent: editor.groupWidthPercent,
+            groups: {
+              primary: {
+                openedFiles: editor.groups.primary.tabs,
+                activeIndex: editor.groups.primary.activeIndex,
+                viewMode: editor.groups.primary.viewMode,
+                isPreviewOutlineVisible: editor.groups.primary.isPreviewOutlineVisible
+              },
+              secondary: {
+                openedFiles: editor.groups.secondary.tabs,
+                activeIndex: editor.groups.secondary.activeIndex,
+                viewMode: editor.groups.secondary.viewMode,
+                isPreviewOutlineVisible: editor.groups.secondary.isPreviewOutlineVisible
+              }
+            }
+          }
         })
         .catch((error: unknown) => {
           console.error('Failed to save session', error);
@@ -30,5 +52,5 @@ export const usePersistSession = ({
     }, debounceMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [debounceMs, enabled, expandedPaths, openedFiles, rootPath]);
+  }, [debounceMs, editor, enabled, expandedPaths, rootPath]);
 };

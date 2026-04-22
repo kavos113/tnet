@@ -11,9 +11,14 @@ import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWor
 import {
   clearPendingReveal,
   closeFile,
+  closeSecondaryGroup,
+  setActiveGroup,
+  setGroupWidthPercent,
   setViewMode,
+  splitActiveTabRight,
   togglePreviewOutline,
-  updateActiveContent
+  updateActiveContent,
+  type EditorGroupId
 } from './editorSlice';
 import { EditorPane, type EditorPaneHandle } from './EditorPane';
 import { TabBar } from './TabBar';
@@ -22,18 +27,34 @@ import { useSaveActiveFile } from './useSaveActiveFile';
 import { useScrollSync } from './useScrollSync';
 import { useSplitPaneResize } from './useSplitPaneResize';
 
-export const EditorWorkspace = (): React.JSX.Element => {
+interface EditorGroupViewProps {
+  groupId: EditorGroupId;
+}
+
+const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
   const workspaceApi = useActiveWorkspaceApi();
-  const { openedFiles, activeIndex, viewMode, isPreviewOutlineVisible, pendingReveal } =
-    useAppSelector((state) => state.editor);
   const settings = useAppSelector((state) => state.workspace.settings);
-  const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
-  const activeFilePath = activeFile?.path ?? null;
+  const { group, activeFile, activeFilePath, isActiveGroup, pendingReveal } = useAppSelector(
+    (state) => {
+      const nextGroup = state.editor.groups[groupId];
+      const nextActivePath =
+        nextGroup.activeIndex >= 0 && nextGroup.activeIndex < nextGroup.tabs.length
+          ? nextGroup.tabs[nextGroup.activeIndex]
+          : null;
+      return {
+        group: nextGroup,
+        activeFile: nextActivePath ? state.editor.filesByPath[nextActivePath] : null,
+        activeFilePath: nextActivePath,
+        isActiveGroup: state.editor.activeGroupId === groupId,
+        pendingReveal: state.editor.pendingReveal
+      };
+    }
+  );
   const isLargeActiveFile = (activeFile?.sizeBytes ?? 0) >= largeMarkdownFileThresholdBytes;
-  const { canSave, saveActiveFile } = useSaveActiveFile();
+  const { canSave, saveActiveFile } = useSaveActiveFile(groupId);
   const { editorWidthPercent, previewWidthPercent, startResize } = useSplitPaneResize();
   const [previewRenderVersion, setPreviewRenderVersion] = useState(0);
   const [largePreviewAllowedPaths, setLargePreviewAllowedPaths] = useState<Set<string>>(
@@ -41,7 +62,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
   );
   const isLargePreviewAllowed =
     activeFilePath !== null && largePreviewAllowedPaths.has(activeFilePath);
-  const effectiveViewMode = isLargeActiveFile && !isLargePreviewAllowed ? 'editor' : viewMode;
+  const effectiveViewMode = isLargeActiveFile && !isLargePreviewAllowed ? 'editor' : group.viewMode;
   const requestInlineCompletion = useCallback(
     (context: InlineCompletionContext): Promise<InlineCompletionResult | null> => {
       if (!activeFilePath) return Promise.resolve(null);
@@ -53,29 +74,8 @@ export const EditorWorkspace = (): React.JSX.Element => {
     setPreviewRenderVersion((version) => version + 1);
   }, []);
 
-  useShortcut({
-    key: 's',
-    ctrlOrMeta: true,
-    enabled: canSave,
-    onTrigger: () => {
-      saveActiveFile().catch((error: unknown) => {
-        console.error('Failed to save file', error);
-      });
-    }
-  });
-
-  useShortcut({
-    key: 'w',
-    ctrlOrMeta: true,
-    target: 'document',
-    allowInEditable: true,
-    enabled: activeIndex >= 0,
-    onTrigger: () => {
-      dispatch(closeFile(activeIndex));
-    }
-  });
-
   useAutoSaveActiveFile({
+    groupId,
     canSave,
     saveActiveFile
   });
@@ -85,8 +85,9 @@ export const EditorWorkspace = (): React.JSX.Element => {
     previewPaneRef,
     enabled: effectiveViewMode === 'split' && Boolean(activeFile),
     syncKey: [
+      groupId,
       activeFilePath,
-      isPreviewOutlineVisible,
+      group.isPreviewOutlineVisible,
       editorWidthPercent,
       previewWidthPercent,
       previewRenderVersion
@@ -94,9 +95,15 @@ export const EditorWorkspace = (): React.JSX.Element => {
   });
 
   useEffect(() => {
-    if (!pendingReveal || pendingReveal.path !== activeFilePath) return;
+    if (
+      !pendingReveal ||
+      pendingReveal.groupId !== groupId ||
+      pendingReveal.path !== activeFilePath
+    ) {
+      return;
+    }
     if (effectiveViewMode === 'preview') {
-      dispatch(setViewMode('split'));
+      dispatch(setViewMode({ groupId, viewMode: 'split' }));
       return;
     }
 
@@ -107,31 +114,24 @@ export const EditorWorkspace = (): React.JSX.Element => {
     });
 
     return () => cancelAnimationFrame(frame);
-  }, [activeFilePath, dispatch, effectiveViewMode, pendingReveal]);
+  }, [activeFilePath, dispatch, effectiveViewMode, groupId, pendingReveal]);
 
   const setEditorViewMode = useCallback(
     (nextViewMode: 'editor' | 'split' | 'preview'): void => {
       if (activeFilePath && isLargeActiveFile && nextViewMode !== 'editor') {
         setLargePreviewAllowedPaths((current) => new Set(current).add(activeFilePath));
       }
-      dispatch(setViewMode(nextViewMode));
+      dispatch(setViewMode({ groupId, viewMode: nextViewMode }));
     },
-    [activeFilePath, dispatch, isLargeActiveFile]
+    [activeFilePath, dispatch, groupId, isLargeActiveFile]
   );
 
   return (
-    <main
-      className="editor-workspace"
-      style={
-        {
-          '--editor-font-family': settings.editorFontFamily,
-          '--editor-font-size': `${settings.editorFontSize}px`,
-          '--preview-font-family': settings.previewFontFamily,
-          '--preview-font-size': `${settings.previewFontSize}px`
-        } as CSSProperties
-      }
+    <section
+      className={`editor-group ${isActiveGroup ? 'active' : ''}`}
+      onMouseDown={() => dispatch(setActiveGroup(groupId))}
     >
-      <TabBar />
+      <TabBar groupId={groupId} />
       {activeFile ? (
         <>
           <div className="editor-title">
@@ -161,13 +161,30 @@ export const EditorWorkspace = (): React.JSX.Element => {
               {effectiveViewMode !== 'editor' ? (
                 <button
                   type="button"
-                  className={`mode-button ${isPreviewOutlineVisible ? 'active' : ''}`}
-                  aria-pressed={isPreviewOutlineVisible}
-                  onClick={() => dispatch(togglePreviewOutline())}
+                  className={`mode-button ${group.isPreviewOutlineVisible ? 'active' : ''}`}
+                  aria-pressed={group.isPreviewOutlineVisible}
+                  onClick={() => dispatch(togglePreviewOutline(groupId))}
                 >
                   Outline
                 </button>
               ) : null}
+              {groupId === 'secondary' ? (
+                <button
+                  type="button"
+                  className="mode-button"
+                  onClick={() => dispatch(closeSecondaryGroup())}
+                >
+                  Close Group
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="mode-button"
+                  onClick={() => dispatch(splitActiveTabRight())}
+                >
+                  Split Right
+                </button>
+              )}
               <button
                 type="button"
                 className="save-button"
@@ -191,7 +208,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
                 <EditorPane
                   ref={editorPaneRef}
                   content={activeFile.content}
-                  onChange={(content) => dispatch(updateActiveContent(content))}
+                  onChange={(content) => dispatch(updateActiveContent({ groupId, content }))}
                   loadKeywordIndex={workspaceApi.loadKeywordIndex}
                   requestInlineCompletion={requestInlineCompletion}
                   savePastedImage={workspaceApi.savePastedImage}
@@ -221,8 +238,10 @@ export const EditorWorkspace = (): React.JSX.Element => {
                 <PreviewPane
                   ref={previewPaneRef}
                   markdown={activeFile.content}
-                  showOutline={isPreviewOutlineVisible}
-                  onOpenInternalLink={workspaceApi.openFile}
+                  showOutline={group.isPreviewOutlineVisible}
+                  onOpenInternalLink={(filePath) =>
+                    workspaceApi.openFile(filePath, { targetGroupId: groupId })
+                  }
                   loadKeywordContent={workspaceApi.getKeywordContent}
                   loadImageDataUrl={workspaceApi.readImageDataUrl}
                   onRendered={handlePreviewRendered}
@@ -235,6 +254,110 @@ export const EditorWorkspace = (): React.JSX.Element => {
       ) : (
         <div className="empty-editor">No file selected</div>
       )}
+    </section>
+  );
+};
+
+export const EditorWorkspace = (): React.JSX.Element => {
+  const dispatch = useAppDispatch();
+  const settings = useAppSelector((state) => state.workspace.settings);
+  const { activeIndex, groupWidthPercent, isSecondaryGroupVisible } = useAppSelector(
+    (state) => state.editor
+  );
+  const { canSave, saveActiveFile } = useSaveActiveFile();
+
+  useShortcut({
+    key: 's',
+    ctrlOrMeta: true,
+    enabled: canSave,
+    onTrigger: () => {
+      saveActiveFile().catch((error: unknown) => {
+        console.error('Failed to save file', error);
+      });
+    }
+  });
+
+  useShortcut({
+    key: 'w',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: activeIndex >= 0,
+    onTrigger: () => {
+      dispatch(closeFile(activeIndex));
+    }
+  });
+
+  useShortcut({
+    key: '\\',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: activeIndex >= 0,
+    onTrigger: () => {
+      dispatch(splitActiveTabRight());
+    }
+  });
+
+  const startGroupResize = useCallback(
+    (event: React.MouseEvent<HTMLElement>): void => {
+      event.preventDefault();
+      const container = event.currentTarget.parentElement;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const handleMouseMove = (moveEvent: MouseEvent): void => {
+        const widthPercent =
+          containerRect.width <= 0
+            ? 50
+            : ((moveEvent.clientX - containerRect.left) / containerRect.width) * 100;
+        dispatch(setGroupWidthPercent(widthPercent));
+      };
+      const handleMouseUp = (): void => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [dispatch]
+  );
+
+  return (
+    <main
+      className="editor-workspace"
+      style={
+        {
+          '--editor-font-family': settings.editorFontFamily,
+          '--editor-font-size': `${settings.editorFontSize}px`,
+          '--preview-font-family': settings.previewFontFamily,
+          '--preview-font-size': `${settings.previewFontSize}px`
+        } as CSSProperties
+      }
+    >
+      <div className="editor-groups">
+        <div
+          className="editor-group-wrapper"
+          style={{ width: isSecondaryGroupVisible ? `${groupWidthPercent}%` : '100%' }}
+        >
+          <EditorGroupView groupId="primary" />
+        </div>
+        {isSecondaryGroupVisible ? (
+          <>
+            <div
+              className="group-resizer"
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize editor groups"
+              onMouseDown={startGroupResize}
+            />
+            <div className="editor-group-wrapper" style={{ width: `${100 - groupWidthPercent}%` }}>
+              <EditorGroupView groupId="secondary" />
+            </div>
+          </>
+        ) : null}
+      </div>
     </main>
   );
 };

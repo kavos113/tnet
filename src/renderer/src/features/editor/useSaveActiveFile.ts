@@ -1,16 +1,25 @@
 import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
-import { markActiveSaved } from './editorSlice';
+import { markActiveSaved, type EditorGroupId } from './editorSlice';
 
-export const useSaveActiveFile = (): {
+export const useSaveActiveFile = (
+  groupId?: EditorGroupId
+): {
   canSave: boolean;
   saveActiveFile: () => Promise<void>;
 } => {
   const dispatch = useAppDispatch();
   const workspaceApi = useActiveWorkspaceApi();
-  const { openedFiles, activeIndex } = useAppSelector((state) => state.editor);
-  const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
+  const activeFile = useAppSelector((state) => {
+    const targetGroupId = groupId ?? state.editor.activeGroupId;
+    const group = state.editor.groups[targetGroupId];
+    const activePath =
+      group.activeIndex >= 0 && group.activeIndex < group.tabs.length
+        ? group.tabs[group.activeIndex]
+        : null;
+    return activePath ? state.editor.filesByPath[activePath] : null;
+  });
   const canSave = useMemo(
     () => Boolean(activeFile && workspaceApi.hasWorkspace),
     [activeFile, workspaceApi.hasWorkspace]
@@ -21,8 +30,8 @@ export const useSaveActiveFile = (): {
 
     await workspaceApi.writeFile(activeFile.path, activeFile.content);
     const savedContent = await workspaceApi.readFile(activeFile.path);
-    dispatch(markActiveSaved({ content: savedContent }));
-  }, [activeFile, canSave, dispatch, workspaceApi]);
+    dispatch(markActiveSaved({ path: activeFile.path, content: savedContent, groupId }));
+  }, [activeFile, canSave, dispatch, groupId, workspaceApi]);
 
   return { canSave, saveActiveFile };
 };

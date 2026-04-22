@@ -163,15 +163,81 @@ describe('main file services', () => {
       path: 'old.md',
       content: '<keyword name="K1">body</keyword>'
     });
-    await saveSession(root, { openedFiles: [oldPath], expandedFolders: [root] });
+    await saveSession(root, {
+      openedFiles: [oldPath],
+      expandedFolders: [root],
+      editorLayout: {
+        activeGroupId: 'secondary',
+        isSecondaryGroupVisible: true,
+        groupWidthPercent: 55,
+        groups: {
+          primary: {
+            openedFiles: [oldPath],
+            activeIndex: 0,
+            viewMode: 'split',
+            isPreviewOutlineVisible: true
+          },
+          secondary: {
+            openedFiles: [oldPath],
+            activeIndex: 0,
+            viewMode: 'preview',
+            isPreviewOutlineVisible: false
+          }
+        }
+      }
+    });
     await renamePath({ rootDir: root, oldPath: 'old.md', newPath: 'new.md' });
 
-    expect(await loadSession(root)).toEqual({ openedFiles: [newPath], expandedFolders: [root] });
+    expect(await loadSession(root)).toEqual({
+      openedFiles: [newPath],
+      expandedFolders: [root],
+      editorLayout: {
+        activeGroupId: 'secondary',
+        isSecondaryGroupVisible: true,
+        groupWidthPercent: 55,
+        groups: {
+          primary: {
+            openedFiles: [newPath],
+            activeIndex: 0,
+            viewMode: 'split',
+            isPreviewOutlineVisible: true
+          },
+          secondary: {
+            openedFiles: [newPath],
+            activeIndex: 0,
+            viewMode: 'preview',
+            isPreviewOutlineVisible: false
+          }
+        }
+      }
+    });
     expect(await loadKeywordIndex(root)).toMatchObject({ K1: newPath });
 
     await deleteFile({ rootDir: root, path: 'new.md' });
 
-    expect(await loadSession(root)).toEqual({ openedFiles: [], expandedFolders: [root] });
+    expect(await loadSession(root)).toEqual({
+      openedFiles: [],
+      expandedFolders: [root],
+      editorLayout: {
+        activeGroupId: 'secondary',
+        isSecondaryGroupVisible: true,
+        groupWidthPercent: 55,
+        groups: {
+          primary: {
+            openedFiles: [],
+            activeIndex: 0,
+            viewMode: 'split',
+            isPreviewOutlineVisible: true
+          },
+          secondary: {
+            openedFiles: [],
+            activeIndex: 0,
+            viewMode: 'preview',
+            isPreviewOutlineVisible: false
+          }
+        }
+      }
+    });
     expect((await loadKeywordIndex(root)).K1).toBeUndefined();
   });
 });

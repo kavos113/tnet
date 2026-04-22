@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { textByteLength } from '@shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { replaceOpenedFiles } from '@renderer/features/editor/editorSlice';
+import { replaceEditorSession, replaceOpenedFiles } from '@renderer/features/editor/editorSlice';
 import { resetExplorerState, setExpandedPaths } from '@renderer/features/explorer/explorerSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import { setSettings, setWorkspace } from './workspaceSlice';
@@ -45,9 +45,17 @@ export const useWorkspaceSwitcher = (): {
         tnetApi.config.loadProject(rootPath),
         tnetApi.session.load(rootPath)
       ]);
+      const sessionFilePaths = session.editorLayout
+        ? Array.from(
+            new Set([
+              ...session.editorLayout.groups.primary.openedFiles,
+              ...session.editorLayout.groups.secondary.openedFiles
+            ])
+          )
+        : session.openedFiles;
       const openedFiles = (
         await Promise.all(
-          session.openedFiles.map(async (filePath) => {
+          sessionFilePaths.map(async (filePath) => {
             try {
               const content = await tnetApi.file.read({
                 rootDir: rootPath,
@@ -72,7 +80,33 @@ export const useWorkspaceSwitcher = (): {
       dispatch(setSettings(settings));
       dispatch(resetExplorerState());
       dispatch(setExpandedPaths(session.expandedFolders));
-      dispatch(replaceOpenedFiles({ openedFiles, activeIndex: openedFiles.length - 1 }));
+      if (session.editorLayout) {
+        dispatch(
+          replaceEditorSession({
+            files: openedFiles,
+            activeGroupId: session.editorLayout.activeGroupId,
+            isSecondaryGroupVisible: session.editorLayout.isSecondaryGroupVisible,
+            groupWidthPercent: session.editorLayout.groupWidthPercent,
+            groups: {
+              primary: {
+                tabs: session.editorLayout.groups.primary.openedFiles,
+                activeIndex: session.editorLayout.groups.primary.activeIndex,
+                viewMode: session.editorLayout.groups.primary.viewMode,
+                isPreviewOutlineVisible: session.editorLayout.groups.primary.isPreviewOutlineVisible
+              },
+              secondary: {
+                tabs: session.editorLayout.groups.secondary.openedFiles,
+                activeIndex: session.editorLayout.groups.secondary.activeIndex,
+                viewMode: session.editorLayout.groups.secondary.viewMode,
+                isPreviewOutlineVisible:
+                  session.editorLayout.groups.secondary.isPreviewOutlineVisible
+              }
+            }
+          })
+        );
+      } else {
+        dispatch(replaceOpenedFiles({ openedFiles, activeIndex: openedFiles.length - 1 }));
+      }
       if (searchRebuildTimerRef.current !== null) {
         window.clearTimeout(searchRebuildTimerRef.current);
       }

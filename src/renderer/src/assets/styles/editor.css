@@ -76,6 +76,47 @@
   height: 100%;
 }
 
+.editor-groups {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-group-wrapper {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 220px;
+  min-height: 0;
+}
+
+.editor-group {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--gray);
+}
+
+.editor-group.active {
+  outline: 1px solid color-mix(in srgb, var(--main-dark) 40%, transparent);
+  outline-offset: -1px;
+}
+
+.group-resizer {
+  flex: 0 0 5px;
+  cursor: col-resize;
+  background: var(--tab-border);
+  transition: background-color 0.2s ease;
+}
+
+.group-resizer:hover,
+.group-resizer:active {
+  background: var(--main-dark);
+}
+
 .editor-title {
   display: flex;
   align-items: center;

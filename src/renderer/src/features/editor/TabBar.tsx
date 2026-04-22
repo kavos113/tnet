@@ -1,44 +1,54 @@
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { closeFile, switchFile } from './editorSlice';
+import { closeFile, setActiveGroup, switchFile, type EditorGroupId } from './editorSlice';
 
-export const TabBar = (): React.JSX.Element | null => {
+interface TabBarProps {
+  groupId: EditorGroupId;
+}
+
+export const TabBar = ({ groupId }: TabBarProps): React.JSX.Element | null => {
   const dispatch = useAppDispatch();
-  const { openedFiles, activeIndex } = useAppSelector((state) => state.editor);
+  const { filesByPath, groups } = useAppSelector((state) => state.editor);
+  const group = groups[groupId];
 
-  if (openedFiles.length === 0) return null;
+  if (group.tabs.length === 0) return null;
 
   return (
-    <div className="tab-bar">
-      {openedFiles.map((file, index) => (
-        <button
-          key={file.path}
-          type="button"
-          className={`tab ${index === activeIndex ? 'active' : ''}`}
-          onClick={() => dispatch(switchFile(index))}
-        >
-          <span className="tab-name">{file.displayName}</span>
-          {file.isModified ? <span className="modified-indicator">*</span> : null}
-          <span
-            className="tab-close"
-            role="button"
-            tabIndex={0}
-            aria-label={`Close ${file.displayName}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              dispatch(closeFile(index));
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                event.stopPropagation();
-                dispatch(closeFile(index));
-              }
-            }}
+    <div className="tab-bar" onMouseDown={() => dispatch(setActiveGroup(groupId))}>
+      {group.tabs.map((path, index) => {
+        const file = filesByPath[path];
+        if (!file) return null;
+
+        return (
+          <button
+            key={path}
+            type="button"
+            className={`tab ${index === group.activeIndex ? 'active' : ''}`}
+            onClick={() => dispatch(switchFile({ groupId, index }))}
           >
-            x
-          </span>
-        </button>
-      ))}
+            <span className="tab-name">{file.displayName}</span>
+            {file.isModified ? <span className="modified-indicator">*</span> : null}
+            <span
+              className="tab-close"
+              role="button"
+              tabIndex={0}
+              aria-label={`Close ${file.displayName}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                dispatch(closeFile({ groupId, index }));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  dispatch(closeFile({ groupId, index }));
+                }
+              }}
+            >
+              x
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 };

@@ -1,20 +1,30 @@
 import { useEffect } from 'react';
 import { useAppSelector } from '@renderer/app/hooks';
+import type { EditorGroupId } from './editorSlice';
 
 interface UseAutoSaveActiveFileOptions {
   canSave: boolean;
   saveActiveFile: () => Promise<void>;
+  groupId?: EditorGroupId;
 }
 
 export const useAutoSaveActiveFile = ({
   canSave,
-  saveActiveFile
+  saveActiveFile,
+  groupId
 }: UseAutoSaveActiveFileOptions): void => {
-  const { openedFiles, activeIndex } = useAppSelector((state) => state.editor);
+  const activeFile = useAppSelector((state) => {
+    const targetGroupId = groupId ?? state.editor.activeGroupId;
+    const group = state.editor.groups[targetGroupId];
+    const activePath =
+      group.activeIndex >= 0 && group.activeIndex < group.tabs.length
+        ? group.tabs[group.activeIndex]
+        : null;
+    return activePath ? state.editor.filesByPath[activePath] : null;
+  });
   const { autoSaveDebounceMs, autoSaveEnabled } = useAppSelector(
     (state) => state.workspace.settings
   );
-  const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
 
   useEffect(() => {
     if (!autoSaveEnabled || !canSave || !activeFile?.isModified) return;

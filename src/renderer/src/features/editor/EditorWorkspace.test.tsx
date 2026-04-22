@@ -231,4 +231,29 @@ describe('EditorWorkspace split resize', () => {
     ]);
     expect(store.getState().editor.activeIndex).toBe(0);
   });
+
+  it('splits the active tab into a second group with an independent view mode', () => {
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Split Right' }));
+
+    expect(store.getState().editor.isSecondaryGroupVisible).toBe(true);
+    expect(store.getState().editor.groups.primary.tabs).toEqual(['/workspace/note.md']);
+    expect(store.getState().editor.groups.secondary.tabs).toEqual(['/workspace/note.md']);
+    expect(screen.getAllByTestId('editor-pane-content')).toHaveLength(2);
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Preview' })[1]);
+
+    expect(store.getState().editor.groups.primary.viewMode).toBe('split');
+    expect(store.getState().editor.groups.secondary.viewMode).toBe('preview');
+    expect(screen.getAllByTestId('editor-pane-content')).toHaveLength(1);
+    expect(screen.getAllByTestId('preview-pane-content')).toHaveLength(2);
+  });
 });
