@@ -65,13 +65,26 @@ export const buildDecorations = (view: EditorView): DecorationSet => {
   }
 
   const docText = view.state.doc.toString();
-  const mathRegex = /\$\$([\s\S]+?)\$\$|(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g;
-  let match: RegExpExecArray | null;
-  while ((match = mathRegex.exec(docText)) !== null) {
+
+  const displayMathRegex = /\$\$([\s\S]+?)\$\$/g;
+  let displayMatch: RegExpExecArray | null;
+  while ((displayMatch = displayMathRegex.exec(docText)) !== null) {
+    const startLine = view.state.doc.lineAt(displayMatch.index);
+    const endLine = view.state.doc.lineAt(displayMatch.index + displayMatch[0].length);
+    for (let lineNo = startLine.number; lineNo <= endLine.number; lineNo += 1) {
+      decorations.push(
+        Decoration.line({ class: 'cm-md-display-math' }).range(view.state.doc.line(lineNo).from)
+      );
+    }
+  }
+
+  const inlineMathRegex = /(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g;
+  let inlineMatch: RegExpExecArray | null;
+  while ((inlineMatch = inlineMathRegex.exec(docText)) !== null) {
     decorations.push(
       Decoration.mark({ class: 'cm-md-inline-math' }).range(
-        match.index,
-        match.index + match[0].length
+        inlineMatch.index,
+        inlineMatch.index + inlineMatch[0].length
       )
     );
   }

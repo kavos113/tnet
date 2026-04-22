@@ -51,6 +51,13 @@ export const markdownEditorTheme = EditorView.theme({
     backgroundColor: 'rgba(0, 0, 0, 0.045)',
     fontFamily: '"Migu 1M", Consolas, Monaco, monospace'
   },
+  '.cm-md-inline-math, .cm-md-display-math': {
+    fontFamily: '"Migu 1M", Consolas, Monaco, monospace',
+    fontSize: '0.95em'
+  },
+  '.cm-md-display-math': {
+    fontWeight: '700'
+  },
   '.cm-md-blockquote': {
     borderLeft: '3px solid var(--main-dark)',
     paddingLeft: '12px',
