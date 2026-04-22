@@ -15,7 +15,8 @@ export const createAppStore = (): EnhancedStore<RootState> =>
       workspace: workspaceReducer,
       explorer: explorerReducer,
       editor: editorReducer
-    }
+    },
+    devTools: import.meta.env.DEV
   });
 
 export const store = createAppStore();

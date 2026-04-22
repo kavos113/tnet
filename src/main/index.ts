@@ -1,15 +1,17 @@
 import { app, BrowserWindow } from 'electron';
 import { electronApp, optimizer } from '@electron-toolkit/utils';
 import { createWindow } from './app/createWindow';
+import { installDevtools } from './app/installDevtools';
 import { registerIpcHandlers } from './ipc/registerIpcHandlers';
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   electronApp.setAppUserModelId('com.tnet.app');
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  await installDevtools();
   registerIpcHandlers();
   createWindow();
 
