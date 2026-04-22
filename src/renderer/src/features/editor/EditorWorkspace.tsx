@@ -10,6 +10,7 @@ import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
 import {
   clearPendingReveal,
+  closeFile,
   setViewMode,
   togglePreviewOutline,
   updateActiveContent
@@ -60,6 +61,17 @@ export const EditorWorkspace = (): React.JSX.Element => {
       saveActiveFile().catch((error: unknown) => {
         console.error('Failed to save file', error);
       });
+    }
+  });
+
+  useShortcut({
+    key: 'w',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: activeIndex >= 0,
+    onTrigger: () => {
+      dispatch(closeFile(activeIndex));
     }
   });
 

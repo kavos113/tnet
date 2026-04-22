@@ -206,4 +206,29 @@ describe('EditorWorkspace split resize', () => {
     expect(screen.getByTestId('preview-pane-content')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Split' })).toHaveClass('active');
   });
+
+  it('closes the active tab with Ctrl+W instead of leaving the shortcut to the window', () => {
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/first.md', content: '# First' }));
+    store.dispatch(openFile({ path: '/workspace/second.md', content: '# Second' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    const editorTarget = screen.getByTestId('editor-pane-content');
+    editorTarget.contentEditable = 'true';
+
+    fireEvent.keyDown(editorTarget, {
+      key: 'w',
+      ctrlKey: true
+    });
+
+    expect(store.getState().editor.openedFiles.map((file) => file.path)).toEqual([
+      '/workspace/first.md'
+    ]);
+    expect(store.getState().editor.activeIndex).toBe(0);
+  });
 });
