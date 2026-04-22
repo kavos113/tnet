@@ -114,11 +114,12 @@
 
 .markdown-preview table {
   border-collapse: collapse;
+  margin: 1em 0;
 }
 
 .markdown-preview th,
 .markdown-preview td {
-  padding: 0.5em;
+  padding: 0.2em 0.5em;
   border: 1px solid var(--gray);
 }
 
