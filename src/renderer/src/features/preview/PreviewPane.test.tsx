@@ -11,6 +11,7 @@ vi.mock('mermaid', () => ({
 
 const keywordGetContent = vi.fn();
 const openInternalLink = vi.fn();
+const imageLoadDataUrl = vi.fn();
 
 const renderPreviewPane = (markdown: string): void => {
   render(
@@ -19,6 +20,7 @@ const renderPreviewPane = (markdown: string): void => {
       showOutline={true}
       onOpenInternalLink={openInternalLink}
       loadKeywordContent={keywordGetContent}
+      loadImageDataUrl={imageLoadDataUrl}
     />
   );
 };
@@ -31,6 +33,8 @@ describe('PreviewPane', () => {
   beforeEach(() => {
     keywordGetContent.mockReset();
     openInternalLink.mockReset();
+    imageLoadDataUrl.mockReset();
+    imageLoadDataUrl.mockResolvedValue(null);
   });
 
   it('shows rendered keyword content while hovering an internal link', async () => {
@@ -171,5 +175,15 @@ describe('PreviewPane', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Target' }));
 
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' });
+  });
+
+  it('renders Obsidian images with loaded data URLs instead of local file URLs', async () => {
+    imageLoadDataUrl.mockResolvedValue('data:image/png;base64,aW1hZ2U=');
+
+    renderPreviewPane('![[Pasted image 20250218201040.png]]');
+
+    const image = await screen.findByRole('img', { name: 'Pasted image 20250218201040.png' });
+    expect(image).toHaveAttribute('src', 'data:image/png;base64,aW1hZ2U=');
+    expect(imageLoadDataUrl).toHaveBeenCalledWith('Pasted image 20250218201040.png');
   });
 });

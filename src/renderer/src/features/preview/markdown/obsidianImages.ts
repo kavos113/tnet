@@ -1,10 +1,23 @@
-import { getProjectRoot } from './projectRoot';
+export type ObsidianImageSrcResolver = (filename: string) => Promise<string | null>;
 
-const imagePrefix = '/_images/';
+const fallbackImagePrefix = '/_images/';
 
-export const convertObsidianImageLinks = (markdown: string): string => {
-  return markdown.replace(/!\[\[(.*?)]]/g, (_, filename: string) => {
-    const encoded = encodeURIComponent(filename);
-    return `![${filename}](file:///${getProjectRoot()}${imagePrefix}${encoded})`;
-  });
+const escapeMarkdownAlt = (value: string): string => value.replace(/]/g, '\\]');
+
+export const convertObsidianImageLinks = async (
+  markdown: string,
+  resolveImageSrc?: ObsidianImageSrcResolver
+): Promise<string> => {
+  const matches = Array.from(markdown.matchAll(/!\[\[(.*?)]]/g));
+  if (matches.length === 0) return markdown;
+
+  let converted = markdown;
+  for (const match of matches) {
+    const filename = match[1];
+    const resolvedSrc = resolveImageSrc ? await resolveImageSrc(filename) : null;
+    const src = resolvedSrc ?? `${fallbackImagePrefix}${encodeURIComponent(filename)}`;
+    converted = converted.replace(match[0], `![${escapeMarkdownAlt(filename)}](${src})`);
+  }
+
+  return converted;
 };

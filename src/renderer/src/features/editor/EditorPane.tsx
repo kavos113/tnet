@@ -4,6 +4,7 @@ import {
   type MarkdownEditorInstance
 } from './codeMirror/createMarkdownEditor';
 import type { KeywordIndexLoader } from './codeMirror/completions';
+import type { SavePastedImageRequester } from './codeMirror/imagePasteExtension';
 import type { InlineCompletionRequester } from './inlineCompletion/inlineCompletionExtension';
 
 interface EditorPaneProps {
@@ -11,6 +12,7 @@ interface EditorPaneProps {
   onChange: (content: string) => void;
   loadKeywordIndex: KeywordIndexLoader;
   requestInlineCompletion?: InlineCompletionRequester;
+  savePastedImage?: SavePastedImageRequester;
   inlineCompletionDebounceMs?: number;
   inlineCompletionMaxPrefixChars?: number;
   inlineCompletionMaxSuffixChars?: number;
@@ -27,6 +29,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
       onChange,
       loadKeywordIndex,
       requestInlineCompletion,
+      savePastedImage,
       inlineCompletionDebounceMs,
       inlineCompletionMaxPrefixChars,
       inlineCompletionMaxSuffixChars
@@ -53,6 +56,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
         onChange,
         loadKeywordIndex,
         requestInlineCompletion,
+        savePastedImage,
         inlineCompletionDebounceMs,
         inlineCompletionMaxPrefixChars,
         inlineCompletionMaxSuffixChars
@@ -67,7 +71,8 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
       inlineCompletionMaxPrefixChars,
       inlineCompletionMaxSuffixChars,
       loadKeywordIndex,
-      requestInlineCompletion
+      requestInlineCompletion,
+      savePastedImage
     ]);
 
     useEffect(() => {

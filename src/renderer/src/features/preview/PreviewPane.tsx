@@ -10,6 +10,7 @@ interface PreviewPaneProps {
   showOutline: boolean;
   onOpenInternalLink: (filePath: string) => Promise<void> | void;
   loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
+  loadImageDataUrl: (filename: string) => Promise<string | null>;
 }
 
 export interface PreviewPaneHandle {
@@ -30,7 +31,10 @@ const areOutlineItemsEqual = (
 };
 
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
-  ({ markdown, showOutline, onOpenInternalLink, loadKeywordContent }, ref): React.JSX.Element => {
+  (
+    { markdown, showOutline, onOpenInternalLink, loadKeywordContent, loadImageDataUrl },
+    ref
+  ): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [html, setHtml] = useState('');
     const [outlineItems, setOutlineItems] = useState<PreviewOutlineItem[]>([]);
@@ -56,7 +60,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       let canceled = false;
 
       markdownService
-        .parsePreviewMarkdown(markdown)
+        .parsePreviewMarkdown(markdown, { resolveImageSrc: loadImageDataUrl })
         .then((nextHtml) => {
           if (!canceled) setHtml(nextHtml);
         })
@@ -68,7 +72,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       return () => {
         canceled = true;
       };
-    }, [markdown]);
+    }, [loadImageDataUrl, markdown]);
 
     useEffect(() => {
       if (!containerRef.current) return;

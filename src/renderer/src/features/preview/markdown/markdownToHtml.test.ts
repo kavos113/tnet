@@ -1,6 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { markdownToHtml } from './markdownToHtml';
-import { getProjectRoot, setProjectRoot } from './projectRoot';
 import { renderMermaid } from './renderMermaid';
 
 vi.mock('mermaid', () => ({
@@ -11,10 +10,6 @@ vi.mock('mermaid', () => ({
 }));
 
 describe('markdown preview pipeline', () => {
-  beforeEach(() => {
-    setProjectRoot('');
-  });
-
   it('converts common Markdown features to HTML', async () => {
     const html = await markdownToHtml('# Hello\n\n| A | B |\n| - | - |\n| 1 | 2 |');
 
@@ -60,13 +55,20 @@ describe('markdown preview pipeline', () => {
     expect(html).toContain('<strong>Body</strong>');
   });
 
-  it('converts Obsidian image links using the project root', async () => {
-    setProjectRoot('C:\\workspace');
-
+  it('converts Obsidian image links without local file URLs', async () => {
     const html = await markdownToHtml('![[image.png]]');
 
-    expect(getProjectRoot()).toBe('C:/workspace');
-    expect(html).toContain('file:///C:/workspace/_images/image.png');
+    expect(html).toContain('/_images/image.png');
+    expect(html).not.toContain('file://');
+  });
+
+  it('converts Obsidian image links to resolved data URLs', async () => {
+    const html = await markdownToHtml('![[image.png]]', {
+      resolveImageSrc: async (filename) =>
+        filename === 'image.png' ? 'data:image/png;base64,aW1hZ2U=' : null
+    });
+
+    expect(html).toContain('src="data:image/png;base64,aW1hZ2U="');
   });
 
   it('runs Mermaid rendering for existing diagram nodes', async () => {

@@ -16,6 +16,7 @@ import {
   inlineCompletionExtension,
   type InlineCompletionRequester
 } from '../inlineCompletion/inlineCompletionExtension';
+import { imagePasteExtension, type SavePastedImageRequester } from './imagePasteExtension';
 
 export interface MarkdownEditorInstance {
   view: EditorView;
@@ -29,6 +30,7 @@ interface CreateMarkdownEditorOptions {
   onChange: (content: string) => void;
   loadKeywordIndex: KeywordIndexLoader;
   requestInlineCompletion?: InlineCompletionRequester;
+  savePastedImage?: SavePastedImageRequester;
   inlineCompletionDebounceMs?: number;
   inlineCompletionMaxPrefixChars?: number;
   inlineCompletionMaxSuffixChars?: number;
@@ -40,6 +42,7 @@ export const createMarkdownEditor = ({
   onChange,
   loadKeywordIndex,
   requestInlineCompletion,
+  savePastedImage,
   inlineCompletionDebounceMs,
   inlineCompletionMaxPrefixChars,
   inlineCompletionMaxSuffixChars
@@ -63,6 +66,7 @@ export const createMarkdownEditor = ({
         maxPrefixChars: inlineCompletionMaxPrefixChars,
         maxSuffixChars: inlineCompletionMaxSuffixChars
       }),
+      imagePasteExtension(savePastedImage),
       EditorView.lineWrapping
     ]
   });

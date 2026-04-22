@@ -7,8 +7,10 @@ import {
   createDirectory,
   createFile,
   deleteFile,
+  readImage,
   readFile,
   renamePath,
+  saveImage,
   writeFile
 } from '../fileService';
 import { getFileTree } from '../fileTreeService';
@@ -87,6 +89,57 @@ describe('main file services', () => {
 
     const latest = await readJson<Record<string, number>>(path.join(root, '.tnet', 'latest.json'));
     expect(latest).toMatchObject({ '1': 1 });
+  });
+
+  it('saves pasted images under the workspace _images directory', async () => {
+    const root = await tempDir('paste-image');
+
+    const result = await saveImage({
+      rootDir: root,
+      preferredName: 'clipboard.png',
+      mimeType: 'image/png',
+      contentBase64: Buffer.from('image-content').toString('base64')
+    });
+
+    expect(result.filename).toMatch(/^paste-\d+-clipboard\.png$/);
+    await expect(fs.readFile(path.join(root, '_images', result.filename), 'utf-8')).resolves.toBe(
+      'image-content'
+    );
+  });
+
+  it('does not overwrite an existing pasted image filename', async () => {
+    const root = await tempDir('paste-image-collision');
+
+    const first = await saveImage({
+      rootDir: root,
+      preferredName: 'clipboard.png',
+      mimeType: 'image/png',
+      contentBase64: Buffer.from('first').toString('base64')
+    });
+    const second = await saveImage({
+      rootDir: root,
+      preferredName: 'clipboard.png',
+      mimeType: 'image/png',
+      contentBase64: Buffer.from('second').toString('base64')
+    });
+
+    expect(second.filename).not.toBe(first.filename);
+    await expect(fs.readFile(path.join(root, '_images', first.filename), 'utf-8')).resolves.toBe(
+      'first'
+    );
+    await expect(fs.readFile(path.join(root, '_images', second.filename), 'utf-8')).resolves.toBe(
+      'second'
+    );
+  });
+
+  it('reads workspace images as data URLs', async () => {
+    const root = await tempDir('read-image');
+    await fs.mkdir(path.join(root, '_images'));
+    await fs.writeFile(path.join(root, '_images', 'image.png'), Buffer.from('image-content'));
+
+    await expect(readImage({ rootDir: root, filename: 'image.png' })).resolves.toEqual({
+      dataUrl: `data:image/png;base64,${Buffer.from('image-content').toString('base64')}`
+    });
   });
 
   it('loads legacy session arrays as SessionData', async () => {

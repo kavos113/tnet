@@ -30,6 +30,90 @@ export interface WriteWorkspaceFileRequest extends WorkspacePathRequest {
   content: string;
 }
 
+export interface SaveWorkspaceImageRequest {
+  rootDir: string;
+  preferredName?: string;
+  mimeType: string;
+  contentBase64: string;
+}
+
+export interface SaveWorkspaceImageResult {
+  filename: string;
+}
+
+export interface ReadWorkspaceImageRequest {
+  rootDir: string;
+  filename: string;
+}
+
+export interface ReadWorkspaceImageResult {
+  dataUrl: string;
+}
+
+const imageExtensionByMimeType: Record<string, string> = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/gif': '.gif',
+  'image/webp': '.webp'
+};
+
+const imageMimeTypeByExtension: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp'
+};
+
+const imageDirectoryName = '_images';
+
+const sanitizeFilenamePart = (value: string): string =>
+  value
+    .replace(/\.[^/.\\]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+
+const timestampFilenamePart = (): string =>
+  new Date()
+    .toISOString()
+    .replace(/[-:.TZ]/g, '')
+    .slice(0, 17);
+
+const imageExtensionFor = (mimeType: string, preferredName?: string): string => {
+  const preferredExtension = preferredName ? path.extname(preferredName).toLowerCase() : '';
+  if (['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(preferredExtension)) {
+    return preferredExtension === '.jpeg' ? '.jpg' : preferredExtension;
+  }
+  return imageExtensionByMimeType[mimeType] ?? '.png';
+};
+
+const nextAvailableImageFilename = async ({
+  imageDir,
+  preferredName,
+  mimeType
+}: {
+  imageDir: string;
+  preferredName?: string;
+  mimeType: string;
+}): Promise<string> => {
+  const extension = imageExtensionFor(mimeType, preferredName);
+  const sanitizedName = sanitizeFilenamePart(preferredName || 'image') || 'image';
+  const baseName = `paste-${timestampFilenamePart()}-${sanitizedName}`;
+
+  for (let index = 0; index < 1000; index += 1) {
+    const suffix = index === 0 ? '' : `-${index + 1}`;
+    const filename = `${baseName}${suffix}${extension}`;
+    const exists = await fs
+      .access(path.join(imageDir, filename))
+      .then(() => true)
+      .catch(() => false);
+    if (!exists) return filename;
+  }
+
+  throw new Error('failed to allocate image filename');
+};
+
 export const readFile = async (request: WorkspacePathRequest): Promise<string> => {
   const filePath = resolveWorkspacePath(request);
   return fs.readFile(filePath, 'utf-8');
@@ -42,6 +126,36 @@ export const writeFile = async (request: WriteWorkspaceFileRequest): Promise<voi
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, nextContent, 'utf-8');
   if (rootDir) await extractAndSaveKeywords(filePath, nextContent, rootDir);
+};
+
+export const saveImage = async (
+  request: SaveWorkspaceImageRequest
+): Promise<SaveWorkspaceImageResult> => {
+  if (!request.rootDir) throw new Error('rootDir is required');
+
+  const imageDir = path.join(request.rootDir, imageDirectoryName);
+  await fs.mkdir(imageDir, { recursive: true });
+  const filename = await nextAvailableImageFilename({
+    imageDir,
+    preferredName: request.preferredName,
+    mimeType: request.mimeType
+  });
+  await fs.writeFile(path.join(imageDir, filename), Buffer.from(request.contentBase64, 'base64'));
+  return { filename };
+};
+
+export const readImage = async (
+  request: ReadWorkspaceImageRequest
+): Promise<ReadWorkspaceImageResult> => {
+  if (!request.rootDir) throw new Error('rootDir is required');
+
+  const imagePath = path.join(request.rootDir, imageDirectoryName, request.filename);
+  const image = await fs.readFile(imagePath);
+  const mimeType =
+    imageMimeTypeByExtension[path.extname(request.filename).toLowerCase()] ?? 'image/png';
+  return {
+    dataUrl: `data:${mimeType};base64,${image.toString('base64')}`
+  };
 };
 
 export const createFile = async (request: WorkspacePathRequest): Promise<void> => {

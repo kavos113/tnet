@@ -127,6 +127,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
                   onChange={(content) => dispatch(updateActiveContent(content))}
                   loadKeywordIndex={workspaceApi.loadKeywordIndex}
                   requestInlineCompletion={requestInlineCompletion}
+                  savePastedImage={workspaceApi.savePastedImage}
                   inlineCompletionDebounceMs={settings.llmDebounceMs}
                   inlineCompletionMaxPrefixChars={settings.llmMaxPrefixChars}
                   inlineCompletionMaxSuffixChars={settings.llmMaxSuffixChars}
@@ -153,6 +154,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
                   showOutline={isPreviewOutlineVisible}
                   onOpenInternalLink={workspaceApi.openFile}
                   loadKeywordContent={workspaceApi.getKeywordContent}
+                  loadImageDataUrl={workspaceApi.readImageDataUrl}
                 />
               </div>
             ) : null}

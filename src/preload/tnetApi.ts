@@ -10,6 +10,8 @@ export const tnetApi: TnetApi = {
   file: {
     read: (request) => ipcRenderer.invoke(ipcChannels.file.read, request),
     write: (request) => ipcRenderer.invoke(ipcChannels.file.write, request),
+    saveImage: (request) => ipcRenderer.invoke(ipcChannels.file.saveImage, request),
+    readImage: (request) => ipcRenderer.invoke(ipcChannels.file.readImage, request),
     create: (request) => ipcRenderer.invoke(ipcChannels.file.create, request),
     createDirectory: (request) => ipcRenderer.invoke(ipcChannels.file.createDirectory, request),
     delete: (request) => ipcRenderer.invoke(ipcChannels.file.delete, request),

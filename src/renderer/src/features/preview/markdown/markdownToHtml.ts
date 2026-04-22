@@ -9,14 +9,21 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
-import { convertObsidianImageLinks } from './obsidianImages';
+import { convertObsidianImageLinks, type ObsidianImageSrcResolver } from './obsidianImages';
 import { rehypeCardLink } from './rehypeCardLink';
 import { rehypeKeyword } from './rehypeKeyword';
 import { rehypeMermaid } from './rehypeMermaid';
 import { remarkInternalLinks } from './remarkInternalLinks';
 
-export const markdownToHtml = async (markdown: string): Promise<string> => {
-  const source = convertObsidianImageLinks(markdown);
+export interface MarkdownToHtmlOptions {
+  resolveImageSrc?: ObsidianImageSrcResolver;
+}
+
+export const markdownToHtml = async (
+  markdown: string,
+  options: MarkdownToHtmlOptions = {}
+): Promise<string> => {
+  const source = await convertObsidianImageLinks(markdown, options.resolveImageSrc);
   const file = await unified()
     .use(remarkParse)
     .use(remarkBreaks)

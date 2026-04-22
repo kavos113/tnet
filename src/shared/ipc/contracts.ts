@@ -19,6 +19,26 @@ export interface WriteWorkspaceFileRequest extends WorkspacePathRequest {
   content: string;
 }
 
+export interface SaveWorkspaceImageRequest {
+  rootDir: string;
+  preferredName?: string;
+  mimeType: string;
+  contentBase64: string;
+}
+
+export interface SaveWorkspaceImageResult {
+  filename: string;
+}
+
+export interface ReadWorkspaceImageRequest {
+  rootDir: string;
+  filename: string;
+}
+
+export interface ReadWorkspaceImageResult {
+  dataUrl: string;
+}
+
 export interface RenameWorkspacePathRequest {
   rootDir: string;
   oldPath: string;
@@ -37,6 +57,8 @@ export interface TnetApi {
   file: {
     read: (request: WorkspacePathRequest) => Promise<string>;
     write: (request: WriteWorkspaceFileRequest) => Promise<void>;
+    saveImage: (request: SaveWorkspaceImageRequest) => Promise<SaveWorkspaceImageResult>;
+    readImage: (request: ReadWorkspaceImageRequest) => Promise<ReadWorkspaceImageResult>;
     create: (request: WorkspacePathRequest) => Promise<void>;
     createDirectory: (request: WorkspacePathRequest) => Promise<void>;
     delete: (request: WorkspacePathRequest) => Promise<void>;

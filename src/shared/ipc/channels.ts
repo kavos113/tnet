@@ -6,6 +6,8 @@ export const ipcChannels = {
   file: {
     read: 'file:read',
     write: 'file:write',
+    saveImage: 'file:saveImage',
+    readImage: 'file:readImage',
     create: 'file:create',
     createDirectory: 'file:createDirectory',
     delete: 'file:delete',

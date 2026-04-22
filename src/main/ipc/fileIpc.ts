@@ -4,9 +4,13 @@ import {
   createDirectory,
   createFile,
   deleteFile,
+  readImage,
   readFile,
   renamePath,
+  saveImage,
   writeFile,
+  type ReadWorkspaceImageRequest,
+  type SaveWorkspaceImageRequest,
   type WriteWorkspaceFileRequest
 } from '@main/services/fileService';
 import type {
@@ -20,6 +24,12 @@ export const registerFileIpc = (): void => {
   );
   ipcMain.handle(ipcChannels.file.write, async (_event, request: WriteWorkspaceFileRequest) =>
     writeFile(request)
+  );
+  ipcMain.handle(ipcChannels.file.saveImage, async (_event, request: SaveWorkspaceImageRequest) =>
+    saveImage(request)
+  );
+  ipcMain.handle(ipcChannels.file.readImage, async (_event, request: ReadWorkspaceImageRequest) =>
+    readImage(request)
   );
   ipcMain.handle(ipcChannels.file.create, async (_event, request: WorkspacePathRequest) =>
     createFile(request)

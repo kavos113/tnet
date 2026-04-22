@@ -13,6 +13,8 @@ export const tnetApi: TnetApi = {
   file: {
     read: (request) => getApi().file.read(request),
     write: (request) => getApi().file.write(request),
+    saveImage: (request) => getApi().file.saveImage(request),
+    readImage: (request) => getApi().file.readImage(request),
     create: (request) => getApi().file.create(request),
     createDirectory: (request) => getApi().file.createDirectory(request),
     delete: (request) => getApi().file.delete(request),

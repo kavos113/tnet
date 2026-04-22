@@ -7,6 +7,8 @@ import { useActiveWorkspaceApi } from './useActiveWorkspaceApi';
 
 const fileRead = vi.fn();
 const fileWrite = vi.fn();
+const fileSaveImage = vi.fn();
+const fileReadImage = vi.fn();
 const keywordLoadIndex = vi.fn();
 const keywordGetContent = vi.fn();
 const llmGetInlineCompletion = vi.fn();
@@ -21,6 +23,8 @@ const installTnetApi = (): void => {
       file: {
         read: fileRead,
         write: fileWrite,
+        saveImage: fileSaveImage,
+        readImage: fileReadImage,
         create: vi.fn(),
         createDirectory: vi.fn(),
         delete: vi.fn(),
@@ -72,6 +76,28 @@ const WorkspaceApiProbe = (): React.JSX.Element => {
       <button
         type="button"
         onClick={() => {
+          workspaceApi
+            .savePastedImage({
+              preferredName: 'clipboard.png',
+              mimeType: 'image/png',
+              contentBase64: 'aW1hZ2U='
+            })
+            .catch(() => undefined);
+        }}
+      >
+        Paste Image
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          workspaceApi.readImageDataUrl('image.png').catch(() => undefined);
+        }}
+      >
+        Read Image
+      </button>
+      <button
+        type="button"
+        onClick={() => {
           workspaceApi.loadKeywordIndex().catch(() => undefined);
         }}
       >
@@ -117,10 +143,14 @@ describe('useActiveWorkspaceApi', () => {
   beforeEach(() => {
     fileRead.mockReset();
     fileWrite.mockReset();
+    fileSaveImage.mockReset();
+    fileReadImage.mockReset();
     keywordLoadIndex.mockReset();
     keywordGetContent.mockReset();
     llmGetInlineCompletion.mockReset();
     fileRead.mockResolvedValue('opened content');
+    fileSaveImage.mockResolvedValue({ filename: 'paste-clipboard.png' });
+    fileReadImage.mockResolvedValue({ dataUrl: 'data:image/png;base64,aW1hZ2U=' });
     keywordLoadIndex.mockResolvedValue({ Keyword: '/workspace/note.md' });
     llmGetInlineCompletion.mockResolvedValue(null);
     installTnetApi();
@@ -140,6 +170,20 @@ describe('useActiveWorkspaceApi', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Keywords' }));
     expect(keywordLoadIndex).toHaveBeenCalledWith('/workspace');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Paste Image' }));
+    expect(fileSaveImage).toHaveBeenCalledWith({
+      rootDir: '/workspace',
+      preferredName: 'clipboard.png',
+      mimeType: 'image/png',
+      contentBase64: 'aW1hZ2U='
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Read Image' }));
+    expect(fileReadImage).toHaveBeenCalledWith({
+      rootDir: '/workspace',
+      filename: 'image.png'
+    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Keyword Content' }));
     expect(keywordGetContent).toHaveBeenCalledWith({

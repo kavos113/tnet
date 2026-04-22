@@ -13,6 +13,12 @@ export interface ActiveWorkspaceApi {
   hasWorkspace: boolean;
   readFile: (filePath: string) => Promise<string>;
   writeFile: (filePath: string, content: string) => Promise<void>;
+  savePastedImage: (request: {
+    preferredName?: string;
+    mimeType: string;
+    contentBase64: string;
+  }) => Promise<string | null>;
+  readImageDataUrl: (filename: string) => Promise<string | null>;
   openFile: (filePath: string) => Promise<void>;
   loadKeywordIndex: () => Promise<Record<string, string>>;
   getKeywordContent: (filePath: string, name: string) => Promise<string | null>;
@@ -47,6 +53,33 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
       return tnetApi.file.read(toWorkspacePathRequest(filePath));
     },
     [toWorkspacePathRequest]
+  );
+
+  const savePastedImage = useCallback(
+    async (request: {
+      preferredName?: string;
+      mimeType: string;
+      contentBase64: string;
+    }): Promise<string | null> => {
+      if (!rootPath) return null;
+      const result = await tnetApi.file.saveImage({
+        rootDir: rootPath,
+        preferredName: request.preferredName,
+        mimeType: request.mimeType,
+        contentBase64: request.contentBase64
+      });
+      return result.filename;
+    },
+    [rootPath]
+  );
+
+  const readImageDataUrl = useCallback(
+    async (filename: string): Promise<string | null> => {
+      if (!rootPath) return null;
+      const result = await tnetApi.file.readImage({ rootDir: rootPath, filename });
+      return result.dataUrl;
+    },
+    [rootPath]
   );
 
   const openWorkspaceFile = useCallback(
@@ -92,6 +125,8 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
     hasWorkspace: Boolean(rootPath),
     readFile,
     writeFile,
+    savePastedImage,
+    readImageDataUrl,
     openFile: openWorkspaceFile,
     loadKeywordIndex,
     getKeywordContent,
