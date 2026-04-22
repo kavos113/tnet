@@ -111,8 +111,8 @@ describe('ExplorerPanel', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     await waitFor(() => {
-      expect(fileCreate).toHaveBeenCalledWith('/workspace/Created.md');
-      expect(fileRead).toHaveBeenCalledWith('/workspace/Created.md');
+      expect(fileCreate).toHaveBeenCalledWith({ rootDir: '/workspace', path: 'Created.md' });
+      expect(fileRead).toHaveBeenCalledWith({ rootDir: '/workspace', path: 'Created.md' });
       expect(getFileTree).toHaveBeenCalledWith('/workspace');
     });
   });
@@ -133,7 +133,10 @@ describe('ExplorerPanel', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     await waitFor(() => {
-      expect(fileCreateDirectory).toHaveBeenCalledWith('/workspace/docs/nested');
+      expect(fileCreateDirectory).toHaveBeenCalledWith({
+        rootDir: '/workspace',
+        path: 'docs/nested'
+      });
       expect(getFileTree).toHaveBeenCalledWith('/workspace');
     });
   });
@@ -152,11 +155,11 @@ describe('ExplorerPanel', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     await waitFor(() => {
-      expect(fileRename).toHaveBeenCalledWith(
-        '/workspace/docs/note.md',
-        '/workspace/docs/renamed.md',
-        '/workspace'
-      );
+      expect(fileRename).toHaveBeenCalledWith({
+        rootDir: '/workspace',
+        oldPath: 'docs/note.md',
+        newPath: 'docs/renamed.md'
+      });
     });
   });
 });

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { basename, dirname, joinPath } from '@shared/path/pathUtils';
+import { basename, dirname, joinPath, toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { closeFileByPath, openFile, renameOpenedPath } from '@renderer/features/editor/editorSlice';
@@ -71,6 +71,11 @@ export const useExplorerActions = (): {
     dispatch(setFileTree(await tnetApi.workspace.getFileTree(rootPath)));
   };
 
+  const toWorkspaceRequest = (targetPath: string): { rootDir: string; path: string } => ({
+    rootDir: rootPath,
+    path: toWorkspaceRelativePath(rootPath, targetPath)
+  });
+
   const openWorkspace = async (): Promise<void> => {
     const result = await tnetApi.workspace.openDirectory();
     if (!result.rootPath) return;
@@ -116,11 +121,16 @@ export const useExplorerActions = (): {
     const targetPath = joinPath(parent, nextName);
 
     if (newEntry.mode === 'file') {
-      await tnetApi.file.create(targetPath);
+      await tnetApi.file.create(toWorkspaceRequest(targetPath));
       dispatch(selectFile(targetPath));
-      dispatch(openFile({ path: targetPath, content: await tnetApi.file.read(targetPath) }));
+      dispatch(
+        openFile({
+          path: targetPath,
+          content: await tnetApi.file.read(toWorkspaceRequest(targetPath))
+        })
+      );
     } else {
-      await tnetApi.file.createDirectory(targetPath);
+      await tnetApi.file.createDirectory(toWorkspaceRequest(targetPath));
       dispatch(selectDirectoryOnly(targetPath));
       dispatch(addExpandedPath(parent));
     }
@@ -152,7 +162,11 @@ export const useExplorerActions = (): {
       return;
     }
 
-    await tnetApi.file.rename(oldPath, newPath, rootPath);
+    await tnetApi.file.rename({
+      rootDir: rootPath,
+      oldPath: toWorkspaceRelativePath(rootPath, oldPath),
+      newPath: toWorkspaceRelativePath(rootPath, newPath)
+    });
     dispatch(renameOpenedPath({ oldPath, newPath }));
     dispatch(replaceSelectedPath({ oldPath, newPath }));
     cancelRenameEntry();
@@ -163,7 +177,7 @@ export const useExplorerActions = (): {
     if (!rootPath || !selectedPath) return;
     if (!window.confirm(`Delete ${basename(selectedPath)}?`)) return;
 
-    await tnetApi.file.delete(selectedPath, rootPath);
+    await tnetApi.file.delete(toWorkspaceRequest(selectedPath));
     dispatch(closeFileByPath(selectedPath));
     dispatch(clearSelection());
     await refreshTree();

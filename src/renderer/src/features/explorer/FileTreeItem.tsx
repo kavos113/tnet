@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { openFile } from '@renderer/features/editor/editorSlice';
-import { tnetApi } from '@renderer/lib/tnetApi';
+import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
 import type { NewEntryState, RenameEntryState } from './FileTree';
 import { selectDirectory, selectFile } from './explorerSlice';
 
@@ -30,6 +30,7 @@ export const FileTreeItem = ({
   onCancelRenameEntry
 }: FileTreeItemProps): React.JSX.Element => {
   const dispatch = useAppDispatch();
+  const workspaceApi = useActiveWorkspaceApi();
   const newEntryInputRef = useRef<HTMLInputElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const { selectedPath, selectedDirPath, expandedPaths } = useAppSelector(
@@ -60,7 +61,7 @@ export const FileTreeItem = ({
     }
 
     dispatch(selectFile(item.path));
-    const content = await tnetApi.file.read(item.path);
+    const content = await workspaceApi.readFile(item.path);
     dispatch(openFile({ path: item.path, content }));
   };
 

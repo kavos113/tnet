@@ -6,26 +6,31 @@ import {
   deleteFile,
   readFile,
   renamePath,
-  writeFile
+  writeFile,
+  type WriteWorkspaceFileRequest
 } from '@main/services/fileService';
+import type {
+  RenameWorkspacePathRequest,
+  WorkspacePathRequest
+} from '@main/services/workspacePath';
 
 export const registerFileIpc = (): void => {
-  ipcMain.handle(ipcChannels.file.read, async (_event, filePath: string) => readFile(filePath));
-  ipcMain.handle(
-    ipcChannels.file.write,
-    async (_event, filePath: string, content: string, rootDir: string) =>
-      writeFile(filePath, content, rootDir)
+  ipcMain.handle(ipcChannels.file.read, async (_event, request: WorkspacePathRequest) =>
+    readFile(request)
   );
-  ipcMain.handle(ipcChannels.file.create, async (_event, filePath: string) => createFile(filePath));
-  ipcMain.handle(ipcChannels.file.createDirectory, async (_event, dirPath: string) =>
-    createDirectory(dirPath)
+  ipcMain.handle(ipcChannels.file.write, async (_event, request: WriteWorkspaceFileRequest) =>
+    writeFile(request)
   );
-  ipcMain.handle(ipcChannels.file.delete, async (_event, filePath: string, rootDir: string) =>
-    deleteFile(filePath, rootDir)
+  ipcMain.handle(ipcChannels.file.create, async (_event, request: WorkspacePathRequest) =>
+    createFile(request)
   );
-  ipcMain.handle(
-    ipcChannels.file.rename,
-    async (_event, oldPath: string, newPath: string, rootDir: string) =>
-      renamePath(oldPath, newPath, rootDir)
+  ipcMain.handle(ipcChannels.file.createDirectory, async (_event, request: WorkspacePathRequest) =>
+    createDirectory(request)
+  );
+  ipcMain.handle(ipcChannels.file.delete, async (_event, request: WorkspacePathRequest) =>
+    deleteFile(request)
+  );
+  ipcMain.handle(ipcChannels.file.rename, async (_event, request: RenameWorkspacePathRequest) =>
+    renamePath(request)
   );
 };

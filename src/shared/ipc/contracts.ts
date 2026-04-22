@@ -6,18 +6,37 @@ export interface OpenDirectoryResult {
   fileTree: FileItem[];
 }
 
+export interface WorkspacePathRequest {
+  rootDir: string;
+  path: string;
+}
+
+export interface WriteWorkspaceFileRequest extends WorkspacePathRequest {
+  content: string;
+}
+
+export interface RenameWorkspacePathRequest {
+  rootDir: string;
+  oldPath: string;
+  newPath: string;
+}
+
+export interface KeywordContentRequest extends WorkspacePathRequest {
+  name: string;
+}
+
 export interface TnetApi {
   workspace: {
     openDirectory: () => Promise<OpenDirectoryResult>;
-    getFileTree: (dirPath: string) => Promise<FileItem[]>;
+    getFileTree: (rootDir: string) => Promise<FileItem[]>;
   };
   file: {
-    read: (filePath: string) => Promise<string>;
-    write: (filePath: string, content: string, rootDir: string) => Promise<void>;
-    create: (filePath: string) => Promise<void>;
-    createDirectory: (dirPath: string) => Promise<void>;
-    delete: (filePath: string, rootDir: string) => Promise<void>;
-    rename: (oldPath: string, newPath: string, rootDir: string) => Promise<void>;
+    read: (request: WorkspacePathRequest) => Promise<string>;
+    write: (request: WriteWorkspaceFileRequest) => Promise<void>;
+    create: (request: WorkspacePathRequest) => Promise<void>;
+    createDirectory: (request: WorkspacePathRequest) => Promise<void>;
+    delete: (request: WorkspacePathRequest) => Promise<void>;
+    rename: (request: RenameWorkspacePathRequest) => Promise<void>;
   };
   session: {
     load: (rootDir: string) => Promise<SessionData>;
@@ -31,6 +50,6 @@ export interface TnetApi {
   };
   keyword: {
     loadIndex: (rootDir: string) => Promise<Record<string, string>>;
-    getContent: (filePath: string, name: string) => Promise<string | null>;
+    getContent: (request: KeywordContentRequest) => Promise<string | null>;
   };
 }

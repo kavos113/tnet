@@ -73,6 +73,14 @@ const WorkspaceApiProbe = (): React.JSX.Element => {
       >
         Keywords
       </button>
+      <button
+        type="button"
+        onClick={() => {
+          workspaceApi.getKeywordContent('/workspace/note.md', 'Keyword').catch(() => undefined);
+        }}
+      >
+        Keyword Content
+      </button>
     </div>
   );
 };
@@ -102,13 +110,25 @@ describe('useActiveWorkspaceApi', () => {
     renderProbe(store);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(fileWrite).toHaveBeenCalledWith('/workspace/note.md', 'draft', '/workspace');
+    expect(fileWrite).toHaveBeenCalledWith({
+      rootDir: '/workspace',
+      path: 'note.md',
+      content: 'draft'
+    });
 
     fireEvent.click(screen.getByRole('button', { name: 'Keywords' }));
     expect(keywordLoadIndex).toHaveBeenCalledWith('/workspace');
 
+    fireEvent.click(screen.getByRole('button', { name: 'Keyword Content' }));
+    expect(keywordGetContent).toHaveBeenCalledWith({
+      rootDir: '/workspace',
+      path: 'note.md',
+      name: 'Keyword'
+    });
+
     fireEvent.click(screen.getByRole('button', { name: 'Open' }));
     await waitFor(() => {
+      expect(fileRead).toHaveBeenCalledWith({ rootDir: '/workspace', path: 'note.md' });
       expect(store.getState().editor.openedFiles[0]).toMatchObject({
         path: '/workspace/note.md',
         content: 'opened content'

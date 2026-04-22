@@ -8,15 +8,15 @@ const getApi = (): TnetApi => {
 export const tnetApi: TnetApi = {
   workspace: {
     openDirectory: () => getApi().workspace.openDirectory(),
-    getFileTree: (dirPath) => getApi().workspace.getFileTree(dirPath)
+    getFileTree: (rootDir) => getApi().workspace.getFileTree(rootDir)
   },
   file: {
-    read: (filePath) => getApi().file.read(filePath),
-    write: (filePath, content, rootDir) => getApi().file.write(filePath, content, rootDir),
-    create: (filePath) => getApi().file.create(filePath),
-    createDirectory: (dirPath) => getApi().file.createDirectory(dirPath),
-    delete: (filePath, rootDir) => getApi().file.delete(filePath, rootDir),
-    rename: (oldPath, newPath, rootDir) => getApi().file.rename(oldPath, newPath, rootDir)
+    read: (request) => getApi().file.read(request),
+    write: (request) => getApi().file.write(request),
+    create: (request) => getApi().file.create(request),
+    createDirectory: (request) => getApi().file.createDirectory(request),
+    delete: (request) => getApi().file.delete(request),
+    rename: (request) => getApi().file.rename(request)
   },
   session: {
     load: (rootDir) => getApi().session.load(rootDir),
@@ -30,6 +30,6 @@ export const tnetApi: TnetApi = {
   },
   keyword: {
     loadIndex: (rootDir) => getApi().keyword.loadIndex(rootDir),
-    getContent: (filePath, name) => getApi().keyword.getContent(filePath, name)
+    getContent: (request) => getApi().keyword.getContent(request)
   }
 };

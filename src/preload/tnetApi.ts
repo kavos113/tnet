@@ -5,17 +5,15 @@ import type { TnetApi } from '@shared/ipc/contracts';
 export const tnetApi: TnetApi = {
   workspace: {
     openDirectory: () => ipcRenderer.invoke(ipcChannels.workspace.openDirectory),
-    getFileTree: (dirPath) => ipcRenderer.invoke(ipcChannels.workspace.getFileTree, dirPath)
+    getFileTree: (rootDir) => ipcRenderer.invoke(ipcChannels.workspace.getFileTree, rootDir)
   },
   file: {
-    read: (filePath) => ipcRenderer.invoke(ipcChannels.file.read, filePath),
-    write: (filePath, content, rootDir) =>
-      ipcRenderer.invoke(ipcChannels.file.write, filePath, content, rootDir),
-    create: (filePath) => ipcRenderer.invoke(ipcChannels.file.create, filePath),
-    createDirectory: (dirPath) => ipcRenderer.invoke(ipcChannels.file.createDirectory, dirPath),
-    delete: (filePath, rootDir) => ipcRenderer.invoke(ipcChannels.file.delete, filePath, rootDir),
-    rename: (oldPath, newPath, rootDir) =>
-      ipcRenderer.invoke(ipcChannels.file.rename, oldPath, newPath, rootDir)
+    read: (request) => ipcRenderer.invoke(ipcChannels.file.read, request),
+    write: (request) => ipcRenderer.invoke(ipcChannels.file.write, request),
+    create: (request) => ipcRenderer.invoke(ipcChannels.file.create, request),
+    createDirectory: (request) => ipcRenderer.invoke(ipcChannels.file.createDirectory, request),
+    delete: (request) => ipcRenderer.invoke(ipcChannels.file.delete, request),
+    rename: (request) => ipcRenderer.invoke(ipcChannels.file.rename, request)
   },
   session: {
     load: (rootDir) => ipcRenderer.invoke(ipcChannels.session.load, rootDir),
@@ -30,7 +28,6 @@ export const tnetApi: TnetApi = {
   },
   keyword: {
     loadIndex: (rootDir) => ipcRenderer.invoke(ipcChannels.keyword.loadIndex, rootDir),
-    getContent: (filePath, name) =>
-      ipcRenderer.invoke(ipcChannels.keyword.getContent, filePath, name)
+    getContent: (request) => ipcRenderer.invoke(ipcChannels.keyword.getContent, request)
   }
 };

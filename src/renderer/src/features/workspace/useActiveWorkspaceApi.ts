@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { openFile } from '@renderer/features/editor/editorSlice';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { tnetApi } from '@renderer/lib/tnetApi';
@@ -16,25 +17,35 @@ export interface ActiveWorkspaceApi {
 export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
   const dispatch = useAppDispatch();
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
+  const toWorkspacePathRequest = useCallback(
+    (filePath: string): { rootDir: string; path: string } => ({
+      rootDir: rootPath,
+      path: toWorkspaceRelativePath(rootPath, filePath)
+    }),
+    [rootPath]
+  );
 
   const writeFile = useCallback(
     async (filePath: string, content: string): Promise<void> => {
       if (!rootPath) return;
-      await tnetApi.file.write(filePath, content, rootPath);
+      await tnetApi.file.write({ ...toWorkspacePathRequest(filePath), content });
     },
-    [rootPath]
+    [rootPath, toWorkspacePathRequest]
   );
 
-  const readFile = useCallback(async (filePath: string): Promise<string> => {
-    return tnetApi.file.read(filePath);
-  }, []);
+  const readFile = useCallback(
+    async (filePath: string): Promise<string> => {
+      return tnetApi.file.read(toWorkspacePathRequest(filePath));
+    },
+    [toWorkspacePathRequest]
+  );
 
   const openWorkspaceFile = useCallback(
     async (filePath: string): Promise<void> => {
-      const content = await tnetApi.file.read(filePath);
+      const content = await tnetApi.file.read(toWorkspacePathRequest(filePath));
       dispatch(openFile({ path: filePath, content }));
     },
-    [dispatch]
+    [dispatch, toWorkspacePathRequest]
   );
 
   const loadKeywordIndex = useCallback(async (): Promise<Record<string, string>> => {
@@ -44,9 +55,9 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
 
   const getKeywordContent = useCallback(
     async (filePath: string, name: string): Promise<string | null> => {
-      return tnetApi.keyword.getContent(filePath, name);
+      return tnetApi.keyword.getContent({ ...toWorkspacePathRequest(filePath), name });
     },
-    []
+    [toWorkspacePathRequest]
   );
 
   return {

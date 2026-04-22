@@ -6,14 +6,23 @@ import {
 } from '@shared/keyword/keywordParser';
 import { readJsonFileOrDefault, writeJsonFile } from '@main/storage/jsonFile';
 import { keywordsFilePath, latestFilePath } from '@main/storage/paths';
+import { resolveWorkspacePath, type WorkspacePathRequest } from './workspacePath';
 
 export const loadKeywordIndex = async (rootDir: string): Promise<Record<string, string>> => {
   if (!rootDir) return {};
   return readJsonFileOrDefault<Record<string, string>>(keywordsFilePath(rootDir), {});
 };
 
-export const getKeywordContent = async (filePath: string, name: string): Promise<string | null> => {
-  if (!filePath || !name) return null;
+export interface KeywordContentRequest extends WorkspacePathRequest {
+  name: string;
+}
+
+export const getKeywordContent = async ({
+  name,
+  ...pathRequest
+}: KeywordContentRequest): Promise<string | null> => {
+  if (!pathRequest.path || !name) return null;
+  const filePath = resolveWorkspacePath(pathRequest);
   const content = await fs.readFile(filePath, 'utf-8');
   return extractKeywordContent(content, name);
 };

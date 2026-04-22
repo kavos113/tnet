@@ -3,7 +3,14 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { createDirectory, createFile, deleteFile, renamePath, writeFile } from '../fileService';
+import {
+  createDirectory,
+  createFile,
+  deleteFile,
+  readFile,
+  renamePath,
+  writeFile
+} from '../fileService';
 import { getFileTree } from '../fileTreeService';
 import { loadKeywordIndex } from '../keywordService';
 import { loadSession, saveSession } from '../sessionService';
@@ -33,34 +40,41 @@ describe('main file services', () => {
     const root = await tempDir('create-file');
     const filePath = path.join(root, 'nested', 'new.md');
 
-    await createFile(filePath);
+    await createFile({ rootDir: root, path: 'nested/new.md' });
 
     const content = await fs.readFile(filePath, 'utf-8');
     expect(content).toContain('Variables and Conditions');
     expect(content).toContain('Proof');
   });
 
+  it('reads files from workspace-relative request paths', async () => {
+    const root = await tempDir('read-relative');
+    await fs.writeFile(path.join(root, 'note.md'), 'content', 'utf-8');
+
+    await expect(readFile({ rootDir: root, path: 'note.md' })).resolves.toBe('content');
+  });
+
   it('creates directories recursively and rejects existing directories', async () => {
     const root = await tempDir('create-dir');
     const dirPath = path.join(root, 'a', 'b');
 
-    await createDirectory(dirPath);
+    await createDirectory({ rootDir: root, path: 'a/b' });
     await expect(fs.stat(dirPath)).resolves.toMatchObject({});
-    await expect(createDirectory(dirPath)).rejects.toThrow('already exists');
+    await expect(createDirectory({ rootDir: root, path: 'a/b' })).rejects.toThrow('already exists');
   });
 
   it('writes keyword indexes and injects generated keyword names', async () => {
     const root = await tempDir('keywords');
     const filePath = path.join(root, 'doc.md');
 
-    await writeFile(
-      filePath,
-      [
+    await writeFile({
+      rootDir: root,
+      path: 'doc.md',
+      content: [
         '<keyword name="Manual">manual body</keyword>',
         '<keyword number-class="1" prefix="定理">generated body</keyword>'
-      ].join('\n'),
-      root
-    );
+      ].join('\n')
+    });
 
     const saved = await fs.readFile(filePath, 'utf-8');
     expect(saved).toContain('name="定理 1.1"');
@@ -91,14 +105,18 @@ describe('main file services', () => {
     const oldPath = path.join(root, 'old.md');
     const newPath = path.join(root, 'new.md');
 
-    await writeFile(oldPath, '<keyword name="K1">body</keyword>', root);
+    await writeFile({
+      rootDir: root,
+      path: 'old.md',
+      content: '<keyword name="K1">body</keyword>'
+    });
     await saveSession(root, { openedFiles: [oldPath], expandedFolders: [root] });
-    await renamePath(oldPath, newPath, root);
+    await renamePath({ rootDir: root, oldPath: 'old.md', newPath: 'new.md' });
 
     expect(await loadSession(root)).toEqual({ openedFiles: [newPath], expandedFolders: [root] });
     expect(await loadKeywordIndex(root)).toMatchObject({ K1: newPath });
 
-    await deleteFile(newPath, root);
+    await deleteFile({ rootDir: root, path: 'new.md' });
 
     expect(await loadSession(root)).toEqual({ openedFiles: [], expandedFolders: [root] });
     expect((await loadKeywordIndex(root)).K1).toBeUndefined();

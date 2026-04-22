@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { useAppDispatch } from '@renderer/app/hooks';
 import { openFile } from '@renderer/features/editor/editorSlice';
 import { setExpandedPaths } from '@renderer/features/explorer/explorerSlice';
@@ -29,7 +30,10 @@ export const useRestoreWorkspace = (): boolean => {
       dispatch(setExpandedPaths(session.expandedFolders));
       for (const filePath of session.openedFiles) {
         try {
-          const content = await tnetApi.file.read(filePath);
+          const content = await tnetApi.file.read({
+            rootDir: rootPath,
+            path: toWorkspaceRelativePath(rootPath, filePath)
+          });
           if (!canceled) dispatch(openFile({ path: filePath, content }));
         } catch (error: unknown) {
           console.warn('Failed to restore file', filePath, error);
