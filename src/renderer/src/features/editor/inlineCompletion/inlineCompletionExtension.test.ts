@@ -53,6 +53,7 @@ describe('inlineCompletionExtension', () => {
 
     expect(acceptInlineCompletion(view)).toBe(true);
     expect(view.state.doc.toString()).toBe('Hello world');
+    expect(view.state.selection.main.head).toBe('Hello world'.length);
     expect(parent.querySelector('.inline-completion-ghost')).toBeNull();
 
     view.destroy();

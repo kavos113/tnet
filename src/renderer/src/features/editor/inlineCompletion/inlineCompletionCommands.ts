@@ -7,6 +7,7 @@ export const acceptInlineCompletion = ({ state, dispatch }: EditorView): boolean
 
   dispatch({
     changes: { from: completion.from, insert: completion.text },
+    selection: { anchor: completion.from + completion.text.length },
     effects: clearInlineCompletionEffect.of()
   });
   return true;
