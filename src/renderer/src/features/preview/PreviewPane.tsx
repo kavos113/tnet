@@ -7,6 +7,7 @@ import 'katex/dist/katex.min.css';
 
 interface PreviewPaneProps {
   markdown: string;
+  showOutline: boolean;
   onOpenInternalLink: (filePath: string) => Promise<void> | void;
   loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
 }
@@ -29,7 +30,7 @@ const areOutlineItemsEqual = (
 };
 
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
-  ({ markdown, onOpenInternalLink, loadKeywordContent }, ref): React.JSX.Element => {
+  ({ markdown, showOutline, onOpenInternalLink, loadKeywordContent }, ref): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [html, setHtml] = useState('');
     const [outlineItems, setOutlineItems] = useState<PreviewOutlineItem[]>([]);
@@ -99,7 +100,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
           // matching the legacy editor behavior.
           dangerouslySetInnerHTML={{ __html: html }}
         />
-        <PreviewOutline items={outlineItems} onSelect={scrollToHeading} />
+        {showOutline ? <PreviewOutline items={outlineItems} onSelect={scrollToHeading} /> : null}
         <InternalLinkTooltipController
           containerRef={containerRef}
           onOpenInternalLink={openInternalLink}

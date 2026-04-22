@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle } from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@renderer/app/store';
 import { openFile, updateActiveContent } from './editorSlice';
 import { EditorWorkspace } from './EditorWorkspace';
@@ -11,6 +11,13 @@ const editorPaneProps = vi.hoisted(
     [] as Array<{
       content: string;
       requestInlineCompletion?: unknown;
+    }>
+);
+
+const previewPaneProps = vi.hoisted(
+  () =>
+    [] as Array<{
+      showOutline: boolean;
     }>
 );
 
@@ -34,7 +41,8 @@ vi.mock('./EditorPane', () => ({
 }));
 
 vi.mock('@renderer/features/preview/PreviewPane', () => ({
-  PreviewPane: forwardRef((_, ref) => {
+  PreviewPane: forwardRef((props: { showOutline: boolean }, ref) => {
+    previewPaneProps.push(props);
     useImperativeHandle(ref, () => ({
       getPreviewElement: () => null
     }));
@@ -82,7 +90,12 @@ const installTnetApi = (): void => {
 describe('EditorWorkspace split resize', () => {
   beforeEach(() => {
     editorPaneProps.length = 0;
+    previewPaneProps.length = 0;
     installTnetApi();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('resizes editor and preview panes by dragging the split separator', () => {
@@ -142,5 +155,28 @@ describe('EditorWorkspace split resize', () => {
 
     expect(editorPaneProps.at(-1)?.content).toBe('# Note\nEdited');
     expect(editorPaneProps.at(-1)?.requestInlineCompletion).toBe(initialRequester);
+  });
+
+  it('toggles the preview outline from the editor toolbar', () => {
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    const outlineButton = screen.getByRole('button', { name: 'Outline' });
+    expect(outlineButton).toHaveAttribute('aria-pressed', 'true');
+    expect(previewPaneProps.at(-1)?.showOutline).toBe(true);
+
+    fireEvent.click(outlineButton);
+
+    expect(screen.getByRole('button', { name: 'Outline' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    expect(previewPaneProps.at(-1)?.showOutline).toBe(false);
   });
 });

@@ -3,6 +3,7 @@ import reducer, {
   closeFile,
   openFile,
   switchFile,
+  togglePreviewOutline,
   updateActiveContent,
   type OpenFile
 } from './editorSlice';
@@ -10,7 +11,8 @@ import reducer, {
 const initialState = {
   openedFiles: [] as OpenFile[],
   activeIndex: -1,
-  viewMode: 'split' as const
+  viewMode: 'split' as const,
+  isPreviewOutlineVisible: true
 };
 
 describe('editorSlice', () => {
@@ -43,5 +45,11 @@ describe('editorSlice', () => {
 
     expect(state.openedFiles[0].content).toBe('Changed');
     expect(state.openedFiles[0].isModified).toBe(true);
+  });
+
+  it('toggles preview outline visibility', () => {
+    const state = reducer(initialState, togglePreviewOutline());
+
+    expect(state.isPreviewOutlineVisible).toBe(false);
   });
 });

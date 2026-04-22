@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
 import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
-import { setViewMode, updateActiveContent } from './editorSlice';
+import { setViewMode, togglePreviewOutline, updateActiveContent } from './editorSlice';
 import { EditorPane, type EditorPaneHandle } from './EditorPane';
 import { TabBar } from './TabBar';
 import { useSaveActiveFile } from './useSaveActiveFile';
@@ -19,7 +19,9 @@ export const EditorWorkspace = (): React.JSX.Element => {
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
   const workspaceApi = useActiveWorkspaceApi();
-  const { openedFiles, activeIndex, viewMode } = useAppSelector((state) => state.editor);
+  const { openedFiles, activeIndex, viewMode, isPreviewOutlineVisible } = useAppSelector(
+    (state) => state.editor
+  );
   const settings = useAppSelector((state) => state.workspace.settings);
   const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
   const activeFilePath = activeFile?.path ?? null;
@@ -89,6 +91,16 @@ export const EditorWorkspace = (): React.JSX.Element => {
               >
                 Preview
               </button>
+              {viewMode !== 'editor' ? (
+                <button
+                  type="button"
+                  className={`mode-button ${isPreviewOutlineVisible ? 'active' : ''}`}
+                  aria-pressed={isPreviewOutlineVisible}
+                  onClick={() => dispatch(togglePreviewOutline())}
+                >
+                  Outline
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="save-button"
@@ -138,6 +150,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
                 <PreviewPane
                   ref={previewPaneRef}
                   markdown={activeFile.content}
+                  showOutline={isPreviewOutlineVisible}
                   onOpenInternalLink={workspaceApi.openFile}
                   loadKeywordContent={workspaceApi.getKeywordContent}
                 />

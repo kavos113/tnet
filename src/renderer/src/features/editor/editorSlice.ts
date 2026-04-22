@@ -13,12 +13,14 @@ interface EditorState {
   openedFiles: OpenFile[];
   activeIndex: number;
   viewMode: ViewMode;
+  isPreviewOutlineVisible: boolean;
 }
 
 const initialState: EditorState = {
   openedFiles: [],
   activeIndex: -1,
-  viewMode: 'split'
+  viewMode: 'split',
+  isPreviewOutlineVisible: true
 };
 
 const editorSlice = createSlice({
@@ -126,6 +128,9 @@ const editorSlice = createSlice({
     },
     setViewMode: (state, action: PayloadAction<ViewMode>) => {
       state.viewMode = action.payload;
+    },
+    togglePreviewOutline: (state) => {
+      state.isPreviewOutlineVisible = !state.isPreviewOutlineVisible;
     }
   }
 });
@@ -139,6 +144,7 @@ export const {
   markActiveSaved,
   renameOpenedPath,
   replaceOpenedFiles,
-  setViewMode
+  setViewMode,
+  togglePreviewOutline
 } = editorSlice.actions;
 export default editorSlice.reducer;

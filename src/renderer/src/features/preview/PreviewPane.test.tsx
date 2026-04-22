@@ -16,6 +16,7 @@ const renderPreviewPane = (markdown: string): void => {
   render(
     <PreviewPane
       markdown={markdown}
+      showOutline={true}
       onOpenInternalLink={openInternalLink}
       loadKeywordContent={keywordGetContent}
     />

@@ -14,40 +14,72 @@ export const useScrollSync = ({
   previewPaneRef,
   enabled
 }: UseScrollSyncOptions): void => {
-  const isSyncingScrollRef = useRef(false);
+  const ignoredProgrammaticScrollRef = useRef<{
+    element: HTMLElement;
+    scrollTop: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
 
-    const editorScroller = editorPaneRef.current?.getScroller();
-    const previewElement = previewPaneRef.current?.getPreviewElement();
-    if (!editorScroller || !previewElement) return;
+    let attachFrame = 0;
+    let syncFrame = 0;
+    let cleanupListeners: (() => void) | null = null;
+    let pendingSync: { source: HTMLElement; target: HTMLElement } | null = null;
 
-    let animationFrame = 0;
+    const scheduleScrollSync = (source: HTMLElement, target: HTMLElement): void => {
+      const ignoredScroll = ignoredProgrammaticScrollRef.current;
+      if (ignoredScroll?.element === source && ignoredScroll.scrollTop === source.scrollTop) {
+        ignoredProgrammaticScrollRef.current = null;
+        return;
+      }
 
-    const syncScroll = (source: HTMLElement, target: HTMLElement): void => {
-      if (isSyncingScrollRef.current) return;
+      pendingSync = { source, target };
+      if (syncFrame) return;
 
-      isSyncingScrollRef.current = true;
-      applyScrollRatio(target, getScrollRatio(source));
+      syncFrame = requestAnimationFrame(() => {
+        syncFrame = 0;
+        const nextSync = pendingSync;
+        pendingSync = null;
+        if (!nextSync) return;
 
-      cancelAnimationFrame(animationFrame);
-      animationFrame = requestAnimationFrame(() => {
-        isSyncingScrollRef.current = false;
+        applyScrollRatio(nextSync.target, getScrollRatio(nextSync.source));
+        ignoredProgrammaticScrollRef.current = {
+          element: nextSync.target,
+          scrollTop: nextSync.target.scrollTop
+        };
       });
     };
 
-    const onEditorScroll = (): void => syncScroll(editorScroller, previewElement);
-    const onPreviewScroll = (): void => syncScroll(previewElement, editorScroller);
+    const attachScrollListeners = (): void => {
+      if (cleanupListeners) return;
 
-    editorScroller.addEventListener('scroll', onEditorScroll);
-    previewElement.addEventListener('scroll', onPreviewScroll);
+      const editorScroller = editorPaneRef.current?.getScroller();
+      const previewElement = previewPaneRef.current?.getPreviewElement();
+      if (!editorScroller || !previewElement) {
+        attachFrame = requestAnimationFrame(attachScrollListeners);
+        return;
+      }
+
+      const onEditorScroll = (): void => scheduleScrollSync(editorScroller, previewElement);
+      const onPreviewScroll = (): void => scheduleScrollSync(previewElement, editorScroller);
+
+      editorScroller.addEventListener('scroll', onEditorScroll);
+      previewElement.addEventListener('scroll', onPreviewScroll);
+
+      cleanupListeners = () => {
+        editorScroller.removeEventListener('scroll', onEditorScroll);
+        previewElement.removeEventListener('scroll', onPreviewScroll);
+      };
+    };
+
+    attachScrollListeners();
 
     return () => {
-      editorScroller.removeEventListener('scroll', onEditorScroll);
-      previewElement.removeEventListener('scroll', onPreviewScroll);
-      cancelAnimationFrame(animationFrame);
-      isSyncingScrollRef.current = false;
+      cleanupListeners?.();
+      cancelAnimationFrame(attachFrame);
+      cancelAnimationFrame(syncFrame);
+      ignoredProgrammaticScrollRef.current = null;
     };
   }, [editorPaneRef, enabled, previewPaneRef]);
 };
