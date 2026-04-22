@@ -15,6 +15,7 @@ export const App = (): React.JSX.Element => {
     key: ',',
     ctrlOrMeta: true,
     target: 'document',
+    allowInEditable: true,
     onTrigger: () => setIsSettingsOpen(true)
   });
 

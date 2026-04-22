@@ -1,11 +1,14 @@
+import { createElement } from 'react';
+import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { isEditableShortcutTarget, matchesShortcut } from './useShortcut';
+import { useShortcut } from './useShortcut';
 
 const keyboardEvent = (
   key: string,
   options: Pick<KeyboardEventInit, 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'> = {}
 ): KeyboardEvent => {
-  return new KeyboardEvent('keydown', { key, ...options });
+  return new KeyboardEvent('keydown', { key, bubbles: true, ...options });
 };
 
 describe('shortcut matching', () => {
@@ -54,5 +57,30 @@ describe('shortcut matching', () => {
 
     input.dispatchEvent(keyboardEvent('s', { ctrlKey: true }));
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('can allow global shortcuts from editable targets', () => {
+    const handler = vi.fn();
+    const Probe = (): null => {
+      useShortcut({
+        key: ',',
+        ctrlOrMeta: true,
+        target: 'document',
+        allowInEditable: true,
+        onTrigger: handler
+      });
+      return null;
+    };
+    const editable = document.createElement('div');
+    editable.contentEditable = 'true';
+    document.body.append(editable);
+
+    const { unmount } = render(createElement(Probe));
+    editable.dispatchEvent(keyboardEvent(',', { ctrlKey: true }));
+
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    unmount();
+    editable.remove();
   });
 });

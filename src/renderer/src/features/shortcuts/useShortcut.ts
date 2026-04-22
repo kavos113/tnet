@@ -7,6 +7,7 @@ interface UseShortcutOptions {
   alt?: boolean;
   enabled?: boolean;
   target?: 'window' | 'document';
+  allowInEditable?: boolean;
   onTrigger: (event: KeyboardEvent) => void;
 }
 
@@ -40,6 +41,7 @@ export const useShortcut = ({
   alt = false,
   enabled = true,
   target = 'window',
+  allowInEditable = false,
   onTrigger
 }: UseShortcutOptions): void => {
   const onTriggerRef = useRef(onTrigger);
@@ -50,7 +52,7 @@ export const useShortcut = ({
     const onKeyDown = (event: Event): void => {
       if (!(event instanceof KeyboardEvent)) return;
       if (!enabled) return;
-      if (isEditableShortcutTarget(event.target)) return;
+      if (!allowInEditable && isEditableShortcutTarget(event.target)) return;
       if (!matchesShortcut(event, { key, ctrlOrMeta, shift, alt })) return;
 
       event.preventDefault();
@@ -59,5 +61,5 @@ export const useShortcut = ({
 
     eventTarget.addEventListener('keydown', onKeyDown);
     return () => eventTarget.removeEventListener('keydown', onKeyDown);
-  }, [alt, ctrlOrMeta, enabled, key, shift, target]);
+  }, [allowInEditable, alt, ctrlOrMeta, enabled, key, shift, target]);
 };
