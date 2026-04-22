@@ -1,0 +1,119 @@
+.tab-bar {
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  background: var(--tab-bg);
+  border-bottom: 1px solid var(--tab-border);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 120px;
+  max-width: 200px;
+  height: 31px;
+  padding: 4px 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  user-select: none;
+  background: var(--tab-bg);
+  border: 0;
+  border-right: 1px solid var(--tab-border);
+}
+
+.tab:hover {
+  background: var(--tab-hover-bg);
+}
+
+.tab.active {
+  background: var(--tab-active-bg);
+  border-bottom: 2px solid var(--main-dark);
+}
+
+.tab-name {
+  flex: 1;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modified-indicator {
+  margin: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tab-modified);
+}
+
+.tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  font-size: 14px;
+  color: var(--foreground);
+  border-radius: 3px;
+  opacity: 0.65;
+}
+
+.tab-close:hover {
+  background: var(--gray);
+  opacity: 1;
+}
+
+.editor-workspace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+.editor-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 6px 10px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--gray);
+}
+
+.editor-content-split {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.codemirror-container {
+  flex: 1;
+  width: 100%;
+  min-width: 200px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.resizer {
+  flex: 0 0 4px;
+  background: var(--gray);
+}
+
+.empty-editor {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: #777777;
+}

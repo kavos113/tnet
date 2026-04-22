@@ -1,0 +1,44 @@
+:root {
+  --background: #fbfbfb;
+  --background-dark: #ebebeb;
+  --foreground: #414141;
+  --main-dark: #00b400;
+  --main-light: #91e451;
+  --folder: #e4ac10;
+  --gray: #c9c9c9;
+  --tab-bg: #f4f4f4;
+  --tab-active-bg: #fbfbfb;
+  --tab-hover-bg: #e8e8e8;
+  --tab-border: #dddddd;
+  --tab-modified: #0078d7;
+  --sidebar-hover: #dfdfdf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    'Rounded Mplus 1c',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+button,
+textarea {
+  font: inherit;
+}

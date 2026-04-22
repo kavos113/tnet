@@ -1,0 +1,72 @@
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.icon-button:disabled,
+.save-button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.icon-button:hover {
+  background: var(--sidebar-hover);
+  border-color: var(--gray);
+}
+
+.primary-button {
+  padding: 8px 14px;
+  color: white;
+  cursor: pointer;
+  background: var(--main-dark);
+  border: 1px solid var(--main-dark);
+  border-radius: 4px;
+}
+
+.primary-button:hover {
+  background: #008900;
+}
+
+.mode-button,
+.save-button {
+  height: 22px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--tab-bg);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
+.mode-button.active,
+.save-button:hover {
+  background: var(--main-light);
+  border-color: var(--main-dark);
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 0;
+  border-radius: 4px;
+}
+
+.btn-primary {
+  color: white;
+  background: var(--main-dark);
+}
+
+.btn-secondary {
+  color: var(--foreground);
+  background: var(--gray);
+}
