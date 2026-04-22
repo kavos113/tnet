@@ -25,6 +25,7 @@ export interface ActiveWorkspaceApi {
 export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
   const dispatch = useAppDispatch();
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
+  const settings = useAppSelector((state) => state.workspace.settings);
   const toWorkspacePathRequest = useCallback(
     (filePath: string): { rootDir: string; path: string } => ({
       rootDir: rootPath,
@@ -74,6 +75,8 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
       context: InlineCompletionContext
     ): Promise<InlineCompletionResult | null> => {
       if (!rootPath) return null;
+      if (!settings.llmInlineCompletionEnabled) return null;
+      if (context.trigger === 'automatic' && !settings.llmAutomaticTrigger) return null;
       return tnetApi.llm.getInlineCompletion({
         ...context,
         workspaceRoot: rootPath,
@@ -81,7 +84,7 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
         language: 'markdown'
       });
     },
-    [rootPath]
+    [rootPath, settings.llmAutomaticTrigger, settings.llmInlineCompletionEnabled]
   );
 
   return {

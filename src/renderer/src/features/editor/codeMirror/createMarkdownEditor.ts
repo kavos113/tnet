@@ -29,6 +29,9 @@ interface CreateMarkdownEditorOptions {
   onChange: (content: string) => void;
   loadKeywordIndex: KeywordIndexLoader;
   requestInlineCompletion?: InlineCompletionRequester;
+  inlineCompletionDebounceMs?: number;
+  inlineCompletionMaxPrefixChars?: number;
+  inlineCompletionMaxSuffixChars?: number;
 }
 
 export const createMarkdownEditor = ({
@@ -36,7 +39,10 @@ export const createMarkdownEditor = ({
   content,
   onChange,
   loadKeywordIndex,
-  requestInlineCompletion
+  requestInlineCompletion,
+  inlineCompletionDebounceMs,
+  inlineCompletionMaxPrefixChars,
+  inlineCompletionMaxSuffixChars
 }: CreateMarkdownEditorOptions): MarkdownEditorInstance => {
   const state = EditorState.create({
     doc: content,
@@ -51,7 +57,12 @@ export const createMarkdownEditor = ({
       autocompletion({
         override: [keywordCompletion(loadKeywordIndex), latexCompletion, tagCompletion]
       }),
-      inlineCompletionExtension({ requestInlineCompletion }),
+      inlineCompletionExtension({
+        requestInlineCompletion,
+        debounceMs: inlineCompletionDebounceMs,
+        maxPrefixChars: inlineCompletionMaxPrefixChars,
+        maxSuffixChars: inlineCompletionMaxSuffixChars
+      }),
       EditorView.lineWrapping
     ]
   });

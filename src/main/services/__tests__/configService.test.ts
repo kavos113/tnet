@@ -34,7 +34,16 @@ describe('config services', () => {
       editorFontFamily: 'monospace',
       editorFontSize: 16,
       previewFontFamily: 'sans-serif',
-      previewFontSize: 16
+      previewFontSize: 16,
+      llmInlineCompletionEnabled: true,
+      llmProvider: 'mock',
+      llmModel: 'mock-inline-completion',
+      llmEndpoint: '',
+      llmApiKey: '',
+      llmAutomaticTrigger: false,
+      llmDebounceMs: 600,
+      llmMaxPrefixChars: 6000,
+      llmMaxSuffixChars: 1500
     });
   });
 
@@ -44,11 +53,57 @@ describe('config services', () => {
       editorFontFamily: 'Consolas',
       editorFontSize: 14,
       previewFontFamily: 'Georgia',
-      previewFontSize: 18
+      previewFontSize: 18,
+      llmInlineCompletionEnabled: true,
+      llmProvider: 'local-http' as const,
+      llmModel: 'local-model',
+      llmEndpoint: 'http://localhost:11434/inline',
+      llmApiKey: '',
+      llmAutomaticTrigger: true,
+      llmDebounceMs: 400,
+      llmMaxPrefixChars: 4000,
+      llmMaxSuffixChars: 1000
     };
 
     await saveProjectConfig(root, config);
 
     await expect(loadProjectConfig(root)).resolves.toEqual(config);
+  });
+
+  it('merges missing project config keys with defaults', async () => {
+    const root = await tempDir('project-config-merge');
+
+    await saveProjectConfig(root, {
+      editorFontFamily: 'Consolas',
+      editorFontSize: 14,
+      previewFontFamily: 'Georgia',
+      previewFontSize: 18,
+      llmInlineCompletionEnabled: true,
+      llmProvider: 'mock',
+      llmModel: 'mock-inline-completion',
+      llmEndpoint: '',
+      llmApiKey: '',
+      llmAutomaticTrigger: false,
+      llmDebounceMs: 600,
+      llmMaxPrefixChars: 6000,
+      llmMaxSuffixChars: 1500
+    });
+
+    await fs.writeFile(
+      path.join(root, '.tnet', 'settings.json'),
+      JSON.stringify({
+        editorFontFamily: 'Legacy Font',
+        editorFontSize: 13,
+        previewFontFamily: 'Legacy Preview',
+        previewFontSize: 15
+      }),
+      'utf-8'
+    );
+
+    await expect(loadProjectConfig(root)).resolves.toMatchObject({
+      editorFontFamily: 'Legacy Font',
+      llmProvider: 'mock',
+      llmDebounceMs: 600
+    });
   });
 });

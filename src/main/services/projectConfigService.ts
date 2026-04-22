@@ -5,7 +5,10 @@ import { settingsFilePath } from '@main/storage/paths';
 
 export const loadProjectConfig = async (rootDir: string): Promise<ProjectConfig> => {
   if (!rootDir) return defaultProjectConfig();
-  return readJsonFileOrDefault(settingsFilePath(rootDir), defaultProjectConfig());
+  return {
+    ...defaultProjectConfig(),
+    ...(await readJsonFileOrDefault<Partial<ProjectConfig>>(settingsFilePath(rootDir), {}))
+  };
 };
 
 export const saveProjectConfig = async (rootDir: string, config: ProjectConfig): Promise<void> => {

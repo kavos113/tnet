@@ -115,6 +115,9 @@ export const EditorWorkspace = (): React.JSX.Element => {
                   onChange={(content) => dispatch(updateActiveContent(content))}
                   loadKeywordIndex={workspaceApi.loadKeywordIndex}
                   requestInlineCompletion={requestInlineCompletion}
+                  inlineCompletionDebounceMs={settings.llmDebounceMs}
+                  inlineCompletionMaxPrefixChars={settings.llmMaxPrefixChars}
+                  inlineCompletionMaxSuffixChars={settings.llmMaxSuffixChars}
                 />
               </div>
             ) : null}

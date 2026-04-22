@@ -11,6 +11,9 @@ interface EditorPaneProps {
   onChange: (content: string) => void;
   loadKeywordIndex: KeywordIndexLoader;
   requestInlineCompletion?: InlineCompletionRequester;
+  inlineCompletionDebounceMs?: number;
+  inlineCompletionMaxPrefixChars?: number;
+  inlineCompletionMaxSuffixChars?: number;
 }
 
 export interface EditorPaneHandle {
@@ -18,7 +21,18 @@ export interface EditorPaneHandle {
 }
 
 export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
-  ({ content, onChange, loadKeywordIndex, requestInlineCompletion }, ref): React.JSX.Element => {
+  (
+    {
+      content,
+      onChange,
+      loadKeywordIndex,
+      requestInlineCompletion,
+      inlineCompletionDebounceMs,
+      inlineCompletionMaxPrefixChars,
+      inlineCompletionMaxSuffixChars
+    },
+    ref
+  ): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const editorRef = useRef<MarkdownEditorInstance | null>(null);
 
@@ -38,14 +52,23 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
         content,
         onChange,
         loadKeywordIndex,
-        requestInlineCompletion
+        requestInlineCompletion,
+        inlineCompletionDebounceMs,
+        inlineCompletionMaxPrefixChars,
+        inlineCompletionMaxSuffixChars
       });
 
       return () => {
         editorRef.current?.destroy();
         editorRef.current = null;
       };
-    }, [loadKeywordIndex, requestInlineCompletion]);
+    }, [
+      inlineCompletionDebounceMs,
+      inlineCompletionMaxPrefixChars,
+      inlineCompletionMaxSuffixChars,
+      loadKeywordIndex,
+      requestInlineCompletion
+    ]);
 
     useEffect(() => {
       editorRef.current?.updateContent(content);

@@ -22,8 +22,12 @@ export const useProjectSettingsDraft = (isOpen: boolean): ProjectSettingsDraft =
 
     const loadSettings = async (): Promise<void> => {
       const loaded = rootPath ? await tnetApi.config.loadProject(rootPath) : defaultProjectConfig();
-      dispatch(setSettings(loaded));
-      setDraft(loaded);
+      const merged = {
+        ...defaultProjectConfig(),
+        ...loaded
+      };
+      dispatch(setSettings(merged));
+      setDraft(merged);
     };
 
     loadSettings().catch((error: unknown) => {

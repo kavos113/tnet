@@ -11,7 +11,9 @@
 .modal-content {
   width: 500px;
   max-width: 90%;
+  max-height: 90vh;
   padding: 20px;
+  overflow: auto;
   background: var(--background);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
@@ -44,13 +46,29 @@
   font-size: 14px;
 }
 
-.form-item input {
+.form-item input,
+.form-item select {
   width: 100%;
   padding: 8px;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid var(--background-dark);
   border-radius: 4px;
+}
+
+.form-item-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.form-item-inline span {
+  margin-bottom: 0;
+}
+
+.form-item-inline input {
+  width: auto;
 }
 
 .modal-actions {

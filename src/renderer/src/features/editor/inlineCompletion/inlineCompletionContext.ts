@@ -7,7 +7,11 @@ import type {
 
 export const buildEditorInlineCompletionContext = (
   state: EditorState,
-  trigger: InlineCompletionTrigger
+  trigger: InlineCompletionTrigger,
+  options: {
+    maxPrefixChars?: number;
+    maxSuffixChars?: number;
+  } = {}
 ): InlineCompletionContext => {
   const selection = state.selection.main;
   return buildInlineCompletionContext({
@@ -15,6 +19,8 @@ export const buildEditorInlineCompletionContext = (
     cursorOffset: selection.head,
     selectionFrom: selection.from,
     selectionTo: selection.to,
-    trigger
+    trigger,
+    maxPrefixChars: options.maxPrefixChars,
+    maxSuffixChars: options.maxSuffixChars
   });
 };

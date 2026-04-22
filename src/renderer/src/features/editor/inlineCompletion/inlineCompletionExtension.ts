@@ -28,6 +28,8 @@ export type InlineCompletionRequester = (
 export interface InlineCompletionExtensionOptions {
   requestInlineCompletion?: InlineCompletionRequester;
   debounceMs?: number;
+  maxPrefixChars?: number;
+  maxSuffixChars?: number;
 }
 
 const defaultInlineCompletionDebounceMs = 600;
@@ -79,7 +81,10 @@ class InlineCompletionPlugin implements PluginValue {
 
     const requestId = this.requestId;
     const position = view.state.selection.main.head;
-    const context = buildEditorInlineCompletionContext(view.state, trigger);
+    const context = buildEditorInlineCompletionContext(view.state, trigger, {
+      maxPrefixChars: this.options.maxPrefixChars,
+      maxSuffixChars: this.options.maxSuffixChars
+    });
 
     requestInlineCompletion(context)
       .then((completion) => {
@@ -104,13 +109,17 @@ class InlineCompletionPlugin implements PluginValue {
 
 export const inlineCompletionExtension = ({
   requestInlineCompletion,
-  debounceMs = defaultInlineCompletionDebounceMs
+  debounceMs = defaultInlineCompletionDebounceMs,
+  maxPrefixChars,
+  maxSuffixChars
 }: InlineCompletionExtensionOptions): Extension => {
   const inlineCompletionPlugin = ViewPlugin.define(
     (view) =>
       new InlineCompletionPlugin(view, {
         requestInlineCompletion,
-        debounceMs
+        debounceMs,
+        maxPrefixChars,
+        maxSuffixChars
       })
   );
 

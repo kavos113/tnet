@@ -52,7 +52,16 @@ describe('SettingsDialog', () => {
       editorFontFamily: 'Editor Font',
       editorFontSize: 18,
       previewFontFamily: 'Preview Font',
-      previewFontSize: 19
+      previewFontSize: 19,
+      llmInlineCompletionEnabled: true,
+      llmProvider: 'mock',
+      llmModel: 'mock-inline-completion',
+      llmEndpoint: '',
+      llmApiKey: '',
+      llmAutomaticTrigger: false,
+      llmDebounceMs: 600,
+      llmMaxPrefixChars: 6000,
+      llmMaxSuffixChars: 1500
     });
     saveProject.mockResolvedValue(undefined);
     installTnetApi();
@@ -74,12 +83,22 @@ describe('SettingsDialog', () => {
     });
 
     fireEvent.change(screen.getAllByLabelText('Font size (px)')[0], { target: { value: '20' } });
+    fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'local-http' } });
+    fireEvent.change(screen.getByLabelText('Endpoint'), {
+      target: { value: 'http://localhost:11434/inline' }
+    });
+    fireEvent.click(screen.getByLabelText('Automatic trigger'));
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
       expect(saveProject).toHaveBeenCalledWith(
         '/workspace',
-        expect.objectContaining({ editorFontSize: 20 })
+        expect.objectContaining({
+          editorFontSize: 20,
+          llmProvider: 'local-http',
+          llmEndpoint: 'http://localhost:11434/inline',
+          llmAutomaticTrigger: true
+        })
       );
       expect(onClose).toHaveBeenCalled();
     });

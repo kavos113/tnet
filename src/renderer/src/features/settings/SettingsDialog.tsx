@@ -1,3 +1,4 @@
+import type { LlmProviderType } from '@shared/types/config';
 import { useProjectSettingsDraft } from './useProjectSettingsDraft';
 
 interface SettingsDialogProps {
@@ -64,6 +65,100 @@ export const SettingsDialog = ({
               max={48}
               value={draft.previewFontSize}
               onChange={(event) => updateDraft('previewFontSize', Number(event.target.value))}
+            />
+          </label>
+        </div>
+
+        <div className="settings-group">
+          <h3>LLM Inline Completion</h3>
+          <label className="form-item form-item-inline" htmlFor="llm-inline-enabled">
+            <span>Enable inline completion</span>
+            <input
+              id="llm-inline-enabled"
+              type="checkbox"
+              checked={draft.llmInlineCompletionEnabled}
+              onChange={(event) => updateDraft('llmInlineCompletionEnabled', event.target.checked)}
+            />
+          </label>
+          <label className="form-item" htmlFor="llm-provider">
+            <span>Provider</span>
+            <select
+              id="llm-provider"
+              value={draft.llmProvider}
+              onChange={(event) =>
+                updateDraft('llmProvider', event.target.value as LlmProviderType)
+              }
+            >
+              <option value="mock">Mock</option>
+              <option value="local-http">Local HTTP</option>
+              <option value="openai-compatible">OpenAI Compatible</option>
+            </select>
+          </label>
+          <label className="form-item" htmlFor="llm-model">
+            <span>Model</span>
+            <input
+              id="llm-model"
+              value={draft.llmModel}
+              onChange={(event) => updateDraft('llmModel', event.target.value)}
+            />
+          </label>
+          <label className="form-item" htmlFor="llm-endpoint">
+            <span>Endpoint</span>
+            <input
+              id="llm-endpoint"
+              value={draft.llmEndpoint}
+              onChange={(event) => updateDraft('llmEndpoint', event.target.value)}
+            />
+          </label>
+          <label className="form-item" htmlFor="llm-api-key">
+            <span>API key</span>
+            <input
+              id="llm-api-key"
+              type="password"
+              value={draft.llmApiKey}
+              onChange={(event) => updateDraft('llmApiKey', event.target.value)}
+            />
+          </label>
+          <label className="form-item form-item-inline" htmlFor="llm-automatic-trigger">
+            <span>Automatic trigger</span>
+            <input
+              id="llm-automatic-trigger"
+              type="checkbox"
+              checked={draft.llmAutomaticTrigger}
+              onChange={(event) => updateDraft('llmAutomaticTrigger', event.target.checked)}
+            />
+          </label>
+          <label className="form-item" htmlFor="llm-debounce-ms">
+            <span>Debounce (ms)</span>
+            <input
+              id="llm-debounce-ms"
+              type="number"
+              min={0}
+              max={5000}
+              value={draft.llmDebounceMs}
+              onChange={(event) => updateDraft('llmDebounceMs', Number(event.target.value))}
+            />
+          </label>
+          <label className="form-item" htmlFor="llm-max-prefix-chars">
+            <span>Max prefix chars</span>
+            <input
+              id="llm-max-prefix-chars"
+              type="number"
+              min={100}
+              max={50000}
+              value={draft.llmMaxPrefixChars}
+              onChange={(event) => updateDraft('llmMaxPrefixChars', Number(event.target.value))}
+            />
+          </label>
+          <label className="form-item" htmlFor="llm-max-suffix-chars">
+            <span>Max suffix chars</span>
+            <input
+              id="llm-max-suffix-chars"
+              type="number"
+              min={0}
+              max={20000}
+              value={draft.llmMaxSuffixChars}
+              onChange={(event) => updateDraft('llmMaxSuffixChars', Number(event.target.value))}
             />
           </label>
         </div>

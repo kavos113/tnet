@@ -33,7 +33,10 @@ const workspaceSlice = createSlice({
       state.fileTree = action.payload;
     },
     setSettings: (state, action: PayloadAction<ProjectConfig>) => {
-      state.settings = action.payload;
+      state.settings = {
+        ...defaultProjectConfig(),
+        ...action.payload
+      };
     }
   }
 });
