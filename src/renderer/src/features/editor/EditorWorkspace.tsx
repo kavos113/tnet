@@ -10,6 +10,7 @@ import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWor
 import { setViewMode, togglePreviewOutline, updateActiveContent } from './editorSlice';
 import { EditorPane, type EditorPaneHandle } from './EditorPane';
 import { TabBar } from './TabBar';
+import { useAutoSaveActiveFile } from './useAutoSaveActiveFile';
 import { useSaveActiveFile } from './useSaveActiveFile';
 import { useScrollSync } from './useScrollSync';
 import { useSplitPaneResize } from './useSplitPaneResize';
@@ -48,6 +49,11 @@ export const EditorWorkspace = (): React.JSX.Element => {
         console.error('Failed to save file', error);
       });
     }
+  });
+
+  useAutoSaveActiveFile({
+    canSave,
+    saveActiveFile
   });
 
   useScrollSync({

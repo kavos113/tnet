@@ -70,6 +70,30 @@ export const SettingsDialog = ({
         </div>
 
         <div className="settings-group">
+          <h3>Auto Save</h3>
+          <label className="form-item form-item-inline" htmlFor="auto-save-enabled">
+            <span>Enable auto save</span>
+            <input
+              id="auto-save-enabled"
+              type="checkbox"
+              checked={draft.autoSaveEnabled}
+              onChange={(event) => updateDraft('autoSaveEnabled', event.target.checked)}
+            />
+          </label>
+          <label className="form-item" htmlFor="auto-save-debounce-ms">
+            <span>Debounce (ms)</span>
+            <input
+              id="auto-save-debounce-ms"
+              type="number"
+              min={0}
+              max={30000}
+              value={draft.autoSaveDebounceMs}
+              onChange={(event) => updateDraft('autoSaveDebounceMs', Number(event.target.value))}
+            />
+          </label>
+        </div>
+
+        <div className="settings-group">
           <h3>LLM Inline Completion</h3>
           <label className="form-item form-item-inline" htmlFor="llm-inline-enabled">
             <span>Enable inline completion</span>

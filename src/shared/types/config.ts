@@ -17,6 +17,8 @@ export interface ProjectConfig {
   editorFontSize: number;
   previewFontFamily: string;
   previewFontSize: number;
+  autoSaveEnabled: boolean;
+  autoSaveDebounceMs: number;
   llmInlineCompletionEnabled: boolean;
   llmProvider: LlmProviderType;
   llmModel: string;
@@ -35,6 +37,8 @@ export const defaultProjectConfig = (): ProjectConfig => ({
   editorFontSize: 16,
   previewFontFamily: 'sans-serif',
   previewFontSize: 16,
+  autoSaveEnabled: true,
+  autoSaveDebounceMs: 1000,
   llmInlineCompletionEnabled: true,
   llmProvider: 'mock',
   llmModel: 'mock-inline-completion',

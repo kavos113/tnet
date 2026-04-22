@@ -53,6 +53,8 @@ describe('SettingsDialog', () => {
       editorFontSize: 18,
       previewFontFamily: 'Preview Font',
       previewFontSize: 19,
+      autoSaveEnabled: true,
+      autoSaveDebounceMs: 1000,
       llmInlineCompletionEnabled: true,
       llmProvider: 'mock',
       llmModel: 'mock-inline-completion',
@@ -83,6 +85,8 @@ describe('SettingsDialog', () => {
     });
 
     fireEvent.change(screen.getAllByLabelText('Font size (px)')[0], { target: { value: '20' } });
+    fireEvent.click(screen.getByLabelText('Enable auto save'));
+    fireEvent.change(screen.getAllByLabelText('Debounce (ms)')[0], { target: { value: '1500' } });
     fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'local-http' } });
     fireEvent.change(screen.getByLabelText('Endpoint'), {
       target: { value: 'http://localhost:11434/inline' }
@@ -95,6 +99,8 @@ describe('SettingsDialog', () => {
         '/workspace',
         expect.objectContaining({
           editorFontSize: 20,
+          autoSaveEnabled: false,
+          autoSaveDebounceMs: 1500,
           llmProvider: 'local-http',
           llmEndpoint: 'http://localhost:11434/inline',
           llmAutomaticTrigger: true
