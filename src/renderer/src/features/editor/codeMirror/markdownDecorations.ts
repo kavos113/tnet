@@ -8,6 +8,20 @@ import {
   type ViewUpdate
 } from '@codemirror/view';
 
+const addLineDecorations = (
+  decorations: Range<Decoration>[],
+  view: EditorView,
+  from: number,
+  to: number,
+  className: string
+): void => {
+  const start = view.state.doc.lineAt(from);
+  const end = view.state.doc.lineAt(to);
+  for (let lineNo = start.number; lineNo <= end.number; lineNo += 1) {
+    decorations.push(Decoration.line({ class: className }).range(view.state.doc.line(lineNo).from));
+  }
+};
+
 export const buildDecorations = (view: EditorView): DecorationSet => {
   const decorations: Range<Decoration>[] = [];
 
@@ -44,11 +58,10 @@ export const buildDecorations = (view: EditorView): DecorationSet => {
           );
         } else if (node.name === 'FencedCode' || node.name === 'Blockquote') {
           const className = node.name === 'FencedCode' ? 'cm-md-fenced-code' : 'cm-md-blockquote';
-          const start = view.state.doc.lineAt(node.from);
-          const end = view.state.doc.lineAt(node.to);
-          for (let lineNo = start.number; lineNo <= end.number; lineNo += 1) {
+          addLineDecorations(decorations, view, node.from, node.to, className);
+          if (node.name === 'FencedCode') {
             decorations.push(
-              Decoration.line({ class: className }).range(view.state.doc.line(lineNo).from)
+              Decoration.mark({ class: 'cm-md-code-block' }).range(node.from, node.to)
             );
           }
         } else if (node.name === 'Link') {
@@ -65,6 +78,15 @@ export const buildDecorations = (view: EditorView): DecorationSet => {
   }
 
   const docText = view.state.doc.toString();
+
+  const keywordRegex = /<keyword\b[^>]*>[\s\S]*?<\/keyword>/g;
+  let keywordMatch: RegExpExecArray | null;
+  while ((keywordMatch = keywordRegex.exec(docText)) !== null) {
+    const from = keywordMatch.index;
+    const to = from + keywordMatch[0].length;
+    addLineDecorations(decorations, view, from, to, 'cm-md-keyword-block-line');
+    decorations.push(Decoration.mark({ class: 'cm-md-keyword-block' }).range(from, to));
+  }
 
   const displayMathRegex = /\$\$([\s\S]+?)\$\$/g;
   let displayMatch: RegExpExecArray | null;

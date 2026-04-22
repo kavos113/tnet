@@ -51,6 +51,16 @@ export const markdownEditorTheme = EditorView.theme({
     backgroundColor: 'rgba(0, 0, 0, 0.045)',
     fontFamily: '"Migu 1M", Consolas, Monaco, monospace'
   },
+  '.cm-md-code-block': {
+    backgroundColor: 'rgba(0, 0, 0, 0.045)'
+  },
+  '.cm-md-keyword-block-line': {
+    backgroundColor: 'rgba(145, 228, 81, 0.13)',
+    borderLeft: '3px solid var(--main-dark)'
+  },
+  '.cm-md-keyword-block': {
+    backgroundColor: 'rgba(145, 228, 81, 0.13)'
+  },
   '.cm-md-inline-math, .cm-md-display-math': {
     fontFamily: '"Migu 1M", Consolas, Monaco, monospace',
     fontSize: '0.95em'
