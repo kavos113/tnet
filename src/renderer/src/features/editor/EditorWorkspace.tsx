@@ -1,83 +1,40 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { useRef, type CSSProperties } from 'react';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
+import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
-import { markActiveSaved, setViewMode, updateActiveContent } from './editorSlice';
+import { setViewMode, updateActiveContent } from './editorSlice';
 import { EditorPane, type EditorPaneHandle } from './EditorPane';
-import { applyScrollRatio, getScrollRatio } from './scrollSync';
 import { TabBar } from './TabBar';
+import { useSaveActiveFile } from './useSaveActiveFile';
+import { useScrollSync } from './useScrollSync';
 
 export const EditorWorkspace = (): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
-  const isSyncingScrollRef = useRef(false);
   const workspaceApi = useActiveWorkspaceApi();
   const { openedFiles, activeIndex, viewMode } = useAppSelector((state) => state.editor);
   const settings = useAppSelector((state) => state.workspace.settings);
   const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
+  const { canSave, saveActiveFile } = useSaveActiveFile();
 
-  const canSave = useMemo(
-    () => Boolean(activeFile && workspaceApi.hasWorkspace),
-    [activeFile, workspaceApi.hasWorkspace]
-  );
-
-  const saveActiveFile = async (): Promise<void> => {
-    if (!activeFile || !canSave) return;
-
-    await workspaceApi.writeFile(activeFile.path, activeFile.content);
-    const savedContent = await workspaceApi.readFile(activeFile.path);
-    dispatch(markActiveSaved({ content: savedContent }));
-  };
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-        event.preventDefault();
-        saveActiveFile().catch((error: unknown) => {
-          console.error('Failed to save file', error);
-        });
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+  useShortcut({
+    key: 's',
+    ctrlOrMeta: true,
+    enabled: canSave,
+    onTrigger: () => {
+      saveActiveFile().catch((error: unknown) => {
+        console.error('Failed to save file', error);
+      });
+    }
   });
 
-  useEffect(() => {
-    if (viewMode !== 'split' || !activeFile) return;
-
-    const editorScroller = editorPaneRef.current?.getScroller();
-    const previewElement = previewPaneRef.current?.getPreviewElement();
-    if (!editorScroller || !previewElement) return;
-
-    let animationFrame = 0;
-
-    const syncScroll = (source: HTMLElement, target: HTMLElement): void => {
-      if (isSyncingScrollRef.current) return;
-
-      isSyncingScrollRef.current = true;
-      applyScrollRatio(target, getScrollRatio(source));
-
-      cancelAnimationFrame(animationFrame);
-      animationFrame = requestAnimationFrame(() => {
-        isSyncingScrollRef.current = false;
-      });
-    };
-
-    const onEditorScroll = (): void => syncScroll(editorScroller, previewElement);
-    const onPreviewScroll = (): void => syncScroll(previewElement, editorScroller);
-
-    editorScroller.addEventListener('scroll', onEditorScroll);
-    previewElement.addEventListener('scroll', onPreviewScroll);
-
-    return () => {
-      editorScroller.removeEventListener('scroll', onEditorScroll);
-      previewElement.removeEventListener('scroll', onPreviewScroll);
-      cancelAnimationFrame(animationFrame);
-      isSyncingScrollRef.current = false;
-    };
-  }, [activeFile, viewMode]);
+  useScrollSync({
+    editorPaneRef,
+    previewPaneRef,
+    enabled: viewMode === 'split' && Boolean(activeFile)
+  });
 
   return (
     <main

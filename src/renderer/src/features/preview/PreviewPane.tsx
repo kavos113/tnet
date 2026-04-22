@@ -40,7 +40,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       let canceled = false;
 
       markdownService
-        .parse(markdown)
+        .parsePreviewMarkdown(markdown)
         .then((nextHtml) => {
           if (!canceled) setHtml(nextHtml);
         })

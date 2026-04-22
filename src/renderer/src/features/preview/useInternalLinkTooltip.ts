@@ -5,6 +5,9 @@ import {
   type InternalLinkTooltipState
 } from './internalLinkTooltipState';
 import { markdownService } from './markdown/markdownService';
+import { closestInternalLink, isInsideSameLink } from './tooltip/internalLinkTarget';
+import { KeywordTooltipCache } from './tooltip/keywordTooltipCache';
+import { getTooltipPosition } from './tooltip/tooltipPosition';
 
 interface UseInternalLinkTooltipOptions {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -23,12 +26,6 @@ export const normalizeTooltipContent = (content: string): string => {
   return `${normalized.slice(0, 800)}...`;
 };
 
-export const closestInternalLink = (target: EventTarget | null): HTMLAnchorElement | null => {
-  const element =
-    target instanceof HTMLElement ? target : target instanceof Text ? target.parentElement : null;
-  return element?.closest<HTMLAnchorElement>('a[data-internal-link="true"]') ?? null;
-};
-
 export const useInternalLinkTooltip = ({
   containerRef,
   onOpenInternalLink,
@@ -36,7 +33,7 @@ export const useInternalLinkTooltip = ({
 }: UseInternalLinkTooltipOptions): InternalLinkTooltipState => {
   const activeTooltipKeyRef = useRef<string | null>(null);
   const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const tooltipCacheRef = useRef<Map<string, string | null>>(new Map());
+  const tooltipCacheRef = useRef(new KeywordTooltipCache());
   const [tooltip, setTooltip] = useState<InternalLinkTooltipState>(emptyInternalLinkTooltip);
 
   useEffect(() => {
@@ -62,14 +59,14 @@ export const useInternalLinkTooltip = ({
       content: string,
       expectedKey: string
     ): Promise<void> => {
-      const rect = container.getBoundingClientRect();
-      const tooltipHtml = await markdownService.parse(content);
+      const tooltipHtml = await markdownService.parseTooltipMarkdown(content);
       if (activeTooltipKeyRef.current !== expectedKey) return;
+      const { x, y } = getTooltipPosition(event, container.getBoundingClientRect());
 
       setTooltip({
         visible: true,
-        x: Math.max(8, event.clientX - rect.left + 12),
-        y: Math.max(8, event.clientY - rect.top + 12),
+        x,
+        y,
         html: tooltipHtml
       });
     };
@@ -79,7 +76,7 @@ export const useInternalLinkTooltip = ({
       const name = link.textContent?.trim();
       if (!filePath || !name) return;
 
-      const cacheKey = `${filePath}::${name}`;
+      const cacheKey = KeywordTooltipCache.key(filePath, name);
       if (activeTooltipKeyRef.current === cacheKey) return;
 
       if (activeLinkRef.current && activeLinkRef.current !== link) {
@@ -129,8 +126,7 @@ export const useInternalLinkTooltip = ({
       const link = closestInternalLink(event.target);
       if (!link || !container.contains(link)) return;
 
-      const related = event.relatedTarget;
-      if (related instanceof Node && link.contains(related)) return;
+      if (isInsideSameLink(link, event.relatedTarget)) return;
 
       showTooltipForLink(event, link);
     };
@@ -139,8 +135,7 @@ export const useInternalLinkTooltip = ({
       const link = closestInternalLink(event.target);
       if (!link || !container.contains(link)) return;
 
-      const related = event.relatedTarget;
-      if (related instanceof Node && link.contains(related)) return;
+      if (isInsideSameLink(link, event.relatedTarget)) return;
 
       hideTooltip(link);
     };
