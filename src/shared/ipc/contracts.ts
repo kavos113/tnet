@@ -3,6 +3,11 @@ import type {
   InlineCompletionRequest,
   InlineCompletionResult
 } from '@shared/llm/inlineCompletionTypes';
+import type {
+  WorkspaceSearchIndexStats,
+  WorkspaceSearchRequest,
+  WorkspaceSearchResponse
+} from '@shared/search/searchTypes';
 import type { FileItem, SessionData } from '@shared/types/file';
 
 export interface OpenDirectoryResult {
@@ -77,6 +82,10 @@ export interface TnetApi {
   keyword: {
     loadIndex: (rootDir: string) => Promise<Record<string, string>>;
     getContent: (request: KeywordContentRequest) => Promise<string | null>;
+  };
+  search: {
+    rebuild: (rootDir: string) => Promise<WorkspaceSearchIndexStats>;
+    workspace: (request: WorkspaceSearchRequest) => Promise<WorkspaceSearchResponse>;
   };
   llm: {
     getInlineCompletion: (

@@ -58,6 +58,9 @@ export const useWorkspaceSwitcher = (): {
       dispatch(resetExplorerState());
       dispatch(setExpandedPaths(session.expandedFolders));
       dispatch(replaceOpenedFiles({ openedFiles, activeIndex: openedFiles.length - 1 }));
+      tnetApi.search.rebuild(rootPath).catch((error: unknown) => {
+        console.error('Failed to rebuild search index', error);
+      });
 
       if (options.persistGlobalConfig !== false) {
         await tnetApi.config.saveGlobal({

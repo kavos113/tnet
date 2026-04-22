@@ -9,19 +9,29 @@ export interface OpenFile {
   displayName: string;
 }
 
+export interface PendingReveal {
+  path: string;
+  lineNumber: number;
+  requestId: number;
+}
+
 interface EditorState {
   openedFiles: OpenFile[];
   activeIndex: number;
   viewMode: ViewMode;
   isPreviewOutlineVisible: boolean;
+  pendingReveal: PendingReveal | null;
 }
 
 const initialState: EditorState = {
   openedFiles: [],
   activeIndex: -1,
   viewMode: 'split',
-  isPreviewOutlineVisible: true
+  isPreviewOutlineVisible: true,
+  pendingReveal: null
 };
+
+let nextRevealRequestId = 1;
 
 const editorSlice = createSlice({
   name: 'editor',
@@ -131,6 +141,25 @@ const editorSlice = createSlice({
     },
     togglePreviewOutline: (state) => {
       state.isPreviewOutlineVisible = !state.isPreviewOutlineVisible;
+    },
+    requestRevealLine: (
+      state,
+      action: PayloadAction<{
+        path: string;
+        lineNumber: number;
+      }>
+    ) => {
+      state.pendingReveal = {
+        path: action.payload.path,
+        lineNumber: action.payload.lineNumber,
+        requestId: nextRevealRequestId
+      };
+      nextRevealRequestId += 1;
+    },
+    clearPendingReveal: (state, action: PayloadAction<number>) => {
+      if (state.pendingReveal?.requestId === action.payload) {
+        state.pendingReveal = null;
+      }
     }
   }
 });
@@ -144,6 +173,8 @@ export const {
   markActiveSaved,
   renameOpenedPath,
   replaceOpenedFiles,
+  requestRevealLine,
+  clearPendingReveal,
   setViewMode,
   togglePreviewOutline
 } = editorSlice.actions;

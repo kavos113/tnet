@@ -32,6 +32,10 @@ export const tnetApi: TnetApi = {
     loadIndex: (rootDir) => ipcRenderer.invoke(ipcChannels.keyword.loadIndex, rootDir),
     getContent: (request) => ipcRenderer.invoke(ipcChannels.keyword.getContent, request)
   },
+  search: {
+    rebuild: (rootDir) => ipcRenderer.invoke(ipcChannels.search.rebuild, rootDir),
+    workspace: (request) => ipcRenderer.invoke(ipcChannels.search.workspace, request)
+  },
   llm: {
     getInlineCompletion: (request) =>
       ipcRenderer.invoke(ipcChannels.llm.getInlineCompletion, request)

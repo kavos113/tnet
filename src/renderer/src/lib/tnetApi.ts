@@ -34,6 +34,10 @@ export const tnetApi: TnetApi = {
     loadIndex: (rootDir) => getApi().keyword.loadIndex(rootDir),
     getContent: (request) => getApi().keyword.getContent(request)
   },
+  search: {
+    rebuild: (rootDir) => getApi().search.rebuild(rootDir),
+    workspace: (request) => getApi().search.workspace(request)
+  },
   llm: {
     getInlineCompletion: (request) => getApi().llm.getInlineCompletion(request)
   }

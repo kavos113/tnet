@@ -12,7 +12,8 @@ const initialState = {
   openedFiles: [] as OpenFile[],
   activeIndex: -1,
   viewMode: 'split' as const,
-  isPreviewOutlineVisible: true
+  isPreviewOutlineVisible: true,
+  pendingReveal: null
 };
 
 describe('editorSlice', () => {

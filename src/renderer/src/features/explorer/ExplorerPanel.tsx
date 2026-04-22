@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { basename } from '@shared/path/pathUtils';
+import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
 import { FileTree } from './FileTree';
+import { SearchPanel, type SearchPanelHandle } from './SearchPanel';
 import { useExplorerActions } from './useExplorerActions';
 import { useExplorerShortcuts } from './useExplorerShortcuts';
 
@@ -13,6 +15,8 @@ const workspaceInitial = (rootPath: string): string => {
 
 export const ExplorerPanel = (): React.JSX.Element => {
   const rootInputRef = useRef<HTMLInputElement | null>(null);
+  const searchPanelRef = useRef<SearchPanelHandle | null>(null);
+  const [activeView, setActiveView] = useState<'files' | 'search'>('files');
   const {
     rootPath,
     workspaceRoots,
@@ -41,6 +45,11 @@ export const ExplorerPanel = (): React.JSX.Element => {
     rootInputRef.current?.select();
   }, [shouldShowNewEntryAtRoot]);
 
+  useEffect(() => {
+    if (activeView !== 'search') return;
+    searchPanelRef.current?.focusInput();
+  }, [activeView]);
+
   useExplorerShortcuts({
     rootPath,
     selectedPath,
@@ -48,6 +57,17 @@ export const ExplorerPanel = (): React.JSX.Element => {
     startNewEntry,
     startRenameEntry,
     deleteSelected
+  });
+
+  useShortcut({
+    key: 'F',
+    ctrlOrMeta: true,
+    shift: true,
+    target: 'document',
+    allowInEditable: true,
+    onTrigger: () => {
+      setActiveView('search');
+    }
   });
 
   const onRootNewEntryKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -100,7 +120,38 @@ export const ExplorerPanel = (): React.JSX.Element => {
         </button>
       </nav>
       <div className="explorer-content">
-        {rootPath ? (
+        <header className="sidebar-header">
+          <span className="sidebar-title">{activeView === 'files' ? 'Files' : 'Search'}</span>
+          <div className="explorer-actions">
+            <button
+              type="button"
+              className={`sidebar-icon-button material-icons-round ${
+                activeView === 'files' ? 'active' : ''
+              }`}
+              aria-label="Show files"
+              title="Files"
+              onClick={() => setActiveView('files')}
+            >
+              folder
+            </button>
+            <button
+              type="button"
+              className={`sidebar-icon-button material-icons-round ${
+                activeView === 'search' ? 'active' : ''
+              }`}
+              aria-label="Show search"
+              title="Search"
+              onClick={() => {
+                setActiveView('search');
+              }}
+            >
+              search
+            </button>
+          </div>
+        </header>
+        {activeView === 'search' ? (
+          <SearchPanel ref={searchPanelRef} />
+        ) : rootPath ? (
           <ul className="file-explorer-list">
             {shouldShowNewEntryAtRoot ? (
               <li className="file-item-new">

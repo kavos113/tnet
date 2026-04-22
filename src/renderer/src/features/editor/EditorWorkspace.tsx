@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import type {
   InlineCompletionContext,
   InlineCompletionResult
@@ -7,7 +7,12 @@ import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
 import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
-import { setViewMode, togglePreviewOutline, updateActiveContent } from './editorSlice';
+import {
+  clearPendingReveal,
+  setViewMode,
+  togglePreviewOutline,
+  updateActiveContent
+} from './editorSlice';
 import { EditorPane, type EditorPaneHandle } from './EditorPane';
 import { TabBar } from './TabBar';
 import { useAutoSaveActiveFile } from './useAutoSaveActiveFile';
@@ -20,9 +25,8 @@ export const EditorWorkspace = (): React.JSX.Element => {
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
   const workspaceApi = useActiveWorkspaceApi();
-  const { openedFiles, activeIndex, viewMode, isPreviewOutlineVisible } = useAppSelector(
-    (state) => state.editor
-  );
+  const { openedFiles, activeIndex, viewMode, isPreviewOutlineVisible, pendingReveal } =
+    useAppSelector((state) => state.editor);
   const settings = useAppSelector((state) => state.workspace.settings);
   const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
   const activeFilePath = activeFile?.path ?? null;
@@ -68,6 +72,22 @@ export const EditorWorkspace = (): React.JSX.Element => {
       previewRenderVersion
     ].join('|')
   });
+
+  useEffect(() => {
+    if (!pendingReveal || pendingReveal.path !== activeFilePath) return;
+    if (viewMode === 'preview') {
+      dispatch(setViewMode('split'));
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      if (editorPaneRef.current?.revealLine(pendingReveal.lineNumber)) {
+        dispatch(clearPendingReveal(pendingReveal.requestId));
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [activeFilePath, dispatch, pendingReveal, viewMode]);
 
   return (
     <main

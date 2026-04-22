@@ -15,6 +15,8 @@ const getFileTree = vi.fn();
 const loadProject = vi.fn();
 const openDirectory = vi.fn();
 const saveGlobal = vi.fn();
+const searchRebuild = vi.fn();
+const searchWorkspace = vi.fn();
 const sessionLoad = vi.fn();
 
 const installTnetApi = (): void => {
@@ -45,6 +47,10 @@ const installTnetApi = (): void => {
       keyword: {
         loadIndex: vi.fn(),
         getContent: vi.fn()
+      },
+      search: {
+        rebuild: searchRebuild,
+        workspace: searchWorkspace
       },
       llm: {
         getInlineCompletion: vi.fn()
@@ -96,6 +102,15 @@ describe('ExplorerPanel', () => {
     loadProject.mockResolvedValue(defaultProjectConfig());
     openDirectory.mockResolvedValue({ rootPath: '' });
     saveGlobal.mockResolvedValue(undefined);
+    searchRebuild.mockResolvedValue({ indexedFileCount: 0, indexedLineCount: 0 });
+    searchWorkspace.mockResolvedValue({
+      status: 'ready',
+      files: [],
+      totalMatches: 0,
+      truncated: false,
+      indexedFileCount: 0,
+      indexedLineCount: 0
+    });
     sessionLoad.mockResolvedValue({ openedFiles: [], expandedFolders: [] });
     installTnetApi();
   });
@@ -104,7 +119,9 @@ describe('ExplorerPanel', () => {
     renderExplorer();
 
     expect(screen.getByText('chevron_right')).toHaveClass('file-item-chevron');
-    expect(screen.getByText('folder')).toHaveClass('file-item-folder');
+    expect(
+      screen.getAllByText('folder').some((item) => item.classList.contains('file-item-folder'))
+    ).toBe(true);
     expect(screen.getByText('docs')).toHaveClass('file-item-name');
 
     fireEvent.click(screen.getByText('docs'));
@@ -214,6 +231,47 @@ describe('ExplorerPanel', () => {
         activeWorkspaceRoot: '/second',
         workspaceRoots: ['/workspace', '/second']
       });
+    });
+  });
+
+  it('opens search with Ctrl+Shift+F and opens the selected result', async () => {
+    searchWorkspace.mockResolvedValue({
+      status: 'ready',
+      files: [
+        {
+          path: '/workspace/docs/note.md',
+          relativePath: 'docs/note.md',
+          matches: [
+            {
+              lineNumber: 3,
+              lineText: 'A theorem appears here',
+              ranges: [{ start: 2, end: 9 }]
+            }
+          ]
+        }
+      ],
+      totalMatches: 1,
+      truncated: false,
+      indexedFileCount: 1,
+      indexedLineCount: 1
+    });
+    renderExplorer();
+
+    fireEvent.keyDown(document, { key: 'F', ctrlKey: true, shiftKey: true });
+    const input = screen.getByPlaceholderText('Search');
+    await waitFor(() => expect(input).toHaveFocus());
+
+    fireEvent.change(input, { target: { value: 'theorem' } });
+
+    await waitFor(() => {
+      expect(searchWorkspace).toHaveBeenCalledWith({ rootDir: '/workspace', query: 'theorem' });
+      expect(screen.getByText('docs/note.md')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /3 A theorem appears here/ }));
+
+    await waitFor(() => {
+      expect(fileRead).toHaveBeenCalledWith({ rootDir: '/workspace', path: 'docs/note.md' });
     });
   });
 });

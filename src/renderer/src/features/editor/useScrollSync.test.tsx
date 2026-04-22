@@ -77,7 +77,8 @@ describe('useScrollSync', () => {
     const editorPaneRef = {
       current: {
         getScroller: () => editorScroller,
-        getView: () => (editorScroller ? fakeEditorView(editorScroller, editorViewOptions) : null)
+        getView: () => (editorScroller ? fakeEditorView(editorScroller, editorViewOptions) : null),
+        revealLine: () => true
       }
     } as RefObject<EditorPaneHandle | null>;
     const previewPaneRef = {

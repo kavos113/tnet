@@ -28,6 +28,24 @@
   align-items: center;
 }
 
+.sidebar-icon-button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.sidebar-icon-button:hover,
+.sidebar-icon-button.active {
+  background: var(--gray);
+}
+
 .empty-workspace {
   display: flex;
   align-items: center;

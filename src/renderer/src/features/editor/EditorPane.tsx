@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import type { EditorView } from '@codemirror/view';
+import { EditorView } from '@codemirror/view';
 import {
   createMarkdownEditor,
   type MarkdownEditorInstance
@@ -22,6 +22,7 @@ interface EditorPaneProps {
 export interface EditorPaneHandle {
   getScroller: () => HTMLElement | null;
   getView: () => EditorView | null;
+  revealLine: (lineNumber: number) => boolean;
 }
 
 export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
@@ -45,7 +46,20 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
       ref,
       () => ({
         getScroller: () => containerRef.current?.querySelector<HTMLElement>('.cm-scroller') ?? null,
-        getView: () => editorRef.current?.view ?? null
+        getView: () => editorRef.current?.view ?? null,
+        revealLine: (lineNumber: number) => {
+          const view = editorRef.current?.view;
+          if (!view) return false;
+
+          const clampedLine = Math.min(Math.max(1, lineNumber), view.state.doc.lines);
+          const line = view.state.doc.line(clampedLine);
+          view.dispatch({
+            selection: { anchor: line.from },
+            effects: EditorView.scrollIntoView(line.from, { y: 'center' })
+          });
+          view.focus();
+          return true;
+        }
       }),
       []
     );

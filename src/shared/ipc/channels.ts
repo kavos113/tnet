@@ -27,6 +27,10 @@ export const ipcChannels = {
     loadIndex: 'keyword:loadIndex',
     getContent: 'keyword:getContent'
   },
+  search: {
+    rebuild: 'search:rebuild',
+    workspace: 'search:workspace'
+  },
   llm: {
     getInlineCompletion: 'llm:getInlineCompletion'
   }

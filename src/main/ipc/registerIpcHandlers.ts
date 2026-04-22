@@ -2,6 +2,7 @@ import { registerConfigIpc } from './configIpc';
 import { registerFileIpc } from './fileIpc';
 import { registerKeywordIpc } from './keywordIpc';
 import { registerLlmIpc } from './llmIpc';
+import { registerSearchIpc } from './searchIpc';
 import { registerSessionIpc } from './sessionIpc';
 import { registerWorkspaceIpc } from './workspaceIpc';
 
@@ -11,5 +12,6 @@ export const registerIpcHandlers = (): void => {
   registerSessionIpc();
   registerConfigIpc();
   registerKeywordIpc();
+  registerSearchIpc();
   registerLlmIpc();
 };

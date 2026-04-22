@@ -8,6 +8,11 @@ import {
 } from './keywordService';
 import { removePathFromSession, replacePathInSession } from './sessionService';
 import {
+  removeWorkspaceSearchPath,
+  renameWorkspaceSearchPath,
+  upsertWorkspaceSearchFile
+} from './workspaceSearchIndexService';
+import {
   resolveWorkspacePath,
   type RenameWorkspacePathRequest,
   type WorkspacePathRequest
@@ -126,6 +131,11 @@ export const writeFile = async (request: WriteWorkspaceFileRequest): Promise<voi
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, nextContent, 'utf-8');
   if (rootDir) await extractAndSaveKeywords(filePath, nextContent, rootDir);
+  if (rootDir) {
+    await upsertWorkspaceSearchFile(rootDir, filePath).catch((error: unknown) => {
+      console.error('Failed to update search index after write', error);
+    });
+  }
 };
 
 export const saveImage = async (
@@ -168,6 +178,11 @@ export const createFile = async (request: WorkspacePathRequest): Promise<void> =
 
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, fileTemplate, 'utf-8');
+  if (request.rootDir) {
+    await upsertWorkspaceSearchFile(request.rootDir, filePath).catch((error: unknown) => {
+      console.error('Failed to update search index after create', error);
+    });
+  }
 };
 
 export const createDirectory = async (request: WorkspacePathRequest): Promise<void> => {
@@ -190,6 +205,9 @@ export const deleteFile = async (request: WorkspacePathRequest): Promise<void> =
   await fs.unlink(filePath);
   await removePathFromSession(rootDir, filePath);
   await removePathFromKeywords(rootDir, filePath);
+  await removeWorkspaceSearchPath(rootDir, filePath).catch((error: unknown) => {
+    console.error('Failed to update search index after delete', error);
+  });
 };
 
 export const renamePath = async (request: RenameWorkspacePathRequest): Promise<void> => {
@@ -206,4 +224,7 @@ export const renamePath = async (request: RenameWorkspacePathRequest): Promise<v
   await fs.rename(oldPath, newPath);
   await replacePathInSession(rootDir, oldPath, newPath);
   await replacePathInKeywords(rootDir, oldPath, newPath);
+  await renameWorkspaceSearchPath({ rootDir, oldPath, newPath }).catch((error: unknown) => {
+    console.error('Failed to update search index after rename', error);
+  });
 };
