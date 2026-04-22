@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import { basename, dirname, joinPath, toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { closeFileByPath, openFile, renameOpenedPath } from '@renderer/features/editor/editorSlice';
+import { closeFileByPath, renameOpenedPath } from '@renderer/features/editor/editorSlice';
 import {
   setFileTree,
   setSettings,
   setWorkspace
 } from '@renderer/features/workspace/workspaceSlice';
+import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import type { NewEntryMode, NewEntryState, RenameEntryState } from './FileTree';
 import {
@@ -51,6 +52,7 @@ export const useExplorerActions = (): {
   deleteSelected: () => Promise<void>;
 } => {
   const dispatch = useAppDispatch();
+  const workspaceApi = useActiveWorkspaceApi();
   const { rootPath, fileTree } = useAppSelector((state) => state.workspace);
   const { selectedPath, selectedDirPath } = useAppSelector((state) => state.explorer);
   const [newEntry, setNewEntry] = useState<NewEntryState>(emptyNewEntry);
@@ -123,12 +125,7 @@ export const useExplorerActions = (): {
     if (newEntry.mode === 'file') {
       await tnetApi.file.create(toWorkspaceRequest(targetPath));
       dispatch(selectFile(targetPath));
-      dispatch(
-        openFile({
-          path: targetPath,
-          content: await tnetApi.file.read(toWorkspaceRequest(targetPath))
-        })
-      );
+      await workspaceApi.openFile(targetPath);
     } else {
       await tnetApi.file.createDirectory(toWorkspaceRequest(targetPath));
       dispatch(selectDirectoryOnly(targetPath));

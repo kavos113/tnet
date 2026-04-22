@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { openFile } from '@renderer/features/editor/editorSlice';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
 import type { NewEntryState, RenameEntryState } from './FileTree';
 import { selectDirectory, selectFile } from './explorerSlice';
@@ -61,8 +60,7 @@ export const FileTreeItem = ({
     }
 
     dispatch(selectFile(item.path));
-    const content = await workspaceApi.readFile(item.path);
-    dispatch(openFile({ path: item.path, content }));
+    await workspaceApi.openFile(item.path);
   };
 
   const onNewEntryKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {

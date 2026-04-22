@@ -1,9 +1,4 @@
-import { useEffect, useState } from 'react';
-import type { ProjectConfig } from '@shared/types/config';
-import { defaultProjectConfig } from '@shared/types/config';
-import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { tnetApi } from '@renderer/lib/tnetApi';
-import { setSettings } from '@renderer/features/workspace/workspaceSlice';
+import { useProjectSettingsDraft } from './useProjectSettingsDraft';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -14,40 +9,9 @@ export const SettingsDialog = ({
   isOpen,
   onClose
 }: SettingsDialogProps): React.JSX.Element | null => {
-  const dispatch = useAppDispatch();
-  const rootPath = useAppSelector((state) => state.workspace.rootPath);
-  const settings = useAppSelector((state) => state.workspace.settings);
-  const [draft, setDraft] = useState<ProjectConfig>(settings);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const loadSettings = async (): Promise<void> => {
-      const loaded = rootPath ? await tnetApi.config.loadProject(rootPath) : defaultProjectConfig();
-      dispatch(setSettings(loaded));
-      setDraft(loaded);
-    };
-
-    loadSettings().catch((error: unknown) => {
-      console.error('Failed to load settings', error);
-      setDraft(defaultProjectConfig());
-    });
-  }, [dispatch, isOpen, rootPath]);
+  const { draft, updateDraft, saveSettings } = useProjectSettingsDraft(isOpen);
 
   if (!isOpen) return null;
-
-  const updateDraft = <K extends keyof ProjectConfig>(key: K, value: ProjectConfig[K]): void => {
-    setDraft((current) => ({
-      ...current,
-      [key]: value
-    }));
-  };
-
-  const saveSettings = async (): Promise<void> => {
-    if (rootPath) await tnetApi.config.saveProject(rootPath, draft);
-    dispatch(setSettings(draft));
-    onClose();
-  };
 
   return (
     <div className="modal-overlay" onMouseDown={onClose}>
@@ -112,9 +76,11 @@ export const SettingsDialog = ({
             type="button"
             className="btn-primary"
             onClick={() => {
-              saveSettings().catch((error: unknown) => {
-                console.error('Failed to save settings', error);
-              });
+              saveSettings()
+                .then(onClose)
+                .catch((error: unknown) => {
+                  console.error('Failed to save settings', error);
+                });
             }}
           >
             Save
