@@ -146,4 +146,29 @@ describe('PreviewPane', () => {
       expect(openInternalLink).toHaveBeenCalledWith('/docs/text-target.md');
     });
   });
+
+  it('renders a right-side outline from preview headings', async () => {
+    renderPreviewPane(['# Title', '', '## Section', '', '### Detail'].join('\n'));
+
+    const outline = await screen.findByRole('navigation', { name: 'Preview outline' });
+
+    expect(outline).toHaveTextContent('Title');
+    expect(outline).toHaveTextContent('Section');
+    expect(outline).toHaveTextContent('Detail');
+    expect(screen.getByRole('button', { name: 'Section' }).closest('li')).toHaveClass(
+      'preview-outline-level-2'
+    );
+  });
+
+  it('scrolls the preview to an outline heading', async () => {
+    renderPreviewPane(['# Title', '', '## Target'].join('\n'));
+    const scrollIntoView = vi
+      .spyOn(HTMLElement.prototype, 'scrollIntoView')
+      .mockImplementation(() => undefined);
+
+    await screen.findByRole('heading', { name: 'Target' });
+    fireEvent.click(await screen.findByRole('button', { name: 'Target' }));
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' });
+  });
 });

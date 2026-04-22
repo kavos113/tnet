@@ -9,6 +9,7 @@
 
 .markdown-preview {
   flex: 1;
+  min-width: 0;
   width: 100%;
   padding: 12px;
   overflow-y: auto;
@@ -17,6 +18,61 @@
   font-family: var(--preview-font-family);
   font-size: var(--preview-font-size);
   line-height: 1.6;
+}
+
+.preview-outline {
+  flex: 0 0 180px;
+  width: 180px;
+  padding: 10px 8px;
+  overflow: hidden auto;
+  background: var(--background-dark);
+  border-left: 1px solid var(--gray);
+}
+
+.preview-outline-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.preview-outline-item {
+  margin: 0;
+}
+
+.preview-outline-link {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 6px;
+  overflow: hidden;
+  color: var(--foreground);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.preview-outline-link:hover {
+  background: var(--gray);
+}
+
+.preview-outline-level-2 .preview-outline-link {
+  padding-left: 14px;
+}
+
+.preview-outline-level-3 .preview-outline-link {
+  padding-left: 22px;
+}
+
+.preview-outline-level-4 .preview-outline-link,
+.preview-outline-level-5 .preview-outline-link,
+.preview-outline-level-6 .preview-outline-link {
+  padding-left: 30px;
 }
 
 .markdown-preview h1 {

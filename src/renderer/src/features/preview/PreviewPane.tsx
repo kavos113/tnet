@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { InternalLinkTooltipController } from './InternalLinkTooltip';
 import { markdownService } from './markdown/markdownService';
+import { extractPreviewOutline, PreviewOutline, type PreviewOutlineItem } from './PreviewOutline';
 import 'highlight.js/styles/github.css';
 import 'katex/dist/katex.min.css';
 
@@ -14,10 +15,24 @@ export interface PreviewPaneHandle {
   getPreviewElement: () => HTMLElement | null;
 }
 
+const areOutlineItemsEqual = (
+  current: PreviewOutlineItem[],
+  next: PreviewOutlineItem[]
+): boolean => {
+  if (current.length !== next.length) return false;
+  return current.every(
+    (item, index) =>
+      item.id === next[index].id &&
+      item.level === next[index].level &&
+      item.text === next[index].text
+  );
+};
+
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
   ({ markdown, onOpenInternalLink, loadKeywordContent }, ref): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [html, setHtml] = useState('');
+    const [outlineItems, setOutlineItems] = useState<PreviewOutlineItem[]>([]);
 
     const openInternalLink = useCallback(
       (filePath: string): void => {
@@ -56,10 +71,24 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
 
     useEffect(() => {
       if (!containerRef.current) return;
+      const nextOutlineItems = extractPreviewOutline(containerRef.current);
+      setOutlineItems((current) =>
+        areOutlineItemsEqual(current, nextOutlineItems) ? current : nextOutlineItems
+      );
       markdownService.renderMermaid(containerRef.current).catch((error: unknown) => {
         console.error('Failed to render Mermaid diagrams', error);
       });
     }, [html]);
+
+    const scrollToHeading = useCallback((id: string): void => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const target = Array.from(container.querySelectorAll<HTMLElement>('[id]')).find(
+        (element) => element.id === id
+      );
+      target?.scrollIntoView({ block: 'start' });
+    }, []);
 
     return (
       <div className="preview-pane-root">
@@ -70,6 +99,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
           // matching the legacy editor behavior.
           dangerouslySetInnerHTML={{ __html: html }}
         />
+        <PreviewOutline items={outlineItems} onSelect={scrollToHeading} />
         <InternalLinkTooltipController
           containerRef={containerRef}
           onOpenInternalLink={openInternalLink}
