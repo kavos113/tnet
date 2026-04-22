@@ -4,6 +4,8 @@ import type {
 } from '@shared/llm/inlineCompletionTypes';
 import type { LlmProviderType } from '@shared/types/config';
 import { loadProjectConfig } from '../projectConfigService';
+import { geminiSdkProvider } from './geminiSdkProvider';
+import { lmStudioProvider } from './lmStudioProvider';
 import { localHttpProvider } from './localHttpProvider';
 import { mockInlineCompletionProvider } from './mockInlineCompletionProvider';
 import { openAiCompatibleProvider } from './openAiCompatibleProvider';
@@ -13,6 +15,8 @@ import type { InlineCompletionProvider } from './llmProvider';
 const providerByType: Record<LlmProviderType, InlineCompletionProvider> = {
   mock: mockInlineCompletionProvider,
   'openai-sdk': openAiSdkProvider,
+  'gemini-sdk': geminiSdkProvider,
+  'lm-studio': lmStudioProvider,
   'local-http': localHttpProvider,
   'openai-compatible': openAiCompatibleProvider
 };

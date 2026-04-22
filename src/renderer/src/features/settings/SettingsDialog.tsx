@@ -91,6 +91,8 @@ export const SettingsDialog = ({
             >
               <option value="mock">Mock</option>
               <option value="openai-sdk">OpenAI SDK</option>
+              <option value="gemini-sdk">Gemini SDK</option>
+              <option value="lm-studio">LM Studio</option>
               <option value="local-http">Local HTTP</option>
               <option value="openai-compatible">OpenAI Compatible</option>
             </select>

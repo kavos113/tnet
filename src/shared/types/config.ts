@@ -2,7 +2,13 @@ export interface GlobalConfig {
   lastOpenedDirectory?: string;
 }
 
-export type LlmProviderType = 'mock' | 'openai-sdk' | 'openai-compatible' | 'local-http';
+export type LlmProviderType =
+  | 'mock'
+  | 'openai-sdk'
+  | 'gemini-sdk'
+  | 'lm-studio'
+  | 'openai-compatible'
+  | 'local-http';
 
 export interface ProjectConfig {
   editorFontFamily: string;

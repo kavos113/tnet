@@ -29,6 +29,7 @@
     "@codemirror/view": "^6.41.1",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@google/genai": "^1.50.1",
     "@reduxjs/toolkit": "^2.11.2",
     "codemirror": "^6.0.2",
     "electron-updater": "^6.3.9",
