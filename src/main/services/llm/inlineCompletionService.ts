@@ -7,10 +7,12 @@ import { loadProjectConfig } from '../projectConfigService';
 import { localHttpProvider } from './localHttpProvider';
 import { mockInlineCompletionProvider } from './mockInlineCompletionProvider';
 import { openAiCompatibleProvider } from './openAiCompatibleProvider';
+import { openAiSdkProvider } from './openAiSdkProvider';
 import type { InlineCompletionProvider } from './llmProvider';
 
 const providerByType: Record<LlmProviderType, InlineCompletionProvider> = {
   mock: mockInlineCompletionProvider,
+  'openai-sdk': openAiSdkProvider,
   'local-http': localHttpProvider,
   'openai-compatible': openAiCompatibleProvider
 };
