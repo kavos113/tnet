@@ -3,12 +3,9 @@ import { basename, dirname, joinPath, toWorkspaceRelativePath } from '@shared/pa
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { closeFileByPath, renameOpenedPath } from '@renderer/features/editor/editorSlice';
-import {
-  setFileTree,
-  setSettings,
-  setWorkspace
-} from '@renderer/features/workspace/workspaceSlice';
+import { setFileTree } from '@renderer/features/workspace/workspaceSlice';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
+import { useWorkspaceSwitcher } from '@renderer/features/workspace/useWorkspaceSwitcher';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import type { NewEntryMode, NewEntryState, RenameEntryState } from './FileTree';
 import {
@@ -34,6 +31,7 @@ const emptyRenameEntry: RenameEntryState = {
 
 export const useExplorerActions = (): {
   rootPath: string;
+  workspaceRoots: string[];
   fileTree: FileItem[];
   selectedPath: string | null;
   selectedTarget: string | null;
@@ -43,6 +41,7 @@ export const useExplorerActions = (): {
   setNewEntryName: (name: string) => void;
   setRenameEntryName: (name: string) => void;
   openWorkspace: () => Promise<void>;
+  switchWorkspaceRoot: (rootPath: string) => Promise<void>;
   startNewEntry: (mode: NewEntryMode) => void;
   cancelNewEntry: () => void;
   confirmNewEntry: () => Promise<void>;
@@ -53,7 +52,8 @@ export const useExplorerActions = (): {
 } => {
   const dispatch = useAppDispatch();
   const workspaceApi = useActiveWorkspaceApi();
-  const { rootPath, fileTree } = useAppSelector((state) => state.workspace);
+  const { rootPath, workspaceRoots, fileTree } = useAppSelector((state) => state.workspace);
+  const { switchWorkspace } = useWorkspaceSwitcher();
   const { selectedPath, selectedDirPath } = useAppSelector((state) => state.explorer);
   const [newEntry, setNewEntry] = useState<NewEntryState>(emptyNewEntry);
   const [renameEntry, setRenameEntry] = useState<RenameEntryState>(emptyRenameEntry);
@@ -82,9 +82,7 @@ export const useExplorerActions = (): {
     const result = await tnetApi.workspace.openDirectory();
     if (!result.rootPath) return;
 
-    dispatch(setWorkspace(result));
-    await tnetApi.config.saveGlobal({ lastOpenedDirectory: result.rootPath });
-    dispatch(setSettings(await tnetApi.config.loadProject(result.rootPath)));
+    await switchWorkspace(result.rootPath);
   };
 
   const cancelNewEntry = (): void => {
@@ -182,6 +180,7 @@ export const useExplorerActions = (): {
 
   return {
     rootPath,
+    workspaceRoots,
     fileTree,
     selectedPath,
     selectedTarget,
@@ -191,6 +190,7 @@ export const useExplorerActions = (): {
     setNewEntryName: (name) => setNewEntry((current) => ({ ...current, name })),
     setRenameEntryName: (name) => setRenameEntry((current) => ({ ...current, name })),
     openWorkspace,
+    switchWorkspaceRoot: switchWorkspace,
     startNewEntry,
     cancelNewEntry,
     confirmNewEntry,

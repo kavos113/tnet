@@ -60,6 +60,11 @@ const explorerSlice = createSlice({
     clearSelection: (state) => {
       state.selectedPath = null;
       state.selectedDirPath = null;
+    },
+    resetExplorerState: (state) => {
+      state.selectedPath = null;
+      state.selectedDirPath = null;
+      state.expandedPaths = [];
     }
   }
 });
@@ -71,6 +76,7 @@ export const {
   addExpandedPath,
   replaceSelectedPath,
   setExpandedPaths,
-  clearSelection
+  clearSelection,
+  resetExplorerState
 } = explorerSlice.actions;
 export default explorerSlice.reducer;

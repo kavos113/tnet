@@ -20,10 +20,16 @@ describe('config services', () => {
   it('saves and loads global config', async () => {
     const userDataDir = await tempDir('global-config-save');
 
-    await saveGlobalConfig(userDataDir, { lastOpenedDirectory: 'C:/workspace' });
+    await saveGlobalConfig(userDataDir, {
+      lastOpenedDirectory: 'C:/workspace',
+      activeWorkspaceRoot: 'C:/workspace',
+      workspaceRoots: ['C:/workspace', 'D:/notes']
+    });
 
     await expect(loadGlobalConfig(userDataDir)).resolves.toEqual({
-      lastOpenedDirectory: 'C:/workspace'
+      lastOpenedDirectory: 'C:/workspace',
+      activeWorkspaceRoot: 'C:/workspace',
+      workspaceRoots: ['C:/workspace', 'D:/notes']
     });
   });
 

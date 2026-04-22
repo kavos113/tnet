@@ -103,6 +103,27 @@ const editorSlice = createSlice({
       file.path = action.payload.newPath;
       file.displayName = basename(action.payload.newPath);
     },
+    replaceOpenedFiles: (
+      state,
+      action: PayloadAction<{
+        openedFiles: Array<{
+          path: string;
+          content: string;
+        }>;
+        activeIndex?: number;
+      }>
+    ) => {
+      state.openedFiles = action.payload.openedFiles.map((file) => ({
+        path: file.path,
+        content: file.content,
+        isModified: false,
+        displayName: basename(file.path)
+      }));
+      state.activeIndex =
+        state.openedFiles.length === 0
+          ? -1
+          : Math.min(action.payload.activeIndex ?? 0, state.openedFiles.length - 1);
+    },
     setViewMode: (state, action: PayloadAction<ViewMode>) => {
       state.viewMode = action.payload;
     }
@@ -117,6 +138,7 @@ export const {
   updateActiveContent,
   markActiveSaved,
   renameOpenedPath,
+  replaceOpenedFiles,
   setViewMode
 } = editorSlice.actions;
 export default editorSlice.reducer;

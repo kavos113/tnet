@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { defaultProjectConfig } from '@shared/types/config';
 import { createAppStore } from '@renderer/app/store';
 import { setWorkspace } from '@renderer/features/workspace/workspaceSlice';
 import { ExplorerPanel } from './ExplorerPanel';
@@ -11,12 +12,16 @@ const fileDelete = vi.fn();
 const fileRead = vi.fn();
 const fileRename = vi.fn();
 const getFileTree = vi.fn();
+const loadProject = vi.fn();
+const openDirectory = vi.fn();
+const saveGlobal = vi.fn();
+const sessionLoad = vi.fn();
 
 const installTnetApi = (): void => {
   Object.defineProperty(window, 'tnet', {
     value: {
       workspace: {
-        openDirectory: vi.fn(),
+        openDirectory,
         getFileTree
       },
       file: {
@@ -28,13 +33,13 @@ const installTnetApi = (): void => {
         rename: fileRename
       },
       session: {
-        load: vi.fn(),
+        load: sessionLoad,
         save: vi.fn()
       },
       config: {
         loadGlobal: vi.fn(),
-        saveGlobal: vi.fn(),
-        loadProject: vi.fn(),
+        saveGlobal,
+        loadProject,
         saveProject: vi.fn()
       },
       keyword: {
@@ -49,11 +54,12 @@ const installTnetApi = (): void => {
   });
 };
 
-const renderExplorer = (): ReturnType<typeof createAppStore> => {
+const renderExplorer = (workspaceRoots?: string[]): ReturnType<typeof createAppStore> => {
   const store = createAppStore();
   store.dispatch(
     setWorkspace({
       rootPath: '/workspace',
+      workspaceRoots,
       fileTree: [
         {
           name: 'docs',
@@ -87,6 +93,10 @@ describe('ExplorerPanel', () => {
     fileRead.mockResolvedValue('content');
     fileRename.mockResolvedValue(undefined);
     getFileTree.mockResolvedValue([]);
+    loadProject.mockResolvedValue(defaultProjectConfig());
+    openDirectory.mockResolvedValue({ rootPath: '' });
+    saveGlobal.mockResolvedValue(undefined);
+    sessionLoad.mockResolvedValue({ openedFiles: [], expandedFolders: [] });
     installTnetApi();
   });
 
@@ -162,6 +172,47 @@ describe('ExplorerPanel', () => {
         rootDir: '/workspace',
         oldPath: 'docs/note.md',
         newPath: 'docs/renamed.md'
+      });
+    });
+  });
+
+  it('renders workspace switcher entries and switches the active workspace', async () => {
+    getFileTree.mockResolvedValue([
+      { name: 'second.md', path: '/second/second.md', isDirectory: false }
+    ]);
+    const store = renderExplorer(['/workspace', '/second']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to second' }));
+
+    await waitFor(() => {
+      expect(store.getState().workspace.rootPath).toBe('/second');
+      expect(getFileTree).toHaveBeenCalledWith('/second');
+      expect(saveGlobal).toHaveBeenCalledWith({
+        lastOpenedDirectory: '/second',
+        activeWorkspaceRoot: '/second',
+        workspaceRoots: ['/workspace', '/second']
+      });
+    });
+    expect(screen.getByText('second.md')).toBeInTheDocument();
+  });
+
+  it('adds an opened folder to the workspace switcher', async () => {
+    openDirectory.mockResolvedValue({ rootPath: '/second' });
+    getFileTree.mockResolvedValue([
+      { name: 'second.md', path: '/second/second.md', isDirectory: false }
+    ]);
+    const store = renderExplorer(['/workspace']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open workspace' }));
+
+    await waitFor(() => {
+      expect(openDirectory).toHaveBeenCalled();
+      expect(store.getState().workspace.workspaceRoots).toEqual(['/workspace', '/second']);
+      expect(store.getState().workspace.rootPath).toBe('/second');
+      expect(saveGlobal).toHaveBeenCalledWith({
+        lastOpenedDirectory: '/second',
+        activeWorkspaceRoot: '/second',
+        workspaceRoots: ['/workspace', '/second']
       });
     });
   });

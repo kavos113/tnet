@@ -1,5 +1,7 @@
 export interface GlobalConfig {
   lastOpenedDirectory?: string;
+  workspaceRoots?: string[];
+  activeWorkspaceRoot?: string;
 }
 
 export type LlmProviderType =

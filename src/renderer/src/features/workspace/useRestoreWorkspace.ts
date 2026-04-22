@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { useAppDispatch } from '@renderer/app/hooks';
-import { openFile } from '@renderer/features/editor/editorSlice';
-import { setExpandedPaths } from '@renderer/features/explorer/explorerSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
-import { setSettings, setWorkspace } from './workspaceSlice';
+import { useWorkspaceSwitcher } from './useWorkspaceSwitcher';
+import { setWorkspaceRoots } from './workspaceSlice';
 
 export const useRestoreWorkspace = (): boolean => {
   const dispatch = useAppDispatch();
+  const { switchWorkspace } = useWorkspaceSwitcher();
   const [isRestoring, setIsRestoring] = useState(true);
 
   useEffect(() => {
@@ -15,30 +14,16 @@ export const useRestoreWorkspace = (): boolean => {
 
     const restoreWorkspace = async (): Promise<void> => {
       const config = await tnetApi.config.loadGlobal();
-      if (!config.lastOpenedDirectory) return;
-
-      const rootPath = config.lastOpenedDirectory;
-      const fileTree = await tnetApi.workspace.getFileTree(rootPath);
+      const workspaceRoots = config.workspaceRoots ?? [];
+      const rootPath = config.activeWorkspaceRoot ?? config.lastOpenedDirectory;
+      dispatch(setWorkspaceRoots(workspaceRoots));
+      if (!rootPath) return;
       if (canceled) return;
 
-      dispatch(setWorkspace({ rootPath, fileTree }));
-      dispatch(setSettings(await tnetApi.config.loadProject(rootPath)));
-
-      const session = await tnetApi.session.load(rootPath);
-      if (canceled) return;
-
-      dispatch(setExpandedPaths(session.expandedFolders));
-      for (const filePath of session.openedFiles) {
-        try {
-          const content = await tnetApi.file.read({
-            rootDir: rootPath,
-            path: toWorkspaceRelativePath(rootPath, filePath)
-          });
-          if (!canceled) dispatch(openFile({ path: filePath, content }));
-        } catch (error: unknown) {
-          console.warn('Failed to restore file', filePath, error);
-        }
-      }
+      await switchWorkspace(rootPath, {
+        workspaceRoots,
+        persistGlobalConfig: false
+      });
     };
 
     restoreWorkspace()
@@ -52,7 +37,7 @@ export const useRestoreWorkspace = (): boolean => {
     return () => {
       canceled = true;
     };
-  }, [dispatch]);
+  }, [dispatch, switchWorkspace]);
 
   return isRestoring;
 };
