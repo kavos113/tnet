@@ -3,6 +3,7 @@ import type {
   InlineCompletionContext,
   InlineCompletionResult
 } from '@shared/llm/inlineCompletionTypes';
+import { textByteLength } from '@shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { openFile } from '@renderer/features/editor/editorSlice';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
@@ -84,8 +85,12 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
 
   const openWorkspaceFile = useCallback(
     async (filePath: string): Promise<void> => {
+      const startedAt = performance.now();
       const content = await tnetApi.file.read(toWorkspacePathRequest(filePath));
-      dispatch(openFile({ path: filePath, content }));
+      if (import.meta.env.DEV) {
+        console.debug('File read', Math.round(performance.now() - startedAt), 'ms');
+      }
+      dispatch(openFile({ path: filePath, content, sizeBytes: textByteLength(content) }));
     },
     [dispatch, toWorkspacePathRequest]
   );

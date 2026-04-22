@@ -1,10 +1,12 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { textByteLength } from '@shared/file/largeFile';
 import { basename } from '@shared/path/pathUtils';
 import type { ViewMode } from '@shared/types/viewMode';
 
 export interface OpenFile {
   path: string;
   content: string;
+  sizeBytes: number;
   isModified: boolean;
   displayName: string;
 }
@@ -42,6 +44,7 @@ const editorSlice = createSlice({
       action: PayloadAction<{
         path: string;
         content: string;
+        sizeBytes?: number;
       }>
     ) => {
       const existingIndex = state.openedFiles.findIndex(
@@ -55,6 +58,7 @@ const editorSlice = createSlice({
       state.openedFiles.push({
         path: action.payload.path,
         content: action.payload.content,
+        sizeBytes: action.payload.sizeBytes ?? textByteLength(action.payload.content),
         isModified: false,
         displayName: basename(action.payload.path)
       });
@@ -90,6 +94,7 @@ const editorSlice = createSlice({
       if (state.activeIndex < 0 || state.activeIndex >= state.openedFiles.length) return;
       const activeFile = state.openedFiles[state.activeIndex];
       activeFile.content = action.payload;
+      activeFile.sizeBytes = textByteLength(action.payload);
       activeFile.isModified = true;
     },
     markActiveSaved: (
@@ -101,6 +106,7 @@ const editorSlice = createSlice({
       if (state.activeIndex < 0 || state.activeIndex >= state.openedFiles.length) return;
       const activeFile = state.openedFiles[state.activeIndex];
       activeFile.content = action.payload.content;
+      activeFile.sizeBytes = textByteLength(action.payload.content);
       activeFile.isModified = false;
     },
     renameOpenedPath: (
@@ -121,6 +127,7 @@ const editorSlice = createSlice({
         openedFiles: Array<{
           path: string;
           content: string;
+          sizeBytes?: number;
         }>;
         activeIndex?: number;
       }>
@@ -128,6 +135,7 @@ const editorSlice = createSlice({
       state.openedFiles = action.payload.openedFiles.map((file) => ({
         path: file.path,
         content: file.content,
+        sizeBytes: file.sizeBytes ?? textByteLength(file.content),
         isModified: false,
         displayName: basename(file.path)
       }));

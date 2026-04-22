@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import mermaid from 'mermaid';
 import { PreviewPane } from './PreviewPane';
 
 vi.mock('mermaid', () => ({
@@ -31,6 +32,7 @@ describe('PreviewPane', () => {
   });
 
   beforeEach(() => {
+    vi.clearAllMocks();
     keywordGetContent.mockReset();
     openInternalLink.mockReset();
     imageLoadDataUrl.mockReset();
@@ -185,5 +187,12 @@ describe('PreviewPane', () => {
     const image = await screen.findByRole('img', { name: 'Pasted image 20250218201040.png' });
     expect(image).toHaveAttribute('src', 'data:image/png;base64,aW1hZ2U=');
     expect(imageLoadDataUrl).toHaveBeenCalledWith('Pasted image 20250218201040.png');
+  });
+
+  it('does not run Mermaid rendering when the preview has no Mermaid blocks', async () => {
+    renderPreviewPane('# Plain');
+
+    expect(await screen.findByRole('heading', { name: 'Plain' })).toBeInTheDocument();
+    expect(mermaid.run).not.toHaveBeenCalled();
   });
 });

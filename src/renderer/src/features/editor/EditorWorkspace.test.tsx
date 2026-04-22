@@ -11,6 +11,7 @@ const editorPaneProps = vi.hoisted(
     [] as Array<{
       content: string;
       requestInlineCompletion?: unknown;
+      isLargeDocument?: boolean;
     }>
 );
 
@@ -27,6 +28,7 @@ vi.mock('./EditorPane', () => ({
       props: {
         content: string;
         requestInlineCompletion?: unknown;
+        isLargeDocument?: boolean;
       },
       ref
     ) => {
@@ -180,5 +182,28 @@ describe('EditorWorkspace split resize', () => {
       'false'
     );
     expect(previewPaneProps.at(-1)?.showOutline).toBe(false);
+  });
+
+  it('opens large files in editor-only mode until preview is explicitly requested', () => {
+    const store = createAppStore();
+    store.dispatch(
+      openFile({ path: '/workspace/large.md', content: '# Large', sizeBytes: 512 * 1024 })
+    );
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    expect(screen.getByTestId('editor-pane-content')).toBeInTheDocument();
+    expect(screen.queryByTestId('preview-pane-content')).not.toBeInTheDocument();
+    expect(editorPaneProps.at(-1)?.isLargeDocument).toBe(true);
+    expect(screen.getByRole('button', { name: 'Editor' })).toHaveClass('active');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Split' }));
+
+    expect(screen.getByTestId('preview-pane-content')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Split' })).toHaveClass('active');
   });
 });

@@ -12,6 +12,7 @@ interface PreviewPaneProps {
   loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
   loadImageDataUrl: (filename: string) => Promise<string | null>;
   onRendered?: () => void;
+  renderDebounceMs?: number;
 }
 
 export interface PreviewPaneHandle {
@@ -33,7 +34,15 @@ const areOutlineItemsEqual = (
 
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
   (
-    { markdown, showOutline, onOpenInternalLink, loadKeywordContent, loadImageDataUrl, onRendered },
+    {
+      markdown,
+      showOutline,
+      onOpenInternalLink,
+      loadKeywordContent,
+      loadImageDataUrl,
+      onRendered,
+      renderDebounceMs = 80
+    },
     ref
   ): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -59,31 +68,48 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
 
     useEffect(() => {
       let canceled = false;
+      const timeoutId = window.setTimeout(() => {
+        const startedAt = performance.now();
 
-      markdownService
-        .parsePreviewMarkdown(markdown, { resolveImageSrc: loadImageDataUrl })
-        .then((nextHtml) => {
-          if (!canceled) setHtml(nextHtml);
-        })
-        .catch((error: unknown) => {
-          console.error('Failed to render markdown', error);
-          if (!canceled) setHtml('<p>Failed to render markdown.</p>');
-        });
+        markdownService
+          .parsePreviewMarkdown(markdown, { resolveImageSrc: loadImageDataUrl })
+          .then((nextHtml) => {
+            if (import.meta.env.DEV) {
+              console.debug(
+                'Preview Markdown parse',
+                Math.round(performance.now() - startedAt),
+                'ms'
+              );
+            }
+            if (!canceled) setHtml(nextHtml);
+          })
+          .catch((error: unknown) => {
+            console.error('Failed to render markdown', error);
+            if (!canceled) setHtml('<p>Failed to render markdown.</p>');
+          });
+      }, renderDebounceMs);
 
       return () => {
         canceled = true;
+        window.clearTimeout(timeoutId);
       };
-    }, [loadImageDataUrl, markdown]);
+    }, [loadImageDataUrl, markdown, renderDebounceMs]);
 
     useEffect(() => {
       if (!containerRef.current) return;
+      const startedAt = performance.now();
       const nextOutlineItems = extractPreviewOutline(containerRef.current);
+      if (import.meta.env.DEV) {
+        console.debug('Preview outline extract', Math.round(performance.now() - startedAt), 'ms');
+      }
       setOutlineItems((current) =>
         areOutlineItemsEqual(current, nextOutlineItems) ? current : nextOutlineItems
       );
-      markdownService.renderMermaid(containerRef.current).catch((error: unknown) => {
-        console.error('Failed to render Mermaid diagrams', error);
-      });
+      if (containerRef.current.querySelector('.mermaid')) {
+        markdownService.renderMermaid(containerRef.current).catch((error: unknown) => {
+          console.error('Failed to render Mermaid diagrams', error);
+        });
+      }
       onRendered?.();
     }, [html, onRendered]);
 

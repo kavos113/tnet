@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import type { Range } from '@codemirror/state';
+import type { Extension, Range } from '@codemirror/state';
 import {
   Decoration,
   type DecorationSet,
@@ -22,7 +22,80 @@ const addLineDecorations = (
   }
 };
 
-export const buildDecorations = (view: EditorView): DecorationSet => {
+interface MarkdownDecorationOptions {
+  largeDocument?: boolean;
+}
+
+const largeDocumentScanPadding = 5000;
+
+const addRegexDecorations = (
+  decorations: Range<Decoration>[],
+  view: EditorView,
+  docText: string,
+  offset: number
+): void => {
+  const keywordRegex = /<keyword\b[^>]*>[\s\S]*?<\/keyword>/g;
+  let keywordMatch: RegExpExecArray | null;
+  while ((keywordMatch = keywordRegex.exec(docText)) !== null) {
+    const from = offset + keywordMatch.index;
+    const to = from + keywordMatch[0].length;
+    addLineDecorations(decorations, view, from, to, 'cm-md-keyword-block-line');
+    decorations.push(Decoration.mark({ class: 'cm-md-keyword-block' }).range(from, to));
+  }
+
+  const displayMathRegex = /\$\$([\s\S]+?)\$\$/g;
+  let displayMatch: RegExpExecArray | null;
+  while ((displayMatch = displayMathRegex.exec(docText)) !== null) {
+    const startLine = view.state.doc.lineAt(offset + displayMatch.index);
+    const endLine = view.state.doc.lineAt(offset + displayMatch.index + displayMatch[0].length);
+    for (let lineNo = startLine.number; lineNo <= endLine.number; lineNo += 1) {
+      decorations.push(
+        Decoration.line({ class: 'cm-md-display-math' }).range(view.state.doc.line(lineNo).from)
+      );
+    }
+  }
+
+  const inlineMathRegex = /(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g;
+  let inlineMatch: RegExpExecArray | null;
+  while ((inlineMatch = inlineMathRegex.exec(docText)) !== null) {
+    decorations.push(
+      Decoration.mark({ class: 'cm-md-inline-math' }).range(
+        offset + inlineMatch.index,
+        offset + inlineMatch.index + inlineMatch[0].length
+      )
+    );
+  }
+};
+
+const regexScanRanges = (
+  view: EditorView,
+  largeDocument: boolean
+): Array<{ from: number; to: number }> => {
+  if (!largeDocument) return [{ from: 0, to: view.state.doc.length }];
+
+  const ranges = view.visibleRanges
+    .map((range) => ({
+      from: Math.max(0, range.from - largeDocumentScanPadding),
+      to: Math.min(view.state.doc.length, range.to + largeDocumentScanPadding)
+    }))
+    .sort((a, b) => a.from - b.from);
+
+  const merged: Array<{ from: number; to: number }> = [];
+  for (const range of ranges) {
+    const previous = merged.at(-1);
+    if (previous && range.from <= previous.to) {
+      previous.to = Math.max(previous.to, range.to);
+    } else {
+      merged.push({ ...range });
+    }
+  }
+  return merged;
+};
+
+export const buildDecorations = (
+  view: EditorView,
+  { largeDocument = false }: MarkdownDecorationOptions = {}
+): DecorationSet => {
   const decorations: Range<Decoration>[] = [];
 
   for (const { from, to } of view.visibleRanges) {
@@ -77,58 +150,42 @@ export const buildDecorations = (view: EditorView): DecorationSet => {
     });
   }
 
-  const docText = view.state.doc.toString();
-
-  const keywordRegex = /<keyword\b[^>]*>[\s\S]*?<\/keyword>/g;
-  let keywordMatch: RegExpExecArray | null;
-  while ((keywordMatch = keywordRegex.exec(docText)) !== null) {
-    const from = keywordMatch.index;
-    const to = from + keywordMatch[0].length;
-    addLineDecorations(decorations, view, from, to, 'cm-md-keyword-block-line');
-    decorations.push(Decoration.mark({ class: 'cm-md-keyword-block' }).range(from, to));
-  }
-
-  const displayMathRegex = /\$\$([\s\S]+?)\$\$/g;
-  let displayMatch: RegExpExecArray | null;
-  while ((displayMatch = displayMathRegex.exec(docText)) !== null) {
-    const startLine = view.state.doc.lineAt(displayMatch.index);
-    const endLine = view.state.doc.lineAt(displayMatch.index + displayMatch[0].length);
-    for (let lineNo = startLine.number; lineNo <= endLine.number; lineNo += 1) {
-      decorations.push(
-        Decoration.line({ class: 'cm-md-display-math' }).range(view.state.doc.line(lineNo).from)
-      );
-    }
-  }
-
-  const inlineMathRegex = /(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)/g;
-  let inlineMatch: RegExpExecArray | null;
-  while ((inlineMatch = inlineMathRegex.exec(docText)) !== null) {
-    decorations.push(
-      Decoration.mark({ class: 'cm-md-inline-math' }).range(
-        inlineMatch.index,
-        inlineMatch.index + inlineMatch[0].length
-      )
+  for (const range of regexScanRanges(view, largeDocument)) {
+    addRegexDecorations(
+      decorations,
+      view,
+      view.state.doc.sliceString(range.from, range.to),
+      range.from
     );
   }
 
   return Decoration.set(decorations, true);
 };
 
-export const markdownDecorationPlugin = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet;
+export const markdownDecorationPlugin = (options: MarkdownDecorationOptions = {}): Extension =>
+  ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet;
 
-    constructor(view: EditorView) {
-      this.decorations = buildDecorations(view);
-    }
-
-    update(update: ViewUpdate): void {
-      if (update.docChanged || update.viewportChanged || update.selectionSet) {
-        this.decorations = buildDecorations(update.view);
+      constructor(view: EditorView) {
+        const startedAt = performance.now();
+        this.decorations = buildDecorations(view, options);
+        if (import.meta.env.DEV) {
+          console.debug('Decoration build', Math.round(performance.now() - startedAt), 'ms');
+        }
       }
+
+      update(update: ViewUpdate): void {
+        if (update.docChanged || update.viewportChanged) {
+          const startedAt = performance.now();
+          this.decorations = buildDecorations(update.view, options);
+          if (import.meta.env.DEV) {
+            console.debug('Decoration build', Math.round(performance.now() - startedAt), 'ms');
+          }
+        }
+      }
+    },
+    {
+      decorations: (plugin) => plugin.decorations
     }
-  },
-  {
-    decorations: (plugin) => plugin.decorations
-  }
-);
+  );

@@ -135,4 +135,43 @@ describe('markdownDecorations', () => {
       });
     }
   });
+
+  it('limits regex-based decorations to the visible area for large documents', () => {
+    const doc = [
+      'visible line with $x$',
+      ...Array.from({ length: 2000 }, () => 'filler'),
+      '$far$'
+    ].join('\n');
+    view = createEditorView(doc);
+    const firstLine = view.state.doc.line(1);
+    Object.defineProperty(view, 'visibleRanges', {
+      configurable: true,
+      value: [{ from: firstLine.from, to: firstLine.to }]
+    });
+
+    const decorations = buildDecorations(view, { largeDocument: true });
+    const collected: CollectedDecoration[] = [];
+    const iter = decorations.iter();
+
+    while (iter.value) {
+      collected.push({
+        from: iter.from,
+        to: iter.to,
+        className: (iter.value.spec as { class?: string }).class
+      });
+      iter.next();
+    }
+
+    expect(collected).toContainEqual({
+      from: doc.indexOf('$x$'),
+      to: doc.indexOf('$x$') + '$x$'.length,
+      className: 'cm-md-inline-math'
+    });
+    expect(
+      collected.some(
+        (decoration) =>
+          decoration.from === doc.indexOf('$far$') && decoration.className === 'cm-md-inline-math'
+      )
+    ).toBe(false);
+  });
 });

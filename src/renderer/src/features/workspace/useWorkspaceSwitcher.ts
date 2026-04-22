@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { textByteLength } from '@shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { replaceOpenedFiles } from '@renderer/features/editor/editorSlice';
@@ -17,10 +18,20 @@ export const useWorkspaceSwitcher = (): {
   const dispatch = useAppDispatch();
   const workspaceRoots = useAppSelector((state) => state.workspace.workspaceRoots);
   const workspaceRootsRef = useRef(workspaceRoots);
+  const searchRebuildTimerRef = useRef<number | null>(null);
+  const searchRebuildRootRef = useRef('');
 
   useEffect(() => {
     workspaceRootsRef.current = workspaceRoots;
   }, [workspaceRoots]);
+
+  useEffect(() => {
+    return () => {
+      if (searchRebuildTimerRef.current !== null) {
+        window.clearTimeout(searchRebuildTimerRef.current);
+      }
+    };
+  }, []);
 
   const switchWorkspace = useCallback(
     async (rootPath: string, options: SwitchWorkspaceOptions = {}): Promise<void> => {
@@ -38,12 +49,14 @@ export const useWorkspaceSwitcher = (): {
         await Promise.all(
           session.openedFiles.map(async (filePath) => {
             try {
+              const content = await tnetApi.file.read({
+                rootDir: rootPath,
+                path: toWorkspaceRelativePath(rootPath, filePath)
+              });
               return {
                 path: filePath,
-                content: await tnetApi.file.read({
-                  rootDir: rootPath,
-                  path: toWorkspaceRelativePath(rootPath, filePath)
-                })
+                content,
+                sizeBytes: textByteLength(content)
               };
             } catch (error: unknown) {
               console.error('Failed to restore opened file', error);
@@ -51,16 +64,25 @@ export const useWorkspaceSwitcher = (): {
             }
           })
         )
-      ).filter((file): file is { path: string; content: string } => file !== null);
+      ).filter(
+        (file): file is { path: string; content: string; sizeBytes: number } => file !== null
+      );
 
       dispatch(setWorkspace({ rootPath, fileTree, workspaceRoots: nextWorkspaceRoots }));
       dispatch(setSettings(settings));
       dispatch(resetExplorerState());
       dispatch(setExpandedPaths(session.expandedFolders));
       dispatch(replaceOpenedFiles({ openedFiles, activeIndex: openedFiles.length - 1 }));
-      tnetApi.search.rebuild(rootPath).catch((error: unknown) => {
-        console.error('Failed to rebuild search index', error);
-      });
+      if (searchRebuildTimerRef.current !== null) {
+        window.clearTimeout(searchRebuildTimerRef.current);
+      }
+      searchRebuildRootRef.current = rootPath;
+      searchRebuildTimerRef.current = window.setTimeout(() => {
+        if (searchRebuildRootRef.current !== rootPath) return;
+        tnetApi.search.rebuild(rootPath).catch((error: unknown) => {
+          console.error('Failed to rebuild search index', error);
+        });
+      }, 500);
 
       if (options.persistGlobalConfig !== false) {
         await tnetApi.config.saveGlobal({

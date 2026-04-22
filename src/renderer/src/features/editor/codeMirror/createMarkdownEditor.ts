@@ -34,6 +34,7 @@ interface CreateMarkdownEditorOptions {
   inlineCompletionDebounceMs?: number;
   inlineCompletionMaxPrefixChars?: number;
   inlineCompletionMaxSuffixChars?: number;
+  isLargeDocument?: boolean;
 }
 
 export const createMarkdownEditor = ({
@@ -45,8 +46,10 @@ export const createMarkdownEditor = ({
   savePastedImage,
   inlineCompletionDebounceMs,
   inlineCompletionMaxPrefixChars,
-  inlineCompletionMaxSuffixChars
+  inlineCompletionMaxSuffixChars,
+  isLargeDocument = false
 }: CreateMarkdownEditorOptions): MarkdownEditorInstance => {
+  const startedAt = performance.now();
   const state = EditorState.create({
     doc: content,
     extensions: [
@@ -56,7 +59,7 @@ export const createMarkdownEditor = ({
         if (update.docChanged) onChange(update.state.doc.toString());
       }),
       markdownEditorTheme,
-      markdownDecorationPlugin,
+      markdownDecorationPlugin({ largeDocument: isLargeDocument }),
       autocompletion({
         override: [keywordCompletion(loadKeywordIndex), latexCompletion, tagCompletion]
       }),
@@ -72,6 +75,9 @@ export const createMarkdownEditor = ({
   });
 
   const view = new EditorView({ state, parent });
+  if (import.meta.env.DEV) {
+    console.debug('Editor mount', Math.round(performance.now() - startedAt), 'ms');
+  }
 
   return {
     view,

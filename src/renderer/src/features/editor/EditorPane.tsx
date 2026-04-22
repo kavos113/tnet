@@ -17,6 +17,7 @@ interface EditorPaneProps {
   inlineCompletionDebounceMs?: number;
   inlineCompletionMaxPrefixChars?: number;
   inlineCompletionMaxSuffixChars?: number;
+  isLargeDocument?: boolean;
 }
 
 export interface EditorPaneHandle {
@@ -35,7 +36,8 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
       savePastedImage,
       inlineCompletionDebounceMs,
       inlineCompletionMaxPrefixChars,
-      inlineCompletionMaxSuffixChars
+      inlineCompletionMaxSuffixChars,
+      isLargeDocument
     },
     ref
   ): React.JSX.Element => {
@@ -76,7 +78,8 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
         savePastedImage,
         inlineCompletionDebounceMs,
         inlineCompletionMaxPrefixChars,
-        inlineCompletionMaxSuffixChars
+        inlineCompletionMaxSuffixChars,
+        isLargeDocument
       });
 
       return () => {
@@ -87,6 +90,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
       inlineCompletionDebounceMs,
       inlineCompletionMaxPrefixChars,
       inlineCompletionMaxSuffixChars,
+      isLargeDocument,
       loadKeywordIndex,
       requestInlineCompletion,
       savePastedImage
