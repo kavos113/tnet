@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
-import { tnetApi } from '@renderer/lib/tnetApi';
+import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
 import { markActiveSaved, setViewMode, updateActiveContent } from './editorSlice';
 import { EditorPane, type EditorPaneHandle } from './EditorPane';
 import { applyScrollRatio, getScrollRatio } from './scrollSync';
@@ -12,18 +12,21 @@ export const EditorWorkspace = (): React.JSX.Element => {
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
   const isSyncingScrollRef = useRef(false);
+  const workspaceApi = useActiveWorkspaceApi();
   const { openedFiles, activeIndex, viewMode } = useAppSelector((state) => state.editor);
-  const rootPath = useAppSelector((state) => state.workspace.rootPath);
   const settings = useAppSelector((state) => state.workspace.settings);
   const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
 
-  const canSave = useMemo(() => Boolean(activeFile && rootPath), [activeFile, rootPath]);
+  const canSave = useMemo(
+    () => Boolean(activeFile && workspaceApi.hasWorkspace),
+    [activeFile, workspaceApi.hasWorkspace]
+  );
 
   const saveActiveFile = async (): Promise<void> => {
     if (!activeFile || !canSave) return;
 
-    await tnetApi.file.write(activeFile.path, activeFile.content, rootPath);
-    const savedContent = await tnetApi.file.read(activeFile.path);
+    await workspaceApi.writeFile(activeFile.path, activeFile.content);
+    const savedContent = await workspaceApi.readFile(activeFile.path);
     dispatch(markActiveSaved({ content: savedContent }));
   };
 
@@ -134,13 +137,18 @@ export const EditorWorkspace = (): React.JSX.Element => {
               <EditorPane
                 ref={editorPaneRef}
                 content={activeFile.content}
-                rootDir={rootPath}
                 onChange={(content) => dispatch(updateActiveContent(content))}
+                loadKeywordIndex={workspaceApi.loadKeywordIndex}
               />
             ) : null}
             {viewMode === 'split' ? <div className="resizer" /> : null}
             {viewMode !== 'editor' ? (
-              <PreviewPane ref={previewPaneRef} markdown={activeFile.content} />
+              <PreviewPane
+                ref={previewPaneRef}
+                markdown={activeFile.content}
+                onOpenInternalLink={workspaceApi.openFile}
+                loadKeywordContent={workspaceApi.getKeywordContent}
+              />
             ) : null}
           </div>
         </>

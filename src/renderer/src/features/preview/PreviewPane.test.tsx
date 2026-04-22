@@ -1,7 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAppStore } from '@renderer/app/store';
 import { PreviewPane } from './PreviewPane';
 
 vi.mock('mermaid', () => ({
@@ -12,40 +10,16 @@ vi.mock('mermaid', () => ({
 }));
 
 const keywordGetContent = vi.fn();
-const fileRead = vi.fn();
+const openInternalLink = vi.fn();
 
-const installTnetApi = (): void => {
-  Object.defineProperty(window, 'tnet', {
-    value: {
-      workspace: {
-        openDirectory: vi.fn(),
-        getFileTree: vi.fn()
-      },
-      file: {
-        read: fileRead.mockResolvedValue('opened content'),
-        write: vi.fn(),
-        create: vi.fn(),
-        createDirectory: vi.fn(),
-        delete: vi.fn(),
-        rename: vi.fn()
-      },
-      session: {
-        load: vi.fn(),
-        save: vi.fn()
-      },
-      config: {
-        loadGlobal: vi.fn(),
-        saveGlobal: vi.fn(),
-        loadProject: vi.fn(),
-        saveProject: vi.fn()
-      },
-      keyword: {
-        loadIndex: vi.fn(),
-        getContent: keywordGetContent
-      }
-    },
-    writable: true
-  });
+const renderPreviewPane = (markdown: string): void => {
+  render(
+    <PreviewPane
+      markdown={markdown}
+      onOpenInternalLink={openInternalLink}
+      loadKeywordContent={keywordGetContent}
+    />
+  );
 };
 
 describe('PreviewPane', () => {
@@ -55,8 +29,7 @@ describe('PreviewPane', () => {
 
   beforeEach(() => {
     keywordGetContent.mockReset();
-    fileRead.mockReset();
-    installTnetApi();
+    openInternalLink.mockReset();
   });
 
   it('shows rendered keyword content while hovering an internal link', async () => {
@@ -67,11 +40,7 @@ describe('PreviewPane', () => {
       })
     );
 
-    render(
-      <Provider store={createAppStore()}>
-        <PreviewPane markdown="See [[/docs/keyword.md|Keyword]]." />
-      </Provider>
-    );
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]].');
 
     const link = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.mouseOver(link, { clientX: 20, clientY: 30 });
@@ -93,11 +62,7 @@ describe('PreviewPane', () => {
   it('uses a missing message when keyword content is not found', async () => {
     keywordGetContent.mockResolvedValue(null);
 
-    render(
-      <Provider store={createAppStore()}>
-        <PreviewPane markdown="See [[/docs/keyword.md|Missing]]." />
-      </Provider>
-    );
+    renderPreviewPane('See [[/docs/keyword.md|Missing]].');
 
     const link = await screen.findByRole('link', { name: 'Missing' });
     fireEvent.mouseOver(link);
@@ -107,13 +72,8 @@ describe('PreviewPane', () => {
 
   it('hides the tooltip when the cursor leaves or the link is clicked', async () => {
     keywordGetContent.mockResolvedValue('Tooltip body');
-    const store = createAppStore();
 
-    render(
-      <Provider store={store}>
-        <PreviewPane markdown="See [[/docs/keyword.md|Keyword]]." />
-      </Provider>
-    );
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]].');
 
     const link = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.mouseOver(link);
@@ -136,16 +96,12 @@ describe('PreviewPane', () => {
     const linkWithTooltip = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.pointerDown(linkWithTooltip);
     expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
-    expect(fileRead).not.toHaveBeenCalled();
+    expect(openInternalLink).not.toHaveBeenCalled();
 
     fireEvent.click(linkWithTooltip);
     await waitFor(() => {
       expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
-      expect(fileRead).toHaveBeenCalledWith('/docs/keyword.md');
-      expect(store.getState().editor.openedFiles[0]).toMatchObject({
-        path: '/docs/keyword.md',
-        content: 'opened content'
-      });
+      expect(openInternalLink).toHaveBeenCalledWith('/docs/keyword.md');
     });
   });
 
@@ -157,11 +113,7 @@ describe('PreviewPane', () => {
       })
     );
 
-    render(
-      <Provider store={createAppStore()}>
-        <PreviewPane markdown="See [[/docs/keyword.md|Keyword]]." />
-      </Provider>
-    );
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]].');
 
     const link = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.mouseOver(link);
@@ -180,13 +132,7 @@ describe('PreviewPane', () => {
   });
 
   it('opens an internal link when the click target is the link text node', async () => {
-    const store = createAppStore();
-
-    render(
-      <Provider store={store}>
-        <PreviewPane markdown="See [[/docs/text-target.md|Text Target]]." />
-      </Provider>
-    );
+    renderPreviewPane('See [[/docs/text-target.md|Text Target]].');
 
     const link = await screen.findByRole('link', { name: 'Text Target' });
     const textNode = link.firstChild;
@@ -197,11 +143,7 @@ describe('PreviewPane', () => {
     });
 
     await waitFor(() => {
-      expect(fileRead).toHaveBeenCalledWith('/docs/text-target.md');
-      expect(store.getState().editor.openedFiles[0]).toMatchObject({
-        path: '/docs/text-target.md',
-        content: 'opened content'
-      });
+      expect(openInternalLink).toHaveBeenCalledWith('/docs/text-target.md');
     });
   });
 });

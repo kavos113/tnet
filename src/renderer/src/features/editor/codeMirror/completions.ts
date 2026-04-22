@@ -1,20 +1,20 @@
 import type { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
-import { tnetApi } from '@renderer/lib/tnetApi';
-import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { latexCompletions, tagCompletions } from './completionData';
 
+export type KeywordIndexLoader = () => Promise<Record<string, string>>;
+
 export const keywordCompletion =
-  (rootDir: string) =>
+  (loadKeywordIndex: KeywordIndexLoader) =>
   async (context: CompletionContext): Promise<CompletionResult | null> => {
     const match = context.matchBefore(/\[\[([^\]]*)$/);
-    if (!match || !rootDir) return null;
+    if (!match) return null;
 
-    const keywords = await tnetApi.keyword.loadIndex(rootDir);
+    const keywords = await loadKeywordIndex();
     return {
       from: match.from + 2,
       options: Object.entries(keywords).map(([name, filePath]) => ({
         label: name,
-        detail: toWorkspaceRelativePath(rootDir, filePath),
+        detail: filePath,
         apply: `${filePath}|${name}`,
         type: 'keyword' as const
       })),

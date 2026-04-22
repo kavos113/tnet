@@ -4,7 +4,12 @@ import { languages } from '@codemirror/language-data';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
-import { keywordCompletion, latexCompletion, tagCompletion } from './completions';
+import {
+  keywordCompletion,
+  latexCompletion,
+  tagCompletion,
+  type KeywordIndexLoader
+} from './completions';
 import { markdownDecorationPlugin } from './markdownDecorations';
 import { markdownEditorTheme } from './editorTheme';
 
@@ -17,15 +22,15 @@ export interface MarkdownEditorInstance {
 interface CreateMarkdownEditorOptions {
   parent: HTMLElement;
   content: string;
-  rootDir: string;
   onChange: (content: string) => void;
+  loadKeywordIndex: KeywordIndexLoader;
 }
 
 export const createMarkdownEditor = ({
   parent,
   content,
-  rootDir,
-  onChange
+  onChange,
+  loadKeywordIndex
 }: CreateMarkdownEditorOptions): MarkdownEditorInstance => {
   const state = EditorState.create({
     doc: content,
@@ -38,7 +43,7 @@ export const createMarkdownEditor = ({
       markdownEditorTheme,
       markdownDecorationPlugin,
       autocompletion({
-        override: [keywordCompletion(rootDir), latexCompletion, tagCompletion]
+        override: [keywordCompletion(loadKeywordIndex), latexCompletion, tagCompletion]
       }),
       EditorView.lineWrapping
     ]

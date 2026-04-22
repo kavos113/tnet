@@ -3,11 +3,12 @@ import {
   createMarkdownEditor,
   type MarkdownEditorInstance
 } from './codeMirror/createMarkdownEditor';
+import type { KeywordIndexLoader } from './codeMirror/completions';
 
 interface EditorPaneProps {
   content: string;
-  rootDir: string;
   onChange: (content: string) => void;
+  loadKeywordIndex: KeywordIndexLoader;
 }
 
 export interface EditorPaneHandle {
@@ -15,7 +16,7 @@ export interface EditorPaneHandle {
 }
 
 export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
-  ({ content, rootDir, onChange }, ref): React.JSX.Element => {
+  ({ content, onChange, loadKeywordIndex }, ref): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const editorRef = useRef<MarkdownEditorInstance | null>(null);
 
@@ -33,15 +34,15 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
       editorRef.current = createMarkdownEditor({
         parent: containerRef.current,
         content,
-        rootDir,
-        onChange
+        onChange,
+        loadKeywordIndex
       });
 
       return () => {
         editorRef.current?.destroy();
         editorRef.current = null;
       };
-    }, [rootDir]);
+    }, [loadKeywordIndex]);
 
     useEffect(() => {
       editorRef.current?.updateContent(content);

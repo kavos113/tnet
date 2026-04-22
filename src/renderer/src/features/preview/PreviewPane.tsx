@@ -1,7 +1,4 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { openFile } from '@renderer/features/editor/editorSlice';
-import { tnetApi } from '@renderer/lib/tnetApi';
-import { useAppDispatch } from '@renderer/app/hooks';
 import { InternalLinkTooltipController } from './InternalLinkTooltip';
 import { markdownService } from './markdown/markdownService';
 import 'highlight.js/styles/github.css';
@@ -9,6 +6,8 @@ import 'katex/dist/katex.min.css';
 
 interface PreviewPaneProps {
   markdown: string;
+  onOpenInternalLink: (filePath: string) => Promise<void> | void;
+  loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
 }
 
 export interface PreviewPaneHandle {
@@ -16,23 +15,17 @@ export interface PreviewPaneHandle {
 }
 
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
-  ({ markdown }, ref): React.JSX.Element => {
-    const dispatch = useAppDispatch();
+  ({ markdown, onOpenInternalLink, loadKeywordContent }, ref): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [html, setHtml] = useState('');
 
     const openInternalLink = useCallback(
       (filePath: string): void => {
-        tnetApi.file
-          .read(filePath)
-          .then((content) => {
-            dispatch(openFile({ path: filePath, content }));
-          })
-          .catch((error: unknown) => {
-            console.error('Failed to open internal link', error);
-          });
+        Promise.resolve(onOpenInternalLink(filePath)).catch((error: unknown) => {
+          console.error('Failed to open internal link', error);
+        });
       },
-      [dispatch]
+      [onOpenInternalLink]
     );
 
     useImperativeHandle(
@@ -80,6 +73,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
         <InternalLinkTooltipController
           containerRef={containerRef}
           onOpenInternalLink={openInternalLink}
+          loadKeywordContent={loadKeywordContent}
         />
       </div>
     );

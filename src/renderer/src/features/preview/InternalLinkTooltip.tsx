@@ -9,6 +9,7 @@ interface InternalLinkTooltipProps {
 interface InternalLinkTooltipControllerProps {
   containerRef: RefObject<HTMLDivElement | null>;
   onOpenInternalLink: (filePath: string) => void;
+  loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
 }
 
 export const InternalLinkTooltip = ({
@@ -27,11 +28,13 @@ export const InternalLinkTooltip = ({
 
 export const InternalLinkTooltipController = ({
   containerRef,
-  onOpenInternalLink
+  onOpenInternalLink,
+  loadKeywordContent
 }: InternalLinkTooltipControllerProps): React.JSX.Element => {
   const tooltip = useInternalLinkTooltip({
     containerRef,
-    onOpenInternalLink
+    onOpenInternalLink,
+    loadKeywordContent
   });
 
   return <InternalLinkTooltip tooltip={tooltip} />;

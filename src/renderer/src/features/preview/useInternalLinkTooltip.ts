@@ -1,6 +1,5 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { tnetApi } from '@renderer/lib/tnetApi';
 import {
   emptyInternalLinkTooltip,
   type InternalLinkTooltipState
@@ -10,6 +9,7 @@ import { markdownService } from './markdown/markdownService';
 interface UseInternalLinkTooltipOptions {
   containerRef: RefObject<HTMLDivElement | null>;
   onOpenInternalLink: (filePath: string) => void;
+  loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
 }
 
 const missingKeywordMessage = 'Keyword not found.';
@@ -31,7 +31,8 @@ export const closestInternalLink = (target: EventTarget | null): HTMLAnchorEleme
 
 export const useInternalLinkTooltip = ({
   containerRef,
-  onOpenInternalLink
+  onOpenInternalLink,
+  loadKeywordContent
 }: UseInternalLinkTooltipOptions): InternalLinkTooltipState => {
   const activeTooltipKeyRef = useRef<string | null>(null);
   const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
@@ -105,8 +106,7 @@ export const useInternalLinkTooltip = ({
         console.error('Failed to render keyword tooltip', error);
       });
 
-      tnetApi.keyword
-        .getContent(filePath, name)
+      loadKeywordContent(filePath, name)
         .then((content) => {
           tooltipCacheRef.current.set(cacheKey, content);
           if (link.dataset.keywordHoverKey !== cacheKey) return;
@@ -175,7 +175,7 @@ export const useInternalLinkTooltip = ({
       document.removeEventListener('click', onDocumentClick, true);
       hideTooltip();
     };
-  }, [containerRef, onOpenInternalLink]);
+  }, [containerRef, loadKeywordContent, onOpenInternalLink]);
 
   return tooltip;
 };
