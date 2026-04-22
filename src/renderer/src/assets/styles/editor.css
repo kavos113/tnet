@@ -133,3 +133,9 @@
   justify-content: center;
   color: #777777;
 }
+
+.inline-completion-ghost {
+  color: var(--foreground);
+  pointer-events: none;
+  opacity: 0.42;
+}

@@ -102,6 +102,9 @@ export const EditorWorkspace = (): React.JSX.Element => {
                   content={activeFile.content}
                   onChange={(content) => dispatch(updateActiveContent(content))}
                   loadKeywordIndex={workspaceApi.loadKeywordIndex}
+                  requestInlineCompletion={(context) =>
+                    workspaceApi.getInlineCompletion(activeFile.path, context)
+                  }
                 />
               </div>
             ) : null}

@@ -4,11 +4,13 @@ import {
   type MarkdownEditorInstance
 } from './codeMirror/createMarkdownEditor';
 import type { KeywordIndexLoader } from './codeMirror/completions';
+import type { InlineCompletionRequester } from './inlineCompletion/inlineCompletionExtension';
 
 interface EditorPaneProps {
   content: string;
   onChange: (content: string) => void;
   loadKeywordIndex: KeywordIndexLoader;
+  requestInlineCompletion?: InlineCompletionRequester;
 }
 
 export interface EditorPaneHandle {
@@ -16,7 +18,7 @@ export interface EditorPaneHandle {
 }
 
 export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
-  ({ content, onChange, loadKeywordIndex }, ref): React.JSX.Element => {
+  ({ content, onChange, loadKeywordIndex, requestInlineCompletion }, ref): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const editorRef = useRef<MarkdownEditorInstance | null>(null);
 
@@ -35,14 +37,15 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
         parent: containerRef.current,
         content,
         onChange,
-        loadKeywordIndex
+        loadKeywordIndex,
+        requestInlineCompletion
       });
 
       return () => {
         editorRef.current?.destroy();
         editorRef.current = null;
       };
-    }, [loadKeywordIndex]);
+    }, [loadKeywordIndex, requestInlineCompletion]);
 
     useEffect(() => {
       editorRef.current?.updateContent(content);

@@ -9,6 +9,7 @@ const fileRead = vi.fn();
 const fileWrite = vi.fn();
 const keywordLoadIndex = vi.fn();
 const keywordGetContent = vi.fn();
+const llmGetInlineCompletion = vi.fn();
 
 const installTnetApi = (): void => {
   Object.defineProperty(window, 'tnet', {
@@ -38,6 +39,9 @@ const installTnetApi = (): void => {
       keyword: {
         loadIndex: keywordLoadIndex,
         getContent: keywordGetContent
+      },
+      llm: {
+        getInlineCompletion: llmGetInlineCompletion
       }
     },
     writable: true
@@ -81,6 +85,22 @@ const WorkspaceApiProbe = (): React.JSX.Element => {
       >
         Keyword Content
       </button>
+      <button
+        type="button"
+        onClick={() => {
+          workspaceApi
+            .getInlineCompletion('/workspace/note.md', {
+              cursorOffset: 5,
+              prefix: 'hello',
+              suffix: '',
+              selectedText: '',
+              trigger: 'manual'
+            })
+            .catch(() => undefined);
+        }}
+      >
+        Inline Completion
+      </button>
     </div>
   );
 };
@@ -99,8 +119,10 @@ describe('useActiveWorkspaceApi', () => {
     fileWrite.mockReset();
     keywordLoadIndex.mockReset();
     keywordGetContent.mockReset();
+    llmGetInlineCompletion.mockReset();
     fileRead.mockResolvedValue('opened content');
     keywordLoadIndex.mockResolvedValue({ Keyword: '/workspace/note.md' });
+    llmGetInlineCompletion.mockResolvedValue(null);
     installTnetApi();
   });
 
@@ -124,6 +146,18 @@ describe('useActiveWorkspaceApi', () => {
       rootDir: '/workspace',
       path: 'note.md',
       name: 'Keyword'
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Inline Completion' }));
+    expect(llmGetInlineCompletion).toHaveBeenCalledWith({
+      workspaceRoot: '/workspace',
+      filePath: 'note.md',
+      language: 'markdown',
+      cursorOffset: 5,
+      prefix: 'hello',
+      suffix: '',
+      selectedText: '',
+      trigger: 'manual'
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Open' }));

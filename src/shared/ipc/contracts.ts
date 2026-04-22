@@ -1,4 +1,8 @@
 import type { GlobalConfig, ProjectConfig } from '@shared/types/config';
+import type {
+  InlineCompletionRequest,
+  InlineCompletionResult
+} from '@shared/llm/inlineCompletionTypes';
 import type { FileItem, SessionData } from '@shared/types/file';
 
 export interface OpenDirectoryResult {
@@ -51,5 +55,10 @@ export interface TnetApi {
   keyword: {
     loadIndex: (rootDir: string) => Promise<Record<string, string>>;
     getContent: (request: KeywordContentRequest) => Promise<string | null>;
+  };
+  llm: {
+    getInlineCompletion: (
+      request: InlineCompletionRequest
+    ) => Promise<InlineCompletionResult | null>;
   };
 }

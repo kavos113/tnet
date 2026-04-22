@@ -24,5 +24,8 @@ export const ipcChannels = {
   keyword: {
     loadIndex: 'keyword:loadIndex',
     getContent: 'keyword:getContent'
+  },
+  llm: {
+    getInlineCompletion: 'llm:getInlineCompletion'
   }
 } as const;

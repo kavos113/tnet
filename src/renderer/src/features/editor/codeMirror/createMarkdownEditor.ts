@@ -12,6 +12,10 @@ import {
 } from './completions';
 import { markdownDecorationPlugin } from './markdownDecorations';
 import { markdownEditorTheme } from './editorTheme';
+import {
+  inlineCompletionExtension,
+  type InlineCompletionRequester
+} from '../inlineCompletion/inlineCompletionExtension';
 
 export interface MarkdownEditorInstance {
   view: EditorView;
@@ -24,13 +28,15 @@ interface CreateMarkdownEditorOptions {
   content: string;
   onChange: (content: string) => void;
   loadKeywordIndex: KeywordIndexLoader;
+  requestInlineCompletion?: InlineCompletionRequester;
 }
 
 export const createMarkdownEditor = ({
   parent,
   content,
   onChange,
-  loadKeywordIndex
+  loadKeywordIndex,
+  requestInlineCompletion
 }: CreateMarkdownEditorOptions): MarkdownEditorInstance => {
   const state = EditorState.create({
     doc: content,
@@ -45,6 +51,7 @@ export const createMarkdownEditor = ({
       autocompletion({
         override: [keywordCompletion(loadKeywordIndex), latexCompletion, tagCompletion]
       }),
+      inlineCompletionExtension({ requestInlineCompletion }),
       EditorView.lineWrapping
     ]
   });

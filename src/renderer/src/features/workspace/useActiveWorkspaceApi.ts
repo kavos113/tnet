@@ -1,4 +1,8 @@
 import { useCallback } from 'react';
+import type {
+  InlineCompletionContext,
+  InlineCompletionResult
+} from '@shared/llm/inlineCompletionTypes';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import { openFile } from '@renderer/features/editor/editorSlice';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
@@ -12,6 +16,10 @@ export interface ActiveWorkspaceApi {
   openFile: (filePath: string) => Promise<void>;
   loadKeywordIndex: () => Promise<Record<string, string>>;
   getKeywordContent: (filePath: string, name: string) => Promise<string | null>;
+  getInlineCompletion: (
+    filePath: string,
+    context: InlineCompletionContext
+  ) => Promise<InlineCompletionResult | null>;
 }
 
 export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
@@ -60,6 +68,22 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
     [toWorkspacePathRequest]
   );
 
+  const getInlineCompletion = useCallback(
+    async (
+      filePath: string,
+      context: InlineCompletionContext
+    ): Promise<InlineCompletionResult | null> => {
+      if (!rootPath) return null;
+      return tnetApi.llm.getInlineCompletion({
+        ...context,
+        workspaceRoot: rootPath,
+        filePath: toWorkspaceRelativePath(rootPath, filePath),
+        language: 'markdown'
+      });
+    },
+    [rootPath]
+  );
+
   return {
     rootPath,
     hasWorkspace: Boolean(rootPath),
@@ -67,6 +91,7 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
     writeFile,
     openFile: openWorkspaceFile,
     loadKeywordIndex,
-    getKeywordContent
+    getKeywordContent,
+    getInlineCompletion
   };
 };

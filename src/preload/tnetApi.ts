@@ -29,5 +29,9 @@ export const tnetApi: TnetApi = {
   keyword: {
     loadIndex: (rootDir) => ipcRenderer.invoke(ipcChannels.keyword.loadIndex, rootDir),
     getContent: (request) => ipcRenderer.invoke(ipcChannels.keyword.getContent, request)
+  },
+  llm: {
+    getInlineCompletion: (request) =>
+      ipcRenderer.invoke(ipcChannels.llm.getInlineCompletion, request)
   }
 };

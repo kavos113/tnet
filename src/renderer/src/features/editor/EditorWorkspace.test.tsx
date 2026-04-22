@@ -52,6 +52,9 @@ const installTnetApi = (): void => {
       keyword: {
         loadIndex: vi.fn().mockResolvedValue({}),
         getContent: vi.fn()
+      },
+      llm: {
+        getInlineCompletion: vi.fn()
       }
     },
     writable: true
