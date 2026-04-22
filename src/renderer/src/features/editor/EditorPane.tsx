@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import type { EditorView } from '@codemirror/view';
 import {
   createMarkdownEditor,
   type MarkdownEditorInstance
@@ -20,6 +21,7 @@ interface EditorPaneProps {
 
 export interface EditorPaneHandle {
   getScroller: () => HTMLElement | null;
+  getView: () => EditorView | null;
 }
 
 export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
@@ -42,7 +44,8 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
     useImperativeHandle(
       ref,
       () => ({
-        getScroller: () => containerRef.current?.querySelector<HTMLElement>('.cm-scroller') ?? null
+        getScroller: () => containerRef.current?.querySelector<HTMLElement>('.cm-scroller') ?? null,
+        getView: () => editorRef.current?.view ?? null
       }),
       []
     );

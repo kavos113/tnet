@@ -46,6 +46,7 @@ export const rehypeKeyword = (source: string) => {
         parent.children[index] = {
           type: 'element',
           tagName: 'div',
+          position: node.position,
           properties: { className: ['keyword', keywordClassName(type)] },
           children: [
             {

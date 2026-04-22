@@ -4,8 +4,8 @@ import { is } from '@electron-toolkit/utils';
 
 export const createWindow = (): BrowserWindow => {
   const mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
+    width: 1920,
+    height: 1200,
     minWidth: 960,
     minHeight: 640,
     show: false,

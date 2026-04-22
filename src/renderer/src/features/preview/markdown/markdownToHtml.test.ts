@@ -15,7 +15,7 @@ describe('markdown preview pipeline', () => {
 
     expect(html).toContain('<h1');
     expect(html).toContain('Hello');
-    expect(html).toContain('<table>');
+    expect(html).toContain('<table');
   });
 
   it('converts internal links to clickable preview links', async () => {
@@ -53,6 +53,16 @@ describe('markdown preview pipeline', () => {
     expect(html).toContain('keyword-emphasized');
     expect(html).toContain('Definition');
     expect(html).toContain('<strong>Body</strong>');
+  });
+
+  it('marks block elements with source lines for scroll sync', async () => {
+    const html = await markdownToHtml(
+      ['# Title', '', 'Paragraph', '', '<keyword name="Definition">Body</keyword>'].join('\n')
+    );
+
+    expect(html).toContain('data-source-line="1"');
+    expect(html).toContain('data-source-line="3"');
+    expect(html).toContain('data-source-line="5"');
   });
 
   it('converts Obsidian image links without local file URLs', async () => {

@@ -33,7 +33,8 @@ vi.mock('./EditorPane', () => ({
       editorPaneProps.push(props);
 
       useImperativeHandle(ref, () => ({
-        getScroller: () => null
+        getScroller: () => null,
+        getView: () => null
       }));
       return <div data-testid="editor-pane-content" />;
     }

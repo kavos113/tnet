@@ -11,6 +11,7 @@ interface PreviewPaneProps {
   onOpenInternalLink: (filePath: string) => Promise<void> | void;
   loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
   loadImageDataUrl: (filename: string) => Promise<string | null>;
+  onRendered?: () => void;
 }
 
 export interface PreviewPaneHandle {
@@ -32,7 +33,7 @@ const areOutlineItemsEqual = (
 
 export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
   (
-    { markdown, showOutline, onOpenInternalLink, loadKeywordContent, loadImageDataUrl },
+    { markdown, showOutline, onOpenInternalLink, loadKeywordContent, loadImageDataUrl, onRendered },
     ref
   ): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +84,8 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       markdownService.renderMermaid(containerRef.current).catch((error: unknown) => {
         console.error('Failed to render Mermaid diagrams', error);
       });
-    }, [html]);
+      onRendered?.();
+    }, [html, onRendered]);
 
     const scrollToHeading = useCallback((id: string): void => {
       const container = containerRef.current;

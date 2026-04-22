@@ -1,4 +1,4 @@
-import { useCallback, useRef, type CSSProperties } from 'react';
+import { useCallback, useRef, useState, type CSSProperties } from 'react';
 import type {
   InlineCompletionContext,
   InlineCompletionResult
@@ -27,6 +27,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
   const activeFilePath = activeFile?.path ?? null;
   const { canSave, saveActiveFile } = useSaveActiveFile();
   const { editorWidthPercent, previewWidthPercent, startResize } = useSplitPaneResize();
+  const [previewRenderVersion, setPreviewRenderVersion] = useState(0);
   const requestInlineCompletion = useCallback(
     (context: InlineCompletionContext): Promise<InlineCompletionResult | null> => {
       if (!activeFilePath) return Promise.resolve(null);
@@ -34,6 +35,9 @@ export const EditorWorkspace = (): React.JSX.Element => {
     },
     [activeFilePath, workspaceApi.getInlineCompletion]
   );
+  const handlePreviewRendered = useCallback(() => {
+    setPreviewRenderVersion((version) => version + 1);
+  }, []);
 
   useShortcut({
     key: 's',
@@ -49,7 +53,14 @@ export const EditorWorkspace = (): React.JSX.Element => {
   useScrollSync({
     editorPaneRef,
     previewPaneRef,
-    enabled: viewMode === 'split' && Boolean(activeFile)
+    enabled: viewMode === 'split' && Boolean(activeFile),
+    syncKey: [
+      activeFilePath,
+      isPreviewOutlineVisible,
+      editorWidthPercent,
+      previewWidthPercent,
+      previewRenderVersion
+    ].join('|')
   });
 
   return (
@@ -155,6 +166,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
                   onOpenInternalLink={workspaceApi.openFile}
                   loadKeywordContent={workspaceApi.getKeywordContent}
                   loadImageDataUrl={workspaceApi.readImageDataUrl}
+                  onRendered={handlePreviewRendered}
                 />
               </div>
             ) : null}

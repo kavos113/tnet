@@ -13,6 +13,7 @@ import { convertObsidianImageLinks, type ObsidianImageSrcResolver } from './obsi
 import { rehypeCardLink } from './rehypeCardLink';
 import { rehypeKeyword } from './rehypeKeyword';
 import { rehypeMermaid } from './rehypeMermaid';
+import { rehypeSourceLine } from './rehypeSourceLine';
 import { remarkInternalLinks } from './remarkInternalLinks';
 
 export interface MarkdownToHtmlOptions {
@@ -33,6 +34,7 @@ export const markdownToHtml = async (
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeKeyword(source))
+    .use(rehypeSourceLine)
     .use(rehypeSlug)
     .use(rehypeKatex)
     .use(rehypeHighlight)
