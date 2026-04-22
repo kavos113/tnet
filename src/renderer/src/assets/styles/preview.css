@@ -2,7 +2,7 @@
   position: relative;
   display: flex;
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
   height: 100%;
   overflow: hidden;
 }

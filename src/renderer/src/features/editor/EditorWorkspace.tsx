@@ -8,6 +8,7 @@ import { EditorPane, type EditorPaneHandle } from './EditorPane';
 import { TabBar } from './TabBar';
 import { useSaveActiveFile } from './useSaveActiveFile';
 import { useScrollSync } from './useScrollSync';
+import { useSplitPaneResize } from './useSplitPaneResize';
 
 export const EditorWorkspace = (): React.JSX.Element => {
   const dispatch = useAppDispatch();
@@ -18,6 +19,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
   const settings = useAppSelector((state) => state.workspace.settings);
   const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
   const { canSave, saveActiveFile } = useSaveActiveFile();
+  const { editorWidthPercent, previewWidthPercent, startResize } = useSplitPaneResize();
 
   useShortcut({
     key: 's',
@@ -91,21 +93,39 @@ export const EditorWorkspace = (): React.JSX.Element => {
           </div>
           <div className="editor-content-split">
             {viewMode !== 'preview' ? (
-              <EditorPane
-                ref={editorPaneRef}
-                content={activeFile.content}
-                onChange={(content) => dispatch(updateActiveContent(content))}
-                loadKeywordIndex={workspaceApi.loadKeywordIndex}
+              <div
+                className="editor-pane"
+                style={{ width: viewMode === 'split' ? `${editorWidthPercent}%` : '100%' }}
+              >
+                <EditorPane
+                  ref={editorPaneRef}
+                  content={activeFile.content}
+                  onChange={(content) => dispatch(updateActiveContent(content))}
+                  loadKeywordIndex={workspaceApi.loadKeywordIndex}
+                />
+              </div>
+            ) : null}
+            {viewMode === 'split' ? (
+              <div
+                className="resizer"
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="Resize editor and preview"
+                onMouseDown={startResize}
               />
             ) : null}
-            {viewMode === 'split' ? <div className="resizer" /> : null}
             {viewMode !== 'editor' ? (
-              <PreviewPane
-                ref={previewPaneRef}
-                markdown={activeFile.content}
-                onOpenInternalLink={workspaceApi.openFile}
-                loadKeywordContent={workspaceApi.getKeywordContent}
-              />
+              <div
+                className="preview-pane"
+                style={{ width: viewMode === 'split' ? `${previewWidthPercent}%` : '100%' }}
+              >
+                <PreviewPane
+                  ref={previewPaneRef}
+                  markdown={activeFile.content}
+                  onOpenInternalLink={workspaceApi.openFile}
+                  loadKeywordContent={workspaceApi.getKeywordContent}
+                />
+              </div>
             ) : null}
           </div>
         </>
