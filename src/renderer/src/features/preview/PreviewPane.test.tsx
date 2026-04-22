@@ -134,11 +134,11 @@ describe('PreviewPane', () => {
     expect(await screen.findByText('Tooltip body')).toBeInTheDocument();
 
     const linkWithTooltip = await screen.findByRole('link', { name: 'Keyword' });
-    act(() => {
-      linkWithTooltip.dispatchEvent(
-        new window.MouseEvent('click', { bubbles: true, cancelable: true })
-      );
-    });
+    fireEvent.pointerDown(linkWithTooltip);
+    expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
+    expect(fileRead).not.toHaveBeenCalled();
+
+    fireEvent.click(linkWithTooltip);
     await waitFor(() => {
       expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
       expect(fileRead).toHaveBeenCalledWith('/docs/keyword.md');
@@ -168,14 +168,12 @@ describe('PreviewPane', () => {
     expect(await screen.findByText('Loading...')).toBeInTheDocument();
 
     const loadingLink = await screen.findByRole('link', { name: 'Keyword' });
-    act(() => {
-      loadingLink.dispatchEvent(
-        new window.MouseEvent('click', { bubbles: true, cancelable: true })
-      );
-    });
+    fireEvent.pointerDown(loadingLink);
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
     });
+
+    fireEvent.click(loadingLink);
 
     await act(async () => resolveKeyword('Tooltip body'));
     expect(screen.queryByText('Tooltip body')).not.toBeInTheDocument();
