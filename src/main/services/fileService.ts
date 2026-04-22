@@ -19,15 +19,15 @@ import {
 } from './workspacePath';
 
 const fileTemplate = `<keyword name="" type="n">
-### Variables and Conditions
+### 変数・条件
 
 
-### Claim
+### 主張
 
 </keyword>
 
 <details>
-<summary>Proof</summary>
+<summary>証明</summary>
 
 </details>`;
 
