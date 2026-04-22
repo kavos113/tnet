@@ -1,18 +1,36 @@
 import { forwardRef, useImperativeHandle } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@renderer/app/store';
-import { openFile } from './editorSlice';
+import { openFile, updateActiveContent } from './editorSlice';
 import { EditorWorkspace } from './EditorWorkspace';
 
+const editorPaneProps = vi.hoisted(
+  () =>
+    [] as Array<{
+      content: string;
+      requestInlineCompletion?: unknown;
+    }>
+);
+
 vi.mock('./EditorPane', () => ({
-  EditorPane: forwardRef((_, ref) => {
-    useImperativeHandle(ref, () => ({
-      getScroller: () => null
-    }));
-    return <div data-testid="editor-pane-content" />;
-  })
+  EditorPane: forwardRef(
+    (
+      props: {
+        content: string;
+        requestInlineCompletion?: unknown;
+      },
+      ref
+    ) => {
+      editorPaneProps.push(props);
+
+      useImperativeHandle(ref, () => ({
+        getScroller: () => null
+      }));
+      return <div data-testid="editor-pane-content" />;
+    }
+  )
 }));
 
 vi.mock('@renderer/features/preview/PreviewPane', () => ({
@@ -63,6 +81,7 @@ const installTnetApi = (): void => {
 
 describe('EditorWorkspace split resize', () => {
   beforeEach(() => {
+    editorPaneProps.length = 0;
     installTnetApi();
   });
 
@@ -103,5 +122,25 @@ describe('EditorWorkspace split resize', () => {
 
     expect(editorPane).toHaveStyle({ width: '80%' });
     expect(previewPane).toHaveStyle({ width: '20%' });
+  });
+
+  it('keeps the inline completion requester stable while editing the same file', () => {
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    const initialRequester = editorPaneProps.at(-1)?.requestInlineCompletion;
+
+    act(() => {
+      store.dispatch(updateActiveContent('# Note\nEdited'));
+    });
+
+    expect(editorPaneProps.at(-1)?.content).toBe('# Note\nEdited');
+    expect(editorPaneProps.at(-1)?.requestInlineCompletion).toBe(initialRequester);
   });
 });

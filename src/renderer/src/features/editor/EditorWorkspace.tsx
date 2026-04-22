@@ -1,4 +1,8 @@
-import { useRef, type CSSProperties } from 'react';
+import { useCallback, useRef, type CSSProperties } from 'react';
+import type {
+  InlineCompletionContext,
+  InlineCompletionResult
+} from '@shared/llm/inlineCompletionTypes';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
 import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
@@ -18,8 +22,16 @@ export const EditorWorkspace = (): React.JSX.Element => {
   const { openedFiles, activeIndex, viewMode } = useAppSelector((state) => state.editor);
   const settings = useAppSelector((state) => state.workspace.settings);
   const activeFile = activeIndex >= 0 ? openedFiles[activeIndex] : null;
+  const activeFilePath = activeFile?.path ?? null;
   const { canSave, saveActiveFile } = useSaveActiveFile();
   const { editorWidthPercent, previewWidthPercent, startResize } = useSplitPaneResize();
+  const requestInlineCompletion = useCallback(
+    (context: InlineCompletionContext): Promise<InlineCompletionResult | null> => {
+      if (!activeFilePath) return Promise.resolve(null);
+      return workspaceApi.getInlineCompletion(activeFilePath, context);
+    },
+    [activeFilePath, workspaceApi.getInlineCompletion]
+  );
 
   useShortcut({
     key: 's',
@@ -102,9 +114,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
                   content={activeFile.content}
                   onChange={(content) => dispatch(updateActiveContent(content))}
                   loadKeywordIndex={workspaceApi.loadKeywordIndex}
-                  requestInlineCompletion={(context) =>
-                    workspaceApi.getInlineCompletion(activeFile.path, context)
-                  }
+                  requestInlineCompletion={requestInlineCompletion}
                 />
               </div>
             ) : null}
