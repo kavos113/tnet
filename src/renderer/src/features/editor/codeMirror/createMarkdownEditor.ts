@@ -12,6 +12,7 @@ import {
 } from './completions';
 import { markdownDecorationPlugin } from './markdownDecorations';
 import { markdownEditorTheme } from './editorTheme';
+import { tableEditingExtension } from './tableEditing/tableEditingExtension';
 import {
   inlineCompletionExtension,
   type InlineCompletionRequester
@@ -69,6 +70,7 @@ export const createMarkdownEditor = ({
         maxPrefixChars: inlineCompletionMaxPrefixChars,
         maxSuffixChars: inlineCompletionMaxSuffixChars
       }),
+      tableEditingExtension(),
       imagePasteExtension(savePastedImage),
       EditorView.lineWrapping
     ]
