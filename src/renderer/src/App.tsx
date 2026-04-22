@@ -64,7 +64,7 @@ export const App = (): React.JSX.Element => {
 
   return (
     <div className="app-shell">
-      <ExplorerPanel onOpenSettings={() => setIsSettingsOpen(true)} />
+      <ExplorerPanel />
       <EditorWorkspace />
       <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>

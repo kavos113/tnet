@@ -46,7 +46,7 @@ describe('App', () => {
       </Provider>
     );
 
-    expect(await screen.findByText('Files')).toBeInTheDocument();
+    expect(await screen.findByText('No folder selected')).toBeInTheDocument();
     expect(screen.getByText('Open Folder')).toBeInTheDocument();
     expect(screen.getByText('No file selected')).toBeInTheDocument();
   });

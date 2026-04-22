@@ -29,6 +29,31 @@ const explorerSlice = createSlice({
       state.selectedDirPath = action.payload;
       state.expandedPaths = togglePath(state.expandedPaths, action.payload);
     },
+    selectDirectoryOnly: (state, action: PayloadAction<string>) => {
+      state.selectedPath = null;
+      state.selectedDirPath = action.payload;
+    },
+    addExpandedPath: (state, action: PayloadAction<string>) => {
+      if (!state.expandedPaths.includes(action.payload)) {
+        state.expandedPaths.push(action.payload);
+      }
+    },
+    replaceSelectedPath: (
+      state,
+      action: PayloadAction<{
+        oldPath: string;
+        newPath: string;
+      }>
+    ) => {
+      if (state.selectedPath === action.payload.oldPath)
+        state.selectedPath = action.payload.newPath;
+      if (state.selectedDirPath === action.payload.oldPath) {
+        state.selectedDirPath = action.payload.newPath;
+      }
+      state.expandedPaths = state.expandedPaths.map((path) =>
+        path === action.payload.oldPath ? action.payload.newPath : path
+      );
+    },
     setExpandedPaths: (state, action: PayloadAction<string[]>) => {
       state.expandedPaths = action.payload;
     },
@@ -39,6 +64,13 @@ const explorerSlice = createSlice({
   }
 });
 
-export const { selectFile, selectDirectory, setExpandedPaths, clearSelection } =
-  explorerSlice.actions;
+export const {
+  selectFile,
+  selectDirectory,
+  selectDirectoryOnly,
+  addExpandedPath,
+  replaceSelectedPath,
+  setExpandedPaths,
+  clearSelection
+} = explorerSlice.actions;
 export default explorerSlice.reducer;

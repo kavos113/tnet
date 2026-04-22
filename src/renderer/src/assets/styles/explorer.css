@@ -2,56 +2,103 @@
   display: flex;
   flex: 0 0 250px;
   flex-direction: column;
-  min-width: 220px;
-  max-width: 340px;
+  width: 250px;
   overflow: auto;
   background: var(--background-dark);
   border-right: 1px solid var(--gray);
 }
 
-.file-tree {
-  padding: 2px 0 2px 8px;
+.file-explorer-list,
+.file-item-children {
+  padding: 0;
   margin: 0;
-  overflow: auto;
-  list-style: none;
-}
-
-.file-tree .file-tree {
-  padding-left: 16px;
+  list-style-type: none;
 }
 
 .file-tree-item {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
+  display: flex;
   gap: 2px;
   align-items: center;
   width: 100%;
-  height: 24px;
-  padding: 0 6px;
+  min-height: 18px;
+  padding: 0;
   color: var(--foreground);
   text-align: left;
   cursor: pointer;
   background: transparent;
   border: 0;
-  border-radius: 4px;
 }
 
 .file-tree-item:hover {
-  background: var(--gray);
+  background-color: var(--gray);
 }
 
-.file-tree-item.is-selected {
-  background: var(--main-light);
+.file-item-is-selected {
+  background-color: var(--main-light);
 }
 
-.file-tree-icon {
-  color: var(--foreground);
+.file-item-chevron {
+  flex: 0 0 auto;
+  font-size: 12px;
+  transition: transform 0.12s ease;
+}
+
+.file-item-chevron-expand {
+  transform: rotate(90deg);
+}
+
+.file-item-folder {
+  flex: 0 0 auto;
+  color: var(--folder);
   font-size: 12px;
 }
 
-.file-tree-name {
+.file-item-name {
+  min-width: 0;
+  margin: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.file-item-not-directory {
+  padding-left: 28px;
+}
+
+.file-item-children {
+  padding-left: 12px;
+}
+
+.file-item-new {
+  list-style-type: none;
+}
+
+.file-item-new-input {
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.file-item-icon-placeholder {
+  visibility: hidden;
+}
+
+.file-explorer-empty p {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--foreground);
+}
+
+.open-folder-button {
+  padding: 8px 16px;
+  color: var(--background);
+  cursor: pointer;
+  background-color: var(--main-dark);
+  border: none;
+  border-radius: 4px;
 }
