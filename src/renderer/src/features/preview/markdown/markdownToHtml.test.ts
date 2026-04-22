@@ -55,6 +55,48 @@ describe('markdown preview pipeline', () => {
     expect(html).toContain('<strong>Body</strong>');
   });
 
+  it('renders question and answer tags as chat messages with markdown content', async () => {
+    const html = await markdownToHtml(
+      [
+        '<question>',
+        '**What** is your name?',
+        '</question>',
+        '',
+        '<answer>',
+        'I am an AI assistant.',
+        '',
+        '```python',
+        'def greet(name):',
+        '    return f"Hello, {name}!"',
+        '```',
+        '</answer>'
+      ].join('\n')
+    );
+
+    expect(html).toContain('class="ai-chat-message ai-chat-question"');
+    expect(html).toContain('data-ai-chat-role="question"');
+    expect(html).toContain('<strong>What</strong>');
+    expect(html).toContain('class="ai-chat-message ai-chat-answer"');
+    expect(html).toContain('data-ai-chat-role="answer"');
+    expect(html).toContain('class="hljs language-python"');
+    expect(html).toContain('hljs-keyword');
+  });
+
+  it('renders keyword and ai chat tags in the same document', async () => {
+    const html = await markdownToHtml(
+      [
+        '<keyword name="Definition">Body</keyword>',
+        '',
+        '<question>',
+        'Can you explain it?',
+        '</question>'
+      ].join('\n')
+    );
+
+    expect(html).toContain('keyword-normal');
+    expect(html).toContain('class="ai-chat-message ai-chat-question"');
+  });
+
   it('marks block elements with source lines for scroll sync', async () => {
     const html = await markdownToHtml(
       ['# Title', '', 'Paragraph', '', '<keyword name="Definition">Body</keyword>'].join('\n')

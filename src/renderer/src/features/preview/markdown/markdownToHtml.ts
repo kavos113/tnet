@@ -10,6 +10,7 @@ import remarkMath from 'remark-math';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { convertObsidianImageLinks, type ObsidianImageSrcResolver } from './obsidianImages';
+import { rehypeAiChat } from './rehypeAiChat';
 import { rehypeCardLink } from './rehypeCardLink';
 import { rehypeKeyword } from './rehypeKeyword';
 import { rehypeMermaid } from './rehypeMermaid';
@@ -33,6 +34,7 @@ export const markdownToHtml = async (
     .use(remarkMath)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
+    .use(rehypeAiChat(source))
     .use(rehypeKeyword(source))
     .use(rehypeSourceLine)
     .use(rehypeSlug)

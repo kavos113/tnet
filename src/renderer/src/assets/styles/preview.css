@@ -181,6 +181,47 @@
   border-bottom: 2px solid var(--main-dark);
 }
 
+.ai-chat-message {
+  display: flex;
+  flex-direction: column;
+  max-width: min(760px, 92%);
+  margin: 16px 0;
+  padding: 10px 14px;
+  overflow-wrap: anywhere;
+}
+
+.ai-chat-question {
+  margin-left: auto;
+  background: var(--background-dark);
+  border-color: var(--main-light);
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+}
+
+.ai-chat-answer {
+  margin-right: auto;
+  background: var(--background);
+}
+
+.ai-chat-role {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--main-dark);
+}
+
+.ai-chat-content > :first-child {
+  margin-top: 0;
+}
+
+.ai-chat-content > :last-child {
+  margin-bottom: 0;
+}
+
+.ai-chat-content pre {
+  max-width: 100%;
+}
+
 .card-link-container {
   width: 100%;
 }
