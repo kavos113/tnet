@@ -6,6 +6,7 @@ import type {
 import { largeMarkdownFileThresholdBytes } from '@shared/file/largeFile';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
+import { toggleMarkdownTask } from '@renderer/features/preview/toggleMarkdownTask';
 import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
 import {
@@ -125,6 +126,15 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
     },
     [activeFilePath, dispatch, groupId, isLargeActiveFile]
   );
+  const handleToggleTask = useCallback(
+    (sourceLine: number, checked: boolean): void => {
+      if (!activeFile) return;
+      const nextContent = toggleMarkdownTask(activeFile.content, sourceLine, checked);
+      if (nextContent === activeFile.content) return;
+      dispatch(updateActiveContent({ groupId, content: nextContent }));
+    },
+    [activeFile, dispatch, groupId]
+  );
 
   return (
     <section
@@ -242,6 +252,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
                   onOpenInternalLink={(filePath) =>
                     workspaceApi.openFile(filePath, { targetGroupId: groupId })
                   }
+                  onToggleTask={handleToggleTask}
                   loadKeywordContent={workspaceApi.getKeywordContent}
                   loadImageDataUrl={workspaceApi.readImageDataUrl}
                   onRendered={handlePreviewRendered}

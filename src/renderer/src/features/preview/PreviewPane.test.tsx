@@ -13,6 +13,7 @@ vi.mock('mermaid', () => ({
 const keywordGetContent = vi.fn();
 const openInternalLink = vi.fn();
 const imageLoadDataUrl = vi.fn();
+const toggleTask = vi.fn();
 
 const renderPreviewPane = (markdown: string): void => {
   render(
@@ -20,6 +21,7 @@ const renderPreviewPane = (markdown: string): void => {
       markdown={markdown}
       showOutline={true}
       onOpenInternalLink={openInternalLink}
+      onToggleTask={toggleTask}
       loadKeywordContent={keywordGetContent}
       loadImageDataUrl={imageLoadDataUrl}
     />
@@ -36,6 +38,7 @@ describe('PreviewPane', () => {
     keywordGetContent.mockReset();
     openInternalLink.mockReset();
     imageLoadDataUrl.mockReset();
+    toggleTask.mockReset();
     imageLoadDataUrl.mockResolvedValue(null);
   });
 
@@ -194,5 +197,14 @@ describe('PreviewPane', () => {
 
     await screen.findByText('Plain');
     expect(mermaid.run).not.toHaveBeenCalled();
+  });
+
+  it('toggles markdown task list items when clicking preview checkboxes', async () => {
+    renderPreviewPane('- [ ] task');
+
+    const checkbox = await screen.findByRole('checkbox');
+    fireEvent.click(checkbox);
+
+    expect(toggleTask).toHaveBeenCalledWith(1, true);
   });
 });

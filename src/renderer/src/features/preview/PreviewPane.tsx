@@ -9,6 +9,7 @@ interface PreviewPaneProps {
   markdown: string;
   showOutline: boolean;
   onOpenInternalLink: (filePath: string) => Promise<void> | void;
+  onToggleTask?: (sourceLine: number, checked: boolean) => void;
   loadKeywordContent: (filePath: string, name: string) => Promise<string | null>;
   loadImageDataUrl: (filename: string) => Promise<string | null>;
   onRendered?: () => void;
@@ -38,6 +39,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       markdown,
       showOutline,
       onOpenInternalLink,
+      onToggleTask,
       loadKeywordContent,
       loadImageDataUrl,
       onRendered,
@@ -122,6 +124,28 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       );
       target?.scrollIntoView({ block: 'start' });
     }, []);
+
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const handleTaskToggle = (event: Event): void => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.type !== 'checkbox') return;
+
+        const taskItem = target.closest<HTMLElement>('li[data-source-line]');
+        const sourceLine = Number(taskItem?.dataset.sourceLine);
+        if (!Number.isFinite(sourceLine) || sourceLine < 1) return;
+
+        onToggleTask?.(sourceLine, target.checked);
+      };
+
+      container.addEventListener('change', handleTaskToggle);
+      return () => {
+        container.removeEventListener('change', handleTaskToggle);
+      };
+    }, [html, onToggleTask]);
 
     return (
       <div className="preview-pane-root">

@@ -12,6 +12,7 @@ import remarkRehype from 'remark-rehype';
 import { convertObsidianImageLinks, type ObsidianImageSrcResolver } from './obsidianImages';
 import { rehypeAiChat } from './rehypeAiChat';
 import { rehypeCardLink } from './rehypeCardLink';
+import { rehypeInteractiveTaskList } from './rehypeInteractiveTaskList';
 import { rehypeKeyword } from './rehypeKeyword';
 import { rehypeMermaid } from './rehypeMermaid';
 import { rehypeSourceLine } from './rehypeSourceLine';
@@ -37,6 +38,7 @@ export const markdownToHtml = async (
     .use(rehypeAiChat(source))
     .use(rehypeKeyword(source))
     .use(rehypeSourceLine)
+    .use(rehypeInteractiveTaskList)
     .use(rehypeSlug)
     .use(rehypeKatex)
     .use(rehypeHighlight)

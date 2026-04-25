@@ -19,6 +19,7 @@ const previewPaneProps = vi.hoisted(
   () =>
     [] as Array<{
       showOutline: boolean;
+      onToggleTask?: unknown;
     }>
 );
 
@@ -45,7 +46,7 @@ vi.mock('./EditorPane', () => ({
 }));
 
 vi.mock('@renderer/features/preview/PreviewPane', () => ({
-  PreviewPane: forwardRef((props: { showOutline: boolean }, ref) => {
+  PreviewPane: forwardRef((props: { showOutline: boolean; onToggleTask?: unknown }, ref) => {
     previewPaneProps.push(props);
     useImperativeHandle(ref, () => ({
       getPreviewElement: () => null

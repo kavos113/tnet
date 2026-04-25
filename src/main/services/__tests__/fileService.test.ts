@@ -45,8 +45,8 @@ describe('main file services', () => {
     await createFile({ rootDir: root, path: 'nested/new.md' });
 
     const content = await fs.readFile(filePath, 'utf-8');
-    expect(content).toContain('Variables and Conditions');
-    expect(content).toContain('Proof');
+    expect(content).toContain('変数・条件');
+    expect(content).toContain('証明');
   });
 
   it('reads files from workspace-relative request paths', async () => {

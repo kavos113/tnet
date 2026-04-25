@@ -18,6 +18,14 @@ describe('markdown preview pipeline', () => {
     expect(html).toContain('<table');
   });
 
+  it('renders markdown task list checkboxes as interactive preview inputs', async () => {
+    const html = await markdownToHtml('- [ ] task');
+
+    expect(html).toContain('type="checkbox"');
+    expect(html).toContain('data-task-checkbox="true"');
+    expect(html).not.toContain('disabled');
+  });
+
   it('converts internal links to clickable preview links', async () => {
     const html = await markdownToHtml('See [[/docs/file.md|File Name]].');
 
