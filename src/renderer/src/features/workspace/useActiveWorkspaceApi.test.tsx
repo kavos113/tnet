@@ -6,6 +6,7 @@ import { setWorkspace } from './workspaceSlice';
 import { useActiveWorkspaceApi } from './useActiveWorkspaceApi';
 
 const fileRead = vi.fn();
+const fileOpenWithDefaultApp = vi.fn();
 const fileWrite = vi.fn();
 const fileSaveImage = vi.fn();
 const fileReadImage = vi.fn();
@@ -22,6 +23,7 @@ const installTnetApi = (): void => {
       },
       file: {
         read: fileRead,
+        openWithDefaultApp: fileOpenWithDefaultApp,
         write: fileWrite,
         saveImage: fileSaveImage,
         readImage: fileReadImage,
@@ -72,6 +74,14 @@ const WorkspaceApiProbe = (): React.JSX.Element => {
         }}
       >
         Open
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          workspaceApi.openFile('/workspace/file.pdf').catch(() => undefined);
+        }}
+      >
+        Open External
       </button>
       <button
         type="button"
@@ -142,6 +152,7 @@ const renderProbe = (store: AppStore): void => {
 describe('useActiveWorkspaceApi', () => {
   beforeEach(() => {
     fileRead.mockReset();
+    fileOpenWithDefaultApp.mockReset();
     fileWrite.mockReset();
     fileSaveImage.mockReset();
     fileReadImage.mockReset();
@@ -149,6 +160,7 @@ describe('useActiveWorkspaceApi', () => {
     keywordGetContent.mockReset();
     llmGetInlineCompletion.mockReset();
     fileRead.mockResolvedValue('opened content');
+    fileOpenWithDefaultApp.mockResolvedValue(undefined);
     fileSaveImage.mockResolvedValue({ filename: 'paste-clipboard.png' });
     fileReadImage.mockResolvedValue({ dataUrl: 'data:image/png;base64,aW1hZ2U=' });
     keywordLoadIndex.mockResolvedValue({ Keyword: '/workspace/note.md' });
@@ -212,5 +224,15 @@ describe('useActiveWorkspaceApi', () => {
         content: 'opened content'
       });
     });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open External' }));
+    await waitFor(() => {
+      expect(fileOpenWithDefaultApp).toHaveBeenCalledWith({
+        rootDir: '/workspace',
+        path: 'file.pdf'
+      });
+    });
+    expect(fileRead).toHaveBeenCalledTimes(1);
+    expect(store.getState().editor.openedFiles).toHaveLength(1);
   });
 });

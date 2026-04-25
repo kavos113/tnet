@@ -195,7 +195,7 @@ describe('PreviewPane', () => {
   it('does not run Mermaid rendering when the preview has no Mermaid blocks', async () => {
     renderPreviewPane('# Plain');
 
-    await screen.findByText('Plain');
+    await screen.findByRole('heading', { name: 'Plain' });
     expect(mermaid.run).not.toHaveBeenCalled();
   });
 

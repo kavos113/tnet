@@ -12,6 +12,8 @@ interface SwitchWorkspaceOptions {
   persistGlobalConfig?: boolean;
 }
 
+const isMarkdownFilePath = (filePath: string): boolean => filePath.toLowerCase().endsWith('.md');
+
 export const useWorkspaceSwitcher = (): {
   switchWorkspace: (rootPath: string, options?: SwitchWorkspaceOptions) => Promise<void>;
 } => {
@@ -53,9 +55,10 @@ export const useWorkspaceSwitcher = (): {
             ])
           )
         : session.openedFiles;
+      const restorableFilePaths = sessionFilePaths.filter(isMarkdownFilePath);
       const openedFiles = (
         await Promise.all(
-          sessionFilePaths.map(async (filePath) => {
+          restorableFilePaths.map(async (filePath) => {
             try {
               const content = await tnetApi.file.read({
                 rootDir: rootPath,
@@ -81,6 +84,10 @@ export const useWorkspaceSwitcher = (): {
       dispatch(resetExplorerState());
       dispatch(setExpandedPaths(session.expandedFolders));
       if (session.editorLayout) {
+        const primaryTabs =
+          session.editorLayout.groups.primary.openedFiles.filter(isMarkdownFilePath);
+        const secondaryTabs =
+          session.editorLayout.groups.secondary.openedFiles.filter(isMarkdownFilePath);
         dispatch(
           replaceEditorSession({
             files: openedFiles,
@@ -89,14 +96,26 @@ export const useWorkspaceSwitcher = (): {
             groupWidthPercent: session.editorLayout.groupWidthPercent,
             groups: {
               primary: {
-                tabs: session.editorLayout.groups.primary.openedFiles,
-                activeIndex: session.editorLayout.groups.primary.activeIndex,
+                tabs: primaryTabs,
+                activeIndex:
+                  primaryTabs.length === 0
+                    ? -1
+                    : Math.min(
+                        session.editorLayout.groups.primary.activeIndex,
+                        primaryTabs.length - 1
+                      ),
                 viewMode: session.editorLayout.groups.primary.viewMode,
                 isPreviewOutlineVisible: session.editorLayout.groups.primary.isPreviewOutlineVisible
               },
               secondary: {
-                tabs: session.editorLayout.groups.secondary.openedFiles,
-                activeIndex: session.editorLayout.groups.secondary.activeIndex,
+                tabs: secondaryTabs,
+                activeIndex:
+                  secondaryTabs.length === 0
+                    ? -1
+                    : Math.min(
+                        session.editorLayout.groups.secondary.activeIndex,
+                        secondaryTabs.length - 1
+                      ),
                 viewMode: session.editorLayout.groups.secondary.viewMode,
                 isPreviewOutlineVisible:
                   session.editorLayout.groups.secondary.isPreviewOutlineVisible

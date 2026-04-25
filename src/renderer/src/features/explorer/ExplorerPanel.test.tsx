@@ -9,6 +9,7 @@ import { ExplorerPanel } from './ExplorerPanel';
 const fileCreate = vi.fn();
 const fileCreateDirectory = vi.fn();
 const fileDelete = vi.fn();
+const fileOpenWithDefaultApp = vi.fn();
 const fileRead = vi.fn();
 const fileRename = vi.fn();
 const getFileTree = vi.fn();
@@ -28,6 +29,7 @@ const installTnetApi = (): void => {
       },
       file: {
         read: fileRead,
+        openWithDefaultApp: fileOpenWithDefaultApp,
         write: vi.fn(),
         create: fileCreate,
         createDirectory: fileCreateDirectory,
@@ -72,6 +74,11 @@ const renderExplorer = (workspaceRoots?: string[]): ReturnType<typeof createAppS
           path: '/workspace/docs',
           isDirectory: true,
           children: [{ name: 'note.md', path: '/workspace/docs/note.md', isDirectory: false }]
+        },
+        {
+          name: 'paper.pdf',
+          path: '/workspace/paper.pdf',
+          isDirectory: false
         }
       ]
     })
@@ -96,6 +103,7 @@ describe('ExplorerPanel', () => {
     fileCreate.mockResolvedValue(undefined);
     fileCreateDirectory.mockResolvedValue(undefined);
     fileDelete.mockResolvedValue(undefined);
+    fileOpenWithDefaultApp.mockResolvedValue(undefined);
     fileRead.mockResolvedValue('content');
     fileRename.mockResolvedValue(undefined);
     getFileTree.mockResolvedValue([]);
@@ -128,6 +136,20 @@ describe('ExplorerPanel', () => {
 
     expect(screen.getByText('folder_open')).toHaveClass('file-item-folder');
     expect(screen.getByText('note.md')).toHaveClass('file-item-not-directory');
+  });
+
+  it('opens non-markdown files with the OS default application', async () => {
+    renderExplorer();
+
+    fireEvent.click(screen.getByText('paper.pdf'));
+
+    await waitFor(() => {
+      expect(fileOpenWithDefaultApp).toHaveBeenCalledWith({
+        rootDir: '/workspace',
+        path: 'paper.pdf'
+      });
+    });
+    expect(fileRead).not.toHaveBeenCalledWith({ rootDir: '/workspace', path: 'paper.pdf' });
   });
 
   it('creates a root markdown file with Ctrl+N using the legacy inline input', async () => {
@@ -211,6 +233,27 @@ describe('ExplorerPanel', () => {
       });
     });
     expect(screen.getByText('second.md')).toBeInTheDocument();
+  });
+
+  it('restores only markdown files when switching workspaces', async () => {
+    getFileTree.mockResolvedValue([
+      { name: 'second.md', path: '/second/second.md', isDirectory: false }
+    ]);
+    sessionLoad.mockResolvedValue({
+      openedFiles: ['/second/second.md', '/second/reference.pdf'],
+      expandedFolders: []
+    });
+    const store = renderExplorer(['/workspace', '/second']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to second' }));
+
+    await waitFor(() => {
+      expect(fileRead).toHaveBeenCalledWith({ rootDir: '/second', path: 'second.md' });
+      expect(fileRead).not.toHaveBeenCalledWith({ rootDir: '/second', path: 'reference.pdf' });
+      expect(store.getState().editor.openedFiles.map((file) => file.path)).toEqual([
+        '/second/second.md'
+      ]);
+    });
   });
 
   it('adds an opened folder to the workspace switcher', async () => {

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import { ipcChannels } from '@shared/ipc/channels';
 import {
   createDirectory,
@@ -17,10 +17,21 @@ import type {
   RenameWorkspacePathRequest,
   WorkspacePathRequest
 } from '@main/services/workspacePath';
+import { resolveWorkspacePath } from '@main/services/workspacePath';
 
 export const registerFileIpc = (): void => {
   ipcMain.handle(ipcChannels.file.read, async (_event, request: WorkspacePathRequest) =>
     readFile(request)
+  );
+  ipcMain.handle(
+    ipcChannels.file.openWithDefaultApp,
+    async (_event, request: WorkspacePathRequest) => {
+      const filePath = resolveWorkspacePath(request);
+      const errorMessage = await shell.openPath(filePath);
+      if (errorMessage) {
+        throw new Error(errorMessage);
+      }
+    }
   );
   ipcMain.handle(ipcChannels.file.write, async (_event, request: WriteWorkspaceFileRequest) =>
     writeFile(request)

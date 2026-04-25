@@ -9,6 +9,8 @@ export const tnetApi: TnetApi = {
   },
   file: {
     read: (request) => ipcRenderer.invoke(ipcChannels.file.read, request),
+    openWithDefaultApp: (request) =>
+      ipcRenderer.invoke(ipcChannels.file.openWithDefaultApp, request),
     write: (request) => ipcRenderer.invoke(ipcChannels.file.write, request),
     saveImage: (request) => ipcRenderer.invoke(ipcChannels.file.saveImage, request),
     readImage: (request) => ipcRenderer.invoke(ipcChannels.file.readImage, request),

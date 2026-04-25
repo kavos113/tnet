@@ -29,6 +29,8 @@ export interface ActiveWorkspaceApi {
   ) => Promise<InlineCompletionResult | null>;
 }
 
+const isMarkdownFilePath = (filePath: string): boolean => filePath.toLowerCase().endsWith('.md');
+
 export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
   const dispatch = useAppDispatch();
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
@@ -85,6 +87,11 @@ export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
 
   const openWorkspaceFile = useCallback(
     async (filePath: string, options: { targetGroupId?: EditorGroupId } = {}): Promise<void> => {
+      if (!isMarkdownFilePath(filePath)) {
+        await tnetApi.file.openWithDefaultApp(toWorkspacePathRequest(filePath));
+        return;
+      }
+
       const startedAt = performance.now();
       const content = await tnetApi.file.read(toWorkspacePathRequest(filePath));
       if (import.meta.env.DEV) {

@@ -61,6 +61,7 @@ export interface TnetApi {
   };
   file: {
     read: (request: WorkspacePathRequest) => Promise<string>;
+    openWithDefaultApp: (request: WorkspacePathRequest) => Promise<void>;
     write: (request: WriteWorkspaceFileRequest) => Promise<void>;
     saveImage: (request: SaveWorkspaceImageRequest) => Promise<SaveWorkspaceImageResult>;
     readImage: (request: ReadWorkspaceImageRequest) => Promise<ReadWorkspaceImageResult>;
