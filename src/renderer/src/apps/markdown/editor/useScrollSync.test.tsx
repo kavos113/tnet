@@ -2,7 +2,7 @@ import { type RefObject } from 'react';
 import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EditorView } from '@codemirror/view';
-import type { PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
+import type { PreviewPaneHandle } from '@renderer/apps/markdown/preview/PreviewPane';
 import type { EditorPaneHandle } from './EditorPane';
 import { useScrollSync } from './useScrollSync';
 

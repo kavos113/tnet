@@ -6,10 +6,10 @@ import type {
 } from '@shared/llm/inlineCompletionTypes';
 import { largeMarkdownFileThresholdBytes } from '@shared/file/largeFile';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { PreviewPane, type PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
-import { toggleMarkdownTask } from '@renderer/features/preview/toggleMarkdownTask';
+import { PreviewPane, type PreviewPaneHandle } from '@renderer/apps/markdown/preview/PreviewPane';
+import { toggleMarkdownTask } from '@renderer/apps/markdown/preview/toggleMarkdownTask';
 import { useShortcut } from '@renderer/features/shortcuts/useShortcut';
-import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
+import { useActiveMarkdownWorkspaceApi } from '@renderer/apps/markdown/workspace/useActiveMarkdownWorkspaceApi';
 import {
   clearPendingReveal,
   closeFile,
@@ -37,7 +37,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
   const dispatch = useAppDispatch();
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
-  const workspaceApi = useActiveWorkspaceApi();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
   const settings = useAppSelector((state) => state.workspace.settings);
   const { group, activeFile, activeFilePath, isActiveGroup, pendingReveal } = useAppSelector(
     (state) => {

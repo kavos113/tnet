@@ -2,8 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore, type AppStore } from '@renderer/app/store';
-import { setWorkspace } from './workspaceSlice';
-import { useActiveWorkspaceApi } from './useActiveWorkspaceApi';
+import { setWorkspace } from '@renderer/features/workspace/workspaceSlice';
+import { useActiveMarkdownWorkspaceApi } from './useActiveMarkdownWorkspaceApi';
 
 const fileRead = vi.fn();
 const fileOpenWithDefaultApp = vi.fn();
@@ -55,7 +55,7 @@ const installTnetApi = (): void => {
 };
 
 const WorkspaceApiProbe = (): React.JSX.Element => {
-  const workspaceApi = useActiveWorkspaceApi();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
 
   return (
     <div>
@@ -149,7 +149,7 @@ const renderProbe = (store: AppStore): void => {
   );
 };
 
-describe('useActiveWorkspaceApi', () => {
+describe('useActiveMarkdownWorkspaceApi', () => {
   beforeEach(() => {
     fileRead.mockReset();
     fileOpenWithDefaultApp.mockReset();

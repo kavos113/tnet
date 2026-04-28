@@ -5,7 +5,7 @@ import type {
 } from '@shared/llm/inlineCompletionTypes';
 import { textByteLength } from '@shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
-import { openFile, type EditorGroupId } from '@renderer/features/editor/editorSlice';
+import { openFile, type EditorGroupId } from '@renderer/apps/markdown/editor/editorSlice';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { tnetApi } from '@renderer/lib/tnetApi';
 
@@ -31,7 +31,7 @@ export interface ActiveWorkspaceApi {
 
 const isMarkdownFilePath = (filePath: string): boolean => filePath.toLowerCase().endsWith('.md');
 
-export const useActiveWorkspaceApi = (): ActiveWorkspaceApi => {
+export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
   const dispatch = useAppDispatch();
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
   const settings = useAppSelector((state) => state.workspace.settings);

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
+import { useActiveMarkdownWorkspaceApi } from '@renderer/apps/markdown/workspace/useActiveMarkdownWorkspaceApi';
 import type { NewEntryState, RenameEntryState } from './FileTree';
 import { selectDirectory, selectFile } from './explorerSlice';
 
@@ -29,7 +29,7 @@ export const FileTreeItem = ({
   onCancelRenameEntry
 }: FileTreeItemProps): React.JSX.Element => {
   const dispatch = useAppDispatch();
-  const workspaceApi = useActiveWorkspaceApi();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
   const newEntryInputRef = useRef<HTMLInputElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
   const { selectedPath, selectedDirPath, expandedPaths } = useAppSelector(

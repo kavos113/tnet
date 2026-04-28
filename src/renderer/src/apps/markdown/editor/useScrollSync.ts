@@ -1,5 +1,5 @@
 import { type RefObject, useEffect, useRef } from 'react';
-import type { PreviewPaneHandle } from '@renderer/features/preview/PreviewPane';
+import type { PreviewPaneHandle } from '@renderer/apps/markdown/preview/PreviewPane';
 import type { EditorPaneHandle } from './EditorPane';
 import {
   applyScrollRatio,

@@ -1,8 +1,8 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { SearchLineMatch, WorkspaceSearchResponse } from '@shared/search/searchTypes';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { requestRevealLine } from '@renderer/features/editor/editorSlice';
-import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
+import { requestRevealLine } from '@renderer/apps/markdown/editor/editorSlice';
+import { useActiveMarkdownWorkspaceApi } from '@renderer/apps/markdown/workspace/useActiveMarkdownWorkspaceApi';
 import { tnetApi } from '@renderer/lib/tnetApi';
 
 export interface SearchPanelHandle {
@@ -36,7 +36,7 @@ const HighlightedLine = ({ match }: { match: SearchLineMatch }): React.JSX.Eleme
 
 export const SearchPanel = forwardRef<SearchPanelHandle>((_, ref): React.JSX.Element => {
   const dispatch = useAppDispatch();
-  const workspaceApi = useActiveWorkspaceApi();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState('');

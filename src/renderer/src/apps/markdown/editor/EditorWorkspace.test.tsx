@@ -45,7 +45,7 @@ vi.mock('./EditorPane', () => ({
   )
 }));
 
-vi.mock('@renderer/features/preview/PreviewPane', () => ({
+vi.mock('@renderer/apps/markdown/preview/PreviewPane', () => ({
   PreviewPane: forwardRef((props: { showOutline: boolean; onToggleTask?: unknown }, ref) => {
     previewPaneProps.push(props);
     useImperativeHandle(ref, () => ({

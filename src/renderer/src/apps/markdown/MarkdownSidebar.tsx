@@ -1,3 +1,3 @@
-import { ExplorerPanel } from '@renderer/features/explorer/ExplorerPanel';
+import { ExplorerPanel } from './explorer/ExplorerPanel';
 
 export const MarkdownSidebar = (): React.JSX.Element => <ExplorerPanel />;

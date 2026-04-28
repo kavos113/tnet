@@ -2,7 +2,11 @@ import { act, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@renderer/app/store';
-import { openFile, setViewMode, splitActiveTabRight } from '@renderer/features/editor/editorSlice';
+import {
+  openFile,
+  setViewMode,
+  splitActiveTabRight
+} from '@renderer/apps/markdown/editor/editorSlice';
 import { setWorkspace } from '@renderer/features/workspace/workspaceSlice';
 import { usePersistMarkdownSession } from './usePersistMarkdownSession';
 

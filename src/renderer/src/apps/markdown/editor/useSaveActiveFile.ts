@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
+import { useActiveMarkdownWorkspaceApi } from '@renderer/apps/markdown/workspace/useActiveMarkdownWorkspaceApi';
 import { markActiveSaved, type EditorGroupId } from './editorSlice';
 
 export const useSaveActiveFile = (
@@ -10,7 +10,7 @@ export const useSaveActiveFile = (
   saveActiveFile: () => Promise<void>;
 } => {
   const dispatch = useAppDispatch();
-  const workspaceApi = useActiveWorkspaceApi();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
   const activeFile = useAppSelector((state) => {
     const targetGroupId = groupId ?? state.editor.activeGroupId;
     const group = state.editor.groups[targetGroupId];

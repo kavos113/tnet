@@ -7,8 +7,14 @@ import {
   withMarkdownGlobalConfig
 } from '@shared/types/config';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { replaceEditorSession, replaceOpenedFiles } from '@renderer/features/editor/editorSlice';
-import { resetExplorerState, setExpandedPaths } from '@renderer/features/explorer/explorerSlice';
+import {
+  replaceEditorSession,
+  replaceOpenedFiles
+} from '@renderer/apps/markdown/editor/editorSlice';
+import {
+  resetExplorerState,
+  setExpandedPaths
+} from '@renderer/apps/markdown/explorer/explorerSlice';
 import { setSettings, setWorkspace } from '@renderer/features/workspace/workspaceSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
 

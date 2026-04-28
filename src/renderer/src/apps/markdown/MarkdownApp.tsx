@@ -1,3 +1,3 @@
-import { EditorWorkspace } from '@renderer/features/editor/EditorWorkspace';
+import { EditorWorkspace } from './editor/EditorWorkspace';
 
 export const MarkdownApp = (): React.JSX.Element => <EditorWorkspace />;

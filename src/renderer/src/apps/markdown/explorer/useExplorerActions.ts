@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 import { basename, dirname, joinPath, toWorkspaceRelativePath } from '@shared/path/pathUtils';
 import type { FileItem } from '@shared/types/file';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
-import { closeFileByPath, renameOpenedPath } from '@renderer/features/editor/editorSlice';
+import { closeFileByPath, renameOpenedPath } from '@renderer/apps/markdown/editor/editorSlice';
 import { setFileTree } from '@renderer/features/workspace/workspaceSlice';
-import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
+import { useActiveMarkdownWorkspaceApi } from '@renderer/apps/markdown/workspace/useActiveMarkdownWorkspaceApi';
 import { useMarkdownWorkspaceSwitcher } from '@renderer/apps/markdown/workspace/useMarkdownWorkspaceSwitcher';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import type { NewEntryMode, NewEntryState, RenameEntryState } from './FileTree';
@@ -51,7 +51,7 @@ export const useExplorerActions = (): {
   deleteSelected: () => Promise<void>;
 } => {
   const dispatch = useAppDispatch();
-  const workspaceApi = useActiveWorkspaceApi();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
   const { rootPath, workspaceRoots, fileTree } = useAppSelector((state) => state.workspace);
   const { switchWorkspace } = useMarkdownWorkspaceSwitcher();
   const { selectedPath, selectedDirPath } = useAppSelector((state) => state.explorer);

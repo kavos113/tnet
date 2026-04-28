@@ -1,7 +1,7 @@
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import appReducer from './appSlice';
-import editorReducer from '@renderer/features/editor/editorSlice';
-import explorerReducer from '@renderer/features/explorer/explorerSlice';
+import editorReducer from '@renderer/apps/markdown/editor/editorSlice';
+import explorerReducer from '@renderer/apps/markdown/explorer/explorerSlice';
 import workspaceReducer from '@renderer/features/workspace/workspaceSlice';
 
 export interface RootState {
