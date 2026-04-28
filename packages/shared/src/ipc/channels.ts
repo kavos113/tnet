@@ -20,9 +20,7 @@ export const ipcChannels = {
   },
   config: {
     loadGlobal: 'config:loadGlobal',
-    saveGlobal: 'config:saveGlobal',
-    loadProject: 'config:loadProject',
-    saveProject: 'config:saveProject'
+    saveGlobal: 'config:saveGlobal'
   },
   keyword: {
     loadIndex: 'keyword:loadIndex',

@@ -41,9 +41,13 @@ const installTnetApi = (): void => {
       },
       config: {
         loadGlobal: vi.fn(),
-        saveGlobal: vi.fn(),
-        loadProject: vi.fn(),
-        saveProject: vi.fn()
+        saveGlobal: vi.fn()
+      },
+      markdown: {
+        config: {
+          loadProject: vi.fn(),
+          saveProject: vi.fn()
+        }
       },
       keyword: {
         loadIndex: keywordLoadIndex,
@@ -51,6 +55,10 @@ const installTnetApi = (): void => {
       },
       llm: {
         getInlineCompletion: llmGetInlineCompletion
+      },
+      search: {
+        rebuild: vi.fn(),
+        workspace: vi.fn()
       }
     },
     writable: true

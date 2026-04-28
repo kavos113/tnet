@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { InlineCompletionRequest } from '@tnet/shared/llm/inlineCompletionTypes';
-import { defaultProjectConfig } from '@tnet/shared/types/config';
+import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { geminiSdkProvider } from './geminiSdkProvider';
 
 const geminiConstructors = vi.hoisted(() => [] as unknown[]);
@@ -44,7 +44,7 @@ describe('geminiSdkProvider', () => {
   it('requests an inline completion through the Gemini SDK', async () => {
     const controller = new AbortController();
     const config = {
-      ...defaultProjectConfig().llm,
+      ...defaultMarkdownProjectConfig().llm,
       llmProvider: 'gemini-sdk' as const,
       llmModel: 'gemini-2.5-flash',
       llmEndpoint: 'https://example.test',
@@ -88,7 +88,7 @@ describe('geminiSdkProvider', () => {
       geminiSdkProvider.complete(
         request,
         {
-          ...defaultProjectConfig().llm,
+          ...defaultMarkdownProjectConfig().llm,
           llmProvider: 'gemini-sdk',
           llmModel: 'gemini-2.5-flash',
           llmApiKey: 'gemini-key'

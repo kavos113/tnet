@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultGlobalConfig, defaultProjectConfig } from '@tnet/shared/types/config';
+import { defaultGlobalConfig } from '@tnet/shared/types/config';
+import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { createAppStore } from '@tnet/app-markdown/renderer/test/createMarkdownTestStore';
 import { setWorkspace } from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
 import { ExplorerPanel } from './ExplorerPanel';
@@ -32,6 +33,8 @@ const installTnetApi = (): void => {
         read: fileRead,
         openWithDefaultApp: fileOpenWithDefaultApp,
         write: vi.fn(),
+        saveImage: vi.fn(),
+        readImage: vi.fn(),
         create: fileCreate,
         createDirectory: fileCreateDirectory,
         delete: fileDelete,
@@ -43,9 +46,13 @@ const installTnetApi = (): void => {
       },
       config: {
         loadGlobal,
-        saveGlobal,
-        loadProject,
-        saveProject: vi.fn()
+        saveGlobal
+      },
+      markdown: {
+        config: {
+          loadProject,
+          saveProject: vi.fn()
+        }
       },
       keyword: {
         loadIndex: vi.fn(),
@@ -108,7 +115,7 @@ describe('ExplorerPanel', () => {
     fileRead.mockResolvedValue('content');
     fileRename.mockResolvedValue(undefined);
     getFileTree.mockResolvedValue([]);
-    loadProject.mockResolvedValue(defaultProjectConfig());
+    loadProject.mockResolvedValue(defaultMarkdownProjectConfig());
     openDirectory.mockResolvedValue({ rootPath: '' });
     loadGlobal.mockResolvedValue(defaultGlobalConfig());
     saveGlobal.mockResolvedValue(undefined);

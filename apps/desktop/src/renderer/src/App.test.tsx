@@ -33,9 +33,13 @@ describe('App', () => {
         },
         config: {
           loadGlobal: vi.fn().mockResolvedValue({}),
-          saveGlobal: vi.fn().mockResolvedValue(undefined),
-          loadProject: vi.fn(),
-          saveProject: vi.fn()
+          saveGlobal: vi.fn().mockResolvedValue(undefined)
+        },
+        markdown: {
+          config: {
+            loadProject: vi.fn(),
+            saveProject: vi.fn()
+          }
         },
         keyword: {
           loadIndex: vi.fn(),

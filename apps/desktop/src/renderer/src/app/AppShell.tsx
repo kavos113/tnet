@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { AppRail } from '@tnet/ui/AppRail';
-import { SettingsDialog } from '@renderer/features/settings/SettingsDialog';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { tnetApi } from '@tnet/renderer-core/tnetApi';
 import { appRegistry, getAppModule } from './appRegistry';
@@ -17,6 +16,7 @@ export const AppShell = (): React.JSX.Element => {
   const ActiveApp = activeModule.Main;
   const ActiveSidebar = activeModule.Sidebar;
   const ActiveRuntime = activeModule.Runtime;
+  const ActiveSettings = activeModule.Settings;
 
   useShortcut({
     key: ',',
@@ -74,7 +74,9 @@ export const AppShell = (): React.JSX.Element => {
       {isAppRestored && ActiveRuntime ? <ActiveRuntime /> : null}
       {isAppRestored && ActiveSidebar ? <ActiveSidebar /> : null}
       {isAppRestored ? <ActiveApp /> : null}
-      <SettingsDialog isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      {ActiveSettings ? (
+        <ActiveSettings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      ) : null}
     </div>
   );
 };

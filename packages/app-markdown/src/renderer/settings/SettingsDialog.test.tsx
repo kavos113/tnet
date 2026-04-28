@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAppStore } from '@renderer/app/store';
-import { setWorkspace } from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
-import { defaultProjectConfig } from '@tnet/shared/types/config';
+import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
+import { setWorkspace } from '../workspace/workspaceSlice';
+import { createAppStore } from '../test/createMarkdownTestStore';
 import { SettingsDialog } from './SettingsDialog';
 
 const loadProject = vi.fn();
@@ -18,7 +18,10 @@ const installTnetApi = (): void => {
       },
       file: {
         read: vi.fn(),
+        openWithDefaultApp: vi.fn(),
         write: vi.fn(),
+        saveImage: vi.fn(),
+        readImage: vi.fn(),
         create: vi.fn(),
         createDirectory: vi.fn(),
         delete: vi.fn(),
@@ -30,16 +33,24 @@ const installTnetApi = (): void => {
       },
       config: {
         loadGlobal: vi.fn(),
-        saveGlobal: vi.fn(),
-        loadProject,
-        saveProject
+        saveGlobal: vi.fn()
       },
       keyword: {
         loadIndex: vi.fn(),
         getContent: vi.fn()
       },
+      search: {
+        rebuild: vi.fn(),
+        workspace: vi.fn()
+      },
       llm: {
         getInlineCompletion: vi.fn()
+      },
+      markdown: {
+        config: {
+          loadProject,
+          saveProject
+        }
       }
     },
     writable: true
@@ -51,19 +62,19 @@ describe('SettingsDialog', () => {
     vi.clearAllMocks();
     loadProject.mockResolvedValue({
       markdown: {
-        ...defaultProjectConfig().markdown,
+        ...defaultMarkdownProjectConfig().markdown,
         editorFontFamily: 'Editor Font',
         editorFontSize: 18,
         previewFontFamily: 'Preview Font',
         previewFontSize: 19
       },
-      llm: defaultProjectConfig().llm
+      llm: defaultMarkdownProjectConfig().llm
     });
     saveProject.mockResolvedValue(undefined);
     installTnetApi();
   });
 
-  it('loads project settings into a draft and saves the edited draft', async () => {
+  it('loads markdown project settings into a draft and saves the edited draft', async () => {
     const store = createAppStore();
     store.dispatch(setWorkspace({ rootPath: '/workspace', fileTree: [] }));
     const onClose = vi.fn();

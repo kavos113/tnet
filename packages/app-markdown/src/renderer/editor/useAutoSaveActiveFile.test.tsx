@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@tnet/app-markdown/renderer/test/createMarkdownTestStore';
 import { setSettings, setWorkspace } from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
-import { defaultProjectConfig } from '@tnet/shared/types/config';
+import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { openFile, updateActiveContent } from './editorSlice';
 import { useAutoSaveActiveFile } from './useAutoSaveActiveFile';
 import { useSaveActiveFile } from './useSaveActiveFile';
@@ -20,6 +20,7 @@ const installTnetApi = (): void => {
       },
       file: {
         read: readFile,
+        openWithDefaultApp: vi.fn(),
         write: writeFile,
         create: vi.fn(),
         createDirectory: vi.fn(),
@@ -34,9 +35,13 @@ const installTnetApi = (): void => {
       },
       config: {
         loadGlobal: vi.fn(),
-        saveGlobal: vi.fn(),
-        loadProject: vi.fn(),
-        saveProject: vi.fn()
+        saveGlobal: vi.fn()
+      },
+      markdown: {
+        config: {
+          loadProject: vi.fn(),
+          saveProject: vi.fn()
+        }
       },
       keyword: {
         loadIndex: vi.fn(),
@@ -75,9 +80,9 @@ describe('useAutoSaveActiveFile', () => {
     store.dispatch(setWorkspace({ rootPath: '/workspace', fileTree: [] }));
     store.dispatch(
       setSettings({
-        ...defaultProjectConfig(),
+        ...defaultMarkdownProjectConfig(),
         markdown: {
-          ...defaultProjectConfig().markdown,
+          ...defaultMarkdownProjectConfig().markdown,
           autoSaveEnabled: true,
           autoSaveDebounceMs: 1000
         }
@@ -116,9 +121,9 @@ describe('useAutoSaveActiveFile', () => {
     store.dispatch(setWorkspace({ rootPath: '/workspace', fileTree: [] }));
     store.dispatch(
       setSettings({
-        ...defaultProjectConfig(),
+        ...defaultMarkdownProjectConfig(),
         markdown: {
-          ...defaultProjectConfig().markdown,
+          ...defaultMarkdownProjectConfig().markdown,
           autoSaveEnabled: false,
           autoSaveDebounceMs: 1000
         }

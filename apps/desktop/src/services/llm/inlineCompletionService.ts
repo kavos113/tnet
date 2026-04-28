@@ -2,8 +2,8 @@ import type {
   InlineCompletionRequest,
   InlineCompletionResult
 } from '@tnet/shared/llm/inlineCompletionTypes';
-import type { LlmProviderType } from '@tnet/shared/types/config';
-import { loadProjectConfig } from '../projectConfigService';
+import type { LlmProviderType } from '@tnet/app-markdown/shared/config';
+import { loadMarkdownProjectConfig } from '@tnet/app-markdown/main';
 import { geminiSdkProvider } from './geminiSdkProvider';
 import { lmStudioProvider } from './lmStudioProvider';
 import { localHttpProvider } from './localHttpProvider';
@@ -26,7 +26,7 @@ const inlineCompletionTimeoutMs = 15000;
 export const getInlineCompletion = async (
   request: InlineCompletionRequest
 ): Promise<InlineCompletionResult | null> => {
-  const { llm } = await loadProjectConfig(request.workspaceRoot);
+  const { llm } = await loadMarkdownProjectConfig(request.workspaceRoot);
   if (!llm.llmInlineCompletionEnabled) return null;
 
   const controller = new AbortController();

@@ -1,6 +1,11 @@
 import type { AppId } from '@tnet/shared/app/appTypes';
 import { CodeApp } from '@renderer/apps/code/CodeApp';
-import { MarkdownApp, MarkdownRuntime, MarkdownSidebar } from '@tnet/app-markdown/renderer';
+import {
+  MarkdownApp,
+  MarkdownRuntime,
+  MarkdownSettingsDialog,
+  MarkdownSidebar
+} from '@tnet/app-markdown/renderer';
 import { PapersApp } from '@renderer/apps/papers/PapersApp';
 
 export interface AppModule {
@@ -10,6 +15,7 @@ export interface AppModule {
   Main: React.ComponentType;
   Sidebar?: React.ComponentType;
   Runtime?: React.ComponentType;
+  Settings?: React.ComponentType<{ isOpen: boolean; onClose: () => void }>;
 }
 
 export const appRegistry: AppModule[] = [
@@ -19,7 +25,8 @@ export const appRegistry: AppModule[] = [
     icon: 'edit_note',
     Main: MarkdownApp,
     Sidebar: MarkdownSidebar,
-    Runtime: MarkdownRuntime
+    Runtime: MarkdownRuntime,
+    Settings: MarkdownSettingsDialog
   },
   {
     id: 'papers',

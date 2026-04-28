@@ -8,6 +8,7 @@
     "apps/desktop/src/services/**/*",
     "apps/desktop/src/index.ts",
     "packages/app-markdown/src/main/**/*",
+    "packages/app-markdown/src/shared/**/*",
     "packages/main-core/src/**/*",
     "packages/shared/src/**/*",
     "vitest.config.ts"
@@ -25,6 +26,7 @@
       "@tnet/app-markdown/main/*": ["./packages/app-markdown/src/main/*"],
       "@tnet/app-markdown/renderer": ["./packages/app-markdown/src/renderer/index.ts"],
       "@tnet/app-markdown/renderer/*": ["./packages/app-markdown/src/renderer/*"],
+      "@tnet/app-markdown/shared/*": ["./packages/app-markdown/src/shared/*"],
       "@tnet/main-core/*": ["./packages/main-core/src/*"],
       "@tnet/renderer-core/*": ["./packages/renderer-core/src/*"],
       "@tnet/shared/*": ["./packages/shared/src/*"],

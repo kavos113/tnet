@@ -1,20 +1,23 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { ProjectConfig } from '@tnet/shared/types/config';
-import { defaultProjectConfig, normalizeProjectConfig } from '@tnet/shared/types/config';
+import type { MarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
+import {
+  defaultMarkdownProjectConfig,
+  normalizeMarkdownProjectConfig
+} from '@tnet/app-markdown/shared/config';
 import type { FileItem } from '@tnet/shared/types/file';
 
 export interface WorkspaceState {
   rootPath: string;
   workspaceRoots: string[];
   fileTree: FileItem[];
-  settings: ProjectConfig;
+  settings: MarkdownProjectConfig;
 }
 
 const initialState: WorkspaceState = {
   rootPath: '',
   workspaceRoots: [],
   fileTree: [],
-  settings: defaultProjectConfig()
+  settings: defaultMarkdownProjectConfig()
 };
 
 const addUniqueRoot = (roots: string[], rootPath: string): string[] => {
@@ -49,8 +52,8 @@ const workspaceSlice = createSlice({
     setFileTree: (state, action: PayloadAction<FileItem[]>) => {
       state.fileTree = action.payload;
     },
-    setSettings: (state, action: PayloadAction<ProjectConfig>) => {
-      state.settings = normalizeProjectConfig(action.payload);
+    setSettings: (state, action: PayloadAction<MarkdownProjectConfig>) => {
+      state.settings = normalizeMarkdownProjectConfig(action.payload);
     }
   }
 });

@@ -53,6 +53,7 @@ export default defineConfig({
       alias: {
         '@preload': resolve('src/preload'),
         '@shared': resolve('../../packages/shared/src'),
+        '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
       }
     }

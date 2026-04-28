@@ -5,6 +5,7 @@
     "apps/desktop/src/renderer/src/**/*",
     "apps/desktop/src/preload/types.ts",
     "packages/app-markdown/src/renderer/**/*",
+    "packages/app-markdown/src/shared/**/*",
     "packages/renderer-core/src/**/*",
     "packages/shared/src/**/*",
     "packages/ui/src/**/*"
@@ -19,6 +20,7 @@
       "@shared/*": ["./packages/shared/src/*"],
       "@tnet/app-markdown/renderer": ["./packages/app-markdown/src/renderer/index.ts"],
       "@tnet/app-markdown/renderer/*": ["./packages/app-markdown/src/renderer/*"],
+      "@tnet/app-markdown/shared/*": ["./packages/app-markdown/src/shared/*"],
       "@tnet/renderer-core/*": ["./packages/renderer-core/src/*"],
       "@tnet/shared/*": ["./packages/shared/src/*"],
       "@tnet/ui/*": ["./packages/ui/src/*"]

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { InlineCompletionRequest } from '@tnet/shared/llm/inlineCompletionTypes';
-import { defaultProjectConfig } from '@tnet/shared/types/config';
+import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { openAiSdkProvider } from './openAiSdkProvider';
 
 const openAiConstructors = vi.hoisted(() => [] as unknown[]);
@@ -44,7 +44,7 @@ describe('openAiSdkProvider', () => {
   it('requests an inline completion through the OpenAI SDK Responses API', async () => {
     const controller = new AbortController();
     const config = {
-      ...defaultProjectConfig().llm,
+      ...defaultMarkdownProjectConfig().llm,
       llmProvider: 'openai-sdk' as const,
       llmModel: 'gpt-5.2',
       llmEndpoint: 'https://example.test/v1',
@@ -85,7 +85,7 @@ describe('openAiSdkProvider', () => {
       openAiSdkProvider.complete(
         request,
         {
-          ...defaultProjectConfig().llm,
+          ...defaultMarkdownProjectConfig().llm,
           llmProvider: 'openai-sdk',
           llmModel: 'gpt-5.2',
           llmApiKey: 'test-key'

@@ -175,6 +175,9 @@ importers:
 
   packages/app-markdown:
     dependencies:
+      '@tnet/main-core':
+        specifier: workspace:*
+        version: link:../main-core
       '@tnet/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core

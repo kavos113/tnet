@@ -1,4 +1,4 @@
-import type { LlmProviderType } from '@tnet/shared/types/config';
+import type { LlmProviderType } from '@tnet/app-markdown/shared/config';
 import { useProjectSettingsDraft } from './useProjectSettingsDraft';
 
 interface SettingsDialogProps {

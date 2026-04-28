@@ -1,8 +1,11 @@
 import { ipcRenderer } from 'electron';
 import { ipcChannels } from '@tnet/shared/ipc/channels';
 import type { TnetApi } from '@tnet/shared/ipc/contracts';
+import { markdownIpcChannels, type MarkdownApi } from '@tnet/app-markdown/shared/ipc';
 
-export const tnetApi: TnetApi = {
+export type DesktopTnetApi = TnetApi & MarkdownApi;
+
+export const tnetApi: DesktopTnetApi = {
   workspace: {
     openDirectory: () => ipcRenderer.invoke(ipcChannels.workspace.openDirectory),
     getFileTree: (rootDir) => ipcRenderer.invoke(ipcChannels.workspace.getFileTree, rootDir)
@@ -25,10 +28,14 @@ export const tnetApi: TnetApi = {
   },
   config: {
     loadGlobal: () => ipcRenderer.invoke(ipcChannels.config.loadGlobal),
-    saveGlobal: (config) => ipcRenderer.invoke(ipcChannels.config.saveGlobal, config),
-    loadProject: (rootDir) => ipcRenderer.invoke(ipcChannels.config.loadProject, rootDir),
-    saveProject: (rootDir, config) =>
-      ipcRenderer.invoke(ipcChannels.config.saveProject, rootDir, config)
+    saveGlobal: (config) => ipcRenderer.invoke(ipcChannels.config.saveGlobal, config)
+  },
+  markdown: {
+    config: {
+      loadProject: (rootDir) => ipcRenderer.invoke(markdownIpcChannels.config.loadProject, rootDir),
+      saveProject: (rootDir, config) =>
+        ipcRenderer.invoke(markdownIpcChannels.config.saveProject, rootDir, config)
+    }
   },
   keyword: {
     loadIndex: (rootDir) => ipcRenderer.invoke(ipcChannels.keyword.loadIndex, rootDir),

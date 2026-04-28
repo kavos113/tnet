@@ -4,8 +4,11 @@ import os from 'os';
 import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { InlineCompletionRequest } from '@tnet/shared/llm/inlineCompletionTypes';
-import { defaultProjectConfig, type ProjectConfig } from '@tnet/shared/types/config';
-import { saveProjectConfig } from '../projectConfigService';
+import {
+  defaultMarkdownProjectConfig,
+  type MarkdownProjectConfig
+} from '@tnet/app-markdown/shared/config';
+import { saveMarkdownProjectConfig } from '@tnet/app-markdown/main';
 import { getInlineCompletion } from './inlineCompletionService';
 
 const createRequest = (
@@ -27,17 +30,17 @@ describe('getInlineCompletion', () => {
     vi.unstubAllGlobals();
   });
 
-  const createWorkspace = async (config: Partial<ProjectConfig> = {}): Promise<string> => {
+  const createWorkspace = async (config: Partial<MarkdownProjectConfig> = {}): Promise<string> => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-llm-'));
-    await saveProjectConfig(root, {
-      ...defaultProjectConfig(),
+    await saveMarkdownProjectConfig(root, {
+      ...defaultMarkdownProjectConfig(),
       ...config,
       markdown: {
-        ...defaultProjectConfig().markdown,
+        ...defaultMarkdownProjectConfig().markdown,
         ...(config.markdown ?? {})
       },
       llm: {
-        ...defaultProjectConfig().llm,
+        ...defaultMarkdownProjectConfig().llm,
         ...(config.llm ?? {})
       }
     });
@@ -65,7 +68,7 @@ describe('getInlineCompletion', () => {
   it('returns null when inline completion is disabled', async () => {
     const workspaceRoot = await createWorkspace({
       llm: {
-        ...defaultProjectConfig().llm,
+        ...defaultMarkdownProjectConfig().llm,
         llmInlineCompletionEnabled: false
       }
     });
@@ -85,7 +88,7 @@ describe('getInlineCompletion', () => {
     vi.stubGlobal('fetch', fetchMock);
     const workspaceRoot = await createWorkspace({
       llm: {
-        ...defaultProjectConfig().llm,
+        ...defaultMarkdownProjectConfig().llm,
         llmProvider: 'local-http',
         llmModel: 'local-model',
         llmEndpoint: 'http://localhost:11434/inline'

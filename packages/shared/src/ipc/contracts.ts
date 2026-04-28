@@ -1,4 +1,4 @@
-import type { GlobalConfig, ProjectConfig } from '@tnet/shared/types/config';
+import type { GlobalConfig } from '@tnet/shared/types/config';
 import type {
   InlineCompletionRequest,
   InlineCompletionResult
@@ -77,8 +77,6 @@ export interface TnetApi {
   config: {
     loadGlobal: () => Promise<GlobalConfig>;
     saveGlobal: (config: GlobalConfig) => Promise<void>;
-    loadProject: (rootDir: string) => Promise<ProjectConfig>;
-    saveProject: (rootDir: string, config: ProjectConfig) => Promise<void>;
   };
   keyword: {
     loadIndex: (rootDir: string) => Promise<Record<string, string>>;

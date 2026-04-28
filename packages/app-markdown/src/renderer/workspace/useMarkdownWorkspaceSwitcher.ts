@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef } from 'react';
 import { textByteLength } from '@tnet/shared/file/largeFile';
 import { toWorkspaceAbsolutePath } from '@tnet/shared/path/pathUtils';
 import { normalizeSessionData } from '@tnet/shared/types/file';
+import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import {
   getMarkdownGlobalConfig,
-  normalizeGlobalConfig,
   withMarkdownGlobalConfig
-} from '@tnet/shared/types/config';
+} from '@tnet/app-markdown/shared/config';
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import {
   replaceEditorSession,
@@ -17,7 +17,7 @@ import {
   setExpandedPaths
 } from '@tnet/app-markdown/renderer/explorer/explorerSlice';
 import { setSettings, setWorkspace } from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
-import { tnetApi } from '@tnet/renderer-core/tnetApi';
+import { markdownTnetApi } from '../markdownTnetApi';
 
 interface SwitchMarkdownWorkspaceOptions {
   workspaceRoots?: string[];
@@ -55,9 +55,9 @@ export const useMarkdownWorkspaceSwitcher = (): {
         new Set([...(options.workspaceRoots ?? workspaceRootsRef.current), rootPath])
       );
       const [fileTree, settings, rawSession] = await Promise.all([
-        tnetApi.workspace.getFileTree(rootPath),
-        tnetApi.config.loadProject(rootPath),
-        tnetApi.session.load(rootPath)
+        markdownTnetApi.workspace.getFileTree(rootPath),
+        markdownTnetApi.markdown.config.loadProject(rootPath),
+        markdownTnetApi.session.load(rootPath)
       ]);
       const session = normalizeSessionData(rawSession);
       const markdownSession = session.apps.markdown;
@@ -74,7 +74,7 @@ export const useMarkdownWorkspaceSwitcher = (): {
         await Promise.all(
           restorableFilePaths.map(async (filePath) => {
             try {
-              const content = await tnetApi.file.read({
+              const content = await markdownTnetApi.file.read({
                 rootDir: rootPath,
                 path: filePath
               });
@@ -155,15 +155,15 @@ export const useMarkdownWorkspaceSwitcher = (): {
       searchRebuildRootRef.current = rootPath;
       searchRebuildTimerRef.current = window.setTimeout(() => {
         if (searchRebuildRootRef.current !== rootPath) return;
-        tnetApi.search.rebuild(rootPath).catch((error: unknown) => {
+        markdownTnetApi.search.rebuild(rootPath).catch((error: unknown) => {
           console.error('Failed to rebuild markdown search index', error);
         });
       }, 500);
 
       if (options.persistGlobalConfig !== false) {
-        const config = normalizeGlobalConfig(await tnetApi.config.loadGlobal());
+        const config = normalizeGlobalConfig(await markdownTnetApi.config.loadGlobal());
         const markdownConfig = getMarkdownGlobalConfig(config);
-        await tnetApi.config.saveGlobal(
+        await markdownTnetApi.config.saveGlobal(
           withMarkdownGlobalConfig(
             {
               ...config,
