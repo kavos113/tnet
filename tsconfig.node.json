@@ -1,10 +1,15 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
   "include": [
-    "electron.vite.config.*",
-    "src/main/**/*",
-    "src/preload/**/*",
-    "src/shared/**/*",
+    "apps/desktop/electron.vite.config.*",
+    "apps/desktop/src/app/**/*",
+    "apps/desktop/src/ipc/**/*",
+    "apps/desktop/src/preload/**/*",
+    "apps/desktop/src/services/**/*",
+    "apps/desktop/src/index.ts",
+    "packages/app-markdown/src/main/**/*",
+    "packages/main-core/src/**/*",
+    "packages/shared/src/**/*",
     "vitest.config.ts"
   ],
   "compilerOptions": {
@@ -12,9 +17,18 @@
     "types": ["electron-vite/node", "node"],
     "baseUrl": ".",
     "paths": {
-      "@main/*": ["./src/main/*"],
-      "@preload/*": ["./src/preload/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@main/*": ["./apps/desktop/src/*"],
+      "@preload/*": ["./apps/desktop/src/preload/*"],
+      "@renderer/*": ["./apps/desktop/src/renderer/src/*"],
+      "@shared/*": ["./packages/shared/src/*"],
+      "@tnet/app-markdown/main": ["./packages/app-markdown/src/main/index.ts"],
+      "@tnet/app-markdown/main/*": ["./packages/app-markdown/src/main/*"],
+      "@tnet/app-markdown/renderer": ["./packages/app-markdown/src/renderer/index.ts"],
+      "@tnet/app-markdown/renderer/*": ["./packages/app-markdown/src/renderer/*"],
+      "@tnet/main-core/*": ["./packages/main-core/src/*"],
+      "@tnet/renderer-core/*": ["./packages/renderer-core/src/*"],
+      "@tnet/shared/*": ["./packages/shared/src/*"],
+      "@tnet/ui/*": ["./packages/ui/src/*"]
     }
   }
 }

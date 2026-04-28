@@ -1,0 +1,17 @@
+{
+  "name": "@tnet/desktop",
+  "version": "2.0.2",
+  "private": true,
+  "description": "Desktop Electron shell for tnet",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "start": "electron-vite preview",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "build:unpack": "pnpm build && electron-builder --dir",
+    "build:win": "pnpm build && electron-builder --win",
+    "build:mac": "pnpm build && electron-builder --mac",
+    "build:linux": "pnpm build && electron-builder --linux"
+  },
+  "dependencies": {}
+}

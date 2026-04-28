@@ -1,0 +1,12 @@
+{
+  "name": "@tnet/ui",
+  "version": "2.0.2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./AppRail": "./src/AppRail/AppRail.tsx"
+  },
+  "dependencies": {
+    "@tnet/shared": "workspace:*"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@tnet/renderer-core",
+  "version": "2.0.2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tnetApi": "./src/tnetApi.ts",
+    "./shortcuts/*": "./src/shortcuts/*"
+  },
+  "dependencies": {
+    "@tnet/shared": "workspace:*"
+  }
+}

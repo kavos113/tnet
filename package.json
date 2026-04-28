@@ -1,8 +1,8 @@
 {
-  "name": "tnet",
+  "name": "tnet-workspace",
   "version": "2.0.2",
-  "description": "Obsidian-like markdown editor built with Electron, Vite, React, and TypeScript",
-  "main": "./out/main/index.js",
+  "private": true,
+  "description": "Workspace for the tnet Electron app and packages",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -10,14 +10,14 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "pnpm typecheck:node && pnpm typecheck:web",
-    "start": "electron-vite preview",
-    "dev": "electron-vite dev",
-    "build": "pnpm typecheck && electron-vite build",
+    "start": "pnpm --filter @tnet/desktop start",
+    "dev": "pnpm --filter @tnet/desktop dev",
+    "build": "pnpm typecheck && pnpm --filter @tnet/desktop build",
     "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "pnpm build && electron-builder --dir",
-    "build:win": "pnpm build && electron-builder --win",
-    "build:mac": "pnpm build && electron-builder --mac",
-    "build:linux": "pnpm build && electron-builder --linux"
+    "build:unpack": "pnpm --filter @tnet/desktop build:unpack",
+    "build:win": "pnpm --filter @tnet/desktop build:win",
+    "build:mac": "pnpm --filter @tnet/desktop build:mac",
+    "build:linux": "pnpm --filter @tnet/desktop build:linux"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.1",

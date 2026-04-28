@@ -1,0 +1,16 @@
+{
+  "name": "@tnet/app-markdown",
+  "version": "2.0.2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./renderer": "./src/renderer/index.ts",
+    "./main": "./src/main/index.ts",
+    "./renderer/*": "./src/renderer/*",
+    "./main/*": "./src/main/*"
+  },
+  "dependencies": {
+    "@tnet/renderer-core": "workspace:*",
+    "@tnet/shared": "workspace:*"
+  }
+}
