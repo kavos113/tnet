@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { closeFileByPath, renameOpenedPath } from '@renderer/features/editor/editorSlice';
 import { setFileTree } from '@renderer/features/workspace/workspaceSlice';
 import { useActiveWorkspaceApi } from '@renderer/features/workspace/useActiveWorkspaceApi';
-import { useWorkspaceSwitcher } from '@renderer/features/workspace/useWorkspaceSwitcher';
+import { useMarkdownWorkspaceSwitcher } from '@renderer/apps/markdown/workspace/useMarkdownWorkspaceSwitcher';
 import { tnetApi } from '@renderer/lib/tnetApi';
 import type { NewEntryMode, NewEntryState, RenameEntryState } from './FileTree';
 import {
@@ -53,7 +53,7 @@ export const useExplorerActions = (): {
   const dispatch = useAppDispatch();
   const workspaceApi = useActiveWorkspaceApi();
   const { rootPath, workspaceRoots, fileTree } = useAppSelector((state) => state.workspace);
-  const { switchWorkspace } = useWorkspaceSwitcher();
+  const { switchWorkspace } = useMarkdownWorkspaceSwitcher();
   const { selectedPath, selectedDirPath } = useAppSelector((state) => state.explorer);
   const [newEntry, setNewEntry] = useState<NewEntryState>(emptyNewEntry);
   const [renameEntry, setRenameEntry] = useState<RenameEntryState>(emptyRenameEntry);

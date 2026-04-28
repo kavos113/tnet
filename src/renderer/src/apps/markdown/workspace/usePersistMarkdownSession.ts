@@ -2,15 +2,15 @@ import { useEffect } from 'react';
 import { useAppSelector } from '@renderer/app/hooks';
 import { tnetApi } from '@renderer/lib/tnetApi';
 
-interface UsePersistSessionOptions {
+interface UsePersistMarkdownSessionOptions {
   enabled: boolean;
   debounceMs?: number;
 }
 
-export const usePersistSession = ({
+export const usePersistMarkdownSession = ({
   enabled,
   debounceMs = 150
-}: UsePersistSessionOptions): void => {
+}: UsePersistMarkdownSessionOptions): void => {
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
   const editor = useAppSelector((state) => state.editor);
   const expandedPaths = useAppSelector((state) => state.explorer.expandedPaths);
@@ -47,7 +47,7 @@ export const usePersistSession = ({
           }
         })
         .catch((error: unknown) => {
-          console.error('Failed to save session', error);
+          console.error('Failed to save markdown session', error);
         });
     }, debounceMs);
 

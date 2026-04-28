@@ -3,8 +3,8 @@ import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@renderer/app/store';
 import { openFile, setViewMode, splitActiveTabRight } from '@renderer/features/editor/editorSlice';
-import { setWorkspace } from './workspaceSlice';
-import { usePersistSession } from './usePersistSession';
+import { setWorkspace } from '@renderer/features/workspace/workspaceSlice';
+import { usePersistMarkdownSession } from './usePersistMarkdownSession';
 
 const sessionSave = vi.fn();
 
@@ -20,11 +20,11 @@ const installTnetApi = (): void => {
 };
 
 const PersistSessionProbe = (): null => {
-  usePersistSession({ enabled: true, debounceMs: 10 });
+  usePersistMarkdownSession({ enabled: true, debounceMs: 10 });
   return null;
 };
 
-describe('usePersistSession', () => {
+describe('usePersistMarkdownSession', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     sessionSave.mockReset();
@@ -36,7 +36,7 @@ describe('usePersistSession', () => {
     vi.useRealTimers();
   });
 
-  it('persists split editor groups in the session layout', () => {
+  it('persists split editor groups in the markdown workspace session layout', () => {
     const store = createAppStore();
     store.dispatch(setWorkspace({ rootPath: '/workspace', fileTree: [] }));
     store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));

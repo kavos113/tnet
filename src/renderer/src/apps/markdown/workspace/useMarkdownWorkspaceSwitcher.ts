@@ -1,21 +1,26 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { textByteLength } from '@shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
+import {
+  getMarkdownGlobalConfig,
+  normalizeGlobalConfig,
+  withMarkdownGlobalConfig
+} from '@shared/types/config';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { replaceEditorSession, replaceOpenedFiles } from '@renderer/features/editor/editorSlice';
 import { resetExplorerState, setExpandedPaths } from '@renderer/features/explorer/explorerSlice';
+import { setSettings, setWorkspace } from '@renderer/features/workspace/workspaceSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
-import { setSettings, setWorkspace } from './workspaceSlice';
 
-interface SwitchWorkspaceOptions {
+interface SwitchMarkdownWorkspaceOptions {
   workspaceRoots?: string[];
   persistGlobalConfig?: boolean;
 }
 
 const isMarkdownFilePath = (filePath: string): boolean => filePath.toLowerCase().endsWith('.md');
 
-export const useWorkspaceSwitcher = (): {
-  switchWorkspace: (rootPath: string, options?: SwitchWorkspaceOptions) => Promise<void>;
+export const useMarkdownWorkspaceSwitcher = (): {
+  switchWorkspace: (rootPath: string, options?: SwitchMarkdownWorkspaceOptions) => Promise<void>;
 } => {
   const dispatch = useAppDispatch();
   const workspaceRoots = useAppSelector((state) => state.workspace.workspaceRoots);
@@ -36,7 +41,7 @@ export const useWorkspaceSwitcher = (): {
   }, []);
 
   const switchWorkspace = useCallback(
-    async (rootPath: string, options: SwitchWorkspaceOptions = {}): Promise<void> => {
+    async (rootPath: string, options: SwitchMarkdownWorkspaceOptions = {}): Promise<void> => {
       if (!rootPath) return;
 
       const nextWorkspaceRoots = Array.from(
@@ -70,7 +75,7 @@ export const useWorkspaceSwitcher = (): {
                 sizeBytes: textByteLength(content)
               };
             } catch (error: unknown) {
-              console.error('Failed to restore opened file', error);
+              console.error('Failed to restore opened markdown file', error);
               return null;
             }
           })
@@ -133,16 +138,27 @@ export const useWorkspaceSwitcher = (): {
       searchRebuildTimerRef.current = window.setTimeout(() => {
         if (searchRebuildRootRef.current !== rootPath) return;
         tnetApi.search.rebuild(rootPath).catch((error: unknown) => {
-          console.error('Failed to rebuild search index', error);
+          console.error('Failed to rebuild markdown search index', error);
         });
       }, 500);
 
       if (options.persistGlobalConfig !== false) {
-        await tnetApi.config.saveGlobal({
-          lastOpenedDirectory: rootPath,
-          activeWorkspaceRoot: rootPath,
-          workspaceRoots: nextWorkspaceRoots
-        });
+        const config = normalizeGlobalConfig(await tnetApi.config.loadGlobal());
+        const markdownConfig = getMarkdownGlobalConfig(config);
+        await tnetApi.config.saveGlobal(
+          withMarkdownGlobalConfig(
+            {
+              ...config,
+              activeAppId: 'markdown'
+            },
+            {
+              ...markdownConfig,
+              lastOpenedDirectory: rootPath,
+              activeWorkspaceRoot: rootPath,
+              workspaceRoots: nextWorkspaceRoots
+            }
+          )
+        );
       }
     },
     [dispatch]

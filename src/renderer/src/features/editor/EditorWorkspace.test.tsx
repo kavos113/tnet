@@ -162,6 +162,24 @@ describe('EditorWorkspace split resize', () => {
     expect(editorPaneProps.at(-1)?.requestInlineCompletion).toBe(initialRequester);
   });
 
+  it('does not warn about unstable selector results when rendering editor groups', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    expect(warnSpy.mock.calls.some((call) => String(call[0]).includes('Selector unknown'))).toBe(
+      false
+    );
+
+    warnSpy.mockRestore();
+  });
+
   it('toggles the preview outline from the editor toolbar', () => {
     const store = createAppStore();
     store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));

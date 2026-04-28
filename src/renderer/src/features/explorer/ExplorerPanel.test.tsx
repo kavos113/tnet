@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultProjectConfig } from '@shared/types/config';
+import { defaultGlobalConfig, defaultProjectConfig } from '@shared/types/config';
 import { createAppStore } from '@renderer/app/store';
 import { setWorkspace } from '@renderer/features/workspace/workspaceSlice';
 import { ExplorerPanel } from './ExplorerPanel';
@@ -15,6 +15,7 @@ const fileRename = vi.fn();
 const getFileTree = vi.fn();
 const loadProject = vi.fn();
 const openDirectory = vi.fn();
+const loadGlobal = vi.fn();
 const saveGlobal = vi.fn();
 const searchRebuild = vi.fn();
 const searchWorkspace = vi.fn();
@@ -41,7 +42,7 @@ const installTnetApi = (): void => {
         save: vi.fn()
       },
       config: {
-        loadGlobal: vi.fn(),
+        loadGlobal,
         saveGlobal,
         loadProject,
         saveProject: vi.fn()
@@ -109,6 +110,7 @@ describe('ExplorerPanel', () => {
     getFileTree.mockResolvedValue([]);
     loadProject.mockResolvedValue(defaultProjectConfig());
     openDirectory.mockResolvedValue({ rootPath: '' });
+    loadGlobal.mockResolvedValue(defaultGlobalConfig());
     saveGlobal.mockResolvedValue(undefined);
     searchRebuild.mockResolvedValue({ indexedFileCount: 0, indexedLineCount: 0 });
     searchWorkspace.mockResolvedValue({
@@ -227,9 +229,16 @@ describe('ExplorerPanel', () => {
       expect(store.getState().workspace.rootPath).toBe('/second');
       expect(getFileTree).toHaveBeenCalledWith('/second');
       expect(saveGlobal).toHaveBeenCalledWith({
-        lastOpenedDirectory: '/second',
-        activeWorkspaceRoot: '/second',
-        workspaceRoots: ['/workspace', '/second']
+        activeAppId: 'markdown',
+        apps: {
+          markdown: {
+            lastOpenedDirectory: '/second',
+            activeWorkspaceRoot: '/second',
+            workspaceRoots: ['/workspace', '/second']
+          },
+          papers: {},
+          code: {}
+        }
       });
     });
     expect(screen.getByText('second.md')).toBeInTheDocument();
@@ -270,9 +279,16 @@ describe('ExplorerPanel', () => {
       expect(store.getState().workspace.workspaceRoots).toEqual(['/workspace', '/second']);
       expect(store.getState().workspace.rootPath).toBe('/second');
       expect(saveGlobal).toHaveBeenCalledWith({
-        lastOpenedDirectory: '/second',
-        activeWorkspaceRoot: '/second',
-        workspaceRoots: ['/workspace', '/second']
+        activeAppId: 'markdown',
+        apps: {
+          markdown: {
+            lastOpenedDirectory: '/second',
+            activeWorkspaceRoot: '/second',
+            workspaceRoots: ['/workspace', '/second']
+          },
+          papers: {},
+          code: {}
+        }
       });
     });
   });

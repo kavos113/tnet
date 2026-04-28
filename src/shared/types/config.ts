@@ -1,7 +1,26 @@
-export interface GlobalConfig {
+import { defaultAppId, type AppId } from '@shared/app/appTypes';
+
+export interface WorkspaceAppGlobalConfig {
   lastOpenedDirectory?: string;
-  workspaceRoots?: string[];
+  workspaceRoots: string[];
   activeWorkspaceRoot?: string;
+}
+
+export type MarkdownGlobalConfig = WorkspaceAppGlobalConfig;
+
+export interface PapersGlobalConfig {}
+
+export interface CodeGlobalConfig {}
+
+export interface AppGlobalConfigMap {
+  markdown: MarkdownGlobalConfig;
+  papers: PapersGlobalConfig;
+  code: CodeGlobalConfig;
+}
+
+export interface GlobalConfig {
+  activeAppId?: AppId;
+  apps?: Partial<AppGlobalConfigMap>;
 }
 
 export type LlmProviderType =
@@ -30,7 +49,51 @@ export interface ProjectConfig {
   llmMaxSuffixChars: number;
 }
 
-export const defaultGlobalConfig = (): GlobalConfig => ({});
+export const defaultWorkspaceAppGlobalConfig = (): WorkspaceAppGlobalConfig => ({
+  workspaceRoots: []
+});
+
+export const defaultGlobalConfig = (): GlobalConfig => ({
+  activeAppId: defaultAppId,
+  apps: {
+    markdown: defaultWorkspaceAppGlobalConfig(),
+    papers: {},
+    code: {}
+  }
+});
+
+export const normalizeGlobalConfig = (config: GlobalConfig): GlobalConfig => {
+  const defaults = defaultGlobalConfig();
+
+  return {
+    ...defaults,
+    ...config,
+    apps: {
+      ...defaults.apps,
+      ...(config.apps ?? {})
+    }
+  };
+};
+
+export const getMarkdownGlobalConfig = (config: GlobalConfig): MarkdownGlobalConfig => ({
+  ...defaultWorkspaceAppGlobalConfig(),
+  ...(config.apps?.markdown ?? {})
+});
+
+export const withMarkdownGlobalConfig = (
+  config: GlobalConfig,
+  markdownConfig: MarkdownGlobalConfig
+): GlobalConfig => {
+  const normalizedConfig = normalizeGlobalConfig(config);
+
+  return {
+    ...normalizedConfig,
+    apps: {
+      ...normalizedConfig.apps,
+      markdown: markdownConfig
+    }
+  };
+};
 
 export const defaultProjectConfig = (): ProjectConfig => ({
   editorFontFamily: 'monospace',

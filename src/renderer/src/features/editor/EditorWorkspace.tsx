@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { shallowEqual } from 'react-redux';
 import type {
   InlineCompletionContext,
   InlineCompletionResult
@@ -52,7 +53,8 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
         isActiveGroup: state.editor.activeGroupId === groupId,
         pendingReveal: state.editor.pendingReveal
       };
-    }
+    },
+    shallowEqual
   );
   const isLargeActiveFile = (activeFile?.sizeBytes ?? 0) >= largeMarkdownFileThresholdBytes;
   const { canSave, saveActiveFile } = useSaveActiveFile(groupId);

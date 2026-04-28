@@ -1,10 +1,15 @@
 import type { GlobalConfig } from '@shared/types/config';
-import { defaultGlobalConfig } from '@shared/types/config';
+import { defaultGlobalConfig, normalizeGlobalConfig } from '@shared/types/config';
 import { readJsonFileOrDefault, writeJsonFile } from '@main/storage/jsonFile';
 import { globalConfigFilePath } from '@main/storage/paths';
 
 export const loadGlobalConfig = async (userDataDir: string): Promise<GlobalConfig> => {
-  return readJsonFileOrDefault(globalConfigFilePath(userDataDir), defaultGlobalConfig());
+  const config = await readJsonFileOrDefault(
+    globalConfigFilePath(userDataDir),
+    defaultGlobalConfig()
+  );
+
+  return normalizeGlobalConfig(config);
 };
 
 export const saveGlobalConfig = async (
