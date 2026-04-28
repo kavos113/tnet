@@ -121,7 +121,10 @@ describe('ExplorerPanel', () => {
       indexedFileCount: 0,
       indexedLineCount: 0
     });
-    sessionLoad.mockResolvedValue({ openedFiles: [], expandedFolders: [] });
+    sessionLoad.mockResolvedValue({
+      explorer: { expandedFolders: [] },
+      apps: { markdown: { openedFiles: [] } }
+    });
     installTnetApi();
   });
 
@@ -249,8 +252,8 @@ describe('ExplorerPanel', () => {
       { name: 'second.md', path: '/second/second.md', isDirectory: false }
     ]);
     sessionLoad.mockResolvedValue({
-      openedFiles: ['/second/second.md', '/second/reference.pdf'],
-      expandedFolders: []
+      explorer: { expandedFolders: [] },
+      apps: { markdown: { openedFiles: ['second.md', 'reference.pdf'] } }
     });
     const store = renderExplorer(['/workspace', '/second']);
 
@@ -331,6 +334,34 @@ describe('ExplorerPanel', () => {
 
     await waitFor(() => {
       expect(fileRead).toHaveBeenCalledWith({ rootDir: '/workspace', path: 'docs/note.md' });
+    });
+  });
+
+  it('opens a workspace and saves config even when the workspace has an old session file', async () => {
+    openDirectory.mockResolvedValue({ rootPath: '/legacy' });
+    getFileTree.mockResolvedValue([
+      { name: 'legacy.md', path: '/legacy/legacy.md', isDirectory: false }
+    ]);
+    sessionLoad.mockResolvedValue({ openedFiles: ['/legacy/legacy.md'], expandedFolders: [] });
+    const store = renderExplorer(['/workspace']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open workspace' }));
+
+    await waitFor(() => {
+      expect(store.getState().workspace.rootPath).toBe('/legacy');
+      expect(store.getState().workspace.workspaceRoots).toEqual(['/workspace', '/legacy']);
+      expect(saveGlobal).toHaveBeenCalledWith({
+        activeAppId: 'markdown',
+        apps: {
+          markdown: {
+            lastOpenedDirectory: '/legacy',
+            activeWorkspaceRoot: '/legacy',
+            workspaceRoots: ['/workspace', '/legacy']
+          },
+          papers: {},
+          code: {}
+        }
+      });
     });
   });
 });

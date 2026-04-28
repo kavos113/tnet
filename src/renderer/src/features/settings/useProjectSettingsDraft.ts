@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import type { ProjectConfig } from '@shared/types/config';
-import { defaultProjectConfig } from '@shared/types/config';
+import type { MarkdownSettings, LlmSettings, ProjectConfig } from '@shared/types/config';
+import { defaultProjectConfig, normalizeProjectConfig } from '@shared/types/config';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { setSettings } from '@renderer/features/workspace/workspaceSlice';
 import { tnetApi } from '@renderer/lib/tnetApi';
 
 export interface ProjectSettingsDraft {
   draft: ProjectConfig;
-  updateDraft: <K extends keyof ProjectConfig>(key: K, value: ProjectConfig[K]) => void;
+  updateMarkdownDraft: <K extends keyof MarkdownSettings>(
+    key: K,
+    value: MarkdownSettings[K]
+  ) => void;
+  updateLlmDraft: <K extends keyof LlmSettings>(key: K, value: LlmSettings[K]) => void;
   saveSettings: () => Promise<void>;
 }
 
@@ -22,10 +26,7 @@ export const useProjectSettingsDraft = (isOpen: boolean): ProjectSettingsDraft =
 
     const loadSettings = async (): Promise<void> => {
       const loaded = rootPath ? await tnetApi.config.loadProject(rootPath) : defaultProjectConfig();
-      const merged = {
-        ...defaultProjectConfig(),
-        ...loaded
-      };
+      const merged = normalizeProjectConfig(loaded);
       dispatch(setSettings(merged));
       setDraft(merged);
     };
@@ -36,10 +37,26 @@ export const useProjectSettingsDraft = (isOpen: boolean): ProjectSettingsDraft =
     });
   }, [dispatch, isOpen, rootPath]);
 
-  const updateDraft = <K extends keyof ProjectConfig>(key: K, value: ProjectConfig[K]): void => {
+  const updateMarkdownDraft = <K extends keyof MarkdownSettings>(
+    key: K,
+    value: MarkdownSettings[K]
+  ): void => {
     setDraft((current) => ({
       ...current,
-      [key]: value
+      markdown: {
+        ...current.markdown,
+        [key]: value
+      }
+    }));
+  };
+
+  const updateLlmDraft = <K extends keyof LlmSettings>(key: K, value: LlmSettings[K]): void => {
+    setDraft((current) => ({
+      ...current,
+      llm: {
+        ...current.llm,
+        [key]: value
+      }
     }));
   };
 
@@ -50,7 +67,8 @@ export const useProjectSettingsDraft = (isOpen: boolean): ProjectSettingsDraft =
 
   return {
     draft,
-    updateDraft,
+    updateMarkdownDraft,
+    updateLlmDraft,
     saveSettings
   };
 };

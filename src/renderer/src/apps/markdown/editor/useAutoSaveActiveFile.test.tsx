@@ -76,8 +76,11 @@ describe('useAutoSaveActiveFile', () => {
     store.dispatch(
       setSettings({
         ...defaultProjectConfig(),
-        autoSaveEnabled: true,
-        autoSaveDebounceMs: 1000
+        markdown: {
+          ...defaultProjectConfig().markdown,
+          autoSaveEnabled: true,
+          autoSaveDebounceMs: 1000
+        }
       })
     );
     store.dispatch(openFile({ path: '/workspace/note.md', content: 'Initial' }));
@@ -114,8 +117,11 @@ describe('useAutoSaveActiveFile', () => {
     store.dispatch(
       setSettings({
         ...defaultProjectConfig(),
-        autoSaveEnabled: false,
-        autoSaveDebounceMs: 1000
+        markdown: {
+          ...defaultProjectConfig().markdown,
+          autoSaveEnabled: false,
+          autoSaveDebounceMs: 1000
+        }
       })
     );
     store.dispatch(openFile({ path: '/workspace/note.md', content: 'Initial' }));

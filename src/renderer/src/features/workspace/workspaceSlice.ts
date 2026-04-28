@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { ProjectConfig } from '@shared/types/config';
-import { defaultProjectConfig } from '@shared/types/config';
+import { defaultProjectConfig, normalizeProjectConfig } from '@shared/types/config';
 import type { FileItem } from '@shared/types/file';
 
 interface WorkspaceState {
@@ -50,10 +50,7 @@ const workspaceSlice = createSlice({
       state.fileTree = action.payload;
     },
     setSettings: (state, action: PayloadAction<ProjectConfig>) => {
-      state.settings = {
-        ...defaultProjectConfig(),
-        ...action.payload
-      };
+      state.settings = normalizeProjectConfig(action.payload);
     }
   }
 });

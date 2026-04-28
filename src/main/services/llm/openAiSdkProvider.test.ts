@@ -44,7 +44,7 @@ describe('openAiSdkProvider', () => {
   it('requests an inline completion through the OpenAI SDK Responses API', async () => {
     const controller = new AbortController();
     const config = {
-      ...defaultProjectConfig(),
+      ...defaultProjectConfig().llm,
       llmProvider: 'openai-sdk' as const,
       llmModel: 'gpt-5.2',
       llmEndpoint: 'https://example.test/v1',
@@ -85,7 +85,7 @@ describe('openAiSdkProvider', () => {
       openAiSdkProvider.complete(
         request,
         {
-          ...defaultProjectConfig(),
+          ...defaultProjectConfig().llm,
           llmProvider: 'openai-sdk',
           llmModel: 'gpt-5.2',
           llmApiKey: 'test-key'

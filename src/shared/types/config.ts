@@ -31,13 +31,16 @@ export type LlmProviderType =
   | 'openai-compatible'
   | 'local-http';
 
-export interface ProjectConfig {
+export interface MarkdownSettings {
   editorFontFamily: string;
   editorFontSize: number;
   previewFontFamily: string;
   previewFontSize: number;
   autoSaveEnabled: boolean;
   autoSaveDebounceMs: number;
+}
+
+export interface LlmSettings {
   llmInlineCompletionEnabled: boolean;
   llmProvider: LlmProviderType;
   llmModel: string;
@@ -47,6 +50,11 @@ export interface ProjectConfig {
   llmDebounceMs: number;
   llmMaxPrefixChars: number;
   llmMaxSuffixChars: number;
+}
+
+export interface ProjectConfig {
+  markdown: MarkdownSettings;
+  llm: LlmSettings;
 }
 
 export const defaultWorkspaceAppGlobalConfig = (): WorkspaceAppGlobalConfig => ({
@@ -95,13 +103,16 @@ export const withMarkdownGlobalConfig = (
   };
 };
 
-export const defaultProjectConfig = (): ProjectConfig => ({
+export const defaultMarkdownSettings = (): MarkdownSettings => ({
   editorFontFamily: 'monospace',
   editorFontSize: 16,
   previewFontFamily: 'sans-serif',
   previewFontSize: 16,
   autoSaveEnabled: true,
-  autoSaveDebounceMs: 1000,
+  autoSaveDebounceMs: 1000
+});
+
+export const defaultLlmSettings = (): LlmSettings => ({
   llmInlineCompletionEnabled: true,
   llmProvider: 'mock',
   llmModel: 'mock-inline-completion',
@@ -111,4 +122,20 @@ export const defaultProjectConfig = (): ProjectConfig => ({
   llmDebounceMs: 600,
   llmMaxPrefixChars: 6000,
   llmMaxSuffixChars: 1500
+});
+
+export const defaultProjectConfig = (): ProjectConfig => ({
+  markdown: defaultMarkdownSettings(),
+  llm: defaultLlmSettings()
+});
+
+export const normalizeProjectConfig = (config: Partial<ProjectConfig> = {}): ProjectConfig => ({
+  markdown: {
+    ...defaultMarkdownSettings(),
+    ...(config.markdown ?? {})
+  },
+  llm: {
+    ...defaultLlmSettings(),
+    ...(config.llm ?? {})
+  }
 });

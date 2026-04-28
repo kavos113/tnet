@@ -38,7 +38,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
   const workspaceApi = useActiveMarkdownWorkspaceApi();
-  const settings = useAppSelector((state) => state.workspace.settings);
+  const llmSettings = useAppSelector((state) => state.workspace.settings.llm);
   const { group, activeFile, activeFilePath, isActiveGroup, pendingReveal } = useAppSelector(
     (state) => {
       const nextGroup = state.editor.groups[groupId];
@@ -224,9 +224,9 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
                   loadKeywordIndex={workspaceApi.loadKeywordIndex}
                   requestInlineCompletion={requestInlineCompletion}
                   savePastedImage={workspaceApi.savePastedImage}
-                  inlineCompletionDebounceMs={settings.llmDebounceMs}
-                  inlineCompletionMaxPrefixChars={settings.llmMaxPrefixChars}
-                  inlineCompletionMaxSuffixChars={settings.llmMaxSuffixChars}
+                  inlineCompletionDebounceMs={llmSettings.llmDebounceMs}
+                  inlineCompletionMaxPrefixChars={llmSettings.llmMaxPrefixChars}
+                  inlineCompletionMaxSuffixChars={llmSettings.llmMaxSuffixChars}
                   isLargeDocument={isLargeActiveFile}
                 />
               </div>
@@ -273,7 +273,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
 
 export const EditorWorkspace = (): React.JSX.Element => {
   const dispatch = useAppDispatch();
-  const settings = useAppSelector((state) => state.workspace.settings);
+  const markdownSettings = useAppSelector((state) => state.workspace.settings.markdown);
   const { activeIndex, groupWidthPercent, isSecondaryGroupVisible } = useAppSelector(
     (state) => state.editor
   );
@@ -342,10 +342,10 @@ export const EditorWorkspace = (): React.JSX.Element => {
       className="editor-workspace"
       style={
         {
-          '--editor-font-family': settings.editorFontFamily,
-          '--editor-font-size': `${settings.editorFontSize}px`,
-          '--preview-font-family': settings.previewFontFamily,
-          '--preview-font-size': `${settings.previewFontSize}px`
+          '--editor-font-family': markdownSettings.editorFontFamily,
+          '--editor-font-size': `${markdownSettings.editorFontSize}px`,
+          '--preview-font-family': markdownSettings.previewFontFamily,
+          '--preview-font-size': `${markdownSettings.previewFontSize}px`
         } as CSSProperties
       }
     >

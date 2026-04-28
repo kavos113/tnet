@@ -44,7 +44,7 @@ describe('geminiSdkProvider', () => {
   it('requests an inline completion through the Gemini SDK', async () => {
     const controller = new AbortController();
     const config = {
-      ...defaultProjectConfig(),
+      ...defaultProjectConfig().llm,
       llmProvider: 'gemini-sdk' as const,
       llmModel: 'gemini-2.5-flash',
       llmEndpoint: 'https://example.test',
@@ -88,7 +88,7 @@ describe('geminiSdkProvider', () => {
       geminiSdkProvider.complete(
         request,
         {
-          ...defaultProjectConfig(),
+          ...defaultProjectConfig().llm,
           llmProvider: 'gemini-sdk',
           llmModel: 'gemini-2.5-flash',
           llmApiKey: 'gemini-key'

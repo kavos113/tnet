@@ -44,7 +44,7 @@ describe('lmStudioProvider', () => {
   it('requests an inline completion through an LM Studio OpenAI-compatible endpoint', async () => {
     const controller = new AbortController();
     const config = {
-      ...defaultProjectConfig(),
+      ...defaultProjectConfig().llm,
       llmProvider: 'lm-studio' as const,
       llmModel: 'local-model',
       llmEndpoint: 'http://localhost:1234/v1',
@@ -78,7 +78,7 @@ describe('lmStudioProvider', () => {
     await lmStudioProvider.complete(
       request,
       {
-        ...defaultProjectConfig(),
+        ...defaultProjectConfig().llm,
         llmProvider: 'lm-studio',
         llmModel: 'local-model'
       },

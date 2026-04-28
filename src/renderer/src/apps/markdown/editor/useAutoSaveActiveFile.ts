@@ -23,7 +23,7 @@ export const useAutoSaveActiveFile = ({
     return activePath ? state.editor.filesByPath[activePath] : null;
   });
   const { autoSaveDebounceMs, autoSaveEnabled } = useAppSelector(
-    (state) => state.workspace.settings
+    (state) => state.workspace.settings.markdown
   );
 
   useEffect(() => {

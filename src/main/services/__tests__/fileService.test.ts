@@ -142,20 +142,19 @@ describe('main file services', () => {
     });
   });
 
-  it('loads legacy session arrays as SessionData', async () => {
+  it('loads old or invalid session files as an empty current session', async () => {
     const root = await tempDir('legacy-session');
     await fs.mkdir(path.join(root, '.tnet'));
     await fs.writeFile(path.join(root, '.tnet', 'session.json'), JSON.stringify(['a.md']));
 
     await expect(loadSession(root)).resolves.toEqual({
-      openedFiles: ['a.md'],
-      expandedFolders: []
+      explorer: { expandedFolders: [] },
+      apps: { markdown: { openedFiles: [] } }
     });
   });
 
   it('updates session and keyword indexes when deleting and renaming files', async () => {
     const root = await tempDir('mutations');
-    const oldPath = path.join(root, 'old.md');
     const newPath = path.join(root, 'new.md');
 
     await writeFile({
@@ -164,24 +163,30 @@ describe('main file services', () => {
       content: '<keyword name="K1">body</keyword>'
     });
     await saveSession(root, {
-      openedFiles: [oldPath],
-      expandedFolders: [root],
-      editorLayout: {
-        activeGroupId: 'secondary',
-        isSecondaryGroupVisible: true,
-        groupWidthPercent: 55,
-        groups: {
-          primary: {
-            openedFiles: [oldPath],
-            activeIndex: 0,
-            viewMode: 'split',
-            isPreviewOutlineVisible: true
-          },
-          secondary: {
-            openedFiles: [oldPath],
-            activeIndex: 0,
-            viewMode: 'preview',
-            isPreviewOutlineVisible: false
+      explorer: {
+        expandedFolders: ['folder']
+      },
+      apps: {
+        markdown: {
+          openedFiles: ['old.md'],
+          editorLayout: {
+            activeGroupId: 'secondary',
+            isSecondaryGroupVisible: true,
+            groupWidthPercent: 55,
+            groups: {
+              primary: {
+                openedFiles: ['old.md'],
+                activeIndex: 0,
+                viewMode: 'split',
+                isPreviewOutlineVisible: true
+              },
+              secondary: {
+                openedFiles: ['old.md'],
+                activeIndex: 0,
+                viewMode: 'preview',
+                isPreviewOutlineVisible: false
+              }
+            }
           }
         }
       }
@@ -189,24 +194,30 @@ describe('main file services', () => {
     await renamePath({ rootDir: root, oldPath: 'old.md', newPath: 'new.md' });
 
     expect(await loadSession(root)).toEqual({
-      openedFiles: [newPath],
-      expandedFolders: [root],
-      editorLayout: {
-        activeGroupId: 'secondary',
-        isSecondaryGroupVisible: true,
-        groupWidthPercent: 55,
-        groups: {
-          primary: {
-            openedFiles: [newPath],
-            activeIndex: 0,
-            viewMode: 'split',
-            isPreviewOutlineVisible: true
-          },
-          secondary: {
-            openedFiles: [newPath],
-            activeIndex: 0,
-            viewMode: 'preview',
-            isPreviewOutlineVisible: false
+      explorer: {
+        expandedFolders: ['folder']
+      },
+      apps: {
+        markdown: {
+          openedFiles: ['new.md'],
+          editorLayout: {
+            activeGroupId: 'secondary',
+            isSecondaryGroupVisible: true,
+            groupWidthPercent: 55,
+            groups: {
+              primary: {
+                openedFiles: ['new.md'],
+                activeIndex: 0,
+                viewMode: 'split',
+                isPreviewOutlineVisible: true
+              },
+              secondary: {
+                openedFiles: ['new.md'],
+                activeIndex: 0,
+                viewMode: 'preview',
+                isPreviewOutlineVisible: false
+              }
+            }
           }
         }
       }
@@ -216,24 +227,30 @@ describe('main file services', () => {
     await deleteFile({ rootDir: root, path: 'new.md' });
 
     expect(await loadSession(root)).toEqual({
-      openedFiles: [],
-      expandedFolders: [root],
-      editorLayout: {
-        activeGroupId: 'secondary',
-        isSecondaryGroupVisible: true,
-        groupWidthPercent: 55,
-        groups: {
-          primary: {
-            openedFiles: [],
-            activeIndex: 0,
-            viewMode: 'split',
-            isPreviewOutlineVisible: true
-          },
-          secondary: {
-            openedFiles: [],
-            activeIndex: 0,
-            viewMode: 'preview',
-            isPreviewOutlineVisible: false
+      explorer: {
+        expandedFolders: ['folder']
+      },
+      apps: {
+        markdown: {
+          openedFiles: [],
+          editorLayout: {
+            activeGroupId: 'secondary',
+            isSecondaryGroupVisible: true,
+            groupWidthPercent: 55,
+            groups: {
+              primary: {
+                openedFiles: [],
+                activeIndex: 0,
+                viewMode: 'split',
+                isPreviewOutlineVisible: true
+              },
+              secondary: {
+                openedFiles: [],
+                activeIndex: 0,
+                viewMode: 'preview',
+                isPreviewOutlineVisible: false
+              }
+            }
           }
         }
       }

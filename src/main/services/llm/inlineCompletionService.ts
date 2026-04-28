@@ -26,15 +26,15 @@ const inlineCompletionTimeoutMs = 15000;
 export const getInlineCompletion = async (
   request: InlineCompletionRequest
 ): Promise<InlineCompletionResult | null> => {
-  const config = await loadProjectConfig(request.workspaceRoot);
-  if (!config.llmInlineCompletionEnabled) return null;
+  const { llm } = await loadProjectConfig(request.workspaceRoot);
+  if (!llm.llmInlineCompletionEnabled) return null;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), inlineCompletionTimeoutMs);
 
   try {
-    const provider = providerByType[config.llmProvider] ?? mockInlineCompletionProvider;
-    return await provider.complete(request, config, controller.signal);
+    const provider = providerByType[llm.llmProvider] ?? mockInlineCompletionProvider;
+    return await provider.complete(request, llm, controller.signal);
   } finally {
     clearTimeout(timeout);
   }

@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@renderer/app/store';
 import { setWorkspace } from '@renderer/features/workspace/workspaceSlice';
+import { defaultProjectConfig } from '@shared/types/config';
 import { SettingsDialog } from './SettingsDialog';
 
 const loadProject = vi.fn();
@@ -49,21 +50,14 @@ describe('SettingsDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     loadProject.mockResolvedValue({
-      editorFontFamily: 'Editor Font',
-      editorFontSize: 18,
-      previewFontFamily: 'Preview Font',
-      previewFontSize: 19,
-      autoSaveEnabled: true,
-      autoSaveDebounceMs: 1000,
-      llmInlineCompletionEnabled: true,
-      llmProvider: 'mock',
-      llmModel: 'mock-inline-completion',
-      llmEndpoint: '',
-      llmApiKey: '',
-      llmAutomaticTrigger: false,
-      llmDebounceMs: 600,
-      llmMaxPrefixChars: 6000,
-      llmMaxSuffixChars: 1500
+      markdown: {
+        ...defaultProjectConfig().markdown,
+        editorFontFamily: 'Editor Font',
+        editorFontSize: 18,
+        previewFontFamily: 'Preview Font',
+        previewFontSize: 19
+      },
+      llm: defaultProjectConfig().llm
     });
     saveProject.mockResolvedValue(undefined);
     installTnetApi();
@@ -98,12 +92,16 @@ describe('SettingsDialog', () => {
       expect(saveProject).toHaveBeenCalledWith(
         '/workspace',
         expect.objectContaining({
-          editorFontSize: 20,
-          autoSaveEnabled: false,
-          autoSaveDebounceMs: 1500,
-          llmProvider: 'local-http',
-          llmEndpoint: 'http://localhost:11434/inline',
-          llmAutomaticTrigger: true
+          markdown: expect.objectContaining({
+            editorFontSize: 20,
+            autoSaveEnabled: false,
+            autoSaveDebounceMs: 1500
+          }),
+          llm: expect.objectContaining({
+            llmProvider: 'local-http',
+            llmEndpoint: 'http://localhost:11434/inline',
+            llmAutomaticTrigger: true
+          })
         })
       );
       expect(onClose).toHaveBeenCalled();

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { textByteLength } from '@shared/file/largeFile';
-import { toWorkspaceRelativePath } from '@shared/path/pathUtils';
+import { toWorkspaceAbsolutePath } from '@shared/path/pathUtils';
+import { normalizeSessionData } from '@shared/types/file';
 import {
   getMarkdownGlobalConfig,
   normalizeGlobalConfig,
@@ -53,19 +54,21 @@ export const useMarkdownWorkspaceSwitcher = (): {
       const nextWorkspaceRoots = Array.from(
         new Set([...(options.workspaceRoots ?? workspaceRootsRef.current), rootPath])
       );
-      const [fileTree, settings, session] = await Promise.all([
+      const [fileTree, settings, rawSession] = await Promise.all([
         tnetApi.workspace.getFileTree(rootPath),
         tnetApi.config.loadProject(rootPath),
         tnetApi.session.load(rootPath)
       ]);
-      const sessionFilePaths = session.editorLayout
+      const session = normalizeSessionData(rawSession);
+      const markdownSession = session.apps.markdown;
+      const sessionFilePaths = markdownSession.editorLayout
         ? Array.from(
             new Set([
-              ...session.editorLayout.groups.primary.openedFiles,
-              ...session.editorLayout.groups.secondary.openedFiles
+              ...markdownSession.editorLayout.groups.primary.openedFiles,
+              ...markdownSession.editorLayout.groups.secondary.openedFiles
             ])
           )
-        : session.openedFiles;
+        : markdownSession.openedFiles;
       const restorableFilePaths = sessionFilePaths.filter(isMarkdownFilePath);
       const openedFiles = (
         await Promise.all(
@@ -73,10 +76,10 @@ export const useMarkdownWorkspaceSwitcher = (): {
             try {
               const content = await tnetApi.file.read({
                 rootDir: rootPath,
-                path: toWorkspaceRelativePath(rootPath, filePath)
+                path: filePath
               });
               return {
-                path: filePath,
+                path: toWorkspaceAbsolutePath(rootPath, filePath),
                 content,
                 sizeBytes: textByteLength(content)
               };
@@ -93,18 +96,26 @@ export const useMarkdownWorkspaceSwitcher = (): {
       dispatch(setWorkspace({ rootPath, fileTree, workspaceRoots: nextWorkspaceRoots }));
       dispatch(setSettings(settings));
       dispatch(resetExplorerState());
-      dispatch(setExpandedPaths(session.expandedFolders));
-      if (session.editorLayout) {
-        const primaryTabs =
-          session.editorLayout.groups.primary.openedFiles.filter(isMarkdownFilePath);
-        const secondaryTabs =
-          session.editorLayout.groups.secondary.openedFiles.filter(isMarkdownFilePath);
+      dispatch(
+        setExpandedPaths(
+          session.explorer.expandedFolders.map((folderPath) =>
+            toWorkspaceAbsolutePath(rootPath, folderPath)
+          )
+        )
+      );
+      if (markdownSession.editorLayout) {
+        const primaryTabs = markdownSession.editorLayout.groups.primary.openedFiles
+          .filter(isMarkdownFilePath)
+          .map((filePath) => toWorkspaceAbsolutePath(rootPath, filePath));
+        const secondaryTabs = markdownSession.editorLayout.groups.secondary.openedFiles
+          .filter(isMarkdownFilePath)
+          .map((filePath) => toWorkspaceAbsolutePath(rootPath, filePath));
         dispatch(
           replaceEditorSession({
             files: openedFiles,
-            activeGroupId: session.editorLayout.activeGroupId,
-            isSecondaryGroupVisible: session.editorLayout.isSecondaryGroupVisible,
-            groupWidthPercent: session.editorLayout.groupWidthPercent,
+            activeGroupId: markdownSession.editorLayout.activeGroupId,
+            isSecondaryGroupVisible: markdownSession.editorLayout.isSecondaryGroupVisible,
+            groupWidthPercent: markdownSession.editorLayout.groupWidthPercent,
             groups: {
               primary: {
                 tabs: primaryTabs,
@@ -112,11 +123,12 @@ export const useMarkdownWorkspaceSwitcher = (): {
                   primaryTabs.length === 0
                     ? -1
                     : Math.min(
-                        session.editorLayout.groups.primary.activeIndex,
+                        markdownSession.editorLayout.groups.primary.activeIndex,
                         primaryTabs.length - 1
                       ),
-                viewMode: session.editorLayout.groups.primary.viewMode,
-                isPreviewOutlineVisible: session.editorLayout.groups.primary.isPreviewOutlineVisible
+                viewMode: markdownSession.editorLayout.groups.primary.viewMode,
+                isPreviewOutlineVisible:
+                  markdownSession.editorLayout.groups.primary.isPreviewOutlineVisible
               },
               secondary: {
                 tabs: secondaryTabs,
@@ -124,12 +136,12 @@ export const useMarkdownWorkspaceSwitcher = (): {
                   secondaryTabs.length === 0
                     ? -1
                     : Math.min(
-                        session.editorLayout.groups.secondary.activeIndex,
+                        markdownSession.editorLayout.groups.secondary.activeIndex,
                         secondaryTabs.length - 1
                       ),
-                viewMode: session.editorLayout.groups.secondary.viewMode,
+                viewMode: markdownSession.editorLayout.groups.secondary.viewMode,
                 isPreviewOutlineVisible:
-                  session.editorLayout.groups.secondary.isPreviewOutlineVisible
+                  markdownSession.editorLayout.groups.secondary.isPreviewOutlineVisible
               }
             }
           })

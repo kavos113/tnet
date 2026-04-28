@@ -60,21 +60,28 @@ describe('usePersistMarkdownSession', () => {
     expect(sessionSave).toHaveBeenCalledWith(
       '/workspace',
       expect.objectContaining({
-        openedFiles: ['/workspace/note.md'],
-        editorLayout: expect.objectContaining({
-          activeGroupId: 'secondary',
-          isSecondaryGroupVisible: true,
-          groups: {
-            primary: expect.objectContaining({
-              openedFiles: ['/workspace/note.md'],
-              viewMode: 'split'
-            }),
-            secondary: expect.objectContaining({
-              openedFiles: ['/workspace/note.md'],
-              viewMode: 'preview'
+        explorer: expect.objectContaining({
+          expandedFolders: []
+        }),
+        apps: {
+          markdown: expect.objectContaining({
+            openedFiles: ['note.md'],
+            editorLayout: expect.objectContaining({
+              activeGroupId: 'secondary',
+              isSecondaryGroupVisible: true,
+              groups: {
+                primary: expect.objectContaining({
+                  openedFiles: ['note.md'],
+                  viewMode: 'split'
+                }),
+                secondary: expect.objectContaining({
+                  openedFiles: ['note.md'],
+                  viewMode: 'preview'
+                })
+              }
             })
-          }
-        })
+          })
+        }
       })
     );
   });

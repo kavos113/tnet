@@ -34,7 +34,7 @@ const isMarkdownFilePath = (filePath: string): boolean => filePath.toLowerCase()
 export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
   const dispatch = useAppDispatch();
   const rootPath = useAppSelector((state) => state.workspace.rootPath);
-  const settings = useAppSelector((state) => state.workspace.settings);
+  const llmSettings = useAppSelector((state) => state.workspace.settings.llm);
   const toWorkspacePathRequest = useCallback(
     (filePath: string): { rootDir: string; path: string } => ({
       rootDir: rootPath,
@@ -127,8 +127,8 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
       context: InlineCompletionContext
     ): Promise<InlineCompletionResult | null> => {
       if (!rootPath) return null;
-      if (!settings.llmInlineCompletionEnabled) return null;
-      if (context.trigger === 'automatic' && !settings.llmAutomaticTrigger) return null;
+      if (!llmSettings.llmInlineCompletionEnabled) return null;
+      if (context.trigger === 'automatic' && !llmSettings.llmAutomaticTrigger) return null;
       return tnetApi.llm.getInlineCompletion({
         ...context,
         workspaceRoot: rootPath,
@@ -136,7 +136,7 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
         language: 'markdown'
       });
     },
-    [rootPath, settings.llmAutomaticTrigger, settings.llmInlineCompletionEnabled]
+    [rootPath, llmSettings.llmAutomaticTrigger, llmSettings.llmInlineCompletionEnabled]
   );
 
   return {

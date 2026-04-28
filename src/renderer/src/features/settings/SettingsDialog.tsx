@@ -10,7 +10,9 @@ export const SettingsDialog = ({
   isOpen,
   onClose
 }: SettingsDialogProps): React.JSX.Element | null => {
-  const { draft, updateDraft, saveSettings } = useProjectSettingsDraft(isOpen);
+  const { draft, updateMarkdownDraft, updateLlmDraft, saveSettings } =
+    useProjectSettingsDraft(isOpen);
+  const { markdown, llm } = draft;
 
   if (!isOpen) return null;
 
@@ -29,8 +31,8 @@ export const SettingsDialog = ({
             <span>Font family</span>
             <input
               id="editor-font-family"
-              value={draft.editorFontFamily}
-              onChange={(event) => updateDraft('editorFontFamily', event.target.value)}
+              value={markdown.editorFontFamily}
+              onChange={(event) => updateMarkdownDraft('editorFontFamily', event.target.value)}
             />
           </label>
           <label className="form-item" htmlFor="editor-font-size">
@@ -40,8 +42,10 @@ export const SettingsDialog = ({
               type="number"
               min={8}
               max={48}
-              value={draft.editorFontSize}
-              onChange={(event) => updateDraft('editorFontSize', Number(event.target.value))}
+              value={markdown.editorFontSize}
+              onChange={(event) =>
+                updateMarkdownDraft('editorFontSize', Number(event.target.value))
+              }
             />
           </label>
         </div>
@@ -52,8 +56,8 @@ export const SettingsDialog = ({
             <span>Font family</span>
             <input
               id="preview-font-family"
-              value={draft.previewFontFamily}
-              onChange={(event) => updateDraft('previewFontFamily', event.target.value)}
+              value={markdown.previewFontFamily}
+              onChange={(event) => updateMarkdownDraft('previewFontFamily', event.target.value)}
             />
           </label>
           <label className="form-item" htmlFor="preview-font-size">
@@ -63,8 +67,10 @@ export const SettingsDialog = ({
               type="number"
               min={8}
               max={48}
-              value={draft.previewFontSize}
-              onChange={(event) => updateDraft('previewFontSize', Number(event.target.value))}
+              value={markdown.previewFontSize}
+              onChange={(event) =>
+                updateMarkdownDraft('previewFontSize', Number(event.target.value))
+              }
             />
           </label>
         </div>
@@ -76,8 +82,8 @@ export const SettingsDialog = ({
             <input
               id="auto-save-enabled"
               type="checkbox"
-              checked={draft.autoSaveEnabled}
-              onChange={(event) => updateDraft('autoSaveEnabled', event.target.checked)}
+              checked={markdown.autoSaveEnabled}
+              onChange={(event) => updateMarkdownDraft('autoSaveEnabled', event.target.checked)}
             />
           </label>
           <label className="form-item" htmlFor="auto-save-debounce-ms">
@@ -87,8 +93,10 @@ export const SettingsDialog = ({
               type="number"
               min={0}
               max={30000}
-              value={draft.autoSaveDebounceMs}
-              onChange={(event) => updateDraft('autoSaveDebounceMs', Number(event.target.value))}
+              value={markdown.autoSaveDebounceMs}
+              onChange={(event) =>
+                updateMarkdownDraft('autoSaveDebounceMs', Number(event.target.value))
+              }
             />
           </label>
         </div>
@@ -100,17 +108,19 @@ export const SettingsDialog = ({
             <input
               id="llm-inline-enabled"
               type="checkbox"
-              checked={draft.llmInlineCompletionEnabled}
-              onChange={(event) => updateDraft('llmInlineCompletionEnabled', event.target.checked)}
+              checked={llm.llmInlineCompletionEnabled}
+              onChange={(event) =>
+                updateLlmDraft('llmInlineCompletionEnabled', event.target.checked)
+              }
             />
           </label>
           <label className="form-item" htmlFor="llm-provider">
             <span>Provider</span>
             <select
               id="llm-provider"
-              value={draft.llmProvider}
+              value={llm.llmProvider}
               onChange={(event) =>
-                updateDraft('llmProvider', event.target.value as LlmProviderType)
+                updateLlmDraft('llmProvider', event.target.value as LlmProviderType)
               }
             >
               <option value="mock">Mock</option>
@@ -125,16 +135,16 @@ export const SettingsDialog = ({
             <span>Model</span>
             <input
               id="llm-model"
-              value={draft.llmModel}
-              onChange={(event) => updateDraft('llmModel', event.target.value)}
+              value={llm.llmModel}
+              onChange={(event) => updateLlmDraft('llmModel', event.target.value)}
             />
           </label>
           <label className="form-item" htmlFor="llm-endpoint">
             <span>Endpoint</span>
             <input
               id="llm-endpoint"
-              value={draft.llmEndpoint}
-              onChange={(event) => updateDraft('llmEndpoint', event.target.value)}
+              value={llm.llmEndpoint}
+              onChange={(event) => updateLlmDraft('llmEndpoint', event.target.value)}
             />
           </label>
           <label className="form-item" htmlFor="llm-api-key">
@@ -142,8 +152,8 @@ export const SettingsDialog = ({
             <input
               id="llm-api-key"
               type="password"
-              value={draft.llmApiKey}
-              onChange={(event) => updateDraft('llmApiKey', event.target.value)}
+              value={llm.llmApiKey}
+              onChange={(event) => updateLlmDraft('llmApiKey', event.target.value)}
             />
           </label>
           <label className="form-item form-item-inline" htmlFor="llm-automatic-trigger">
@@ -151,8 +161,8 @@ export const SettingsDialog = ({
             <input
               id="llm-automatic-trigger"
               type="checkbox"
-              checked={draft.llmAutomaticTrigger}
-              onChange={(event) => updateDraft('llmAutomaticTrigger', event.target.checked)}
+              checked={llm.llmAutomaticTrigger}
+              onChange={(event) => updateLlmDraft('llmAutomaticTrigger', event.target.checked)}
             />
           </label>
           <label className="form-item" htmlFor="llm-debounce-ms">
@@ -162,8 +172,8 @@ export const SettingsDialog = ({
               type="number"
               min={0}
               max={5000}
-              value={draft.llmDebounceMs}
-              onChange={(event) => updateDraft('llmDebounceMs', Number(event.target.value))}
+              value={llm.llmDebounceMs}
+              onChange={(event) => updateLlmDraft('llmDebounceMs', Number(event.target.value))}
             />
           </label>
           <label className="form-item" htmlFor="llm-max-prefix-chars">
@@ -173,8 +183,8 @@ export const SettingsDialog = ({
               type="number"
               min={100}
               max={50000}
-              value={draft.llmMaxPrefixChars}
-              onChange={(event) => updateDraft('llmMaxPrefixChars', Number(event.target.value))}
+              value={llm.llmMaxPrefixChars}
+              onChange={(event) => updateLlmDraft('llmMaxPrefixChars', Number(event.target.value))}
             />
           </label>
           <label className="form-item" htmlFor="llm-max-suffix-chars">
@@ -184,8 +194,8 @@ export const SettingsDialog = ({
               type="number"
               min={0}
               max={20000}
-              value={draft.llmMaxSuffixChars}
-              onChange={(event) => updateDraft('llmMaxSuffixChars', Number(event.target.value))}
+              value={llm.llmMaxSuffixChars}
+              onChange={(event) => updateLlmDraft('llmMaxSuffixChars', Number(event.target.value))}
             />
           </label>
         </div>

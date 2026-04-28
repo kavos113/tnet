@@ -12,6 +12,13 @@ export const toWorkspaceRelativePath = (rootDir: string, filePath: string): stri
   return target.startsWith(`${root}/`) ? target.slice(root.length + 1) : target;
 };
 
+export const toWorkspaceAbsolutePath = (rootDir: string, filePath: string): string => {
+  if (!rootDir || !filePath) return filePath;
+  const normalizedPath = normalizeToSlash(filePath);
+  if (/^[a-zA-Z]:\//.test(normalizedPath) || normalizedPath.startsWith('/')) return filePath;
+  return joinPath(rootDir, filePath);
+};
+
 export const dirname = (filePath: string): string => {
   const separator = filePath.includes('\\') ? '\\' : '/';
   const index = Math.max(filePath.lastIndexOf('\\'), filePath.lastIndexOf('/'));

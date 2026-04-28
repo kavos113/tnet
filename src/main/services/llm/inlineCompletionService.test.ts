@@ -31,7 +31,15 @@ describe('getInlineCompletion', () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tnet-llm-'));
     await saveProjectConfig(root, {
       ...defaultProjectConfig(),
-      ...config
+      ...config,
+      markdown: {
+        ...defaultProjectConfig().markdown,
+        ...(config.markdown ?? {})
+      },
+      llm: {
+        ...defaultProjectConfig().llm,
+        ...(config.llm ?? {})
+      }
     });
     return root;
   };
@@ -56,7 +64,10 @@ describe('getInlineCompletion', () => {
 
   it('returns null when inline completion is disabled', async () => {
     const workspaceRoot = await createWorkspace({
-      llmInlineCompletionEnabled: false
+      llm: {
+        ...defaultProjectConfig().llm,
+        llmInlineCompletionEnabled: false
+      }
     });
 
     await expect(getInlineCompletion(createRequest({ workspaceRoot }))).resolves.toBeNull();
@@ -73,9 +84,12 @@ describe('getInlineCompletion', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
     const workspaceRoot = await createWorkspace({
-      llmProvider: 'local-http',
-      llmModel: 'local-model',
-      llmEndpoint: 'http://localhost:11434/inline'
+      llm: {
+        ...defaultProjectConfig().llm,
+        llmProvider: 'local-http',
+        llmModel: 'local-model',
+        llmEndpoint: 'http://localhost:11434/inline'
+      }
     });
 
     await expect(getInlineCompletion(createRequest({ workspaceRoot }))).resolves.toMatchObject({
