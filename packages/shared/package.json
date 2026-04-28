@@ -1,0 +1,16 @@
+{
+  "name": "@tnet/shared",
+  "version": "2.0.2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./app/*": "./src/app/*",
+    "./file/*": "./src/file/*",
+    "./ipc/*": "./src/ipc/*",
+    "./keyword/*": "./src/keyword/*",
+    "./llm/*": "./src/llm/*",
+    "./path/*": "./src/path/*",
+    "./search/*": "./src/search/*",
+    "./types/*": "./src/types/*"
+  }
+}

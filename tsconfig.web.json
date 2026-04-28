@@ -1,19 +1,29 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": [
-    "src/renderer/src/env.d.ts",
-    "src/renderer/src/**/*",
-    "src/preload/types.ts",
-    "src/shared/**/*"
+    "apps/desktop/src/renderer/src/env.d.ts",
+    "apps/desktop/src/renderer/src/**/*",
+    "apps/desktop/src/preload/types.ts",
+    "packages/app-markdown/src/renderer/**/*",
+    "packages/app-markdown/src/shared/**/*",
+    "packages/renderer-core/src/**/*",
+    "packages/shared/src/**/*",
+    "packages/ui/src/**/*"
   ],
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@renderer/*": ["./src/renderer/src/*"],
-      "@preload/*": ["./src/preload/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@renderer/*": ["./apps/desktop/src/renderer/src/*"],
+      "@preload/*": ["./apps/desktop/src/preload/*"],
+      "@shared/*": ["./packages/shared/src/*"],
+      "@tnet/app-markdown/renderer": ["./packages/app-markdown/src/renderer/index.ts"],
+      "@tnet/app-markdown/renderer/*": ["./packages/app-markdown/src/renderer/*"],
+      "@tnet/app-markdown/shared/*": ["./packages/app-markdown/src/shared/*"],
+      "@tnet/renderer-core/*": ["./packages/renderer-core/src/*"],
+      "@tnet/shared/*": ["./packages/shared/src/*"],
+      "@tnet/ui/*": ["./packages/ui/src/*"]
     }
   }
 }
