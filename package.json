@@ -1,6 +1,6 @@
 {
   "name": "tnet",
-  "version": "0.2.0",
+  "version": "2.0.2",
   "description": "Obsidian-like markdown editor built with Electron, Vite, React, and TypeScript",
   "main": "./out/main/index.js",
   "scripts": {
