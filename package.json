@@ -12,6 +12,7 @@
     "typecheck": "pnpm typecheck:node && pnpm typecheck:web",
     "start": "pnpm --filter @tnet/desktop start",
     "dev": "pnpm --filter @tnet/desktop dev",
+    "verify:dev": "powershell -ExecutionPolicy Bypass -File scripts/verify-dev.ps1",
     "build": "pnpm typecheck && pnpm --filter @tnet/desktop build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "pnpm --filter @tnet/desktop build:unpack",
