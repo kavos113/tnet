@@ -31,18 +31,15 @@ describe('PapersServerSupervisor', () => {
 
     for (const testcase of testcases) {
       const healthResults = [...testcase.healthResults];
-      const fetchImpl = vi.fn(async () => {
+      const healthCheck = vi.fn(async () => {
         const healthy =
           healthResults.shift() ?? testcase.healthResults[testcase.healthResults.length - 1];
-        return {
-          ok: healthy,
-          json: async () => ({ status: healthy ? 'ok' : 'starting' })
-        };
+        return healthy;
       });
       const spawnImpl = vi.fn(() => new FakeChildProcess() as never);
       const supervisor = new PapersServerSupervisor({
         command: { command: 'go', args: ['run', './cmd/papers-server'] },
-        fetchImpl,
+        healthCheck,
         spawnImpl,
         pollIntervalMs: 1,
         startupTimeoutMs: 100
@@ -55,13 +52,10 @@ describe('PapersServerSupervisor', () => {
 
   it('stops the child process it started', async () => {
     const child = new FakeChildProcess();
-    const fetchImpl = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: false, json: async () => ({ status: 'starting' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ status: 'ok' }) });
+    const healthCheck = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
     const supervisor = new PapersServerSupervisor({
       command: { command: 'go', args: ['run', './cmd/papers-server'] },
-      fetchImpl,
+      healthCheck,
       spawnImpl: vi.fn(() => child as never),
       pollIntervalMs: 1,
       startupTimeoutMs: 100

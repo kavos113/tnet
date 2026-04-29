@@ -14,15 +14,19 @@ describe('resolvePapersServerCommand', () => {
           userDataDir: path.join('C:', 'dummy-user-data', 'tnet'),
           platform: 'win32' as NodeJS.Platform
         },
-        wantCommand: 'go',
+        wantCommand: 'powershell',
         wantArgs: [
-          'run',
-          './cmd/papers-server',
-          '--',
-          '--user-data-dir',
-          path.join('C:', 'dummy-user-data', 'tnet')
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-File',
+          path.join('C:', 'dummy-repo', 'scripts', 'start-paper-server-dev.ps1'),
+          '-UserDataDir',
+          path.join('C:', 'dummy-user-data', 'tnet'),
+          '-AccessLogPath',
+          path.join('C:', 'dummy-user-data', 'tnet', 'papers-server-access.log')
         ],
-        wantCwd: path.join('C:', 'dummy-repo', 'services', 'papers-server')
+        wantCwd: path.join('C:', 'dummy-repo')
       },
       {
         name: 'packaged windows',
@@ -41,7 +45,12 @@ describe('resolvePapersServerCommand', () => {
           'papers-server',
           'papers-server.exe'
         ),
-        wantArgs: ['--user-data-dir', path.join('C:', 'dummy-user-data', 'tnet')],
+        wantArgs: [
+          '--user-data-dir',
+          path.join('C:', 'dummy-user-data', 'tnet'),
+          '--access-log-path',
+          path.join('C:', 'dummy-user-data', 'tnet', 'papers-server-access.log')
+        ],
         wantCwd: undefined
       }
     ];
