@@ -26,10 +26,42 @@
 
 .papers-pdf-page-status {
   flex: 0 0 auto;
-  min-width: 52px;
+  min-width: 56px;
   font-size: 12px;
   color: var(--foreground-muted);
   text-align: center;
+}
+
+.papers-pdf-view-mode {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
+.papers-pdf-mode-button {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  background: var(--background);
+  border: 0;
+  border-right: 1px solid var(--gray);
+}
+
+.papers-pdf-mode-button:last-child {
+  border-right: 0;
+}
+
+.papers-pdf-mode-button:hover {
+  color: var(--foreground);
+  background: var(--tab-hover-bg);
+}
+
+.papers-pdf-mode-button.active {
+  color: var(--foreground);
+  background: var(--gray);
 }
 
 .papers-select {
@@ -48,9 +80,39 @@
   background: #2b2b2b;
 }
 
+.papers-pdf-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  min-width: min-content;
+  padding: 8px;
+}
+
+.papers-pdf-spread {
+  display: flex;
+  gap: 4px;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+}
+
+.papers-pdf-page {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  margin: 0;
+}
+
+.papers-pdf-page figcaption {
+  font-size: 11px;
+  line-height: 1;
+  color: rgb(255 255 255 / 70%);
+}
+
 .papers-pdf-canvas {
   display: block;
-  margin: 16px auto;
   background: #ffffff;
   border: 0;
   box-shadow: 0 2px 12px rgb(0 0 0 / 35%);
@@ -66,6 +128,21 @@
   color: #ffffff;
   pointer-events: none;
   background: rgb(0 0 0 / 55%);
+  border-radius: 4px;
+  transform: translateX(-50%);
+}
+
+.papers-pdf-page-error {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 1;
+  min-width: 160px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #ffffff;
+  text-align: center;
+  background: rgb(120 30 30 / 85%);
   border-radius: 4px;
   transform: translateX(-50%);
 }

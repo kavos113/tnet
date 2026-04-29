@@ -21,6 +21,28 @@ vi.mock('pdfjs-dist', () => ({
 
 const loadBytes = vi.fn();
 const openExternal = vi.fn();
+let resizeObserverCallback:
+  | ((entries: Array<{ contentRect: { width: number; height: number } }>) => void)
+  | null = null;
+
+class ResizeObserverMock {
+  readonly callback: (entries: Array<{ contentRect: { width: number; height: number } }>) => void;
+
+  constructor(
+    callback: (entries: Array<{ contentRect: { width: number; height: number } }>) => void
+  ) {
+    this.callback = callback;
+    resizeObserverCallback = callback;
+  }
+
+  observe(): void {
+    this.callback([{ contentRect: { width: 832, height: 600 } }]);
+  }
+
+  disconnect(): void {
+    resizeObserverCallback = null;
+  }
+}
 
 const installTnetApi = (): void => {
   Object.defineProperty(window, 'tnet', {
@@ -76,6 +98,11 @@ describe('PdfViewer', () => {
       configurable: true,
       value: vi.fn(() => ({}))
     });
+    Object.defineProperty(window, 'ResizeObserver', {
+      configurable: true,
+      value: ResizeObserverMock
+    });
+    resizeObserverCallback = null;
     loadBytes.mockResolvedValue(new Uint8Array([1, 2, 3]).buffer);
     openExternal.mockResolvedValue(undefined);
     renderPage.mockReturnValue({
@@ -99,7 +126,7 @@ describe('PdfViewer', () => {
     cleanup();
   });
 
-  it('loads PDF bytes through IPC and renders the first page with pdf.js', async () => {
+  it('loads PDF bytes through IPC and renders every page as a scrollable document', async () => {
     render(<PdfViewer libraryRoot="/papers/library" pdfPath="papers/lambda.pdf" />);
 
     await waitFor(() => {
@@ -109,28 +136,54 @@ describe('PdfViewer', () => {
       });
       expect(getDocument).toHaveBeenCalledWith({ data: expect.any(Uint8Array) });
       expect(pdfDocument.getPage).toHaveBeenCalledWith(1);
-    });
-
-    expect(screen.getByLabelText('PDF page')).toHaveTextContent('1 / 2');
-    expect(screen.getByLabelText('PDF page canvas')).toBeInTheDocument();
-  });
-
-  it('supports page navigation, zoom, and opening the PDF externally', async () => {
-    render(<PdfViewer libraryRoot="/papers/library" pdfPath="papers/lambda.pdf" />);
-
-    await screen.findByText('1 / 2');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
-    await waitFor(() => {
       expect(pdfDocument.getPage).toHaveBeenCalledWith(2);
     });
-    expect(screen.getByLabelText('PDF page')).toHaveTextContent('2 / 2');
+
+    expect(screen.getByLabelText('PDF page count')).toHaveTextContent('2 pages');
+    expect(screen.getByLabelText('PDF page 1 canvas')).toBeInTheDocument();
+    expect(screen.getByLabelText('PDF page 2 canvas')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Previous page' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next page' })).not.toBeInTheDocument();
+  });
+
+  it('switches to two-page spread mode', async () => {
+    render(<PdfViewer libraryRoot="/papers/library" pdfPath="papers/lambda.pdf" />);
+
+    await screen.findByText('2 pages');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Two pages' }));
+
+    const spreads = await screen.findAllByTestId('pdf-spread');
+    expect(spreads).toHaveLength(1);
+    expect(spreads[0]).toContainElement(screen.getByLabelText('PDF page 1 canvas'));
+    expect(spreads[0]).toContainElement(screen.getByLabelText('PDF page 2 canvas'));
+  });
+
+  it('rerenders page-width PDFs when the viewer width changes', async () => {
+    render(<PdfViewer libraryRoot="/papers/library" pdfPath="papers/lambda.pdf" />);
+
+    const firstPageCanvas = await screen.findByLabelText('PDF page 1 canvas');
+
+    await waitFor(() => {
+      expect(firstPageCanvas).toHaveStyle({ width: '800px' });
+    });
+
+    resizeObserverCallback?.([{ contentRect: { width: 1032, height: 600 } }]);
+    await waitFor(() => {
+      expect(firstPageCanvas).toHaveStyle({ width: '1000px' });
+    });
+  });
+
+  it('supports fixed zoom and opening the PDF externally', async () => {
+    render(<PdfViewer libraryRoot="/papers/library" pdfPath="papers/lambda.pdf" />);
+
+    await screen.findByText('2 pages');
 
     fireEvent.change(screen.getByRole('combobox', { name: 'PDF zoom' }), {
       target: { value: '150' }
     });
     await waitFor(() => {
-      expect(renderPage).toHaveBeenCalled();
+      expect(screen.getByLabelText('PDF page 1 canvas')).toHaveStyle({ width: '150px' });
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Open PDF' }));
