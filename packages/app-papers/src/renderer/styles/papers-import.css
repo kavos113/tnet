@@ -1,0 +1,77 @@
+.papers-import-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 45%);
+}
+
+.papers-import-dialog {
+  display: grid;
+  gap: 14px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 16px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 35%);
+}
+
+.papers-import-dialog header,
+.papers-import-dialog footer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.papers-import-dialog h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.papers-import-dialog footer {
+  justify-content: flex-end;
+}
+
+.papers-form-field {
+  display: grid;
+  gap: 6px;
+}
+
+.papers-form-field span,
+.papers-import-paths span {
+  font-size: 12px;
+  color: var(--foreground-muted);
+}
+
+.papers-form-field input {
+  height: 30px;
+  padding: 0 8px;
+  color: var(--foreground);
+  background: var(--background-dark);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  outline: 0;
+}
+
+.papers-form-field input:focus {
+  border-color: var(--main-light);
+}
+
+.papers-import-paths {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.papers-import-paths code {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

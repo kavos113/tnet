@@ -1,0 +1,111 @@
+.papers-list-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+}
+
+.papers-list-filter {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-title-filter {
+  display: grid;
+  gap: 4px;
+}
+
+.papers-title-filter span {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.papers-title-filter input {
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  color: var(--foreground);
+  background: var(--background-dark);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  outline: 0;
+}
+
+.papers-title-filter input:focus {
+  border-color: var(--main-light);
+}
+
+.papers-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+.papers-list-header,
+.papers-list-item {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 70px minmax(120px, 28%);
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 420px;
+}
+
+.papers-list-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex: 0 0 auto;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+  background: var(--background);
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-list-item {
+  flex: 0 0 32px;
+  height: 32px;
+  padding: 0 10px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-list-item:hover,
+.papers-list-item.active {
+  background: var(--background-light);
+}
+
+.papers-list-title,
+.papers-list-year,
+.papers-list-journal {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papers-list-title {
+  font-weight: 600;
+}
+
+.papers-list-year,
+.papers-list-journal {
+  color: var(--foreground-muted);
+}
