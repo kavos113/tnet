@@ -16,6 +16,7 @@ import type { ListTagsResponse } from './papers';
 import type { ListTagsRequest } from './papers';
 import { PaperService } from './papers';
 import type { SaveNoteRequest } from './papers';
+import type { ImportBrowserPaperProgress } from './papers';
 import type { ImportBrowserPaperResponse } from './papers';
 import type { ImportBrowserPaperRequest } from './papers';
 import type { PaperDetail } from './papers';
@@ -520,6 +521,18 @@ export interface IPaperServiceClient {
     callback: (err: grpc.ServiceError | null, value?: ImportBrowserPaperResponse) => void
   ): grpc.ClientUnaryCall;
   /**
+   * @generated from protobuf rpc: ImportBrowserPaperWithProgress
+   */
+  importBrowserPaperWithProgress(
+    input: ImportBrowserPaperRequest,
+    metadata?: grpc.Metadata,
+    options?: grpc.CallOptions
+  ): grpc.ClientReadableStream<ImportBrowserPaperProgress>;
+  importBrowserPaperWithProgress(
+    input: ImportBrowserPaperRequest,
+    options?: grpc.CallOptions
+  ): grpc.ClientReadableStream<ImportBrowserPaperProgress>;
+  /**
    * @generated from protobuf rpc: SaveNote
    */
   saveNote(
@@ -661,6 +674,26 @@ export class PaperServiceClient extends grpc.Client implements IPaperServiceClie
     );
   }
   /**
+   * @generated from protobuf rpc: ImportBrowserPaperWithProgress
+   */
+  importBrowserPaperWithProgress(
+    input: ImportBrowserPaperRequest,
+    metadata?: grpc.Metadata | grpc.CallOptions,
+    options?: grpc.CallOptions
+  ): grpc.ClientReadableStream<ImportBrowserPaperProgress> {
+    const method = PaperService.methods[4];
+    return this.makeServerStreamRequest<ImportBrowserPaperRequest, ImportBrowserPaperProgress>(
+      `/${PaperService.typeName}/${method.name}`,
+      (value: ImportBrowserPaperRequest): Buffer =>
+        Buffer.from(method.I.toBinary(value, this._binaryOptions)),
+      (value: Buffer): ImportBrowserPaperProgress =>
+        method.O.fromBinary(value, this._binaryOptions),
+      input,
+      metadata as any,
+      options
+    );
+  }
+  /**
    * @generated from protobuf rpc: SaveNote
    */
   saveNote(
@@ -674,7 +707,7 @@ export class PaperServiceClient extends grpc.Client implements IPaperServiceClie
       | ((err: grpc.ServiceError | null, value?: GetPaperResponse) => void),
     callback?: (err: grpc.ServiceError | null, value?: GetPaperResponse) => void
   ): grpc.ClientUnaryCall {
-    const method = PaperService.methods[4];
+    const method = PaperService.methods[5];
     return this.makeUnaryRequest<SaveNoteRequest, GetPaperResponse>(
       `/${PaperService.typeName}/${method.name}`,
       (value: SaveNoteRequest): Buffer =>

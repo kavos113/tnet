@@ -22,6 +22,7 @@ service PaperService {
   rpc GetPaper(GetPaperRequest) returns (GetPaperResponse);
   rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (PaperDetail);
   rpc ImportBrowserPaper(ImportBrowserPaperRequest) returns (ImportBrowserPaperResponse);
+  rpc ImportBrowserPaperWithProgress(ImportBrowserPaperRequest) returns (stream ImportBrowserPaperProgress);
   rpc SaveNote(SaveNoteRequest) returns (GetPaperResponse);
 }
 
@@ -259,4 +260,12 @@ message ImportBrowserPaperRequest {
 message ImportBrowserPaperResponse {
   string status = 1;
   PaperDetail paper = 2;
+}
+
+message ImportBrowserPaperProgress {
+  string stage = 1;
+  string message = 2;
+  int64 downloaded_bytes = 3;
+  int64 total_bytes = 4;
+  ImportBrowserPaperResponse response = 5;
 }

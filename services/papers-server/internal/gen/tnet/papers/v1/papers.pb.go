@@ -2257,6 +2257,82 @@ func (x *ImportBrowserPaperResponse) GetPaper() *PaperDetail {
 	return nil
 }
 
+type ImportBrowserPaperProgress struct {
+	state           protoimpl.MessageState      `protogen:"open.v1"`
+	Stage           string                      `protobuf:"bytes,1,opt,name=stage,proto3" json:"stage,omitempty"`
+	Message         string                      `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	DownloadedBytes int64                       `protobuf:"varint,3,opt,name=downloaded_bytes,json=downloadedBytes,proto3" json:"downloaded_bytes,omitempty"`
+	TotalBytes      int64                       `protobuf:"varint,4,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
+	Response        *ImportBrowserPaperResponse `protobuf:"bytes,5,opt,name=response,proto3" json:"response,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ImportBrowserPaperProgress) Reset() {
+	*x = ImportBrowserPaperProgress{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportBrowserPaperProgress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportBrowserPaperProgress) ProtoMessage() {}
+
+func (x *ImportBrowserPaperProgress) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportBrowserPaperProgress.ProtoReflect.Descriptor instead.
+func (*ImportBrowserPaperProgress) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ImportBrowserPaperProgress) GetStage() string {
+	if x != nil {
+		return x.Stage
+	}
+	return ""
+}
+
+func (x *ImportBrowserPaperProgress) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ImportBrowserPaperProgress) GetDownloadedBytes() int64 {
+	if x != nil {
+		return x.DownloadedBytes
+	}
+	return 0
+}
+
+func (x *ImportBrowserPaperProgress) GetTotalBytes() int64 {
+	if x != nil {
+		return x.TotalBytes
+	}
+	return 0
+}
+
+func (x *ImportBrowserPaperProgress) GetResponse() *ImportBrowserPaperResponse {
+	if x != nil {
+		return x.Response
+	}
+	return nil
+}
+
 var File_tnet_papers_v1_papers_proto protoreflect.FileDescriptor
 
 const file_tnet_papers_v1_papers_proto_rawDesc = "" +
@@ -2419,7 +2495,14 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\x04tags\x18\x05 \x03(\tR\x04tags\"g\n" +
 	"\x1aImportBrowserPaperResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x121\n" +
-	"\x05paper\x18\x02 \x01(\v2\x1b.tnet.papers.v1.PaperDetailR\x05paper2U\n" +
+	"\x05paper\x18\x02 \x01(\v2\x1b.tnet.papers.v1.PaperDetailR\x05paper\"\xe0\x01\n" +
+	"\x1aImportBrowserPaperProgress\x12\x14\n" +
+	"\x05stage\x18\x01 \x01(\tR\x05stage\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12)\n" +
+	"\x10downloaded_bytes\x18\x03 \x01(\x03R\x0fdownloadedBytes\x12\x1f\n" +
+	"\vtotal_bytes\x18\x04 \x01(\x03R\n" +
+	"totalBytes\x12F\n" +
+	"\bresponse\x18\x05 \x01(\v2*.tnet.papers.v1.ImportBrowserPaperResponseR\bresponse2U\n" +
 	"\rHealthService\x12D\n" +
 	"\x05Check\x12\x1c.tnet.papers.v1.CheckRequest\x1a\x1d.tnet.papers.v1.CheckResponse2\xe8\x04\n" +
 	"\x0eLibraryService\x12_\n" +
@@ -2428,13 +2511,14 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\x11LoadLibraryConfig\x12(.tnet.papers.v1.LoadLibraryConfigRequest\x1a#.tnet.papers.v1.PapersLibraryConfig\x12h\n" +
 	"\x11SaveLibraryConfig\x12(.tnet.papers.v1.SaveLibraryConfigRequest\x1a).tnet.papers.v1.SaveLibraryConfigResponse\x12\\\n" +
 	"\rListLibraries\x12$.tnet.papers.v1.ListLibrariesRequest\x1a%.tnet.papers.v1.ListLibrariesResponse\x12b\n" +
-	"\x0fListDirectories\x12&.tnet.papers.v1.ListDirectoriesRequest\x1a'.tnet.papers.v1.ListDirectoriesResponse2\xd6\x03\n" +
+	"\x0fListDirectories\x12&.tnet.papers.v1.ListDirectoriesRequest\x1a'.tnet.papers.v1.ListDirectoriesResponse2\xd1\x04\n" +
 	"\fPaperService\x12S\n" +
 	"\n" +
 	"ListPapers\x12!.tnet.papers.v1.ListPapersRequest\x1a\".tnet.papers.v1.ListPapersResponse\x12M\n" +
 	"\bGetPaper\x12\x1f.tnet.papers.v1.GetPaperRequest\x1a .tnet.papers.v1.GetPaperResponse\x12f\n" +
 	"\x17CreatePaperFromLocalPdf\x12..tnet.papers.v1.CreatePaperFromLocalPdfRequest\x1a\x1b.tnet.papers.v1.PaperDetail\x12k\n" +
-	"\x12ImportBrowserPaper\x12).tnet.papers.v1.ImportBrowserPaperRequest\x1a*.tnet.papers.v1.ImportBrowserPaperResponse\x12M\n" +
+	"\x12ImportBrowserPaper\x12).tnet.papers.v1.ImportBrowserPaperRequest\x1a*.tnet.papers.v1.ImportBrowserPaperResponse\x12y\n" +
+	"\x1eImportBrowserPaperWithProgress\x12).tnet.papers.v1.ImportBrowserPaperRequest\x1a*.tnet.papers.v1.ImportBrowserPaperProgress0\x01\x12M\n" +
 	"\bSaveNote\x12\x1f.tnet.papers.v1.SaveNoteRequest\x1a .tnet.papers.v1.GetPaperResponse2\xc6\x02\n" +
 	"\n" +
 	"TagService\x12M\n" +
@@ -2460,7 +2544,7 @@ func file_tnet_papers_v1_papers_proto_rawDescGZIP() []byte {
 	return file_tnet_papers_v1_papers_proto_rawDescData
 }
 
-var file_tnet_papers_v1_papers_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_tnet_papers_v1_papers_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
 var file_tnet_papers_v1_papers_proto_goTypes = []any{
 	(*CheckRequest)(nil),                   // 0: tnet.papers.v1.CheckRequest
 	(*CheckResponse)(nil),                  // 1: tnet.papers.v1.CheckResponse
@@ -2499,6 +2583,7 @@ var file_tnet_papers_v1_papers_proto_goTypes = []any{
 	(*ResolveMetadataRequest)(nil),         // 34: tnet.papers.v1.ResolveMetadataRequest
 	(*ImportBrowserPaperRequest)(nil),      // 35: tnet.papers.v1.ImportBrowserPaperRequest
 	(*ImportBrowserPaperResponse)(nil),     // 36: tnet.papers.v1.ImportBrowserPaperResponse
+	(*ImportBrowserPaperProgress)(nil),     // 37: tnet.papers.v1.ImportBrowserPaperProgress
 }
 var file_tnet_papers_v1_papers_proto_depIdxs = []int32{
 	2,  // 0: tnet.papers.v1.SaveGlobalConfigRequest.config:type_name -> tnet.papers.v1.PapersGlobalConfig
@@ -2513,47 +2598,50 @@ var file_tnet_papers_v1_papers_proto_depIdxs = []int32{
 	32, // 9: tnet.papers.v1.ResolveMetadataRequest.source:type_name -> tnet.papers.v1.BrowserDetectedPaperSource
 	33, // 10: tnet.papers.v1.ImportBrowserPaperRequest.candidate:type_name -> tnet.papers.v1.BrowserPaperImportCandidate
 	17, // 11: tnet.papers.v1.ImportBrowserPaperResponse.paper:type_name -> tnet.papers.v1.PaperDetail
-	0,  // 12: tnet.papers.v1.HealthService.Check:input_type -> tnet.papers.v1.CheckRequest
-	4,  // 13: tnet.papers.v1.LibraryService.LoadGlobalConfig:input_type -> tnet.papers.v1.LoadGlobalConfigRequest
-	5,  // 14: tnet.papers.v1.LibraryService.SaveGlobalConfig:input_type -> tnet.papers.v1.SaveGlobalConfigRequest
-	7,  // 15: tnet.papers.v1.LibraryService.LoadLibraryConfig:input_type -> tnet.papers.v1.LoadLibraryConfigRequest
-	8,  // 16: tnet.papers.v1.LibraryService.SaveLibraryConfig:input_type -> tnet.papers.v1.SaveLibraryConfigRequest
-	10, // 17: tnet.papers.v1.LibraryService.ListLibraries:input_type -> tnet.papers.v1.ListLibrariesRequest
-	13, // 18: tnet.papers.v1.LibraryService.ListDirectories:input_type -> tnet.papers.v1.ListDirectoriesRequest
-	18, // 19: tnet.papers.v1.PaperService.ListPapers:input_type -> tnet.papers.v1.ListPapersRequest
-	20, // 20: tnet.papers.v1.PaperService.GetPaper:input_type -> tnet.papers.v1.GetPaperRequest
-	22, // 21: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:input_type -> tnet.papers.v1.CreatePaperFromLocalPdfRequest
-	35, // 22: tnet.papers.v1.PaperService.ImportBrowserPaper:input_type -> tnet.papers.v1.ImportBrowserPaperRequest
-	29, // 23: tnet.papers.v1.PaperService.SaveNote:input_type -> tnet.papers.v1.SaveNoteRequest
-	24, // 24: tnet.papers.v1.TagService.ListTags:input_type -> tnet.papers.v1.ListTagsRequest
-	26, // 25: tnet.papers.v1.TagService.UpsertTag:input_type -> tnet.papers.v1.UpsertTagRequest
-	27, // 26: tnet.papers.v1.TagService.AttachTag:input_type -> tnet.papers.v1.AttachTagRequest
-	28, // 27: tnet.papers.v1.TagService.DetachTag:input_type -> tnet.papers.v1.DetachTagRequest
-	30, // 28: tnet.papers.v1.PdfService.LoadPdfBytes:input_type -> tnet.papers.v1.LoadPdfBytesRequest
-	34, // 29: tnet.papers.v1.BrowserImportService.ResolveMetadata:input_type -> tnet.papers.v1.ResolveMetadataRequest
-	1,  // 30: tnet.papers.v1.HealthService.Check:output_type -> tnet.papers.v1.CheckResponse
-	2,  // 31: tnet.papers.v1.LibraryService.LoadGlobalConfig:output_type -> tnet.papers.v1.PapersGlobalConfig
-	6,  // 32: tnet.papers.v1.LibraryService.SaveGlobalConfig:output_type -> tnet.papers.v1.SaveGlobalConfigResponse
-	3,  // 33: tnet.papers.v1.LibraryService.LoadLibraryConfig:output_type -> tnet.papers.v1.PapersLibraryConfig
-	9,  // 34: tnet.papers.v1.LibraryService.SaveLibraryConfig:output_type -> tnet.papers.v1.SaveLibraryConfigResponse
-	12, // 35: tnet.papers.v1.LibraryService.ListLibraries:output_type -> tnet.papers.v1.ListLibrariesResponse
-	15, // 36: tnet.papers.v1.LibraryService.ListDirectories:output_type -> tnet.papers.v1.ListDirectoriesResponse
-	19, // 37: tnet.papers.v1.PaperService.ListPapers:output_type -> tnet.papers.v1.ListPapersResponse
-	21, // 38: tnet.papers.v1.PaperService.GetPaper:output_type -> tnet.papers.v1.GetPaperResponse
-	17, // 39: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:output_type -> tnet.papers.v1.PaperDetail
-	36, // 40: tnet.papers.v1.PaperService.ImportBrowserPaper:output_type -> tnet.papers.v1.ImportBrowserPaperResponse
-	21, // 41: tnet.papers.v1.PaperService.SaveNote:output_type -> tnet.papers.v1.GetPaperResponse
-	25, // 42: tnet.papers.v1.TagService.ListTags:output_type -> tnet.papers.v1.ListTagsResponse
-	23, // 43: tnet.papers.v1.TagService.UpsertTag:output_type -> tnet.papers.v1.PaperTag
-	21, // 44: tnet.papers.v1.TagService.AttachTag:output_type -> tnet.papers.v1.GetPaperResponse
-	21, // 45: tnet.papers.v1.TagService.DetachTag:output_type -> tnet.papers.v1.GetPaperResponse
-	31, // 46: tnet.papers.v1.PdfService.LoadPdfBytes:output_type -> tnet.papers.v1.LoadPdfBytesResponse
-	33, // 47: tnet.papers.v1.BrowserImportService.ResolveMetadata:output_type -> tnet.papers.v1.BrowserPaperImportCandidate
-	30, // [30:48] is the sub-list for method output_type
-	12, // [12:30] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	36, // 12: tnet.papers.v1.ImportBrowserPaperProgress.response:type_name -> tnet.papers.v1.ImportBrowserPaperResponse
+	0,  // 13: tnet.papers.v1.HealthService.Check:input_type -> tnet.papers.v1.CheckRequest
+	4,  // 14: tnet.papers.v1.LibraryService.LoadGlobalConfig:input_type -> tnet.papers.v1.LoadGlobalConfigRequest
+	5,  // 15: tnet.papers.v1.LibraryService.SaveGlobalConfig:input_type -> tnet.papers.v1.SaveGlobalConfigRequest
+	7,  // 16: tnet.papers.v1.LibraryService.LoadLibraryConfig:input_type -> tnet.papers.v1.LoadLibraryConfigRequest
+	8,  // 17: tnet.papers.v1.LibraryService.SaveLibraryConfig:input_type -> tnet.papers.v1.SaveLibraryConfigRequest
+	10, // 18: tnet.papers.v1.LibraryService.ListLibraries:input_type -> tnet.papers.v1.ListLibrariesRequest
+	13, // 19: tnet.papers.v1.LibraryService.ListDirectories:input_type -> tnet.papers.v1.ListDirectoriesRequest
+	18, // 20: tnet.papers.v1.PaperService.ListPapers:input_type -> tnet.papers.v1.ListPapersRequest
+	20, // 21: tnet.papers.v1.PaperService.GetPaper:input_type -> tnet.papers.v1.GetPaperRequest
+	22, // 22: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:input_type -> tnet.papers.v1.CreatePaperFromLocalPdfRequest
+	35, // 23: tnet.papers.v1.PaperService.ImportBrowserPaper:input_type -> tnet.papers.v1.ImportBrowserPaperRequest
+	35, // 24: tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress:input_type -> tnet.papers.v1.ImportBrowserPaperRequest
+	29, // 25: tnet.papers.v1.PaperService.SaveNote:input_type -> tnet.papers.v1.SaveNoteRequest
+	24, // 26: tnet.papers.v1.TagService.ListTags:input_type -> tnet.papers.v1.ListTagsRequest
+	26, // 27: tnet.papers.v1.TagService.UpsertTag:input_type -> tnet.papers.v1.UpsertTagRequest
+	27, // 28: tnet.papers.v1.TagService.AttachTag:input_type -> tnet.papers.v1.AttachTagRequest
+	28, // 29: tnet.papers.v1.TagService.DetachTag:input_type -> tnet.papers.v1.DetachTagRequest
+	30, // 30: tnet.papers.v1.PdfService.LoadPdfBytes:input_type -> tnet.papers.v1.LoadPdfBytesRequest
+	34, // 31: tnet.papers.v1.BrowserImportService.ResolveMetadata:input_type -> tnet.papers.v1.ResolveMetadataRequest
+	1,  // 32: tnet.papers.v1.HealthService.Check:output_type -> tnet.papers.v1.CheckResponse
+	2,  // 33: tnet.papers.v1.LibraryService.LoadGlobalConfig:output_type -> tnet.papers.v1.PapersGlobalConfig
+	6,  // 34: tnet.papers.v1.LibraryService.SaveGlobalConfig:output_type -> tnet.papers.v1.SaveGlobalConfigResponse
+	3,  // 35: tnet.papers.v1.LibraryService.LoadLibraryConfig:output_type -> tnet.papers.v1.PapersLibraryConfig
+	9,  // 36: tnet.papers.v1.LibraryService.SaveLibraryConfig:output_type -> tnet.papers.v1.SaveLibraryConfigResponse
+	12, // 37: tnet.papers.v1.LibraryService.ListLibraries:output_type -> tnet.papers.v1.ListLibrariesResponse
+	15, // 38: tnet.papers.v1.LibraryService.ListDirectories:output_type -> tnet.papers.v1.ListDirectoriesResponse
+	19, // 39: tnet.papers.v1.PaperService.ListPapers:output_type -> tnet.papers.v1.ListPapersResponse
+	21, // 40: tnet.papers.v1.PaperService.GetPaper:output_type -> tnet.papers.v1.GetPaperResponse
+	17, // 41: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:output_type -> tnet.papers.v1.PaperDetail
+	36, // 42: tnet.papers.v1.PaperService.ImportBrowserPaper:output_type -> tnet.papers.v1.ImportBrowserPaperResponse
+	37, // 43: tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress:output_type -> tnet.papers.v1.ImportBrowserPaperProgress
+	21, // 44: tnet.papers.v1.PaperService.SaveNote:output_type -> tnet.papers.v1.GetPaperResponse
+	25, // 45: tnet.papers.v1.TagService.ListTags:output_type -> tnet.papers.v1.ListTagsResponse
+	23, // 46: tnet.papers.v1.TagService.UpsertTag:output_type -> tnet.papers.v1.PaperTag
+	21, // 47: tnet.papers.v1.TagService.AttachTag:output_type -> tnet.papers.v1.GetPaperResponse
+	21, // 48: tnet.papers.v1.TagService.DetachTag:output_type -> tnet.papers.v1.GetPaperResponse
+	31, // 49: tnet.papers.v1.PdfService.LoadPdfBytes:output_type -> tnet.papers.v1.LoadPdfBytesResponse
+	33, // 50: tnet.papers.v1.BrowserImportService.ResolveMetadata:output_type -> tnet.papers.v1.BrowserPaperImportCandidate
+	32, // [32:51] is the sub-list for method output_type
+	13, // [13:32] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_tnet_papers_v1_papers_proto_init() }
@@ -2567,7 +2655,7 @@ func file_tnet_papers_v1_papers_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tnet_papers_v1_papers_proto_rawDesc), len(file_tnet_papers_v1_papers_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   6,
 		},

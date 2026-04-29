@@ -12,11 +12,19 @@ import (
 )
 
 type fakeDownloader struct {
-	result pdfdownload.DownloadedPDF
-	err    error
+	result   pdfdownload.DownloadedPDF
+	err      error
+	progress []pdfdownload.Progress
 }
 
-func (downloader fakeDownloader) Download(context.Context, string) (pdfdownload.DownloadedPDF, error) {
+func (downloader fakeDownloader) DownloadWithProgress(
+	_ context.Context,
+	_ string,
+	report pdfdownload.ProgressReporter,
+) (pdfdownload.DownloadedPDF, error) {
+	for _, progress := range downloader.progress {
+		report(progress)
+	}
 	return downloader.result, downloader.err
 }
 
@@ -55,6 +63,118 @@ func TestServiceCreatePaperFromLocalPDFCopiesExternalPDF(t *testing.T) {
 				t.Fatalf("expected copied PDF: %v", err)
 			}
 		})
+	}
+}
+
+func TestServiceImportBrowserPaperWithProgress(t *testing.T) {
+	testcases := []struct {
+		name       string
+		downloader fakeDownloader
+		wantStages []string
+		wantStatus string
+	}{
+		{
+			name: "reports pdf download progress",
+			downloader: fakeDownloader{
+				result: pdfdownload.DownloadedPDF{FileName: "remote.pdf", Bytes: []byte("pdf")},
+				progress: []pdfdownload.Progress{
+					{DownloadedBytes: 1, TotalBytes: 3},
+					{DownloadedBytes: 3, TotalBytes: 3},
+				},
+			},
+			wantStages: []string{
+				ImportProgressStageStarted,
+				ImportProgressStageDownloadingPDF,
+				ImportProgressStageDownloadingPDF,
+				ImportProgressStageDownloadedPDF,
+				ImportProgressStageSaving,
+			},
+			wantStatus: "created",
+		},
+		{
+			name: "reports metadata only when pdf download fails",
+			downloader: fakeDownloader{
+				err: os.ErrNotExist,
+			},
+			wantStages: []string{
+				ImportProgressStageStarted,
+				ImportProgressStageMetadataOnly,
+				ImportProgressStageSaving,
+			},
+			wantStatus: "metadata_only",
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			libraryRoot := t.TempDir()
+			service, closeService := newTestServiceWithDownloader(t, testcase.downloader)
+			defer closeService()
+			var stages []string
+
+			result, err := service.ImportBrowserPaperWithProgress(ctx, BrowserImportInput{
+				LibraryRoot:   libraryRoot,
+				DirectoryPath: "articles",
+				Candidate: model.BrowserImportCandidate{
+					Title:  "Remote paper",
+					DOI:    "10.1000/" + testcase.name,
+					PDFURL: "https://example.test/remote.pdf",
+				},
+				ImportPDF: true,
+			}, func(progress ImportProgress) {
+				stages = append(stages, progress.Stage)
+			})
+			if err != nil {
+				t.Fatalf("ImportBrowserPaperWithProgress() error = %v", err)
+			}
+
+			if result.Status != testcase.wantStatus {
+				t.Fatalf("Status = %q, want %q", result.Status, testcase.wantStatus)
+			}
+			if !equalStrings(stages, testcase.wantStages) {
+				t.Fatalf("stages = %v, want %v", stages, testcase.wantStages)
+			}
+		})
+	}
+}
+
+func TestServiceImportBrowserPaperWithProgressDetectsDuplicate(t *testing.T) {
+	ctx := context.Background()
+	libraryRoot := t.TempDir()
+	service, closeService := newTestService(t)
+	defer closeService()
+
+	first, err := service.ImportBrowserPaper(ctx, BrowserImportInput{
+		LibraryRoot: libraryRoot,
+		Candidate: model.BrowserImportCandidate{
+			Title: "Paper",
+			DOI:   "10.1000/progress-duplicate",
+		},
+	})
+	if err != nil {
+		t.Fatalf("first ImportBrowserPaper() error = %v", err)
+	}
+
+	var stages []string
+	second, err := service.ImportBrowserPaperWithProgress(ctx, BrowserImportInput{
+		LibraryRoot: libraryRoot,
+		Candidate: model.BrowserImportCandidate{
+			Title: "Paper again",
+			DOI:   "10.1000/progress-duplicate",
+		},
+	}, func(progress ImportProgress) {
+		stages = append(stages, progress.Stage)
+	})
+	if err != nil {
+		t.Fatalf("second ImportBrowserPaperWithProgress() error = %v", err)
+	}
+
+	if second.Status != "duplicate" || second.Paper.ID != first.Paper.ID {
+		t.Fatalf("second result = %+v, want duplicate first paper", second)
+	}
+	if !equalStrings(stages, []string{ImportProgressStageStarted, ImportProgressStageDuplicate}) {
+		t.Fatalf("stages = %v, want started and duplicate", stages)
 	}
 }
 
@@ -158,4 +278,16 @@ func newTestServiceWithDownloader(t *testing.T, downloader fakeDownloader) (*Ser
 			t.Fatalf("Close() error = %v", err)
 		}
 	}
+}
+
+func equalStrings(left []string, right []string) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index := range left {
+		if left[index] != right[index] {
+			return false
+		}
+	}
+	return true
 }

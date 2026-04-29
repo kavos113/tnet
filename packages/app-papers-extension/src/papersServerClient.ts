@@ -16,6 +16,7 @@ import type {
   BrowserDetectedPaperSource,
   BrowserPaperImportCandidate,
   DirectoryNode,
+  ImportBrowserPaperProgress,
   ImportBrowserPaperRequest,
   ImportBrowserPaperResponse,
   LibraryInfo
@@ -93,6 +94,30 @@ export class PapersExtensionServerClient {
       paper: response.paper
     };
   }
+
+  async importPaperWithProgress(
+    request: ImportBrowserPaperRequest,
+    onProgress: (progress: ImportBrowserPaperProgress) => void
+  ): Promise<ImportBrowserPaperResponse> {
+    let result: ImportBrowserPaperResponse | undefined;
+    for await (const progress of this.paperClient.importBrowserPaperWithProgress({
+      libraryRoot: request.libraryRoot,
+      directoryPath: request.directoryPath ?? '',
+      candidate: toGeneratedCandidate(request.candidate),
+      importPdf: request.importPdf,
+      tags: request.tags ?? []
+    })) {
+      const mapped = toImportBrowserPaperProgress(progress);
+      onProgress(mapped);
+      if (mapped.response) {
+        result = mapped.response;
+      }
+    }
+    if (!result) {
+      throw new Error('Paper import completed without a final response.');
+    }
+    return result;
+  }
 }
 
 const toGeneratedSource = (
@@ -159,4 +184,23 @@ const toDirectoryNode = (node: GeneratedDirectoryNode): DirectoryNode => ({
   name: node.name,
   relativePath: node.relativePath,
   children: node.children.map(toDirectoryNode)
+});
+
+const toImportBrowserPaperProgress = (progress: {
+  stage: string;
+  message: string;
+  downloadedBytes: bigint | number | string;
+  totalBytes: bigint | number | string;
+  response?: { status: string; paper?: unknown };
+}): ImportBrowserPaperProgress => ({
+  stage: progress.stage,
+  message: progress.message || undefined,
+  downloadedBytes: Number(progress.downloadedBytes),
+  totalBytes: Number(progress.totalBytes),
+  response: progress.response
+    ? {
+        status: progress.response.status,
+        paper: progress.response.paper
+      }
+    : undefined
 });

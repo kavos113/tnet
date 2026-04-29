@@ -48,3 +48,11 @@ export interface ImportBrowserPaperResponse {
   status: 'created' | 'duplicate' | 'metadata_only' | string;
   paper?: unknown;
 }
+
+export interface ImportBrowserPaperProgress {
+  stage: string;
+  message?: string;
+  downloadedBytes: number;
+  totalBytes: number;
+  response?: ImportBrowserPaperResponse;
+}

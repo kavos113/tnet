@@ -73,6 +73,9 @@ const (
 	// PaperServiceImportBrowserPaperProcedure is the fully-qualified name of the PaperService's
 	// ImportBrowserPaper RPC.
 	PaperServiceImportBrowserPaperProcedure = "/tnet.papers.v1.PaperService/ImportBrowserPaper"
+	// PaperServiceImportBrowserPaperWithProgressProcedure is the fully-qualified name of the
+	// PaperService's ImportBrowserPaperWithProgress RPC.
+	PaperServiceImportBrowserPaperWithProgressProcedure = "/tnet.papers.v1.PaperService/ImportBrowserPaperWithProgress"
 	// PaperServiceSaveNoteProcedure is the fully-qualified name of the PaperService's SaveNote RPC.
 	PaperServiceSaveNoteProcedure = "/tnet.papers.v1.PaperService/SaveNote"
 	// TagServiceListTagsProcedure is the fully-qualified name of the TagService's ListTags RPC.
@@ -366,6 +369,7 @@ type PaperServiceClient interface {
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
 	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
+	ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.ServerStreamForClient[v1.ImportBrowserPaperProgress], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
 }
 
@@ -404,6 +408,12 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaper")),
 			connect.WithClientOptions(opts...),
 		),
+		importBrowserPaperWithProgress: connect.NewClient[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperProgress](
+			httpClient,
+			baseURL+PaperServiceImportBrowserPaperWithProgressProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaperWithProgress")),
+			connect.WithClientOptions(opts...),
+		),
 		saveNote: connect.NewClient[v1.SaveNoteRequest, v1.GetPaperResponse](
 			httpClient,
 			baseURL+PaperServiceSaveNoteProcedure,
@@ -415,11 +425,12 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // paperServiceClient implements PaperServiceClient.
 type paperServiceClient struct {
-	listPapers              *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
-	getPaper                *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
-	createPaperFromLocalPdf *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
-	importBrowserPaper      *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse]
-	saveNote                *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
+	listPapers                     *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
+	getPaper                       *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
+	createPaperFromLocalPdf        *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
+	importBrowserPaper             *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse]
+	importBrowserPaperWithProgress *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperProgress]
+	saveNote                       *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
 }
 
 // ListPapers calls tnet.papers.v1.PaperService.ListPapers.
@@ -442,6 +453,11 @@ func (c *paperServiceClient) ImportBrowserPaper(ctx context.Context, req *connec
 	return c.importBrowserPaper.CallUnary(ctx, req)
 }
 
+// ImportBrowserPaperWithProgress calls tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress.
+func (c *paperServiceClient) ImportBrowserPaperWithProgress(ctx context.Context, req *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.ServerStreamForClient[v1.ImportBrowserPaperProgress], error) {
+	return c.importBrowserPaperWithProgress.CallServerStream(ctx, req)
+}
+
 // SaveNote calls tnet.papers.v1.PaperService.SaveNote.
 func (c *paperServiceClient) SaveNote(ctx context.Context, req *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {
 	return c.saveNote.CallUnary(ctx, req)
@@ -453,6 +469,7 @@ type PaperServiceHandler interface {
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
 	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
+	ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest], *connect.ServerStream[v1.ImportBrowserPaperProgress]) error
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
 }
 
@@ -487,6 +504,12 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaper")),
 		connect.WithHandlerOptions(opts...),
 	)
+	paperServiceImportBrowserPaperWithProgressHandler := connect.NewServerStreamHandler(
+		PaperServiceImportBrowserPaperWithProgressProcedure,
+		svc.ImportBrowserPaperWithProgress,
+		connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaperWithProgress")),
+		connect.WithHandlerOptions(opts...),
+	)
 	paperServiceSaveNoteHandler := connect.NewUnaryHandler(
 		PaperServiceSaveNoteProcedure,
 		svc.SaveNote,
@@ -503,6 +526,8 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 			paperServiceCreatePaperFromLocalPdfHandler.ServeHTTP(w, r)
 		case PaperServiceImportBrowserPaperProcedure:
 			paperServiceImportBrowserPaperHandler.ServeHTTP(w, r)
+		case PaperServiceImportBrowserPaperWithProgressProcedure:
+			paperServiceImportBrowserPaperWithProgressHandler.ServeHTTP(w, r)
 		case PaperServiceSaveNoteProcedure:
 			paperServiceSaveNoteHandler.ServeHTTP(w, r)
 		default:
@@ -528,6 +553,10 @@ func (UnimplementedPaperServiceHandler) CreatePaperFromLocalPdf(context.Context,
 
 func (UnimplementedPaperServiceHandler) ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ImportBrowserPaper is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest], *connect.ServerStream[v1.ImportBrowserPaperProgress]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress is not implemented"))
 }
 
 func (UnimplementedPaperServiceHandler) SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {

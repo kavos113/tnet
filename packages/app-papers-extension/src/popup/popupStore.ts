@@ -2,6 +2,7 @@ import type {
   BrowserDetectedPaperSource,
   BrowserPaperImportCandidate,
   DirectoryNode,
+  ImportBrowserPaperProgress,
   ImportBrowserPaperResponse,
   LibraryInfo
 } from '../types';
@@ -27,6 +28,7 @@ export interface PopupState {
   importPdf: boolean;
   tagsInput: string;
   importResult?: ImportBrowserPaperResponse;
+  importProgress?: ImportBrowserPaperProgress;
 }
 
 export interface DirectoryOption {
@@ -134,7 +136,8 @@ export const selectLibrary = async (
 
 export const importSelectedPaper = async (
   client: PapersExtensionServerClient,
-  state: PopupState
+  state: PopupState,
+  onProgress?: (progress: ImportBrowserPaperProgress) => void
 ): Promise<PopupState> => {
   if (!state.selectedLibraryRoot || !state.candidate) {
     return {
@@ -145,17 +148,21 @@ export const importSelectedPaper = async (
   }
 
   try {
-    const importResult = await client.importPaper({
-      libraryRoot: state.selectedLibraryRoot,
-      directoryPath: state.selectedDirectoryPath ?? '',
-      candidate: state.candidate,
-      importPdf: state.importPdf && Boolean(state.candidate.pdfUrl),
-      tags: parseTagsInput(state.tagsInput)
-    });
+    const importResult = await client.importPaperWithProgress(
+      {
+        libraryRoot: state.selectedLibraryRoot,
+        directoryPath: state.selectedDirectoryPath ?? '',
+        candidate: state.candidate,
+        importPdf: state.importPdf && Boolean(state.candidate.pdfUrl),
+        tags: parseTagsInput(state.tagsInput)
+      },
+      onProgress ?? (() => {})
+    );
     return {
       ...state,
       status: 'imported',
       importResult,
+      importProgress: undefined,
       errorMessage: undefined
     };
   } catch (error) {

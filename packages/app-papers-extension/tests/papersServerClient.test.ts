@@ -35,7 +35,15 @@ const createAvailableClient = (): PapersExtensionServerClient => {
       })
     });
     router.service(PaperService, {
-      importBrowserPaper: () => ({ status: 'created', paper: { id: 'paper-1', title: 'Paper' } })
+      importBrowserPaper: () => ({ status: 'created', paper: { id: 'paper-1', title: 'Paper' } }),
+      importBrowserPaperWithProgress: async function* () {
+        yield { stage: 'downloading_pdf', downloadedBytes: BigInt(50), totalBytes: BigInt(100) };
+        yield { stage: 'downloaded_pdf', downloadedBytes: BigInt(100), totalBytes: BigInt(100) };
+        yield {
+          stage: 'completed',
+          response: { status: 'created', paper: { id: 'paper-1', title: 'Paper' } }
+        };
+      }
     });
   });
   return new PapersExtensionServerClient({ transport });
@@ -104,5 +112,26 @@ describe('PapersExtensionServerClient', () => {
         tags: ['ai']
       })
     ).resolves.toMatchObject({ status: 'created', paper: { id: 'paper-1' } });
+  });
+
+  it('imports a paper with progress through the generated PaperService streaming client', async () => {
+    const client = createAvailableClient();
+    const stages: string[] = [];
+
+    await expect(
+      client.importPaperWithProgress(
+        {
+          libraryRoot: 'C:/papers',
+          directoryPath: 'articles',
+          candidate: { title: 'Paper' },
+          importPdf: true,
+          tags: ['ai']
+        },
+        (progress) => {
+          stages.push(progress.stage);
+        }
+      )
+    ).resolves.toMatchObject({ status: 'created', paper: { id: 'paper-1' } });
+    expect(stages).toEqual(['downloading_pdf', 'downloaded_pdf', 'completed']);
   });
 });

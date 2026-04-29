@@ -12,6 +12,7 @@ import {
   DetachTagRequest,
   GetPaperRequest,
   GetPaperResponse,
+  ImportBrowserPaperProgress,
   ImportBrowserPaperRequest,
   ImportBrowserPaperResponse,
   ListDirectoriesRequest,
@@ -162,6 +163,15 @@ export const PaperService = {
       I: ImportBrowserPaperRequest,
       O: ImportBrowserPaperResponse,
       kind: MethodKind.Unary
+    },
+    /**
+     * @generated from rpc tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress
+     */
+    importBrowserPaperWithProgress: {
+      name: 'ImportBrowserPaperWithProgress',
+      I: ImportBrowserPaperRequest,
+      O: ImportBrowserPaperProgress,
+      kind: MethodKind.ServerStreaming
     },
     /**
      * @generated from rpc tnet.papers.v1.PaperService.SaveNote

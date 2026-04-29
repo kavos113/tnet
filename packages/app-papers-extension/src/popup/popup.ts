@@ -124,12 +124,18 @@ const renderReady = (): void => {
   const importButton = createElement('button', 'paper-popup-primary', 'Import');
   importButton.type = 'submit';
   importButton.disabled = !state.selectedLibraryRoot || !state.candidate;
+  const progressMessage = createElement('p', 'paper-popup-progress');
+  progressMessage.hidden = !state.importProgress;
+  progressMessage.textContent = state.importProgress
+    ? formatImportProgress(state.importProgress)
+    : '';
 
   form.append(
     createField('Library', librarySelect),
     createField('Directory', directorySelect),
     createField('Tags', tagsInput),
     createCheckboxField('Download PDF when available', importPdfInput),
+    progressMessage,
     importButton
   );
 
@@ -137,7 +143,15 @@ const renderReady = (): void => {
     event.preventDefault();
     importButton.disabled = true;
     importButton.textContent = 'Importing...';
-    importSelectedPaper(client, state)
+    const startedProgress = { stage: 'started', downloadedBytes: 0, totalBytes: 0 };
+    state = { ...state, importProgress: startedProgress };
+    progressMessage.hidden = false;
+    progressMessage.textContent = formatImportProgress(startedProgress);
+    importSelectedPaper(client, state, (progress) => {
+      state = { ...state, importProgress: progress };
+      progressMessage.hidden = false;
+      progressMessage.textContent = formatImportProgress(progress);
+    })
       .then((nextState) => {
         state = nextState;
         renderState();
@@ -171,6 +185,37 @@ const renderReady = (): void => {
 
   container.append(title, metadata, form);
   setRoot(container);
+};
+
+const formatImportProgress = (progress: NonNullable<PopupState['importProgress']>): string => {
+  if (progress.response) {
+    return 'Import complete.';
+  }
+  if (progress.stage === 'downloading_pdf') {
+    if (progress.totalBytes > 0) {
+      return `Downloading PDF... ${Math.round((progress.downloadedBytes / progress.totalBytes) * 100)}%`;
+    }
+    return `Downloading PDF... ${formatBytes(progress.downloadedBytes)}`;
+  }
+  if (progress.stage === 'downloaded_pdf') {
+    return 'PDF downloaded.';
+  }
+  if (progress.stage === 'metadata_only') {
+    return 'PDF download failed. Importing metadata only.';
+  }
+  if (progress.stage === 'duplicate') {
+    return 'This paper is already in the library.';
+  }
+  if (progress.stage === 'saving') {
+    return 'Saving paper...';
+  }
+  return 'Starting import...';
+};
+
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 };
 
 const createField = (labelText: string, control: HTMLElement): HTMLLabelElement => {

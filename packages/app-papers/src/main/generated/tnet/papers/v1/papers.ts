@@ -645,6 +645,31 @@ export interface ImportBrowserPaperResponse {
    */
   paper?: PaperDetail;
 }
+/**
+ * @generated from protobuf message tnet.papers.v1.ImportBrowserPaperProgress
+ */
+export interface ImportBrowserPaperProgress {
+  /**
+   * @generated from protobuf field: string stage = 1
+   */
+  stage: string;
+  /**
+   * @generated from protobuf field: string message = 2
+   */
+  message: string;
+  /**
+   * @generated from protobuf field: int64 downloaded_bytes = 3
+   */
+  downloadedBytes: bigint;
+  /**
+   * @generated from protobuf field: int64 total_bytes = 4
+   */
+  totalBytes: bigint;
+  /**
+   * @generated from protobuf field: tnet.papers.v1.ImportBrowserPaperResponse response = 5
+   */
+  response?: ImportBrowserPaperResponse;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CheckRequest$Type extends MessageType<CheckRequest> {
   constructor() {
@@ -3691,6 +3716,119 @@ class ImportBrowserPaperResponse$Type extends MessageType<ImportBrowserPaperResp
  * @generated MessageType for protobuf message tnet.papers.v1.ImportBrowserPaperResponse
  */
 export const ImportBrowserPaperResponse = new ImportBrowserPaperResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ImportBrowserPaperProgress$Type extends MessageType<ImportBrowserPaperProgress> {
+  constructor() {
+    super('tnet.papers.v1.ImportBrowserPaperProgress', [
+      { no: 1, name: 'stage', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'message', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'downloaded_bytes',
+        kind: 'scalar',
+        T: 3 /*ScalarType.INT64*/,
+        L: 0 /*LongType.BIGINT*/
+      },
+      {
+        no: 4,
+        name: 'total_bytes',
+        kind: 'scalar',
+        T: 3 /*ScalarType.INT64*/,
+        L: 0 /*LongType.BIGINT*/
+      },
+      { no: 5, name: 'response', kind: 'message', T: () => ImportBrowserPaperResponse }
+    ]);
+  }
+  create(value?: PartialMessage<ImportBrowserPaperProgress>): ImportBrowserPaperProgress {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.stage = '';
+    message.message = '';
+    message.downloadedBytes = 0n;
+    message.totalBytes = 0n;
+    if (value !== undefined)
+      reflectionMergePartial<ImportBrowserPaperProgress>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ImportBrowserPaperProgress
+  ): ImportBrowserPaperProgress {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string stage */ 1:
+          message.stage = reader.string();
+          break;
+        case /* string message */ 2:
+          message.message = reader.string();
+          break;
+        case /* int64 downloaded_bytes */ 3:
+          message.downloadedBytes = reader.int64().toBigInt();
+          break;
+        case /* int64 total_bytes */ 4:
+          message.totalBytes = reader.int64().toBigInt();
+          break;
+        case /* tnet.papers.v1.ImportBrowserPaperResponse response */ 5:
+          message.response = ImportBrowserPaperResponse.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.response
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ImportBrowserPaperProgress,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* string stage = 1; */
+    if (message.stage !== '') writer.tag(1, WireType.LengthDelimited).string(message.stage);
+    /* string message = 2; */
+    if (message.message !== '') writer.tag(2, WireType.LengthDelimited).string(message.message);
+    /* int64 downloaded_bytes = 3; */
+    if (message.downloadedBytes !== 0n)
+      writer.tag(3, WireType.Varint).int64(message.downloadedBytes);
+    /* int64 total_bytes = 4; */
+    if (message.totalBytes !== 0n) writer.tag(4, WireType.Varint).int64(message.totalBytes);
+    /* tnet.papers.v1.ImportBrowserPaperResponse response = 5; */
+    if (message.response)
+      ImportBrowserPaperResponse.internalBinaryWrite(
+        message.response,
+        writer.tag(5, WireType.LengthDelimited).fork(),
+        options
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.ImportBrowserPaperProgress
+ */
+export const ImportBrowserPaperProgress = new ImportBrowserPaperProgress$Type();
 /**
  * @generated ServiceType for protobuf service tnet.papers.v1.HealthService
  */
@@ -3735,6 +3873,13 @@ export const PaperService = new ServiceType('tnet.papers.v1.PaperService', [
     options: {},
     I: ImportBrowserPaperRequest,
     O: ImportBrowserPaperResponse
+  },
+  {
+    name: 'ImportBrowserPaperWithProgress',
+    serverStreaming: true,
+    options: {},
+    I: ImportBrowserPaperRequest,
+    O: ImportBrowserPaperProgress
   },
   { name: 'SaveNote', options: {}, I: SaveNoteRequest, O: GetPaperResponse }
 ]);

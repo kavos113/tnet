@@ -47,3 +47,18 @@ func TestNewAccessLogHandlerDefaultsStatusToOK(t *testing.T) {
 		t.Fatalf("access log should default status to 200: %q", output.String())
 	}
 }
+
+func TestResponseStatusWriterPreservesFlusher(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	writer := &responseStatusWriter{ResponseWriter: recorder}
+
+	flusher, ok := interface{}(writer).(http.Flusher)
+	if !ok {
+		t.Fatal("responseStatusWriter should implement http.Flusher")
+	}
+
+	flusher.Flush()
+	if !recorder.Flushed {
+		t.Fatal("Flush() should forward to the wrapped response writer")
+	}
+}

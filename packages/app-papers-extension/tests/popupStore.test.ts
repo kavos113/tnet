@@ -124,29 +124,54 @@ describe('loadPopupState', () => {
 
   it('imports the selected candidate with library, directory, pdf flag, and tags', async () => {
     const client = {
-      importPaper: vi.fn(async () => ({ status: 'created', paper: { id: 'paper-1' } }))
+      importPaperWithProgress: vi.fn(
+        async (
+          _request: unknown,
+          onProgress: (progress: {
+            stage: string;
+            downloadedBytes: number;
+            totalBytes: number;
+          }) => void
+        ) => {
+          onProgress({ stage: 'downloading_pdf', downloadedBytes: 1, totalBytes: 2 });
+          return { status: 'created', paper: { id: 'paper-1' } };
+        }
+      )
     };
+    const progress = vi.fn();
 
     await expect(
-      importSelectedPaper(client as never, {
-        status: 'ready',
-        libraries: [],
-        selectedLibraryRoot: 'C:/papers',
-        selectedDirectoryPath: 'articles',
-        candidate: { title: 'Paper', pdfUrl: 'https://example.test/paper.pdf' },
-        importPdf: true,
-        tagsInput: 'ai, retrieval'
-      })
+      importSelectedPaper(
+        client as never,
+        {
+          status: 'ready',
+          libraries: [],
+          selectedLibraryRoot: 'C:/papers',
+          selectedDirectoryPath: 'articles',
+          candidate: { title: 'Paper', pdfUrl: 'https://example.test/paper.pdf' },
+          importPdf: true,
+          tagsInput: 'ai, retrieval'
+        },
+        progress
+      )
     ).resolves.toMatchObject({
       status: 'imported',
       importResult: { status: 'created', paper: { id: 'paper-1' } }
     });
-    expect(client.importPaper).toHaveBeenCalledWith({
-      libraryRoot: 'C:/papers',
-      directoryPath: 'articles',
-      candidate: { title: 'Paper', pdfUrl: 'https://example.test/paper.pdf' },
-      importPdf: true,
-      tags: ['ai', 'retrieval']
+    expect(client.importPaperWithProgress).toHaveBeenCalledWith(
+      {
+        libraryRoot: 'C:/papers',
+        directoryPath: 'articles',
+        candidate: { title: 'Paper', pdfUrl: 'https://example.test/paper.pdf' },
+        importPdf: true,
+        tags: ['ai', 'retrieval']
+      },
+      progress
+    );
+    expect(progress).toHaveBeenCalledWith({
+      stage: 'downloading_pdf',
+      downloadedBytes: 1,
+      totalBytes: 2
     });
   });
 });

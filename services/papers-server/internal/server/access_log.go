@@ -21,6 +21,13 @@ func (writer *responseStatusWriter) Unwrap() http.ResponseWriter {
 	return writer.ResponseWriter
 }
 
+func (writer *responseStatusWriter) Flush() {
+	flusher, ok := writer.ResponseWriter.(http.Flusher)
+	if ok {
+		flusher.Flush()
+	}
+}
+
 func NewAccessLogHandler(next http.Handler, output io.Writer) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startedAt := time.Now()

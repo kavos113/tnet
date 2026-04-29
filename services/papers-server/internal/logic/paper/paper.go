@@ -56,8 +56,27 @@ type BrowserImportResult struct {
 	Paper  model.Paper
 }
 
+type ImportProgress struct {
+	Stage           string
+	Message         string
+	DownloadedBytes int64
+	TotalBytes      int64
+}
+
+type ImportProgressReporter func(ImportProgress)
+
+const (
+	ImportProgressStageStarted        = "started"
+	ImportProgressStageDuplicate      = "duplicate"
+	ImportProgressStageDownloadingPDF = "downloading_pdf"
+	ImportProgressStageDownloadedPDF  = "downloaded_pdf"
+	ImportProgressStageSaving         = "saving"
+	ImportProgressStageMetadataOnly   = "metadata_only"
+	ImportProgressStageCompleted      = "completed"
+)
+
 type PDFDownloader interface {
-	Download(context.Context, string) (pdfdownload.DownloadedPDF, error)
+	DownloadWithProgress(context.Context, string, pdfdownload.ProgressReporter) (pdfdownload.DownloadedPDF, error)
 }
 
 func NewService(dbManager *sqlite.LibraryDBManager) *Service {
@@ -155,6 +174,23 @@ func (s *Service) ImportBrowserPaper(
 	ctx context.Context,
 	input BrowserImportInput,
 ) (BrowserImportResult, error) {
+	return s.importBrowserPaper(ctx, input, nil)
+}
+
+func (s *Service) ImportBrowserPaperWithProgress(
+	ctx context.Context,
+	input BrowserImportInput,
+	report ImportProgressReporter,
+) (BrowserImportResult, error) {
+	return s.importBrowserPaper(ctx, input, report)
+}
+
+func (s *Service) importBrowserPaper(
+	ctx context.Context,
+	input BrowserImportInput,
+	report ImportProgressReporter,
+) (BrowserImportResult, error) {
+	reportImportProgress(report, ImportProgress{Stage: ImportProgressStageStarted})
 	root, err := model.NewLibraryRoot(input.LibraryRoot)
 	if err != nil {
 		return BrowserImportResult{}, err
@@ -169,22 +205,40 @@ func (s *Service) ImportBrowserPaper(
 		return BrowserImportResult{}, err
 	}
 	if ok {
+		reportImportProgress(report, ImportProgress{Stage: ImportProgressStageDuplicate})
 		return BrowserImportResult{Status: string(model.BrowserImportStatusDuplicate), Paper: existing}, nil
 	}
 
 	pdfPath := ""
 	status := string(model.BrowserImportStatusMetadataOnly)
 	if input.ImportPDF && input.Candidate.PDFURL != "" {
-		downloaded, err := s.downloader.Download(ctx, input.Candidate.PDFURL)
+		downloaded, err := s.downloader.DownloadWithProgress(ctx, input.Candidate.PDFURL, func(progress pdfdownload.Progress) {
+			reportImportProgress(report, ImportProgress{
+				Stage:           ImportProgressStageDownloadingPDF,
+				DownloadedBytes: progress.DownloadedBytes,
+				TotalBytes:      progress.TotalBytes,
+			})
+		})
 		if err == nil {
+			reportImportProgress(report, ImportProgress{
+				Stage:           ImportProgressStageDownloadedPDF,
+				DownloadedBytes: int64(len(downloaded.Bytes)),
+				TotalBytes:      int64(len(downloaded.Bytes)),
+			})
 			pdfPath, err = s.saveDownloadedPDF(root, input.DirectoryPath, downloaded)
 			if err != nil {
 				return BrowserImportResult{}, err
 			}
 			status = string(model.BrowserImportStatusCreated)
+		} else {
+			reportImportProgress(report, ImportProgress{
+				Stage:   ImportProgressStageMetadataOnly,
+				Message: err.Error(),
+			})
 		}
 	}
 
+	reportImportProgress(report, ImportProgress{Stage: ImportProgressStageSaving})
 	paper, err := repository.CreatePaper(ctx, sqlite.CreatePaperInput{
 		Title:         input.Candidate.Title,
 		Authors:       input.Candidate.Authors,
@@ -212,6 +266,12 @@ func (s *Service) ImportBrowserPaper(
 	}
 
 	return BrowserImportResult{Status: status, Paper: paper}, nil
+}
+
+func reportImportProgress(report ImportProgressReporter, progress ImportProgress) {
+	if report != nil {
+		report(progress)
+	}
 }
 
 func (s *Service) ListTags(ctx context.Context, libraryRoot string) ([]model.PaperTag, error) {

@@ -11,7 +11,7 @@ import type {
   PartialMessage,
   PlainMessage
 } from '@bufbuild/protobuf';
-import { Message, proto3 } from '@bufbuild/protobuf';
+import { Message, proto3, protoInt64 } from '@bufbuild/protobuf';
 
 /**
  * @generated from message tnet.papers.v1.CheckRequest
@@ -2093,5 +2093,78 @@ export class ImportBrowserPaperResponse extends Message<ImportBrowserPaperRespon
     b: ImportBrowserPaperResponse | PlainMessage<ImportBrowserPaperResponse> | undefined
   ): boolean {
     return proto3.util.equals(ImportBrowserPaperResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message tnet.papers.v1.ImportBrowserPaperProgress
+ */
+export class ImportBrowserPaperProgress extends Message<ImportBrowserPaperProgress> {
+  /**
+   * @generated from field: string stage = 1;
+   */
+  stage = '';
+
+  /**
+   * @generated from field: string message = 2;
+   */
+  message = '';
+
+  /**
+   * @generated from field: int64 downloaded_bytes = 3;
+   */
+  downloadedBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 total_bytes = 4;
+   */
+  totalBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: tnet.papers.v1.ImportBrowserPaperResponse response = 5;
+   */
+  response?: ImportBrowserPaperResponse;
+
+  constructor(data?: PartialMessage<ImportBrowserPaperProgress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.ImportBrowserPaperProgress';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'stage', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: 'message', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: 'downloaded_bytes', kind: 'scalar', T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: 'total_bytes', kind: 'scalar', T: 3 /* ScalarType.INT64 */ },
+    { no: 5, name: 'response', kind: 'message', T: ImportBrowserPaperResponse }
+  ]);
+
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): ImportBrowserPaperProgress {
+    return new ImportBrowserPaperProgress().fromBinary(bytes, options);
+  }
+
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): ImportBrowserPaperProgress {
+    return new ImportBrowserPaperProgress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): ImportBrowserPaperProgress {
+    return new ImportBrowserPaperProgress().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: ImportBrowserPaperProgress | PlainMessage<ImportBrowserPaperProgress> | undefined,
+    b: ImportBrowserPaperProgress | PlainMessage<ImportBrowserPaperProgress> | undefined
+  ): boolean {
+    return proto3.util.equals(ImportBrowserPaperProgress, a, b);
   }
 }
