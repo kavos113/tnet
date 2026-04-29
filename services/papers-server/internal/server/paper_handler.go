@@ -1,0 +1,171 @@
+package server
+
+import (
+	"context"
+	"net/http"
+
+	"connectrpc.com/connect"
+	papersv1 "github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1"
+	"github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1/papersv1connect"
+	"github.com/kavos113/tnet/services/papers-server/internal/logic/paper"
+	"github.com/kavos113/tnet/services/papers-server/internal/model"
+)
+
+type PaperUsecase interface {
+	ListPapers(context.Context, string, paper.ListFilter) ([]model.Paper, error)
+	GetPaper(context.Context, string, string) (model.Paper, bool, error)
+	CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (model.Paper, error)
+	ImportBrowserPaper(context.Context, paper.BrowserImportInput) (paper.BrowserImportResult, error)
+	SaveNote(context.Context, string, string, string) (model.Paper, bool, error)
+}
+
+type PaperHandler struct {
+	service PaperUsecase
+}
+
+func NewPaperHandler(service PaperUsecase) (string, http.Handler) {
+	return papersv1connect.NewPaperServiceHandler(&PaperHandler{service: service})
+}
+
+func (handler *PaperHandler) ListPapers(
+	ctx context.Context,
+	request *connect.Request[papersv1.ListPapersRequest],
+) (*connect.Response[papersv1.ListPapersResponse], error) {
+	papers, err := handler.service.ListPapers(ctx, request.Msg.LibraryRoot, paper.ListFilter{
+		DirectoryPath: request.Msg.DirectoryPath,
+		HasDirectory:  request.Msg.DirectoryPath != "",
+		Query:         request.Msg.Query,
+		TagIDs:        request.Msg.TagIds,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	response := &papersv1.ListPapersResponse{}
+	for _, item := range papers {
+		response.Papers = append(response.Papers, toProtoPaperSummary(item))
+	}
+	return connect.NewResponse(response), nil
+}
+
+func (handler *PaperHandler) GetPaper(
+	ctx context.Context,
+	request *connect.Request[papersv1.GetPaperRequest],
+) (*connect.Response[papersv1.GetPaperResponse], error) {
+	paper, ok, err := handler.service.GetPaper(ctx, request.Msg.LibraryRoot, request.Msg.PaperId)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if !ok {
+		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
+	}
+	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
+}
+
+func (handler *PaperHandler) CreatePaperFromLocalPdf(
+	ctx context.Context,
+	request *connect.Request[papersv1.CreatePaperFromLocalPdfRequest],
+) (*connect.Response[papersv1.PaperDetail], error) {
+	paper, err := handler.service.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
+		LibraryRoot:   request.Msg.LibraryRoot,
+		SourcePath:    request.Msg.SourcePath,
+		Title:         request.Msg.Title,
+		Authors:       request.Msg.Authors,
+		Abstract:      request.Msg.Abstract,
+		PublishedYear: request.Msg.PublishedYear,
+		Venue:         request.Msg.Venue,
+		DOI:           request.Msg.Doi,
+		ArxivID:       request.Msg.ArxivId,
+		URL:           request.Msg.Url,
+		DirectoryPath: request.Msg.DirectoryPath,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	return connect.NewResponse(toProtoPaperDetail(paper)), nil
+}
+
+func (handler *PaperHandler) ImportBrowserPaper(
+	ctx context.Context,
+	request *connect.Request[papersv1.ImportBrowserPaperRequest],
+) (*connect.Response[papersv1.ImportBrowserPaperResponse], error) {
+	result, err := handler.service.ImportBrowserPaper(ctx, paper.BrowserImportInput{
+		LibraryRoot:   request.Msg.LibraryRoot,
+		DirectoryPath: request.Msg.DirectoryPath,
+		Candidate:     fromProtoBrowserCandidate(request.Msg.Candidate),
+		ImportPDF:     request.Msg.ImportPdf,
+		Tags:          request.Msg.Tags,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	return connect.NewResponse(&papersv1.ImportBrowserPaperResponse{
+		Status: result.Status,
+		Paper:  toProtoPaperDetail(result.Paper),
+	}), nil
+}
+
+func (handler *PaperHandler) SaveNote(
+	ctx context.Context,
+	request *connect.Request[papersv1.SaveNoteRequest],
+) (*connect.Response[papersv1.GetPaperResponse], error) {
+	paper, ok, err := handler.service.SaveNote(ctx, request.Msg.LibraryRoot, request.Msg.PaperId, request.Msg.Content)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if !ok {
+		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
+	}
+	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
+}
+
+func fromProtoBrowserCandidate(candidate *papersv1.BrowserPaperImportCandidate) model.BrowserImportCandidate {
+	if candidate == nil {
+		return model.BrowserImportCandidate{}
+	}
+	url := ""
+	if candidate.Source != nil {
+		url = candidate.Source.SourceUrl
+	}
+	return model.BrowserImportCandidate{
+		URL:           url,
+		Title:         candidate.Title,
+		Authors:       candidate.Authors,
+		Abstract:      candidate.Abstract,
+		PublishedYear: candidate.PublishedYear,
+		Venue:         candidate.Venue,
+		DOI:           candidate.Doi,
+		ArxivID:       candidate.ArxivId,
+		PDFURL:        candidate.PdfUrl,
+	}
+}
+
+func toProtoPaperSummary(paper model.Paper) *papersv1.PaperSummary {
+	return &papersv1.PaperSummary{
+		Id:            paper.ID,
+		Title:         paper.Title,
+		Authors:       paper.Authors,
+		PublishedYear: paper.PublishedYear,
+		Venue:         paper.Venue,
+		Tags:          paper.Tags,
+		HasPdf:        paper.PDFPath != "",
+	}
+}
+
+func toProtoPaperDetail(paper model.Paper) *papersv1.PaperDetail {
+	return &papersv1.PaperDetail{
+		Id:            paper.ID,
+		Title:         paper.Title,
+		Authors:       paper.Authors,
+		PublishedYear: paper.PublishedYear,
+		Venue:         paper.Venue,
+		Tags:          paper.Tags,
+		HasPdf:        paper.PDFPath != "",
+		Abstract:      paper.Abstract,
+		Doi:           paper.DOI,
+		ArxivId:       paper.ArxivID,
+		Url:           paper.URL,
+		PdfPath:       paper.PDFPath,
+		DirectoryPath: paper.DirectoryPath,
+		NoteContent:   paper.NoteContent,
+	}
+}

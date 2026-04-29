@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
@@ -48,6 +49,58 @@ func TestLibraryDBManagerReusesConnectionForSameLibrary(t *testing.T) {
 
 			if first != second {
 				t.Fatal("OpenLibrary() returned different DB instances for the same library")
+			}
+		})
+	}
+}
+
+func TestLibraryDBManagerSerializesConcurrentOpenForSameLibrary(t *testing.T) {
+	testcases := []struct {
+		name string
+	}{
+		{name: "concurrent first open returns one shared connection"},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			manager := NewLibraryDBManager()
+			root := newTestLibraryRoot(t, "library")
+			defer closeManager(t, manager)
+
+			const workerCount = 8
+			results := make(chan *sql.DB, workerCount)
+			errs := make(chan error, workerCount)
+			var wg sync.WaitGroup
+			for i := 0; i < workerCount; i++ {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					db, err := manager.OpenLibrary(ctx, root)
+					if err != nil {
+						errs <- err
+						return
+					}
+					results <- db
+				}()
+			}
+			wg.Wait()
+			close(results)
+			close(errs)
+
+			for err := range errs {
+				t.Fatalf("OpenLibrary() error = %v", err)
+			}
+
+			var first *sql.DB
+			for db := range results {
+				if first == nil {
+					first = db
+					continue
+				}
+				if db != first {
+					t.Fatal("OpenLibrary() returned different DB instances for concurrent same-library opens")
+				}
 			}
 		})
 	}

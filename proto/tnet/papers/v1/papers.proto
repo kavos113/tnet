@@ -8,9 +8,255 @@ service HealthService {
   rpc Check(CheckRequest) returns (CheckResponse);
 }
 
+service LibraryService {
+  rpc LoadGlobalConfig(LoadGlobalConfigRequest) returns (PapersGlobalConfig);
+  rpc SaveGlobalConfig(SaveGlobalConfigRequest) returns (SaveGlobalConfigResponse);
+  rpc LoadLibraryConfig(LoadLibraryConfigRequest) returns (PapersLibraryConfig);
+  rpc SaveLibraryConfig(SaveLibraryConfigRequest) returns (SaveLibraryConfigResponse);
+  rpc ListLibraries(ListLibrariesRequest) returns (ListLibrariesResponse);
+  rpc ListDirectories(ListDirectoriesRequest) returns (ListDirectoriesResponse);
+}
+
+service PaperService {
+  rpc ListPapers(ListPapersRequest) returns (ListPapersResponse);
+  rpc GetPaper(GetPaperRequest) returns (GetPaperResponse);
+  rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (PaperDetail);
+  rpc ImportBrowserPaper(ImportBrowserPaperRequest) returns (ImportBrowserPaperResponse);
+  rpc SaveNote(SaveNoteRequest) returns (GetPaperResponse);
+}
+
+service TagService {
+  rpc ListTags(ListTagsRequest) returns (ListTagsResponse);
+  rpc UpsertTag(UpsertTagRequest) returns (PaperTag);
+  rpc AttachTag(AttachTagRequest) returns (GetPaperResponse);
+  rpc DetachTag(DetachTagRequest) returns (GetPaperResponse);
+}
+
+service PdfService {
+  rpc LoadPdfBytes(LoadPdfBytesRequest) returns (LoadPdfBytesResponse);
+}
+
+service BrowserImportService {
+  rpc ResolveMetadata(ResolveMetadataRequest) returns (BrowserPaperImportCandidate);
+}
+
 message CheckRequest {}
 
 message CheckResponse {
   string status = 1;
   string version = 2;
+}
+
+message PapersGlobalConfig {
+  repeated string library_roots = 1;
+  string active_library_root = 2;
+  string last_opened_directory = 3;
+}
+
+message PapersLibraryConfig {
+  string list_density = 1;
+  string pdf_zoom_mode = 2;
+  string note_editor_mode = 3;
+}
+
+message LoadGlobalConfigRequest {
+  string user_data_dir = 1;
+}
+
+message SaveGlobalConfigRequest {
+  string user_data_dir = 1;
+  PapersGlobalConfig config = 2;
+}
+
+message SaveGlobalConfigResponse {}
+
+message LoadLibraryConfigRequest {
+  string library_root = 1;
+}
+
+message SaveLibraryConfigRequest {
+  string library_root = 1;
+  PapersLibraryConfig config = 2;
+}
+
+message SaveLibraryConfigResponse {}
+
+message ListLibrariesRequest {
+  string user_data_dir = 1;
+}
+
+message LibraryInfo {
+  string root_path = 1;
+  string name = 2;
+  bool is_active = 3;
+}
+
+message ListLibrariesResponse {
+  repeated LibraryInfo libraries = 1;
+  string active_library_root = 2;
+}
+
+message ListDirectoriesRequest {
+  string library_root = 1;
+}
+
+message DirectoryNode {
+  string name = 1;
+  string relative_path = 2;
+  repeated DirectoryNode children = 3;
+}
+
+message ListDirectoriesResponse {
+  DirectoryNode root = 1;
+}
+
+message PaperSummary {
+  string id = 1;
+  string title = 2;
+  repeated string authors = 3;
+  int32 published_year = 4;
+  string venue = 5;
+  repeated string tags = 6;
+  bool has_pdf = 7;
+}
+
+message PaperDetail {
+  string id = 1;
+  string title = 2;
+  repeated string authors = 3;
+  int32 published_year = 4;
+  string venue = 5;
+  repeated string tags = 6;
+  bool has_pdf = 7;
+  string abstract = 8;
+  string doi = 9;
+  string arxiv_id = 10;
+  string url = 11;
+  string pdf_path = 12;
+  string directory_path = 13;
+  string note_content = 14;
+}
+
+message ListPapersRequest {
+  string library_root = 1;
+  string directory_path = 2;
+  string query = 3;
+  repeated string tag_ids = 4;
+}
+
+message ListPapersResponse {
+  repeated PaperSummary papers = 1;
+}
+
+message GetPaperRequest {
+  string library_root = 1;
+  string paper_id = 2;
+}
+
+message GetPaperResponse {
+  PaperDetail paper = 1;
+}
+
+message CreatePaperFromLocalPdfRequest {
+  string library_root = 1;
+  string source_path = 2;
+  string title = 3;
+  repeated string authors = 4;
+  string abstract = 5;
+  int32 published_year = 6;
+  string venue = 7;
+  string doi = 8;
+  string arxiv_id = 9;
+  string url = 10;
+  string directory_path = 11;
+}
+
+message PaperTag {
+  string id = 1;
+  string name = 2;
+  string color = 3;
+}
+
+message ListTagsRequest {
+  string library_root = 1;
+}
+
+message ListTagsResponse {
+  repeated PaperTag tags = 1;
+}
+
+message UpsertTagRequest {
+  string library_root = 1;
+  string name = 2;
+  string color = 3;
+}
+
+message AttachTagRequest {
+  string library_root = 1;
+  string paper_id = 2;
+  string tag_id = 3;
+}
+
+message DetachTagRequest {
+  string library_root = 1;
+  string paper_id = 2;
+  string tag_id = 3;
+}
+
+message SaveNoteRequest {
+  string library_root = 1;
+  string paper_id = 2;
+  string content = 3;
+}
+
+message LoadPdfBytesRequest {
+  string library_root = 1;
+  string pdf_path = 2;
+}
+
+message LoadPdfBytesResponse {
+  bytes bytes = 1;
+}
+
+message BrowserDetectedPaperSource {
+  string source_url = 1;
+  string page_title = 2;
+  string canonical_url = 3;
+  string doi = 4;
+  string arxiv_id = 5;
+  string pdf_url = 6;
+  string title = 7;
+  repeated string authors = 8;
+  int32 published_year = 9;
+  string venue = 10;
+}
+
+message BrowserPaperImportCandidate {
+  BrowserDetectedPaperSource source = 1;
+  string title = 2;
+  repeated string authors = 3;
+  string abstract = 4;
+  int32 published_year = 5;
+  string venue = 6;
+  string doi = 7;
+  string arxiv_id = 8;
+  string pdf_url = 9;
+  repeated string tags = 10;
+}
+
+message ResolveMetadataRequest {
+  BrowserDetectedPaperSource source = 1;
+}
+
+message ImportBrowserPaperRequest {
+  string library_root = 1;
+  string directory_path = 2;
+  BrowserPaperImportCandidate candidate = 3;
+  bool import_pdf = 4;
+  repeated string tags = 5;
+}
+
+message ImportBrowserPaperResponse {
+  string status = 1;
+  PaperDetail paper = 2;
 }

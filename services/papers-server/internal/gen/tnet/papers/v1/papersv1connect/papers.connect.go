@@ -23,6 +23,16 @@ const _ = connect.IsAtLeastVersion1_13_0
 const (
 	// HealthServiceName is the fully-qualified name of the HealthService service.
 	HealthServiceName = "tnet.papers.v1.HealthService"
+	// LibraryServiceName is the fully-qualified name of the LibraryService service.
+	LibraryServiceName = "tnet.papers.v1.LibraryService"
+	// PaperServiceName is the fully-qualified name of the PaperService service.
+	PaperServiceName = "tnet.papers.v1.PaperService"
+	// TagServiceName is the fully-qualified name of the TagService service.
+	TagServiceName = "tnet.papers.v1.TagService"
+	// PdfServiceName is the fully-qualified name of the PdfService service.
+	PdfServiceName = "tnet.papers.v1.PdfService"
+	// BrowserImportServiceName is the fully-qualified name of the BrowserImportService service.
+	BrowserImportServiceName = "tnet.papers.v1.BrowserImportService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -35,6 +45,49 @@ const (
 const (
 	// HealthServiceCheckProcedure is the fully-qualified name of the HealthService's Check RPC.
 	HealthServiceCheckProcedure = "/tnet.papers.v1.HealthService/Check"
+	// LibraryServiceLoadGlobalConfigProcedure is the fully-qualified name of the LibraryService's
+	// LoadGlobalConfig RPC.
+	LibraryServiceLoadGlobalConfigProcedure = "/tnet.papers.v1.LibraryService/LoadGlobalConfig"
+	// LibraryServiceSaveGlobalConfigProcedure is the fully-qualified name of the LibraryService's
+	// SaveGlobalConfig RPC.
+	LibraryServiceSaveGlobalConfigProcedure = "/tnet.papers.v1.LibraryService/SaveGlobalConfig"
+	// LibraryServiceLoadLibraryConfigProcedure is the fully-qualified name of the LibraryService's
+	// LoadLibraryConfig RPC.
+	LibraryServiceLoadLibraryConfigProcedure = "/tnet.papers.v1.LibraryService/LoadLibraryConfig"
+	// LibraryServiceSaveLibraryConfigProcedure is the fully-qualified name of the LibraryService's
+	// SaveLibraryConfig RPC.
+	LibraryServiceSaveLibraryConfigProcedure = "/tnet.papers.v1.LibraryService/SaveLibraryConfig"
+	// LibraryServiceListLibrariesProcedure is the fully-qualified name of the LibraryService's
+	// ListLibraries RPC.
+	LibraryServiceListLibrariesProcedure = "/tnet.papers.v1.LibraryService/ListLibraries"
+	// LibraryServiceListDirectoriesProcedure is the fully-qualified name of the LibraryService's
+	// ListDirectories RPC.
+	LibraryServiceListDirectoriesProcedure = "/tnet.papers.v1.LibraryService/ListDirectories"
+	// PaperServiceListPapersProcedure is the fully-qualified name of the PaperService's ListPapers RPC.
+	PaperServiceListPapersProcedure = "/tnet.papers.v1.PaperService/ListPapers"
+	// PaperServiceGetPaperProcedure is the fully-qualified name of the PaperService's GetPaper RPC.
+	PaperServiceGetPaperProcedure = "/tnet.papers.v1.PaperService/GetPaper"
+	// PaperServiceCreatePaperFromLocalPdfProcedure is the fully-qualified name of the PaperService's
+	// CreatePaperFromLocalPdf RPC.
+	PaperServiceCreatePaperFromLocalPdfProcedure = "/tnet.papers.v1.PaperService/CreatePaperFromLocalPdf"
+	// PaperServiceImportBrowserPaperProcedure is the fully-qualified name of the PaperService's
+	// ImportBrowserPaper RPC.
+	PaperServiceImportBrowserPaperProcedure = "/tnet.papers.v1.PaperService/ImportBrowserPaper"
+	// PaperServiceSaveNoteProcedure is the fully-qualified name of the PaperService's SaveNote RPC.
+	PaperServiceSaveNoteProcedure = "/tnet.papers.v1.PaperService/SaveNote"
+	// TagServiceListTagsProcedure is the fully-qualified name of the TagService's ListTags RPC.
+	TagServiceListTagsProcedure = "/tnet.papers.v1.TagService/ListTags"
+	// TagServiceUpsertTagProcedure is the fully-qualified name of the TagService's UpsertTag RPC.
+	TagServiceUpsertTagProcedure = "/tnet.papers.v1.TagService/UpsertTag"
+	// TagServiceAttachTagProcedure is the fully-qualified name of the TagService's AttachTag RPC.
+	TagServiceAttachTagProcedure = "/tnet.papers.v1.TagService/AttachTag"
+	// TagServiceDetachTagProcedure is the fully-qualified name of the TagService's DetachTag RPC.
+	TagServiceDetachTagProcedure = "/tnet.papers.v1.TagService/DetachTag"
+	// PdfServiceLoadPdfBytesProcedure is the fully-qualified name of the PdfService's LoadPdfBytes RPC.
+	PdfServiceLoadPdfBytesProcedure = "/tnet.papers.v1.PdfService/LoadPdfBytes"
+	// BrowserImportServiceResolveMetadataProcedure is the fully-qualified name of the
+	// BrowserImportService's ResolveMetadata RPC.
+	BrowserImportServiceResolveMetadataProcedure = "/tnet.papers.v1.BrowserImportService/ResolveMetadata"
 )
 
 // HealthServiceClient is a client for the tnet.papers.v1.HealthService service.
@@ -105,4 +158,667 @@ type UnimplementedHealthServiceHandler struct{}
 
 func (UnimplementedHealthServiceHandler) Check(context.Context, *connect.Request[v1.CheckRequest]) (*connect.Response[v1.CheckResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.HealthService.Check is not implemented"))
+}
+
+// LibraryServiceClient is a client for the tnet.papers.v1.LibraryService service.
+type LibraryServiceClient interface {
+	LoadGlobalConfig(context.Context, *connect.Request[v1.LoadGlobalConfigRequest]) (*connect.Response[v1.PapersGlobalConfig], error)
+	SaveGlobalConfig(context.Context, *connect.Request[v1.SaveGlobalConfigRequest]) (*connect.Response[v1.SaveGlobalConfigResponse], error)
+	LoadLibraryConfig(context.Context, *connect.Request[v1.LoadLibraryConfigRequest]) (*connect.Response[v1.PapersLibraryConfig], error)
+	SaveLibraryConfig(context.Context, *connect.Request[v1.SaveLibraryConfigRequest]) (*connect.Response[v1.SaveLibraryConfigResponse], error)
+	ListLibraries(context.Context, *connect.Request[v1.ListLibrariesRequest]) (*connect.Response[v1.ListLibrariesResponse], error)
+	ListDirectories(context.Context, *connect.Request[v1.ListDirectoriesRequest]) (*connect.Response[v1.ListDirectoriesResponse], error)
+}
+
+// NewLibraryServiceClient constructs a client for the tnet.papers.v1.LibraryService service. By
+// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
+// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
+// connect.WithGRPC() or connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewLibraryServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) LibraryServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	libraryServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("LibraryService").Methods()
+	return &libraryServiceClient{
+		loadGlobalConfig: connect.NewClient[v1.LoadGlobalConfigRequest, v1.PapersGlobalConfig](
+			httpClient,
+			baseURL+LibraryServiceLoadGlobalConfigProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("LoadGlobalConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		saveGlobalConfig: connect.NewClient[v1.SaveGlobalConfigRequest, v1.SaveGlobalConfigResponse](
+			httpClient,
+			baseURL+LibraryServiceSaveGlobalConfigProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("SaveGlobalConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		loadLibraryConfig: connect.NewClient[v1.LoadLibraryConfigRequest, v1.PapersLibraryConfig](
+			httpClient,
+			baseURL+LibraryServiceLoadLibraryConfigProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("LoadLibraryConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		saveLibraryConfig: connect.NewClient[v1.SaveLibraryConfigRequest, v1.SaveLibraryConfigResponse](
+			httpClient,
+			baseURL+LibraryServiceSaveLibraryConfigProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("SaveLibraryConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		listLibraries: connect.NewClient[v1.ListLibrariesRequest, v1.ListLibrariesResponse](
+			httpClient,
+			baseURL+LibraryServiceListLibrariesProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("ListLibraries")),
+			connect.WithClientOptions(opts...),
+		),
+		listDirectories: connect.NewClient[v1.ListDirectoriesRequest, v1.ListDirectoriesResponse](
+			httpClient,
+			baseURL+LibraryServiceListDirectoriesProcedure,
+			connect.WithSchema(libraryServiceMethods.ByName("ListDirectories")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// libraryServiceClient implements LibraryServiceClient.
+type libraryServiceClient struct {
+	loadGlobalConfig  *connect.Client[v1.LoadGlobalConfigRequest, v1.PapersGlobalConfig]
+	saveGlobalConfig  *connect.Client[v1.SaveGlobalConfigRequest, v1.SaveGlobalConfigResponse]
+	loadLibraryConfig *connect.Client[v1.LoadLibraryConfigRequest, v1.PapersLibraryConfig]
+	saveLibraryConfig *connect.Client[v1.SaveLibraryConfigRequest, v1.SaveLibraryConfigResponse]
+	listLibraries     *connect.Client[v1.ListLibrariesRequest, v1.ListLibrariesResponse]
+	listDirectories   *connect.Client[v1.ListDirectoriesRequest, v1.ListDirectoriesResponse]
+}
+
+// LoadGlobalConfig calls tnet.papers.v1.LibraryService.LoadGlobalConfig.
+func (c *libraryServiceClient) LoadGlobalConfig(ctx context.Context, req *connect.Request[v1.LoadGlobalConfigRequest]) (*connect.Response[v1.PapersGlobalConfig], error) {
+	return c.loadGlobalConfig.CallUnary(ctx, req)
+}
+
+// SaveGlobalConfig calls tnet.papers.v1.LibraryService.SaveGlobalConfig.
+func (c *libraryServiceClient) SaveGlobalConfig(ctx context.Context, req *connect.Request[v1.SaveGlobalConfigRequest]) (*connect.Response[v1.SaveGlobalConfigResponse], error) {
+	return c.saveGlobalConfig.CallUnary(ctx, req)
+}
+
+// LoadLibraryConfig calls tnet.papers.v1.LibraryService.LoadLibraryConfig.
+func (c *libraryServiceClient) LoadLibraryConfig(ctx context.Context, req *connect.Request[v1.LoadLibraryConfigRequest]) (*connect.Response[v1.PapersLibraryConfig], error) {
+	return c.loadLibraryConfig.CallUnary(ctx, req)
+}
+
+// SaveLibraryConfig calls tnet.papers.v1.LibraryService.SaveLibraryConfig.
+func (c *libraryServiceClient) SaveLibraryConfig(ctx context.Context, req *connect.Request[v1.SaveLibraryConfigRequest]) (*connect.Response[v1.SaveLibraryConfigResponse], error) {
+	return c.saveLibraryConfig.CallUnary(ctx, req)
+}
+
+// ListLibraries calls tnet.papers.v1.LibraryService.ListLibraries.
+func (c *libraryServiceClient) ListLibraries(ctx context.Context, req *connect.Request[v1.ListLibrariesRequest]) (*connect.Response[v1.ListLibrariesResponse], error) {
+	return c.listLibraries.CallUnary(ctx, req)
+}
+
+// ListDirectories calls tnet.papers.v1.LibraryService.ListDirectories.
+func (c *libraryServiceClient) ListDirectories(ctx context.Context, req *connect.Request[v1.ListDirectoriesRequest]) (*connect.Response[v1.ListDirectoriesResponse], error) {
+	return c.listDirectories.CallUnary(ctx, req)
+}
+
+// LibraryServiceHandler is an implementation of the tnet.papers.v1.LibraryService service.
+type LibraryServiceHandler interface {
+	LoadGlobalConfig(context.Context, *connect.Request[v1.LoadGlobalConfigRequest]) (*connect.Response[v1.PapersGlobalConfig], error)
+	SaveGlobalConfig(context.Context, *connect.Request[v1.SaveGlobalConfigRequest]) (*connect.Response[v1.SaveGlobalConfigResponse], error)
+	LoadLibraryConfig(context.Context, *connect.Request[v1.LoadLibraryConfigRequest]) (*connect.Response[v1.PapersLibraryConfig], error)
+	SaveLibraryConfig(context.Context, *connect.Request[v1.SaveLibraryConfigRequest]) (*connect.Response[v1.SaveLibraryConfigResponse], error)
+	ListLibraries(context.Context, *connect.Request[v1.ListLibrariesRequest]) (*connect.Response[v1.ListLibrariesResponse], error)
+	ListDirectories(context.Context, *connect.Request[v1.ListDirectoriesRequest]) (*connect.Response[v1.ListDirectoriesResponse], error)
+}
+
+// NewLibraryServiceHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewLibraryServiceHandler(svc LibraryServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	libraryServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("LibraryService").Methods()
+	libraryServiceLoadGlobalConfigHandler := connect.NewUnaryHandler(
+		LibraryServiceLoadGlobalConfigProcedure,
+		svc.LoadGlobalConfig,
+		connect.WithSchema(libraryServiceMethods.ByName("LoadGlobalConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	libraryServiceSaveGlobalConfigHandler := connect.NewUnaryHandler(
+		LibraryServiceSaveGlobalConfigProcedure,
+		svc.SaveGlobalConfig,
+		connect.WithSchema(libraryServiceMethods.ByName("SaveGlobalConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	libraryServiceLoadLibraryConfigHandler := connect.NewUnaryHandler(
+		LibraryServiceLoadLibraryConfigProcedure,
+		svc.LoadLibraryConfig,
+		connect.WithSchema(libraryServiceMethods.ByName("LoadLibraryConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	libraryServiceSaveLibraryConfigHandler := connect.NewUnaryHandler(
+		LibraryServiceSaveLibraryConfigProcedure,
+		svc.SaveLibraryConfig,
+		connect.WithSchema(libraryServiceMethods.ByName("SaveLibraryConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	libraryServiceListLibrariesHandler := connect.NewUnaryHandler(
+		LibraryServiceListLibrariesProcedure,
+		svc.ListLibraries,
+		connect.WithSchema(libraryServiceMethods.ByName("ListLibraries")),
+		connect.WithHandlerOptions(opts...),
+	)
+	libraryServiceListDirectoriesHandler := connect.NewUnaryHandler(
+		LibraryServiceListDirectoriesProcedure,
+		svc.ListDirectories,
+		connect.WithSchema(libraryServiceMethods.ByName("ListDirectories")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/tnet.papers.v1.LibraryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case LibraryServiceLoadGlobalConfigProcedure:
+			libraryServiceLoadGlobalConfigHandler.ServeHTTP(w, r)
+		case LibraryServiceSaveGlobalConfigProcedure:
+			libraryServiceSaveGlobalConfigHandler.ServeHTTP(w, r)
+		case LibraryServiceLoadLibraryConfigProcedure:
+			libraryServiceLoadLibraryConfigHandler.ServeHTTP(w, r)
+		case LibraryServiceSaveLibraryConfigProcedure:
+			libraryServiceSaveLibraryConfigHandler.ServeHTTP(w, r)
+		case LibraryServiceListLibrariesProcedure:
+			libraryServiceListLibrariesHandler.ServeHTTP(w, r)
+		case LibraryServiceListDirectoriesProcedure:
+			libraryServiceListDirectoriesHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedLibraryServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedLibraryServiceHandler struct{}
+
+func (UnimplementedLibraryServiceHandler) LoadGlobalConfig(context.Context, *connect.Request[v1.LoadGlobalConfigRequest]) (*connect.Response[v1.PapersGlobalConfig], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.LibraryService.LoadGlobalConfig is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) SaveGlobalConfig(context.Context, *connect.Request[v1.SaveGlobalConfigRequest]) (*connect.Response[v1.SaveGlobalConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.LibraryService.SaveGlobalConfig is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) LoadLibraryConfig(context.Context, *connect.Request[v1.LoadLibraryConfigRequest]) (*connect.Response[v1.PapersLibraryConfig], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.LibraryService.LoadLibraryConfig is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) SaveLibraryConfig(context.Context, *connect.Request[v1.SaveLibraryConfigRequest]) (*connect.Response[v1.SaveLibraryConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.LibraryService.SaveLibraryConfig is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) ListLibraries(context.Context, *connect.Request[v1.ListLibrariesRequest]) (*connect.Response[v1.ListLibrariesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.LibraryService.ListLibraries is not implemented"))
+}
+
+func (UnimplementedLibraryServiceHandler) ListDirectories(context.Context, *connect.Request[v1.ListDirectoriesRequest]) (*connect.Response[v1.ListDirectoriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.LibraryService.ListDirectories is not implemented"))
+}
+
+// PaperServiceClient is a client for the tnet.papers.v1.PaperService service.
+type PaperServiceClient interface {
+	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
+	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
+	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
+	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
+	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
+}
+
+// NewPaperServiceClient constructs a client for the tnet.papers.v1.PaperService service. By
+// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
+// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
+// connect.WithGRPC() or connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) PaperServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	paperServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("PaperService").Methods()
+	return &paperServiceClient{
+		listPapers: connect.NewClient[v1.ListPapersRequest, v1.ListPapersResponse](
+			httpClient,
+			baseURL+PaperServiceListPapersProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("ListPapers")),
+			connect.WithClientOptions(opts...),
+		),
+		getPaper: connect.NewClient[v1.GetPaperRequest, v1.GetPaperResponse](
+			httpClient,
+			baseURL+PaperServiceGetPaperProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("GetPaper")),
+			connect.WithClientOptions(opts...),
+		),
+		createPaperFromLocalPdf: connect.NewClient[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail](
+			httpClient,
+			baseURL+PaperServiceCreatePaperFromLocalPdfProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromLocalPdf")),
+			connect.WithClientOptions(opts...),
+		),
+		importBrowserPaper: connect.NewClient[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse](
+			httpClient,
+			baseURL+PaperServiceImportBrowserPaperProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaper")),
+			connect.WithClientOptions(opts...),
+		),
+		saveNote: connect.NewClient[v1.SaveNoteRequest, v1.GetPaperResponse](
+			httpClient,
+			baseURL+PaperServiceSaveNoteProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("SaveNote")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// paperServiceClient implements PaperServiceClient.
+type paperServiceClient struct {
+	listPapers              *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
+	getPaper                *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
+	createPaperFromLocalPdf *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
+	importBrowserPaper      *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse]
+	saveNote                *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
+}
+
+// ListPapers calls tnet.papers.v1.PaperService.ListPapers.
+func (c *paperServiceClient) ListPapers(ctx context.Context, req *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error) {
+	return c.listPapers.CallUnary(ctx, req)
+}
+
+// GetPaper calls tnet.papers.v1.PaperService.GetPaper.
+func (c *paperServiceClient) GetPaper(ctx context.Context, req *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return c.getPaper.CallUnary(ctx, req)
+}
+
+// CreatePaperFromLocalPdf calls tnet.papers.v1.PaperService.CreatePaperFromLocalPdf.
+func (c *paperServiceClient) CreatePaperFromLocalPdf(ctx context.Context, req *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error) {
+	return c.createPaperFromLocalPdf.CallUnary(ctx, req)
+}
+
+// ImportBrowserPaper calls tnet.papers.v1.PaperService.ImportBrowserPaper.
+func (c *paperServiceClient) ImportBrowserPaper(ctx context.Context, req *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error) {
+	return c.importBrowserPaper.CallUnary(ctx, req)
+}
+
+// SaveNote calls tnet.papers.v1.PaperService.SaveNote.
+func (c *paperServiceClient) SaveNote(ctx context.Context, req *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return c.saveNote.CallUnary(ctx, req)
+}
+
+// PaperServiceHandler is an implementation of the tnet.papers.v1.PaperService service.
+type PaperServiceHandler interface {
+	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
+	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
+	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
+	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
+	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
+}
+
+// NewPaperServiceHandler builds an HTTP handler from the service implementation. It returns the
+// path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	paperServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("PaperService").Methods()
+	paperServiceListPapersHandler := connect.NewUnaryHandler(
+		PaperServiceListPapersProcedure,
+		svc.ListPapers,
+		connect.WithSchema(paperServiceMethods.ByName("ListPapers")),
+		connect.WithHandlerOptions(opts...),
+	)
+	paperServiceGetPaperHandler := connect.NewUnaryHandler(
+		PaperServiceGetPaperProcedure,
+		svc.GetPaper,
+		connect.WithSchema(paperServiceMethods.ByName("GetPaper")),
+		connect.WithHandlerOptions(opts...),
+	)
+	paperServiceCreatePaperFromLocalPdfHandler := connect.NewUnaryHandler(
+		PaperServiceCreatePaperFromLocalPdfProcedure,
+		svc.CreatePaperFromLocalPdf,
+		connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromLocalPdf")),
+		connect.WithHandlerOptions(opts...),
+	)
+	paperServiceImportBrowserPaperHandler := connect.NewUnaryHandler(
+		PaperServiceImportBrowserPaperProcedure,
+		svc.ImportBrowserPaper,
+		connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaper")),
+		connect.WithHandlerOptions(opts...),
+	)
+	paperServiceSaveNoteHandler := connect.NewUnaryHandler(
+		PaperServiceSaveNoteProcedure,
+		svc.SaveNote,
+		connect.WithSchema(paperServiceMethods.ByName("SaveNote")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/tnet.papers.v1.PaperService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case PaperServiceListPapersProcedure:
+			paperServiceListPapersHandler.ServeHTTP(w, r)
+		case PaperServiceGetPaperProcedure:
+			paperServiceGetPaperHandler.ServeHTTP(w, r)
+		case PaperServiceCreatePaperFromLocalPdfProcedure:
+			paperServiceCreatePaperFromLocalPdfHandler.ServeHTTP(w, r)
+		case PaperServiceImportBrowserPaperProcedure:
+			paperServiceImportBrowserPaperHandler.ServeHTTP(w, r)
+		case PaperServiceSaveNoteProcedure:
+			paperServiceSaveNoteHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedPaperServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedPaperServiceHandler struct{}
+
+func (UnimplementedPaperServiceHandler) ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ListPapers is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.GetPaper is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.CreatePaperFromLocalPdf is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ImportBrowserPaper is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.SaveNote is not implemented"))
+}
+
+// TagServiceClient is a client for the tnet.papers.v1.TagService service.
+type TagServiceClient interface {
+	ListTags(context.Context, *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error)
+	UpsertTag(context.Context, *connect.Request[v1.UpsertTagRequest]) (*connect.Response[v1.PaperTag], error)
+	AttachTag(context.Context, *connect.Request[v1.AttachTagRequest]) (*connect.Response[v1.GetPaperResponse], error)
+	DetachTag(context.Context, *connect.Request[v1.DetachTagRequest]) (*connect.Response[v1.GetPaperResponse], error)
+}
+
+// NewTagServiceClient constructs a client for the tnet.papers.v1.TagService service. By default, it
+// uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
+// uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
+// connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewTagServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TagServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	tagServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("TagService").Methods()
+	return &tagServiceClient{
+		listTags: connect.NewClient[v1.ListTagsRequest, v1.ListTagsResponse](
+			httpClient,
+			baseURL+TagServiceListTagsProcedure,
+			connect.WithSchema(tagServiceMethods.ByName("ListTags")),
+			connect.WithClientOptions(opts...),
+		),
+		upsertTag: connect.NewClient[v1.UpsertTagRequest, v1.PaperTag](
+			httpClient,
+			baseURL+TagServiceUpsertTagProcedure,
+			connect.WithSchema(tagServiceMethods.ByName("UpsertTag")),
+			connect.WithClientOptions(opts...),
+		),
+		attachTag: connect.NewClient[v1.AttachTagRequest, v1.GetPaperResponse](
+			httpClient,
+			baseURL+TagServiceAttachTagProcedure,
+			connect.WithSchema(tagServiceMethods.ByName("AttachTag")),
+			connect.WithClientOptions(opts...),
+		),
+		detachTag: connect.NewClient[v1.DetachTagRequest, v1.GetPaperResponse](
+			httpClient,
+			baseURL+TagServiceDetachTagProcedure,
+			connect.WithSchema(tagServiceMethods.ByName("DetachTag")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// tagServiceClient implements TagServiceClient.
+type tagServiceClient struct {
+	listTags  *connect.Client[v1.ListTagsRequest, v1.ListTagsResponse]
+	upsertTag *connect.Client[v1.UpsertTagRequest, v1.PaperTag]
+	attachTag *connect.Client[v1.AttachTagRequest, v1.GetPaperResponse]
+	detachTag *connect.Client[v1.DetachTagRequest, v1.GetPaperResponse]
+}
+
+// ListTags calls tnet.papers.v1.TagService.ListTags.
+func (c *tagServiceClient) ListTags(ctx context.Context, req *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error) {
+	return c.listTags.CallUnary(ctx, req)
+}
+
+// UpsertTag calls tnet.papers.v1.TagService.UpsertTag.
+func (c *tagServiceClient) UpsertTag(ctx context.Context, req *connect.Request[v1.UpsertTagRequest]) (*connect.Response[v1.PaperTag], error) {
+	return c.upsertTag.CallUnary(ctx, req)
+}
+
+// AttachTag calls tnet.papers.v1.TagService.AttachTag.
+func (c *tagServiceClient) AttachTag(ctx context.Context, req *connect.Request[v1.AttachTagRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return c.attachTag.CallUnary(ctx, req)
+}
+
+// DetachTag calls tnet.papers.v1.TagService.DetachTag.
+func (c *tagServiceClient) DetachTag(ctx context.Context, req *connect.Request[v1.DetachTagRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return c.detachTag.CallUnary(ctx, req)
+}
+
+// TagServiceHandler is an implementation of the tnet.papers.v1.TagService service.
+type TagServiceHandler interface {
+	ListTags(context.Context, *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error)
+	UpsertTag(context.Context, *connect.Request[v1.UpsertTagRequest]) (*connect.Response[v1.PaperTag], error)
+	AttachTag(context.Context, *connect.Request[v1.AttachTagRequest]) (*connect.Response[v1.GetPaperResponse], error)
+	DetachTag(context.Context, *connect.Request[v1.DetachTagRequest]) (*connect.Response[v1.GetPaperResponse], error)
+}
+
+// NewTagServiceHandler builds an HTTP handler from the service implementation. It returns the path
+// on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewTagServiceHandler(svc TagServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	tagServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("TagService").Methods()
+	tagServiceListTagsHandler := connect.NewUnaryHandler(
+		TagServiceListTagsProcedure,
+		svc.ListTags,
+		connect.WithSchema(tagServiceMethods.ByName("ListTags")),
+		connect.WithHandlerOptions(opts...),
+	)
+	tagServiceUpsertTagHandler := connect.NewUnaryHandler(
+		TagServiceUpsertTagProcedure,
+		svc.UpsertTag,
+		connect.WithSchema(tagServiceMethods.ByName("UpsertTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	tagServiceAttachTagHandler := connect.NewUnaryHandler(
+		TagServiceAttachTagProcedure,
+		svc.AttachTag,
+		connect.WithSchema(tagServiceMethods.ByName("AttachTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	tagServiceDetachTagHandler := connect.NewUnaryHandler(
+		TagServiceDetachTagProcedure,
+		svc.DetachTag,
+		connect.WithSchema(tagServiceMethods.ByName("DetachTag")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/tnet.papers.v1.TagService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case TagServiceListTagsProcedure:
+			tagServiceListTagsHandler.ServeHTTP(w, r)
+		case TagServiceUpsertTagProcedure:
+			tagServiceUpsertTagHandler.ServeHTTP(w, r)
+		case TagServiceAttachTagProcedure:
+			tagServiceAttachTagHandler.ServeHTTP(w, r)
+		case TagServiceDetachTagProcedure:
+			tagServiceDetachTagHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedTagServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedTagServiceHandler struct{}
+
+func (UnimplementedTagServiceHandler) ListTags(context.Context, *connect.Request[v1.ListTagsRequest]) (*connect.Response[v1.ListTagsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.TagService.ListTags is not implemented"))
+}
+
+func (UnimplementedTagServiceHandler) UpsertTag(context.Context, *connect.Request[v1.UpsertTagRequest]) (*connect.Response[v1.PaperTag], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.TagService.UpsertTag is not implemented"))
+}
+
+func (UnimplementedTagServiceHandler) AttachTag(context.Context, *connect.Request[v1.AttachTagRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.TagService.AttachTag is not implemented"))
+}
+
+func (UnimplementedTagServiceHandler) DetachTag(context.Context, *connect.Request[v1.DetachTagRequest]) (*connect.Response[v1.GetPaperResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.TagService.DetachTag is not implemented"))
+}
+
+// PdfServiceClient is a client for the tnet.papers.v1.PdfService service.
+type PdfServiceClient interface {
+	LoadPdfBytes(context.Context, *connect.Request[v1.LoadPdfBytesRequest]) (*connect.Response[v1.LoadPdfBytesResponse], error)
+}
+
+// NewPdfServiceClient constructs a client for the tnet.papers.v1.PdfService service. By default, it
+// uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses, and sends
+// uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the connect.WithGRPC() or
+// connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewPdfServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) PdfServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	pdfServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("PdfService").Methods()
+	return &pdfServiceClient{
+		loadPdfBytes: connect.NewClient[v1.LoadPdfBytesRequest, v1.LoadPdfBytesResponse](
+			httpClient,
+			baseURL+PdfServiceLoadPdfBytesProcedure,
+			connect.WithSchema(pdfServiceMethods.ByName("LoadPdfBytes")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// pdfServiceClient implements PdfServiceClient.
+type pdfServiceClient struct {
+	loadPdfBytes *connect.Client[v1.LoadPdfBytesRequest, v1.LoadPdfBytesResponse]
+}
+
+// LoadPdfBytes calls tnet.papers.v1.PdfService.LoadPdfBytes.
+func (c *pdfServiceClient) LoadPdfBytes(ctx context.Context, req *connect.Request[v1.LoadPdfBytesRequest]) (*connect.Response[v1.LoadPdfBytesResponse], error) {
+	return c.loadPdfBytes.CallUnary(ctx, req)
+}
+
+// PdfServiceHandler is an implementation of the tnet.papers.v1.PdfService service.
+type PdfServiceHandler interface {
+	LoadPdfBytes(context.Context, *connect.Request[v1.LoadPdfBytesRequest]) (*connect.Response[v1.LoadPdfBytesResponse], error)
+}
+
+// NewPdfServiceHandler builds an HTTP handler from the service implementation. It returns the path
+// on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewPdfServiceHandler(svc PdfServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	pdfServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("PdfService").Methods()
+	pdfServiceLoadPdfBytesHandler := connect.NewUnaryHandler(
+		PdfServiceLoadPdfBytesProcedure,
+		svc.LoadPdfBytes,
+		connect.WithSchema(pdfServiceMethods.ByName("LoadPdfBytes")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/tnet.papers.v1.PdfService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case PdfServiceLoadPdfBytesProcedure:
+			pdfServiceLoadPdfBytesHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedPdfServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedPdfServiceHandler struct{}
+
+func (UnimplementedPdfServiceHandler) LoadPdfBytes(context.Context, *connect.Request[v1.LoadPdfBytesRequest]) (*connect.Response[v1.LoadPdfBytesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PdfService.LoadPdfBytes is not implemented"))
+}
+
+// BrowserImportServiceClient is a client for the tnet.papers.v1.BrowserImportService service.
+type BrowserImportServiceClient interface {
+	ResolveMetadata(context.Context, *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error)
+}
+
+// NewBrowserImportServiceClient constructs a client for the tnet.papers.v1.BrowserImportService
+// service. By default, it uses the Connect protocol with the binary Protobuf Codec, asks for
+// gzipped responses, and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply
+// the connect.WithGRPC() or connect.WithGRPCWeb() options.
+//
+// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
+// http://api.acme.com or https://acme.com/grpc).
+func NewBrowserImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) BrowserImportServiceClient {
+	baseURL = strings.TrimRight(baseURL, "/")
+	browserImportServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("BrowserImportService").Methods()
+	return &browserImportServiceClient{
+		resolveMetadata: connect.NewClient[v1.ResolveMetadataRequest, v1.BrowserPaperImportCandidate](
+			httpClient,
+			baseURL+BrowserImportServiceResolveMetadataProcedure,
+			connect.WithSchema(browserImportServiceMethods.ByName("ResolveMetadata")),
+			connect.WithClientOptions(opts...),
+		),
+	}
+}
+
+// browserImportServiceClient implements BrowserImportServiceClient.
+type browserImportServiceClient struct {
+	resolveMetadata *connect.Client[v1.ResolveMetadataRequest, v1.BrowserPaperImportCandidate]
+}
+
+// ResolveMetadata calls tnet.papers.v1.BrowserImportService.ResolveMetadata.
+func (c *browserImportServiceClient) ResolveMetadata(ctx context.Context, req *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error) {
+	return c.resolveMetadata.CallUnary(ctx, req)
+}
+
+// BrowserImportServiceHandler is an implementation of the tnet.papers.v1.BrowserImportService
+// service.
+type BrowserImportServiceHandler interface {
+	ResolveMetadata(context.Context, *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error)
+}
+
+// NewBrowserImportServiceHandler builds an HTTP handler from the service implementation. It returns
+// the path on which to mount the handler and the handler itself.
+//
+// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
+// and JSON codecs. They also support gzip compression.
+func NewBrowserImportServiceHandler(svc BrowserImportServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	browserImportServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("BrowserImportService").Methods()
+	browserImportServiceResolveMetadataHandler := connect.NewUnaryHandler(
+		BrowserImportServiceResolveMetadataProcedure,
+		svc.ResolveMetadata,
+		connect.WithSchema(browserImportServiceMethods.ByName("ResolveMetadata")),
+		connect.WithHandlerOptions(opts...),
+	)
+	return "/tnet.papers.v1.BrowserImportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case BrowserImportServiceResolveMetadataProcedure:
+			browserImportServiceResolveMetadataHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// UnimplementedBrowserImportServiceHandler returns CodeUnimplemented from all methods.
+type UnimplementedBrowserImportServiceHandler struct{}
+
+func (UnimplementedBrowserImportServiceHandler) ResolveMetadata(context.Context, *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.BrowserImportService.ResolveMetadata is not implemented"))
 }

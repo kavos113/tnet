@@ -109,6 +109,2154 @@ func (x *CheckResponse) GetVersion() string {
 	return ""
 }
 
+type PapersGlobalConfig struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoots        []string               `protobuf:"bytes,1,rep,name=library_roots,json=libraryRoots,proto3" json:"library_roots,omitempty"`
+	ActiveLibraryRoot   string                 `protobuf:"bytes,2,opt,name=active_library_root,json=activeLibraryRoot,proto3" json:"active_library_root,omitempty"`
+	LastOpenedDirectory string                 `protobuf:"bytes,3,opt,name=last_opened_directory,json=lastOpenedDirectory,proto3" json:"last_opened_directory,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PapersGlobalConfig) Reset() {
+	*x = PapersGlobalConfig{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PapersGlobalConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PapersGlobalConfig) ProtoMessage() {}
+
+func (x *PapersGlobalConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PapersGlobalConfig.ProtoReflect.Descriptor instead.
+func (*PapersGlobalConfig) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PapersGlobalConfig) GetLibraryRoots() []string {
+	if x != nil {
+		return x.LibraryRoots
+	}
+	return nil
+}
+
+func (x *PapersGlobalConfig) GetActiveLibraryRoot() string {
+	if x != nil {
+		return x.ActiveLibraryRoot
+	}
+	return ""
+}
+
+func (x *PapersGlobalConfig) GetLastOpenedDirectory() string {
+	if x != nil {
+		return x.LastOpenedDirectory
+	}
+	return ""
+}
+
+type PapersLibraryConfig struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ListDensity    string                 `protobuf:"bytes,1,opt,name=list_density,json=listDensity,proto3" json:"list_density,omitempty"`
+	PdfZoomMode    string                 `protobuf:"bytes,2,opt,name=pdf_zoom_mode,json=pdfZoomMode,proto3" json:"pdf_zoom_mode,omitempty"`
+	NoteEditorMode string                 `protobuf:"bytes,3,opt,name=note_editor_mode,json=noteEditorMode,proto3" json:"note_editor_mode,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *PapersLibraryConfig) Reset() {
+	*x = PapersLibraryConfig{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PapersLibraryConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PapersLibraryConfig) ProtoMessage() {}
+
+func (x *PapersLibraryConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PapersLibraryConfig.ProtoReflect.Descriptor instead.
+func (*PapersLibraryConfig) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PapersLibraryConfig) GetListDensity() string {
+	if x != nil {
+		return x.ListDensity
+	}
+	return ""
+}
+
+func (x *PapersLibraryConfig) GetPdfZoomMode() string {
+	if x != nil {
+		return x.PdfZoomMode
+	}
+	return ""
+}
+
+func (x *PapersLibraryConfig) GetNoteEditorMode() string {
+	if x != nil {
+		return x.NoteEditorMode
+	}
+	return ""
+}
+
+type LoadGlobalConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserDataDir   string                 `protobuf:"bytes,1,opt,name=user_data_dir,json=userDataDir,proto3" json:"user_data_dir,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoadGlobalConfigRequest) Reset() {
+	*x = LoadGlobalConfigRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadGlobalConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadGlobalConfigRequest) ProtoMessage() {}
+
+func (x *LoadGlobalConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadGlobalConfigRequest.ProtoReflect.Descriptor instead.
+func (*LoadGlobalConfigRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LoadGlobalConfigRequest) GetUserDataDir() string {
+	if x != nil {
+		return x.UserDataDir
+	}
+	return ""
+}
+
+type SaveGlobalConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserDataDir   string                 `protobuf:"bytes,1,opt,name=user_data_dir,json=userDataDir,proto3" json:"user_data_dir,omitempty"`
+	Config        *PapersGlobalConfig    `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveGlobalConfigRequest) Reset() {
+	*x = SaveGlobalConfigRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveGlobalConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveGlobalConfigRequest) ProtoMessage() {}
+
+func (x *SaveGlobalConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveGlobalConfigRequest.ProtoReflect.Descriptor instead.
+func (*SaveGlobalConfigRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SaveGlobalConfigRequest) GetUserDataDir() string {
+	if x != nil {
+		return x.UserDataDir
+	}
+	return ""
+}
+
+func (x *SaveGlobalConfigRequest) GetConfig() *PapersGlobalConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+type SaveGlobalConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveGlobalConfigResponse) Reset() {
+	*x = SaveGlobalConfigResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveGlobalConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveGlobalConfigResponse) ProtoMessage() {}
+
+func (x *SaveGlobalConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveGlobalConfigResponse.ProtoReflect.Descriptor instead.
+func (*SaveGlobalConfigResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{6}
+}
+
+type LoadLibraryConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoadLibraryConfigRequest) Reset() {
+	*x = LoadLibraryConfigRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadLibraryConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadLibraryConfigRequest) ProtoMessage() {}
+
+func (x *LoadLibraryConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadLibraryConfigRequest.ProtoReflect.Descriptor instead.
+func (*LoadLibraryConfigRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LoadLibraryConfigRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+type SaveLibraryConfigRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	Config        *PapersLibraryConfig   `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveLibraryConfigRequest) Reset() {
+	*x = SaveLibraryConfigRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveLibraryConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveLibraryConfigRequest) ProtoMessage() {}
+
+func (x *SaveLibraryConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveLibraryConfigRequest.ProtoReflect.Descriptor instead.
+func (*SaveLibraryConfigRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SaveLibraryConfigRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *SaveLibraryConfigRequest) GetConfig() *PapersLibraryConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+type SaveLibraryConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveLibraryConfigResponse) Reset() {
+	*x = SaveLibraryConfigResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveLibraryConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveLibraryConfigResponse) ProtoMessage() {}
+
+func (x *SaveLibraryConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveLibraryConfigResponse.ProtoReflect.Descriptor instead.
+func (*SaveLibraryConfigResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{9}
+}
+
+type ListLibrariesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserDataDir   string                 `protobuf:"bytes,1,opt,name=user_data_dir,json=userDataDir,proto3" json:"user_data_dir,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLibrariesRequest) Reset() {
+	*x = ListLibrariesRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLibrariesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLibrariesRequest) ProtoMessage() {}
+
+func (x *ListLibrariesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLibrariesRequest.ProtoReflect.Descriptor instead.
+func (*ListLibrariesRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListLibrariesRequest) GetUserDataDir() string {
+	if x != nil {
+		return x.UserDataDir
+	}
+	return ""
+}
+
+type LibraryInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RootPath      string                 `protobuf:"bytes,1,opt,name=root_path,json=rootPath,proto3" json:"root_path,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	IsActive      bool                   `protobuf:"varint,3,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LibraryInfo) Reset() {
+	*x = LibraryInfo{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LibraryInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LibraryInfo) ProtoMessage() {}
+
+func (x *LibraryInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LibraryInfo.ProtoReflect.Descriptor instead.
+func (*LibraryInfo) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *LibraryInfo) GetRootPath() string {
+	if x != nil {
+		return x.RootPath
+	}
+	return ""
+}
+
+func (x *LibraryInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *LibraryInfo) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+type ListLibrariesResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Libraries         []*LibraryInfo         `protobuf:"bytes,1,rep,name=libraries,proto3" json:"libraries,omitempty"`
+	ActiveLibraryRoot string                 `protobuf:"bytes,2,opt,name=active_library_root,json=activeLibraryRoot,proto3" json:"active_library_root,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ListLibrariesResponse) Reset() {
+	*x = ListLibrariesResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLibrariesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLibrariesResponse) ProtoMessage() {}
+
+func (x *ListLibrariesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLibrariesResponse.ProtoReflect.Descriptor instead.
+func (*ListLibrariesResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ListLibrariesResponse) GetLibraries() []*LibraryInfo {
+	if x != nil {
+		return x.Libraries
+	}
+	return nil
+}
+
+func (x *ListLibrariesResponse) GetActiveLibraryRoot() string {
+	if x != nil {
+		return x.ActiveLibraryRoot
+	}
+	return ""
+}
+
+type ListDirectoriesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDirectoriesRequest) Reset() {
+	*x = ListDirectoriesRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDirectoriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDirectoriesRequest) ProtoMessage() {}
+
+func (x *ListDirectoriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDirectoriesRequest.ProtoReflect.Descriptor instead.
+func (*ListDirectoriesRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListDirectoriesRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+type DirectoryNode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	RelativePath  string                 `protobuf:"bytes,2,opt,name=relative_path,json=relativePath,proto3" json:"relative_path,omitempty"`
+	Children      []*DirectoryNode       `protobuf:"bytes,3,rep,name=children,proto3" json:"children,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DirectoryNode) Reset() {
+	*x = DirectoryNode{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DirectoryNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DirectoryNode) ProtoMessage() {}
+
+func (x *DirectoryNode) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DirectoryNode.ProtoReflect.Descriptor instead.
+func (*DirectoryNode) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *DirectoryNode) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *DirectoryNode) GetRelativePath() string {
+	if x != nil {
+		return x.RelativePath
+	}
+	return ""
+}
+
+func (x *DirectoryNode) GetChildren() []*DirectoryNode {
+	if x != nil {
+		return x.Children
+	}
+	return nil
+}
+
+type ListDirectoriesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Root          *DirectoryNode         `protobuf:"bytes,1,opt,name=root,proto3" json:"root,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDirectoriesResponse) Reset() {
+	*x = ListDirectoriesResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDirectoriesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDirectoriesResponse) ProtoMessage() {}
+
+func (x *ListDirectoriesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDirectoriesResponse.ProtoReflect.Descriptor instead.
+func (*ListDirectoriesResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListDirectoriesResponse) GetRoot() *DirectoryNode {
+	if x != nil {
+		return x.Root
+	}
+	return nil
+}
+
+type PaperSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Authors       []string               `protobuf:"bytes,3,rep,name=authors,proto3" json:"authors,omitempty"`
+	PublishedYear int32                  `protobuf:"varint,4,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
+	Venue         string                 `protobuf:"bytes,5,opt,name=venue,proto3" json:"venue,omitempty"`
+	Tags          []string               `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty"`
+	HasPdf        bool                   `protobuf:"varint,7,opt,name=has_pdf,json=hasPdf,proto3" json:"has_pdf,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaperSummary) Reset() {
+	*x = PaperSummary{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaperSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaperSummary) ProtoMessage() {}
+
+func (x *PaperSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaperSummary.ProtoReflect.Descriptor instead.
+func (*PaperSummary) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *PaperSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PaperSummary) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PaperSummary) GetAuthors() []string {
+	if x != nil {
+		return x.Authors
+	}
+	return nil
+}
+
+func (x *PaperSummary) GetPublishedYear() int32 {
+	if x != nil {
+		return x.PublishedYear
+	}
+	return 0
+}
+
+func (x *PaperSummary) GetVenue() string {
+	if x != nil {
+		return x.Venue
+	}
+	return ""
+}
+
+func (x *PaperSummary) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *PaperSummary) GetHasPdf() bool {
+	if x != nil {
+		return x.HasPdf
+	}
+	return false
+}
+
+type PaperDetail struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Authors       []string               `protobuf:"bytes,3,rep,name=authors,proto3" json:"authors,omitempty"`
+	PublishedYear int32                  `protobuf:"varint,4,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
+	Venue         string                 `protobuf:"bytes,5,opt,name=venue,proto3" json:"venue,omitempty"`
+	Tags          []string               `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty"`
+	HasPdf        bool                   `protobuf:"varint,7,opt,name=has_pdf,json=hasPdf,proto3" json:"has_pdf,omitempty"`
+	Abstract      string                 `protobuf:"bytes,8,opt,name=abstract,proto3" json:"abstract,omitempty"`
+	Doi           string                 `protobuf:"bytes,9,opt,name=doi,proto3" json:"doi,omitempty"`
+	ArxivId       string                 `protobuf:"bytes,10,opt,name=arxiv_id,json=arxivId,proto3" json:"arxiv_id,omitempty"`
+	Url           string                 `protobuf:"bytes,11,opt,name=url,proto3" json:"url,omitempty"`
+	PdfPath       string                 `protobuf:"bytes,12,opt,name=pdf_path,json=pdfPath,proto3" json:"pdf_path,omitempty"`
+	DirectoryPath string                 `protobuf:"bytes,13,opt,name=directory_path,json=directoryPath,proto3" json:"directory_path,omitempty"`
+	NoteContent   string                 `protobuf:"bytes,14,opt,name=note_content,json=noteContent,proto3" json:"note_content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaperDetail) Reset() {
+	*x = PaperDetail{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaperDetail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaperDetail) ProtoMessage() {}
+
+func (x *PaperDetail) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaperDetail.ProtoReflect.Descriptor instead.
+func (*PaperDetail) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PaperDetail) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetAuthors() []string {
+	if x != nil {
+		return x.Authors
+	}
+	return nil
+}
+
+func (x *PaperDetail) GetPublishedYear() int32 {
+	if x != nil {
+		return x.PublishedYear
+	}
+	return 0
+}
+
+func (x *PaperDetail) GetVenue() string {
+	if x != nil {
+		return x.Venue
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *PaperDetail) GetHasPdf() bool {
+	if x != nil {
+		return x.HasPdf
+	}
+	return false
+}
+
+func (x *PaperDetail) GetAbstract() string {
+	if x != nil {
+		return x.Abstract
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetDoi() string {
+	if x != nil {
+		return x.Doi
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetArxivId() string {
+	if x != nil {
+		return x.ArxivId
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetPdfPath() string {
+	if x != nil {
+		return x.PdfPath
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetDirectoryPath() string {
+	if x != nil {
+		return x.DirectoryPath
+	}
+	return ""
+}
+
+func (x *PaperDetail) GetNoteContent() string {
+	if x != nil {
+		return x.NoteContent
+	}
+	return ""
+}
+
+type ListPapersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	DirectoryPath string                 `protobuf:"bytes,2,opt,name=directory_path,json=directoryPath,proto3" json:"directory_path,omitempty"`
+	Query         string                 `protobuf:"bytes,3,opt,name=query,proto3" json:"query,omitempty"`
+	TagIds        []string               `protobuf:"bytes,4,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPapersRequest) Reset() {
+	*x = ListPapersRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPapersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPapersRequest) ProtoMessage() {}
+
+func (x *ListPapersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPapersRequest.ProtoReflect.Descriptor instead.
+func (*ListPapersRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListPapersRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *ListPapersRequest) GetDirectoryPath() string {
+	if x != nil {
+		return x.DirectoryPath
+	}
+	return ""
+}
+
+func (x *ListPapersRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *ListPapersRequest) GetTagIds() []string {
+	if x != nil {
+		return x.TagIds
+	}
+	return nil
+}
+
+type ListPapersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Papers        []*PaperSummary        `protobuf:"bytes,1,rep,name=papers,proto3" json:"papers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPapersResponse) Reset() {
+	*x = ListPapersResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPapersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPapersResponse) ProtoMessage() {}
+
+func (x *ListPapersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPapersResponse.ProtoReflect.Descriptor instead.
+func (*ListPapersResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListPapersResponse) GetPapers() []*PaperSummary {
+	if x != nil {
+		return x.Papers
+	}
+	return nil
+}
+
+type GetPaperRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	PaperId       string                 `protobuf:"bytes,2,opt,name=paper_id,json=paperId,proto3" json:"paper_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPaperRequest) Reset() {
+	*x = GetPaperRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPaperRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPaperRequest) ProtoMessage() {}
+
+func (x *GetPaperRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPaperRequest.ProtoReflect.Descriptor instead.
+func (*GetPaperRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetPaperRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *GetPaperRequest) GetPaperId() string {
+	if x != nil {
+		return x.PaperId
+	}
+	return ""
+}
+
+type GetPaperResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Paper         *PaperDetail           `protobuf:"bytes,1,opt,name=paper,proto3" json:"paper,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPaperResponse) Reset() {
+	*x = GetPaperResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPaperResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPaperResponse) ProtoMessage() {}
+
+func (x *GetPaperResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPaperResponse.ProtoReflect.Descriptor instead.
+func (*GetPaperResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetPaperResponse) GetPaper() *PaperDetail {
+	if x != nil {
+		return x.Paper
+	}
+	return nil
+}
+
+type CreatePaperFromLocalPdfRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	SourcePath    string                 `protobuf:"bytes,2,opt,name=source_path,json=sourcePath,proto3" json:"source_path,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Authors       []string               `protobuf:"bytes,4,rep,name=authors,proto3" json:"authors,omitempty"`
+	Abstract      string                 `protobuf:"bytes,5,opt,name=abstract,proto3" json:"abstract,omitempty"`
+	PublishedYear int32                  `protobuf:"varint,6,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
+	Venue         string                 `protobuf:"bytes,7,opt,name=venue,proto3" json:"venue,omitempty"`
+	Doi           string                 `protobuf:"bytes,8,opt,name=doi,proto3" json:"doi,omitempty"`
+	ArxivId       string                 `protobuf:"bytes,9,opt,name=arxiv_id,json=arxivId,proto3" json:"arxiv_id,omitempty"`
+	Url           string                 `protobuf:"bytes,10,opt,name=url,proto3" json:"url,omitempty"`
+	DirectoryPath string                 `protobuf:"bytes,11,opt,name=directory_path,json=directoryPath,proto3" json:"directory_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreatePaperFromLocalPdfRequest) Reset() {
+	*x = CreatePaperFromLocalPdfRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreatePaperFromLocalPdfRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreatePaperFromLocalPdfRequest) ProtoMessage() {}
+
+func (x *CreatePaperFromLocalPdfRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreatePaperFromLocalPdfRequest.ProtoReflect.Descriptor instead.
+func (*CreatePaperFromLocalPdfRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetSourcePath() string {
+	if x != nil {
+		return x.SourcePath
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetAuthors() []string {
+	if x != nil {
+		return x.Authors
+	}
+	return nil
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetAbstract() string {
+	if x != nil {
+		return x.Abstract
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetPublishedYear() int32 {
+	if x != nil {
+		return x.PublishedYear
+	}
+	return 0
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetVenue() string {
+	if x != nil {
+		return x.Venue
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetDoi() string {
+	if x != nil {
+		return x.Doi
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetArxivId() string {
+	if x != nil {
+		return x.ArxivId
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *CreatePaperFromLocalPdfRequest) GetDirectoryPath() string {
+	if x != nil {
+		return x.DirectoryPath
+	}
+	return ""
+}
+
+type PaperTag struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PaperTag) Reset() {
+	*x = PaperTag{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaperTag) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaperTag) ProtoMessage() {}
+
+func (x *PaperTag) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaperTag.ProtoReflect.Descriptor instead.
+func (*PaperTag) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *PaperTag) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PaperTag) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PaperTag) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+type ListTagsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTagsRequest) Reset() {
+	*x = ListTagsRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTagsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTagsRequest) ProtoMessage() {}
+
+func (x *ListTagsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTagsRequest.ProtoReflect.Descriptor instead.
+func (*ListTagsRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListTagsRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+type ListTagsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tags          []*PaperTag            `protobuf:"bytes,1,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTagsResponse) Reset() {
+	*x = ListTagsResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTagsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTagsResponse) ProtoMessage() {}
+
+func (x *ListTagsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTagsResponse.ProtoReflect.Descriptor instead.
+func (*ListTagsResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ListTagsResponse) GetTags() []*PaperTag {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+type UpsertTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertTagRequest) Reset() {
+	*x = UpsertTagRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertTagRequest) ProtoMessage() {}
+
+func (x *UpsertTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertTagRequest.ProtoReflect.Descriptor instead.
+func (*UpsertTagRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *UpsertTagRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *UpsertTagRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpsertTagRequest) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+type AttachTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	PaperId       string                 `protobuf:"bytes,2,opt,name=paper_id,json=paperId,proto3" json:"paper_id,omitempty"`
+	TagId         string                 `protobuf:"bytes,3,opt,name=tag_id,json=tagId,proto3" json:"tag_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachTagRequest) Reset() {
+	*x = AttachTagRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachTagRequest) ProtoMessage() {}
+
+func (x *AttachTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachTagRequest.ProtoReflect.Descriptor instead.
+func (*AttachTagRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *AttachTagRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *AttachTagRequest) GetPaperId() string {
+	if x != nil {
+		return x.PaperId
+	}
+	return ""
+}
+
+func (x *AttachTagRequest) GetTagId() string {
+	if x != nil {
+		return x.TagId
+	}
+	return ""
+}
+
+type DetachTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	PaperId       string                 `protobuf:"bytes,2,opt,name=paper_id,json=paperId,proto3" json:"paper_id,omitempty"`
+	TagId         string                 `protobuf:"bytes,3,opt,name=tag_id,json=tagId,proto3" json:"tag_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DetachTagRequest) Reset() {
+	*x = DetachTagRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DetachTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DetachTagRequest) ProtoMessage() {}
+
+func (x *DetachTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DetachTagRequest.ProtoReflect.Descriptor instead.
+func (*DetachTagRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *DetachTagRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *DetachTagRequest) GetPaperId() string {
+	if x != nil {
+		return x.PaperId
+	}
+	return ""
+}
+
+func (x *DetachTagRequest) GetTagId() string {
+	if x != nil {
+		return x.TagId
+	}
+	return ""
+}
+
+type SaveNoteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	PaperId       string                 `protobuf:"bytes,2,opt,name=paper_id,json=paperId,proto3" json:"paper_id,omitempty"`
+	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveNoteRequest) Reset() {
+	*x = SaveNoteRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveNoteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveNoteRequest) ProtoMessage() {}
+
+func (x *SaveNoteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveNoteRequest.ProtoReflect.Descriptor instead.
+func (*SaveNoteRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *SaveNoteRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *SaveNoteRequest) GetPaperId() string {
+	if x != nil {
+		return x.PaperId
+	}
+	return ""
+}
+
+func (x *SaveNoteRequest) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+type LoadPdfBytesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LibraryRoot   string                 `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	PdfPath       string                 `protobuf:"bytes,2,opt,name=pdf_path,json=pdfPath,proto3" json:"pdf_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoadPdfBytesRequest) Reset() {
+	*x = LoadPdfBytesRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadPdfBytesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadPdfBytesRequest) ProtoMessage() {}
+
+func (x *LoadPdfBytesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadPdfBytesRequest.ProtoReflect.Descriptor instead.
+func (*LoadPdfBytesRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *LoadPdfBytesRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *LoadPdfBytesRequest) GetPdfPath() string {
+	if x != nil {
+		return x.PdfPath
+	}
+	return ""
+}
+
+type LoadPdfBytesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bytes         []byte                 `protobuf:"bytes,1,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoadPdfBytesResponse) Reset() {
+	*x = LoadPdfBytesResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoadPdfBytesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoadPdfBytesResponse) ProtoMessage() {}
+
+func (x *LoadPdfBytesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoadPdfBytesResponse.ProtoReflect.Descriptor instead.
+func (*LoadPdfBytesResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *LoadPdfBytesResponse) GetBytes() []byte {
+	if x != nil {
+		return x.Bytes
+	}
+	return nil
+}
+
+type BrowserDetectedPaperSource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SourceUrl     string                 `protobuf:"bytes,1,opt,name=source_url,json=sourceUrl,proto3" json:"source_url,omitempty"`
+	PageTitle     string                 `protobuf:"bytes,2,opt,name=page_title,json=pageTitle,proto3" json:"page_title,omitempty"`
+	CanonicalUrl  string                 `protobuf:"bytes,3,opt,name=canonical_url,json=canonicalUrl,proto3" json:"canonical_url,omitempty"`
+	Doi           string                 `protobuf:"bytes,4,opt,name=doi,proto3" json:"doi,omitempty"`
+	ArxivId       string                 `protobuf:"bytes,5,opt,name=arxiv_id,json=arxivId,proto3" json:"arxiv_id,omitempty"`
+	PdfUrl        string                 `protobuf:"bytes,6,opt,name=pdf_url,json=pdfUrl,proto3" json:"pdf_url,omitempty"`
+	Title         string                 `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
+	Authors       []string               `protobuf:"bytes,8,rep,name=authors,proto3" json:"authors,omitempty"`
+	PublishedYear int32                  `protobuf:"varint,9,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
+	Venue         string                 `protobuf:"bytes,10,opt,name=venue,proto3" json:"venue,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrowserDetectedPaperSource) Reset() {
+	*x = BrowserDetectedPaperSource{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrowserDetectedPaperSource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrowserDetectedPaperSource) ProtoMessage() {}
+
+func (x *BrowserDetectedPaperSource) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrowserDetectedPaperSource.ProtoReflect.Descriptor instead.
+func (*BrowserDetectedPaperSource) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *BrowserDetectedPaperSource) GetSourceUrl() string {
+	if x != nil {
+		return x.SourceUrl
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetPageTitle() string {
+	if x != nil {
+		return x.PageTitle
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetCanonicalUrl() string {
+	if x != nil {
+		return x.CanonicalUrl
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetDoi() string {
+	if x != nil {
+		return x.Doi
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetArxivId() string {
+	if x != nil {
+		return x.ArxivId
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetPdfUrl() string {
+	if x != nil {
+		return x.PdfUrl
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *BrowserDetectedPaperSource) GetAuthors() []string {
+	if x != nil {
+		return x.Authors
+	}
+	return nil
+}
+
+func (x *BrowserDetectedPaperSource) GetPublishedYear() int32 {
+	if x != nil {
+		return x.PublishedYear
+	}
+	return 0
+}
+
+func (x *BrowserDetectedPaperSource) GetVenue() string {
+	if x != nil {
+		return x.Venue
+	}
+	return ""
+}
+
+type BrowserPaperImportCandidate struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Source        *BrowserDetectedPaperSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Title         string                      `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Authors       []string                    `protobuf:"bytes,3,rep,name=authors,proto3" json:"authors,omitempty"`
+	Abstract      string                      `protobuf:"bytes,4,opt,name=abstract,proto3" json:"abstract,omitempty"`
+	PublishedYear int32                       `protobuf:"varint,5,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
+	Venue         string                      `protobuf:"bytes,6,opt,name=venue,proto3" json:"venue,omitempty"`
+	Doi           string                      `protobuf:"bytes,7,opt,name=doi,proto3" json:"doi,omitempty"`
+	ArxivId       string                      `protobuf:"bytes,8,opt,name=arxiv_id,json=arxivId,proto3" json:"arxiv_id,omitempty"`
+	PdfUrl        string                      `protobuf:"bytes,9,opt,name=pdf_url,json=pdfUrl,proto3" json:"pdf_url,omitempty"`
+	Tags          []string                    `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BrowserPaperImportCandidate) Reset() {
+	*x = BrowserPaperImportCandidate{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BrowserPaperImportCandidate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrowserPaperImportCandidate) ProtoMessage() {}
+
+func (x *BrowserPaperImportCandidate) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrowserPaperImportCandidate.ProtoReflect.Descriptor instead.
+func (*BrowserPaperImportCandidate) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *BrowserPaperImportCandidate) GetSource() *BrowserDetectedPaperSource {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *BrowserPaperImportCandidate) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *BrowserPaperImportCandidate) GetAuthors() []string {
+	if x != nil {
+		return x.Authors
+	}
+	return nil
+}
+
+func (x *BrowserPaperImportCandidate) GetAbstract() string {
+	if x != nil {
+		return x.Abstract
+	}
+	return ""
+}
+
+func (x *BrowserPaperImportCandidate) GetPublishedYear() int32 {
+	if x != nil {
+		return x.PublishedYear
+	}
+	return 0
+}
+
+func (x *BrowserPaperImportCandidate) GetVenue() string {
+	if x != nil {
+		return x.Venue
+	}
+	return ""
+}
+
+func (x *BrowserPaperImportCandidate) GetDoi() string {
+	if x != nil {
+		return x.Doi
+	}
+	return ""
+}
+
+func (x *BrowserPaperImportCandidate) GetArxivId() string {
+	if x != nil {
+		return x.ArxivId
+	}
+	return ""
+}
+
+func (x *BrowserPaperImportCandidate) GetPdfUrl() string {
+	if x != nil {
+		return x.PdfUrl
+	}
+	return ""
+}
+
+func (x *BrowserPaperImportCandidate) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+type ResolveMetadataRequest struct {
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Source        *BrowserDetectedPaperSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolveMetadataRequest) Reset() {
+	*x = ResolveMetadataRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolveMetadataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolveMetadataRequest) ProtoMessage() {}
+
+func (x *ResolveMetadataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolveMetadataRequest.ProtoReflect.Descriptor instead.
+func (*ResolveMetadataRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ResolveMetadataRequest) GetSource() *BrowserDetectedPaperSource {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+type ImportBrowserPaperRequest struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	LibraryRoot   string                       `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
+	DirectoryPath string                       `protobuf:"bytes,2,opt,name=directory_path,json=directoryPath,proto3" json:"directory_path,omitempty"`
+	Candidate     *BrowserPaperImportCandidate `protobuf:"bytes,3,opt,name=candidate,proto3" json:"candidate,omitempty"`
+	ImportPdf     bool                         `protobuf:"varint,4,opt,name=import_pdf,json=importPdf,proto3" json:"import_pdf,omitempty"`
+	Tags          []string                     `protobuf:"bytes,5,rep,name=tags,proto3" json:"tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportBrowserPaperRequest) Reset() {
+	*x = ImportBrowserPaperRequest{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportBrowserPaperRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportBrowserPaperRequest) ProtoMessage() {}
+
+func (x *ImportBrowserPaperRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportBrowserPaperRequest.ProtoReflect.Descriptor instead.
+func (*ImportBrowserPaperRequest) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ImportBrowserPaperRequest) GetLibraryRoot() string {
+	if x != nil {
+		return x.LibraryRoot
+	}
+	return ""
+}
+
+func (x *ImportBrowserPaperRequest) GetDirectoryPath() string {
+	if x != nil {
+		return x.DirectoryPath
+	}
+	return ""
+}
+
+func (x *ImportBrowserPaperRequest) GetCandidate() *BrowserPaperImportCandidate {
+	if x != nil {
+		return x.Candidate
+	}
+	return nil
+}
+
+func (x *ImportBrowserPaperRequest) GetImportPdf() bool {
+	if x != nil {
+		return x.ImportPdf
+	}
+	return false
+}
+
+func (x *ImportBrowserPaperRequest) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+type ImportBrowserPaperResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Paper         *PaperDetail           `protobuf:"bytes,2,opt,name=paper,proto3" json:"paper,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportBrowserPaperResponse) Reset() {
+	*x = ImportBrowserPaperResponse{}
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportBrowserPaperResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportBrowserPaperResponse) ProtoMessage() {}
+
+func (x *ImportBrowserPaperResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_tnet_papers_v1_papers_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportBrowserPaperResponse.ProtoReflect.Descriptor instead.
+func (*ImportBrowserPaperResponse) Descriptor() ([]byte, []int) {
+	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ImportBrowserPaperResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ImportBrowserPaperResponse) GetPaper() *PaperDetail {
+	if x != nil {
+		return x.Paper
+	}
+	return nil
+}
+
 var File_tnet_papers_v1_papers_proto protoreflect.FileDescriptor
 
 const file_tnet_papers_v1_papers_proto_rawDesc = "" +
@@ -117,9 +2265,188 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\fCheckRequest\"A\n" +
 	"\rCheckResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion2U\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\"\x9d\x01\n" +
+	"\x12PapersGlobalConfig\x12#\n" +
+	"\rlibrary_roots\x18\x01 \x03(\tR\flibraryRoots\x12.\n" +
+	"\x13active_library_root\x18\x02 \x01(\tR\x11activeLibraryRoot\x122\n" +
+	"\x15last_opened_directory\x18\x03 \x01(\tR\x13lastOpenedDirectory\"\x86\x01\n" +
+	"\x13PapersLibraryConfig\x12!\n" +
+	"\flist_density\x18\x01 \x01(\tR\vlistDensity\x12\"\n" +
+	"\rpdf_zoom_mode\x18\x02 \x01(\tR\vpdfZoomMode\x12(\n" +
+	"\x10note_editor_mode\x18\x03 \x01(\tR\x0enoteEditorMode\"=\n" +
+	"\x17LoadGlobalConfigRequest\x12\"\n" +
+	"\ruser_data_dir\x18\x01 \x01(\tR\vuserDataDir\"y\n" +
+	"\x17SaveGlobalConfigRequest\x12\"\n" +
+	"\ruser_data_dir\x18\x01 \x01(\tR\vuserDataDir\x12:\n" +
+	"\x06config\x18\x02 \x01(\v2\".tnet.papers.v1.PapersGlobalConfigR\x06config\"\x1a\n" +
+	"\x18SaveGlobalConfigResponse\"=\n" +
+	"\x18LoadLibraryConfigRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\"z\n" +
+	"\x18SaveLibraryConfigRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12;\n" +
+	"\x06config\x18\x02 \x01(\v2#.tnet.papers.v1.PapersLibraryConfigR\x06config\"\x1b\n" +
+	"\x19SaveLibraryConfigResponse\":\n" +
+	"\x14ListLibrariesRequest\x12\"\n" +
+	"\ruser_data_dir\x18\x01 \x01(\tR\vuserDataDir\"[\n" +
+	"\vLibraryInfo\x12\x1b\n" +
+	"\troot_path\x18\x01 \x01(\tR\brootPath\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tis_active\x18\x03 \x01(\bR\bisActive\"\x82\x01\n" +
+	"\x15ListLibrariesResponse\x129\n" +
+	"\tlibraries\x18\x01 \x03(\v2\x1b.tnet.papers.v1.LibraryInfoR\tlibraries\x12.\n" +
+	"\x13active_library_root\x18\x02 \x01(\tR\x11activeLibraryRoot\";\n" +
+	"\x16ListDirectoriesRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\"\x83\x01\n" +
+	"\rDirectoryNode\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\rrelative_path\x18\x02 \x01(\tR\frelativePath\x129\n" +
+	"\bchildren\x18\x03 \x03(\v2\x1d.tnet.papers.v1.DirectoryNodeR\bchildren\"L\n" +
+	"\x17ListDirectoriesResponse\x121\n" +
+	"\x04root\x18\x01 \x01(\v2\x1d.tnet.papers.v1.DirectoryNodeR\x04root\"\xb8\x01\n" +
+	"\fPaperSummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\aauthors\x18\x03 \x03(\tR\aauthors\x12%\n" +
+	"\x0epublished_year\x18\x04 \x01(\x05R\rpublishedYear\x12\x14\n" +
+	"\x05venue\x18\x05 \x01(\tR\x05venue\x12\x12\n" +
+	"\x04tags\x18\x06 \x03(\tR\x04tags\x12\x17\n" +
+	"\ahas_pdf\x18\a \x01(\bR\x06hasPdf\"\xf7\x02\n" +
+	"\vPaperDetail\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\aauthors\x18\x03 \x03(\tR\aauthors\x12%\n" +
+	"\x0epublished_year\x18\x04 \x01(\x05R\rpublishedYear\x12\x14\n" +
+	"\x05venue\x18\x05 \x01(\tR\x05venue\x12\x12\n" +
+	"\x04tags\x18\x06 \x03(\tR\x04tags\x12\x17\n" +
+	"\ahas_pdf\x18\a \x01(\bR\x06hasPdf\x12\x1a\n" +
+	"\babstract\x18\b \x01(\tR\babstract\x12\x10\n" +
+	"\x03doi\x18\t \x01(\tR\x03doi\x12\x19\n" +
+	"\barxiv_id\x18\n" +
+	" \x01(\tR\aarxivId\x12\x10\n" +
+	"\x03url\x18\v \x01(\tR\x03url\x12\x19\n" +
+	"\bpdf_path\x18\f \x01(\tR\apdfPath\x12%\n" +
+	"\x0edirectory_path\x18\r \x01(\tR\rdirectoryPath\x12!\n" +
+	"\fnote_content\x18\x0e \x01(\tR\vnoteContent\"\x8c\x01\n" +
+	"\x11ListPapersRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12%\n" +
+	"\x0edirectory_path\x18\x02 \x01(\tR\rdirectoryPath\x12\x14\n" +
+	"\x05query\x18\x03 \x01(\tR\x05query\x12\x17\n" +
+	"\atag_ids\x18\x04 \x03(\tR\x06tagIds\"J\n" +
+	"\x12ListPapersResponse\x124\n" +
+	"\x06papers\x18\x01 \x03(\v2\x1c.tnet.papers.v1.PaperSummaryR\x06papers\"O\n" +
+	"\x0fGetPaperRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x19\n" +
+	"\bpaper_id\x18\x02 \x01(\tR\apaperId\"E\n" +
+	"\x10GetPaperResponse\x121\n" +
+	"\x05paper\x18\x01 \x01(\v2\x1b.tnet.papers.v1.PaperDetailR\x05paper\"\xd3\x02\n" +
+	"\x1eCreatePaperFromLocalPdfRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x1f\n" +
+	"\vsource_path\x18\x02 \x01(\tR\n" +
+	"sourcePath\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x18\n" +
+	"\aauthors\x18\x04 \x03(\tR\aauthors\x12\x1a\n" +
+	"\babstract\x18\x05 \x01(\tR\babstract\x12%\n" +
+	"\x0epublished_year\x18\x06 \x01(\x05R\rpublishedYear\x12\x14\n" +
+	"\x05venue\x18\a \x01(\tR\x05venue\x12\x10\n" +
+	"\x03doi\x18\b \x01(\tR\x03doi\x12\x19\n" +
+	"\barxiv_id\x18\t \x01(\tR\aarxivId\x12\x10\n" +
+	"\x03url\x18\n" +
+	" \x01(\tR\x03url\x12%\n" +
+	"\x0edirectory_path\x18\v \x01(\tR\rdirectoryPath\"D\n" +
+	"\bPaperTag\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\"4\n" +
+	"\x0fListTagsRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\"@\n" +
+	"\x10ListTagsResponse\x12,\n" +
+	"\x04tags\x18\x01 \x03(\v2\x18.tnet.papers.v1.PaperTagR\x04tags\"_\n" +
+	"\x10UpsertTagRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\"g\n" +
+	"\x10AttachTagRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x19\n" +
+	"\bpaper_id\x18\x02 \x01(\tR\apaperId\x12\x15\n" +
+	"\x06tag_id\x18\x03 \x01(\tR\x05tagId\"g\n" +
+	"\x10DetachTagRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x19\n" +
+	"\bpaper_id\x18\x02 \x01(\tR\apaperId\x12\x15\n" +
+	"\x06tag_id\x18\x03 \x01(\tR\x05tagId\"i\n" +
+	"\x0fSaveNoteRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x19\n" +
+	"\bpaper_id\x18\x02 \x01(\tR\apaperId\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\"S\n" +
+	"\x13LoadPdfBytesRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x19\n" +
+	"\bpdf_path\x18\x02 \x01(\tR\apdfPath\",\n" +
+	"\x14LoadPdfBytesResponse\x12\x14\n" +
+	"\x05bytes\x18\x01 \x01(\fR\x05bytes\"\xb2\x02\n" +
+	"\x1aBrowserDetectedPaperSource\x12\x1d\n" +
+	"\n" +
+	"source_url\x18\x01 \x01(\tR\tsourceUrl\x12\x1d\n" +
+	"\n" +
+	"page_title\x18\x02 \x01(\tR\tpageTitle\x12#\n" +
+	"\rcanonical_url\x18\x03 \x01(\tR\fcanonicalUrl\x12\x10\n" +
+	"\x03doi\x18\x04 \x01(\tR\x03doi\x12\x19\n" +
+	"\barxiv_id\x18\x05 \x01(\tR\aarxivId\x12\x17\n" +
+	"\apdf_url\x18\x06 \x01(\tR\x06pdfUrl\x12\x14\n" +
+	"\x05title\x18\a \x01(\tR\x05title\x12\x18\n" +
+	"\aauthors\x18\b \x03(\tR\aauthors\x12%\n" +
+	"\x0epublished_year\x18\t \x01(\x05R\rpublishedYear\x12\x14\n" +
+	"\x05venue\x18\n" +
+	" \x01(\tR\x05venue\"\xc4\x02\n" +
+	"\x1bBrowserPaperImportCandidate\x12B\n" +
+	"\x06source\x18\x01 \x01(\v2*.tnet.papers.v1.BrowserDetectedPaperSourceR\x06source\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\aauthors\x18\x03 \x03(\tR\aauthors\x12\x1a\n" +
+	"\babstract\x18\x04 \x01(\tR\babstract\x12%\n" +
+	"\x0epublished_year\x18\x05 \x01(\x05R\rpublishedYear\x12\x14\n" +
+	"\x05venue\x18\x06 \x01(\tR\x05venue\x12\x10\n" +
+	"\x03doi\x18\a \x01(\tR\x03doi\x12\x19\n" +
+	"\barxiv_id\x18\b \x01(\tR\aarxivId\x12\x17\n" +
+	"\apdf_url\x18\t \x01(\tR\x06pdfUrl\x12\x12\n" +
+	"\x04tags\x18\n" +
+	" \x03(\tR\x04tags\"\\\n" +
+	"\x16ResolveMetadataRequest\x12B\n" +
+	"\x06source\x18\x01 \x01(\v2*.tnet.papers.v1.BrowserDetectedPaperSourceR\x06source\"\xe3\x01\n" +
+	"\x19ImportBrowserPaperRequest\x12!\n" +
+	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12%\n" +
+	"\x0edirectory_path\x18\x02 \x01(\tR\rdirectoryPath\x12I\n" +
+	"\tcandidate\x18\x03 \x01(\v2+.tnet.papers.v1.BrowserPaperImportCandidateR\tcandidate\x12\x1d\n" +
+	"\n" +
+	"import_pdf\x18\x04 \x01(\bR\timportPdf\x12\x12\n" +
+	"\x04tags\x18\x05 \x03(\tR\x04tags\"g\n" +
+	"\x1aImportBrowserPaperResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x121\n" +
+	"\x05paper\x18\x02 \x01(\v2\x1b.tnet.papers.v1.PaperDetailR\x05paper2U\n" +
 	"\rHealthService\x12D\n" +
-	"\x05Check\x12\x1c.tnet.papers.v1.CheckRequest\x1a\x1d.tnet.papers.v1.CheckResponseBVZTgithub.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1;papersv1b\x06proto3"
+	"\x05Check\x12\x1c.tnet.papers.v1.CheckRequest\x1a\x1d.tnet.papers.v1.CheckResponse2\xe8\x04\n" +
+	"\x0eLibraryService\x12_\n" +
+	"\x10LoadGlobalConfig\x12'.tnet.papers.v1.LoadGlobalConfigRequest\x1a\".tnet.papers.v1.PapersGlobalConfig\x12e\n" +
+	"\x10SaveGlobalConfig\x12'.tnet.papers.v1.SaveGlobalConfigRequest\x1a(.tnet.papers.v1.SaveGlobalConfigResponse\x12b\n" +
+	"\x11LoadLibraryConfig\x12(.tnet.papers.v1.LoadLibraryConfigRequest\x1a#.tnet.papers.v1.PapersLibraryConfig\x12h\n" +
+	"\x11SaveLibraryConfig\x12(.tnet.papers.v1.SaveLibraryConfigRequest\x1a).tnet.papers.v1.SaveLibraryConfigResponse\x12\\\n" +
+	"\rListLibraries\x12$.tnet.papers.v1.ListLibrariesRequest\x1a%.tnet.papers.v1.ListLibrariesResponse\x12b\n" +
+	"\x0fListDirectories\x12&.tnet.papers.v1.ListDirectoriesRequest\x1a'.tnet.papers.v1.ListDirectoriesResponse2\xd6\x03\n" +
+	"\fPaperService\x12S\n" +
+	"\n" +
+	"ListPapers\x12!.tnet.papers.v1.ListPapersRequest\x1a\".tnet.papers.v1.ListPapersResponse\x12M\n" +
+	"\bGetPaper\x12\x1f.tnet.papers.v1.GetPaperRequest\x1a .tnet.papers.v1.GetPaperResponse\x12f\n" +
+	"\x17CreatePaperFromLocalPdf\x12..tnet.papers.v1.CreatePaperFromLocalPdfRequest\x1a\x1b.tnet.papers.v1.PaperDetail\x12k\n" +
+	"\x12ImportBrowserPaper\x12).tnet.papers.v1.ImportBrowserPaperRequest\x1a*.tnet.papers.v1.ImportBrowserPaperResponse\x12M\n" +
+	"\bSaveNote\x12\x1f.tnet.papers.v1.SaveNoteRequest\x1a .tnet.papers.v1.GetPaperResponse2\xc6\x02\n" +
+	"\n" +
+	"TagService\x12M\n" +
+	"\bListTags\x12\x1f.tnet.papers.v1.ListTagsRequest\x1a .tnet.papers.v1.ListTagsResponse\x12G\n" +
+	"\tUpsertTag\x12 .tnet.papers.v1.UpsertTagRequest\x1a\x18.tnet.papers.v1.PaperTag\x12O\n" +
+	"\tAttachTag\x12 .tnet.papers.v1.AttachTagRequest\x1a .tnet.papers.v1.GetPaperResponse\x12O\n" +
+	"\tDetachTag\x12 .tnet.papers.v1.DetachTagRequest\x1a .tnet.papers.v1.GetPaperResponse2g\n" +
+	"\n" +
+	"PdfService\x12Y\n" +
+	"\fLoadPdfBytes\x12#.tnet.papers.v1.LoadPdfBytesRequest\x1a$.tnet.papers.v1.LoadPdfBytesResponse2~\n" +
+	"\x14BrowserImportService\x12f\n" +
+	"\x0fResolveMetadata\x12&.tnet.papers.v1.ResolveMetadataRequest\x1a+.tnet.papers.v1.BrowserPaperImportCandidateBVZTgithub.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1;papersv1b\x06proto3"
 
 var (
 	file_tnet_papers_v1_papers_proto_rawDescOnce sync.Once
@@ -133,19 +2460,100 @@ func file_tnet_papers_v1_papers_proto_rawDescGZIP() []byte {
 	return file_tnet_papers_v1_papers_proto_rawDescData
 }
 
-var file_tnet_papers_v1_papers_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_tnet_papers_v1_papers_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_tnet_papers_v1_papers_proto_goTypes = []any{
-	(*CheckRequest)(nil),  // 0: tnet.papers.v1.CheckRequest
-	(*CheckResponse)(nil), // 1: tnet.papers.v1.CheckResponse
+	(*CheckRequest)(nil),                   // 0: tnet.papers.v1.CheckRequest
+	(*CheckResponse)(nil),                  // 1: tnet.papers.v1.CheckResponse
+	(*PapersGlobalConfig)(nil),             // 2: tnet.papers.v1.PapersGlobalConfig
+	(*PapersLibraryConfig)(nil),            // 3: tnet.papers.v1.PapersLibraryConfig
+	(*LoadGlobalConfigRequest)(nil),        // 4: tnet.papers.v1.LoadGlobalConfigRequest
+	(*SaveGlobalConfigRequest)(nil),        // 5: tnet.papers.v1.SaveGlobalConfigRequest
+	(*SaveGlobalConfigResponse)(nil),       // 6: tnet.papers.v1.SaveGlobalConfigResponse
+	(*LoadLibraryConfigRequest)(nil),       // 7: tnet.papers.v1.LoadLibraryConfigRequest
+	(*SaveLibraryConfigRequest)(nil),       // 8: tnet.papers.v1.SaveLibraryConfigRequest
+	(*SaveLibraryConfigResponse)(nil),      // 9: tnet.papers.v1.SaveLibraryConfigResponse
+	(*ListLibrariesRequest)(nil),           // 10: tnet.papers.v1.ListLibrariesRequest
+	(*LibraryInfo)(nil),                    // 11: tnet.papers.v1.LibraryInfo
+	(*ListLibrariesResponse)(nil),          // 12: tnet.papers.v1.ListLibrariesResponse
+	(*ListDirectoriesRequest)(nil),         // 13: tnet.papers.v1.ListDirectoriesRequest
+	(*DirectoryNode)(nil),                  // 14: tnet.papers.v1.DirectoryNode
+	(*ListDirectoriesResponse)(nil),        // 15: tnet.papers.v1.ListDirectoriesResponse
+	(*PaperSummary)(nil),                   // 16: tnet.papers.v1.PaperSummary
+	(*PaperDetail)(nil),                    // 17: tnet.papers.v1.PaperDetail
+	(*ListPapersRequest)(nil),              // 18: tnet.papers.v1.ListPapersRequest
+	(*ListPapersResponse)(nil),             // 19: tnet.papers.v1.ListPapersResponse
+	(*GetPaperRequest)(nil),                // 20: tnet.papers.v1.GetPaperRequest
+	(*GetPaperResponse)(nil),               // 21: tnet.papers.v1.GetPaperResponse
+	(*CreatePaperFromLocalPdfRequest)(nil), // 22: tnet.papers.v1.CreatePaperFromLocalPdfRequest
+	(*PaperTag)(nil),                       // 23: tnet.papers.v1.PaperTag
+	(*ListTagsRequest)(nil),                // 24: tnet.papers.v1.ListTagsRequest
+	(*ListTagsResponse)(nil),               // 25: tnet.papers.v1.ListTagsResponse
+	(*UpsertTagRequest)(nil),               // 26: tnet.papers.v1.UpsertTagRequest
+	(*AttachTagRequest)(nil),               // 27: tnet.papers.v1.AttachTagRequest
+	(*DetachTagRequest)(nil),               // 28: tnet.papers.v1.DetachTagRequest
+	(*SaveNoteRequest)(nil),                // 29: tnet.papers.v1.SaveNoteRequest
+	(*LoadPdfBytesRequest)(nil),            // 30: tnet.papers.v1.LoadPdfBytesRequest
+	(*LoadPdfBytesResponse)(nil),           // 31: tnet.papers.v1.LoadPdfBytesResponse
+	(*BrowserDetectedPaperSource)(nil),     // 32: tnet.papers.v1.BrowserDetectedPaperSource
+	(*BrowserPaperImportCandidate)(nil),    // 33: tnet.papers.v1.BrowserPaperImportCandidate
+	(*ResolveMetadataRequest)(nil),         // 34: tnet.papers.v1.ResolveMetadataRequest
+	(*ImportBrowserPaperRequest)(nil),      // 35: tnet.papers.v1.ImportBrowserPaperRequest
+	(*ImportBrowserPaperResponse)(nil),     // 36: tnet.papers.v1.ImportBrowserPaperResponse
 }
 var file_tnet_papers_v1_papers_proto_depIdxs = []int32{
-	0, // 0: tnet.papers.v1.HealthService.Check:input_type -> tnet.papers.v1.CheckRequest
-	1, // 1: tnet.papers.v1.HealthService.Check:output_type -> tnet.papers.v1.CheckResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	2,  // 0: tnet.papers.v1.SaveGlobalConfigRequest.config:type_name -> tnet.papers.v1.PapersGlobalConfig
+	3,  // 1: tnet.papers.v1.SaveLibraryConfigRequest.config:type_name -> tnet.papers.v1.PapersLibraryConfig
+	11, // 2: tnet.papers.v1.ListLibrariesResponse.libraries:type_name -> tnet.papers.v1.LibraryInfo
+	14, // 3: tnet.papers.v1.DirectoryNode.children:type_name -> tnet.papers.v1.DirectoryNode
+	14, // 4: tnet.papers.v1.ListDirectoriesResponse.root:type_name -> tnet.papers.v1.DirectoryNode
+	16, // 5: tnet.papers.v1.ListPapersResponse.papers:type_name -> tnet.papers.v1.PaperSummary
+	17, // 6: tnet.papers.v1.GetPaperResponse.paper:type_name -> tnet.papers.v1.PaperDetail
+	23, // 7: tnet.papers.v1.ListTagsResponse.tags:type_name -> tnet.papers.v1.PaperTag
+	32, // 8: tnet.papers.v1.BrowserPaperImportCandidate.source:type_name -> tnet.papers.v1.BrowserDetectedPaperSource
+	32, // 9: tnet.papers.v1.ResolveMetadataRequest.source:type_name -> tnet.papers.v1.BrowserDetectedPaperSource
+	33, // 10: tnet.papers.v1.ImportBrowserPaperRequest.candidate:type_name -> tnet.papers.v1.BrowserPaperImportCandidate
+	17, // 11: tnet.papers.v1.ImportBrowserPaperResponse.paper:type_name -> tnet.papers.v1.PaperDetail
+	0,  // 12: tnet.papers.v1.HealthService.Check:input_type -> tnet.papers.v1.CheckRequest
+	4,  // 13: tnet.papers.v1.LibraryService.LoadGlobalConfig:input_type -> tnet.papers.v1.LoadGlobalConfigRequest
+	5,  // 14: tnet.papers.v1.LibraryService.SaveGlobalConfig:input_type -> tnet.papers.v1.SaveGlobalConfigRequest
+	7,  // 15: tnet.papers.v1.LibraryService.LoadLibraryConfig:input_type -> tnet.papers.v1.LoadLibraryConfigRequest
+	8,  // 16: tnet.papers.v1.LibraryService.SaveLibraryConfig:input_type -> tnet.papers.v1.SaveLibraryConfigRequest
+	10, // 17: tnet.papers.v1.LibraryService.ListLibraries:input_type -> tnet.papers.v1.ListLibrariesRequest
+	13, // 18: tnet.papers.v1.LibraryService.ListDirectories:input_type -> tnet.papers.v1.ListDirectoriesRequest
+	18, // 19: tnet.papers.v1.PaperService.ListPapers:input_type -> tnet.papers.v1.ListPapersRequest
+	20, // 20: tnet.papers.v1.PaperService.GetPaper:input_type -> tnet.papers.v1.GetPaperRequest
+	22, // 21: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:input_type -> tnet.papers.v1.CreatePaperFromLocalPdfRequest
+	35, // 22: tnet.papers.v1.PaperService.ImportBrowserPaper:input_type -> tnet.papers.v1.ImportBrowserPaperRequest
+	29, // 23: tnet.papers.v1.PaperService.SaveNote:input_type -> tnet.papers.v1.SaveNoteRequest
+	24, // 24: tnet.papers.v1.TagService.ListTags:input_type -> tnet.papers.v1.ListTagsRequest
+	26, // 25: tnet.papers.v1.TagService.UpsertTag:input_type -> tnet.papers.v1.UpsertTagRequest
+	27, // 26: tnet.papers.v1.TagService.AttachTag:input_type -> tnet.papers.v1.AttachTagRequest
+	28, // 27: tnet.papers.v1.TagService.DetachTag:input_type -> tnet.papers.v1.DetachTagRequest
+	30, // 28: tnet.papers.v1.PdfService.LoadPdfBytes:input_type -> tnet.papers.v1.LoadPdfBytesRequest
+	34, // 29: tnet.papers.v1.BrowserImportService.ResolveMetadata:input_type -> tnet.papers.v1.ResolveMetadataRequest
+	1,  // 30: tnet.papers.v1.HealthService.Check:output_type -> tnet.papers.v1.CheckResponse
+	2,  // 31: tnet.papers.v1.LibraryService.LoadGlobalConfig:output_type -> tnet.papers.v1.PapersGlobalConfig
+	6,  // 32: tnet.papers.v1.LibraryService.SaveGlobalConfig:output_type -> tnet.papers.v1.SaveGlobalConfigResponse
+	3,  // 33: tnet.papers.v1.LibraryService.LoadLibraryConfig:output_type -> tnet.papers.v1.PapersLibraryConfig
+	9,  // 34: tnet.papers.v1.LibraryService.SaveLibraryConfig:output_type -> tnet.papers.v1.SaveLibraryConfigResponse
+	12, // 35: tnet.papers.v1.LibraryService.ListLibraries:output_type -> tnet.papers.v1.ListLibrariesResponse
+	15, // 36: tnet.papers.v1.LibraryService.ListDirectories:output_type -> tnet.papers.v1.ListDirectoriesResponse
+	19, // 37: tnet.papers.v1.PaperService.ListPapers:output_type -> tnet.papers.v1.ListPapersResponse
+	21, // 38: tnet.papers.v1.PaperService.GetPaper:output_type -> tnet.papers.v1.GetPaperResponse
+	17, // 39: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:output_type -> tnet.papers.v1.PaperDetail
+	36, // 40: tnet.papers.v1.PaperService.ImportBrowserPaper:output_type -> tnet.papers.v1.ImportBrowserPaperResponse
+	21, // 41: tnet.papers.v1.PaperService.SaveNote:output_type -> tnet.papers.v1.GetPaperResponse
+	25, // 42: tnet.papers.v1.TagService.ListTags:output_type -> tnet.papers.v1.ListTagsResponse
+	23, // 43: tnet.papers.v1.TagService.UpsertTag:output_type -> tnet.papers.v1.PaperTag
+	21, // 44: tnet.papers.v1.TagService.AttachTag:output_type -> tnet.papers.v1.GetPaperResponse
+	21, // 45: tnet.papers.v1.TagService.DetachTag:output_type -> tnet.papers.v1.GetPaperResponse
+	31, // 46: tnet.papers.v1.PdfService.LoadPdfBytes:output_type -> tnet.papers.v1.LoadPdfBytesResponse
+	33, // 47: tnet.papers.v1.BrowserImportService.ResolveMetadata:output_type -> tnet.papers.v1.BrowserPaperImportCandidate
+	30, // [30:48] is the sub-list for method output_type
+	12, // [12:30] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_tnet_papers_v1_papers_proto_init() }
@@ -159,9 +2567,9 @@ func file_tnet_papers_v1_papers_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tnet_papers_v1_papers_proto_rawDesc), len(file_tnet_papers_v1_papers_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   37,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   6,
 		},
 		GoTypes:           file_tnet_papers_v1_papers_proto_goTypes,
 		DependencyIndexes: file_tnet_papers_v1_papers_proto_depIdxs,

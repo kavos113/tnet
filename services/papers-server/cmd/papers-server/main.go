@@ -16,9 +16,12 @@ import (
 
 func main() {
 	addr := flag.String("addr", "127.0.0.1:38911", "listen address")
+	userDataDir := flag.String("user-data-dir", "", "desktop app user data directory")
 	flag.Parse()
 
-	container, err := app.NewContainer()
+	container, err := app.NewContainer(app.ContainerOptions{
+		UserDataDir: *userDataDir,
+	})
 	if err != nil {
 		slog.Error("failed to create app container", "error", err)
 		os.Exit(1)

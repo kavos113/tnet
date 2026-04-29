@@ -33,23 +33,17 @@ func (manager *LibraryDBManager) OpenLibrary(
 	key := libraryRoot.String()
 
 	manager.mu.Lock()
+	defer manager.mu.Unlock()
+
 	if db, ok := manager.connections[key]; ok {
-		manager.mu.Unlock()
 		return db, nil
 	}
-	manager.mu.Unlock()
 
 	db, err := openLibraryDB(ctx, libraryRoot)
 	if err != nil {
 		return nil, err
 	}
 
-	manager.mu.Lock()
-	defer manager.mu.Unlock()
-	if existing, ok := manager.connections[key]; ok {
-		_ = db.Close()
-		return existing, nil
-	}
 	manager.connections[key] = db
 
 	return db, nil

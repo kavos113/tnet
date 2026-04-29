@@ -9,13 +9,13 @@ const (
 )
 
 type BrowserImportCandidate struct {
+	URL           string
 	Title         string
 	Authors       []string
 	Abstract      string
-	PublishedYear int
+	PublishedYear int32
 	Venue         string
 	DOI           string
 	ArxivID       string
-	URL           string
 	PDFURL        string
 }

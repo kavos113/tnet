@@ -5,11 +5,13 @@ type Paper struct {
 	Title         string
 	Authors       []string
 	Abstract      string
-	PublishedYear int
+	PublishedYear int32
 	Venue         string
 	DOI           string
 	ArxivID       string
 	URL           string
-	PDFPath       RelativePath
-	DirectoryPath RelativePath
+	PDFPath       string
+	DirectoryPath string
+	Tags          []string
+	NoteContent   string
 }
