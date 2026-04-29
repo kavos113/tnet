@@ -77,6 +77,9 @@ export const tnetApi: DesktopTnetApi = {
       attach: (request) => ipcRenderer.invoke(papersIpcChannels.tags.attach, request),
       detach: (request) => ipcRenderer.invoke(papersIpcChannels.tags.detach, request)
     },
+    notes: {
+      save: (request) => ipcRenderer.invoke(papersIpcChannels.notes.save, request)
+    },
     pdf: {
       loadBytes: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.loadBytes, request),
       openExternal: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.openExternal, request)

@@ -12,6 +12,7 @@ export interface PaperListPaneProps {
   isLoading: boolean;
   error: string;
   widthPercent: number;
+  searchInputRef?: React.RefObject<HTMLInputElement | null>;
   onSelectPaper: (paperId: string) => void;
   onSearchQueryChange: (query: string) => void;
   onToggleTag: (tagId: string) => void;
@@ -29,6 +30,7 @@ export const PaperListPane = ({
   isLoading,
   error,
   widthPercent,
+  searchInputRef,
   onSelectPaper,
   onSearchQueryChange,
   onToggleTag,
@@ -63,6 +65,7 @@ export const PaperListPane = ({
       <label className="papers-search-filter">
         <span>Search</span>
         <input
+          ref={searchInputRef}
           value={searchQuery}
           aria-label="Search papers"
           placeholder="Search title, authors, abstract, note"

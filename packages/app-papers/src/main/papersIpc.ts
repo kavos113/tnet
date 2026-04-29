@@ -65,6 +65,12 @@ export const registerPapersDataIpc = (): void => {
     )
   );
 
+  ipcMain.handle(papersIpcChannels.notes.save, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) =>
+      repository.saveNote(request.paperId, request.content)
+    )
+  );
+
   ipcMain.handle(papersIpcChannels.pdf.loadBytes, async (_event, request) =>
     loadPdfBytes(request.libraryRoot, request.pdfPath)
   );

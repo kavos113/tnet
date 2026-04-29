@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -19,6 +19,7 @@ const listTags = vi.fn();
 const upsertTag = vi.fn();
 const attachTag = vi.fn();
 const detachTag = vi.fn();
+const saveNote = vi.fn();
 
 interface PapersTestState {
   papersLibrary: ReturnType<typeof papersLibraryReducer>;
@@ -105,6 +106,9 @@ const installTnetApi = (): void => {
           attach: attachTag,
           detach: detachTag
         },
+        notes: {
+          save: saveNote
+        },
         pdf: {
           loadBytes: vi.fn(),
           openExternal: vi.fn()
@@ -142,6 +146,7 @@ describe('PapersApp', () => {
     upsertTag.mockResolvedValue({ id: 'tag-2', name: 'semantics' });
     attachTag.mockResolvedValue({ ...paperDetail, tags: ['logic', 'semantics'] });
     detachTag.mockResolvedValue({ ...paperDetail, tags: [] });
+    saveNote.mockResolvedValue({ ...paperDetail, noteContent: '# Updated note' });
     selectPdf.mockResolvedValue(null);
     createPaperFromPdf.mockResolvedValue(paperDetail);
     installTnetApi();
@@ -240,6 +245,55 @@ describe('PapersApp', () => {
         tagId: 'tag-2'
       });
     });
+  });
+
+  it('auto-saves paper notes through IPC', async () => {
+    renderPapersApp();
+
+    fireEvent.click(await screen.findByRole('row', { name: /Lambda Calculus Foundations/ }));
+    await screen.findByTestId('pdf-viewer');
+    fireEvent.click(screen.getByRole('button', { name: 'Note' }));
+
+    vi.useFakeTimers();
+    try {
+      fireEvent.change(screen.getByRole('textbox', { name: 'Paper note' }), {
+        target: { value: '# Updated note' }
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(saveNote).toHaveBeenCalledWith({
+      libraryRoot: '/papers/library',
+      paperId: 'paper-1',
+      content: '# Updated note'
+    });
+  });
+
+  it('supports paper app shortcuts for search, import, and detail tabs', async () => {
+    const store = renderPapersApp();
+
+    await screen.findByText('Lambda Calculus Foundations');
+
+    fireEvent.keyDown(window, { key: 'f', ctrlKey: true });
+    expect(screen.getByRole('textbox', { name: 'Search papers' })).toHaveFocus();
+
+    fireEvent.keyDown(window, { key: 'i', ctrlKey: true });
+    expect(selectPdf).toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('row', { name: /Lambda Calculus Foundations/ }));
+    await waitFor(() => {
+      expect(store.getState().papersContent.selectedPaperId).toBe('paper-1');
+    });
+
+    fireEvent.keyDown(window, { key: '1', ctrlKey: true });
+    expect(store.getState().papersContent.activeDetailTab).toBe('metadata');
+    fireEvent.keyDown(window, { key: '3', ctrlKey: true });
+    expect(store.getState().papersContent.activeDetailTab).toBe('note');
   });
 
   it('resizes the paper list and preview panes by dragging the separator', async () => {

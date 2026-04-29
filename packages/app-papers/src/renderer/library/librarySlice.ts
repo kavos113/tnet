@@ -61,6 +61,9 @@ const librarySlice = createSlice({
       state.settings = action.payload.settings ?? defaultPapersLibraryConfig();
       state.isRestored = true;
     },
+    setPapersLibrarySettings: (state, action: PayloadAction<PapersLibraryConfig>) => {
+      state.settings = action.payload;
+    },
     setSelectedPapersDirectory: (state, action: PayloadAction<string | null>) => {
       state.selectedDirectoryPath = action.payload;
     },
@@ -88,6 +91,7 @@ export const {
   restorePapersLibrary,
   setPapersDirectoryTree,
   setPapersLibrary,
+  setPapersLibrarySettings,
   setSelectedPapersDirectory,
   toggleExpandedPapersDirectory
 } = librarySlice.actions;

@@ -52,6 +52,9 @@ export const papersIpcChannels = {
     attach: 'papers:tags:attach',
     detach: 'papers:tags:detach'
   },
+  notes: {
+    save: 'papers:notes:save'
+  },
   pdf: {
     loadBytes: 'papers:pdf:loadBytes',
     openExternal: 'papers:pdf:openExternal'
@@ -93,6 +96,13 @@ export interface PapersApi {
         libraryRoot: string;
         paperId: string;
         tagId: string;
+      }) => Promise<PaperDetail | null>;
+    };
+    notes: {
+      save: (request: {
+        libraryRoot: string;
+        paperId: string;
+        content: string;
       }) => Promise<PaperDetail | null>;
     };
     pdf: {

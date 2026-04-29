@@ -31,6 +31,7 @@
 
 .papers-metadata,
 .papers-pdf-viewer,
+.papers-note-panel,
 .papers-note-editor {
   flex: 1 1 auto;
   min-height: 0;
@@ -123,6 +124,12 @@
   border-radius: 4px;
 }
 
+.papers-note-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .papers-note-editor {
   width: 100%;
   padding: 12px;
@@ -130,4 +137,22 @@
   resize: none;
   background: var(--background);
   border: 0;
+  outline: 0;
+}
+
+.papers-note-status {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  min-height: 18px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--foreground-muted);
+  pointer-events: none;
+  background: rgb(255 255 255 / 85%);
+  border-radius: 4px;
+}
+
+.papers-note-status-error {
+  color: #9d1f1f;
 }

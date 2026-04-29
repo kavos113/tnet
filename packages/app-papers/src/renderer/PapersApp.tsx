@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import { usePapersDispatch, usePapersSelector } from './storeHooks';
 import { PaperDetailPane } from './detail/PaperDetailPane';
@@ -23,6 +24,7 @@ import { usePapersListLoader } from './papers/usePapersListLoader';
 
 export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const activeLibraryRoot = usePapersSelector((state) => state.papersLibrary.activeLibraryRoot);
   const isRestored = usePapersSelector((state) => state.papersLibrary.isRestored);
@@ -68,6 +70,51 @@ export const PapersApp = (): React.JSX.Element => {
   );
   usePaperTagsLoader(activeLibraryRoot);
   usePaperDetailLoader(activeLibraryRoot, selectedPaperId);
+
+  const triggerImportPdf = (): void => {
+    importPdf().catch((importError: unknown) => {
+      console.error('Failed to select PDF', importError);
+    });
+  };
+
+  useShortcut({
+    key: 'f',
+    ctrlOrMeta: true,
+    enabled: Boolean(activeLibraryRoot),
+    allowInEditable: true,
+    onTrigger: () => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    }
+  });
+
+  useShortcut({
+    key: 'i',
+    ctrlOrMeta: true,
+    enabled: Boolean(activeLibraryRoot),
+    onTrigger: triggerImportPdf
+  });
+
+  useShortcut({
+    key: '1',
+    ctrlOrMeta: true,
+    enabled: Boolean(selectedPaperId),
+    onTrigger: () => dispatch(setActivePapersDetailTab('metadata'))
+  });
+
+  useShortcut({
+    key: '2',
+    ctrlOrMeta: true,
+    enabled: Boolean(selectedPaperId),
+    onTrigger: () => dispatch(setActivePapersDetailTab('pdf'))
+  });
+
+  useShortcut({
+    key: '3',
+    ctrlOrMeta: true,
+    enabled: Boolean(selectedPaperId),
+    onTrigger: () => dispatch(setActivePapersDetailTab('note'))
+  });
 
   const reloadPapers = async (): Promise<void> => {
     if (!activeLibraryRoot) return;
@@ -133,6 +180,23 @@ export const PapersApp = (): React.JSX.Element => {
     }
   };
 
+  const saveNote = async (content: string): Promise<void> => {
+    if (!activeLibraryRoot || !selectedPaperId) return;
+    try {
+      const updatedDetail = await papersTnetApi.papers.notes.save({
+        libraryRoot: activeLibraryRoot,
+        paperId: selectedPaperId,
+        content
+      });
+      dispatch(setPaperDetail(updatedDetail));
+      await reloadPapers();
+    } catch (noteError) {
+      console.error('Failed to save paper note', noteError);
+      dispatch(setPapersError('Failed to save paper note.'));
+      throw noteError;
+    }
+  };
+
   if (!isRestored) {
     return (
       <main className="placeholder-app" aria-label="Papers">
@@ -174,14 +238,11 @@ export const PapersApp = (): React.JSX.Element => {
         isLoading={isLoadingList}
         error={error}
         widthPercent={listWidthPercent}
+        searchInputRef={searchInputRef}
         onSelectPaper={(paperId) => dispatch(selectPaper(paperId))}
         onSearchQueryChange={setSearchQuery}
         onToggleTag={(tagId) => dispatch(toggleSelectedPaperTag(tagId))}
-        onImportPdf={() => {
-          importPdf().catch((importError: unknown) => {
-            console.error('Failed to select PDF', importError);
-          });
-        }}
+        onImportPdf={triggerImportPdf}
       />
       <div
         className="papers-pane-resizer"
@@ -214,6 +275,7 @@ export const PapersApp = (): React.JSX.Element => {
             console.error('Failed to detach paper tag', tagError);
           });
         }}
+        onSaveNote={saveNote}
       />
       {importCandidate ? (
         <PaperImportDialog

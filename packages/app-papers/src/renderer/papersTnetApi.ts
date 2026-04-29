@@ -47,6 +47,9 @@ export const papersTnetApi: PapersTnetApi = {
       attach: (request) => getPapersApi().papers.tags.attach(request),
       detach: (request) => getPapersApi().papers.tags.detach(request)
     },
+    notes: {
+      save: (request) => getPapersApi().papers.notes.save(request)
+    },
     pdf: {
       loadBytes: (request) => getPapersApi().papers.pdf.loadBytes(request),
       openExternal: (request) => getPapersApi().papers.pdf.openExternal(request)

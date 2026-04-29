@@ -86,6 +86,9 @@ const installTnetApi = (): void => {
           attach: vi.fn(),
           detach: vi.fn()
         },
+        notes: {
+          save: vi.fn()
+        },
         pdf: {
           loadBytes,
           openExternal

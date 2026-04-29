@@ -76,6 +76,9 @@ describe('App', () => {
             attach: vi.fn(),
             detach: vi.fn()
           },
+          notes: {
+            save: vi.fn()
+          },
           pdf: {
             loadBytes: vi.fn(),
             openExternal: vi.fn()

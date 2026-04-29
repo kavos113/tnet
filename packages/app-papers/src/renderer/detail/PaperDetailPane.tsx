@@ -3,6 +3,7 @@ import { PdfViewer } from '../papers/PdfViewer';
 import { formatAuthors } from '../papers/paperDisplay';
 import type { PapersDetailTab } from '../papers/papersSlice';
 import { PaperMetadataPanel } from './PaperMetadataPanel';
+import { PaperNoteEditor } from './PaperNoteEditor';
 
 export interface PaperDetailPaneProps {
   activeLibraryRoot: string;
@@ -16,6 +17,7 @@ export interface PaperDetailPaneProps {
   onCreateTag: (name: string) => void;
   onAttachTag: (tagId: string) => void;
   onDetachTag: (tagId: string) => void;
+  onSaveNote: (content: string) => Promise<void>;
 }
 
 export const PaperDetailPane = ({
@@ -29,7 +31,8 @@ export const PaperDetailPane = ({
   onSelectTab,
   onCreateTag,
   onAttachTag,
-  onDetachTag
+  onDetachTag,
+  onSaveNote
 }: PaperDetailPaneProps): React.JSX.Element => (
   <section
     className="papers-detail-pane"
@@ -73,7 +76,7 @@ export const PaperDetailPane = ({
           <PdfViewer libraryRoot={activeLibraryRoot} pdfPath={detail.pdfPath} />
         ) : null}
         {activeDetailTab === 'note' ? (
-          <textarea className="papers-note-editor" value={detail.noteContent} readOnly />
+          <PaperNoteEditor paperId={detail.id} content={detail.noteContent} onSave={onSaveNote} />
         ) : null}
       </>
     ) : null}

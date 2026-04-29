@@ -1,6 +1,11 @@
 import type { AppId } from '@tnet/shared/app/appTypes';
 import { CodeApp } from '@renderer/apps/code/CodeApp';
-import { PapersApp, PapersRuntime, PapersSidebar } from '@tnet/app-papers/renderer';
+import {
+  PapersApp,
+  PapersRuntime,
+  PapersSettingsDialog,
+  PapersSidebar
+} from '@tnet/app-papers/renderer';
 import {
   MarkdownApp,
   MarkdownRuntime,
@@ -34,7 +39,8 @@ export const appRegistry: AppModule[] = [
     icon: 'article',
     Main: PapersApp,
     Sidebar: PapersSidebar,
-    Runtime: PapersRuntime
+    Runtime: PapersRuntime,
+    Settings: PapersSettingsDialog
   },
   {
     id: 'code',

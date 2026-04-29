@@ -300,4 +300,28 @@ export class PapersRepository {
       .run(paperId, tagId);
     return this.getPaper(paperId);
   }
+
+  saveNote(paperId: string, content: string): PaperDetail | null {
+    const updatedAt = nowIso();
+    const saveNote = this.database.transaction(() => {
+      this.database
+        .prepare(
+          `
+          INSERT INTO notes (paper_id, content, updated_at)
+          VALUES (?, ?, ?)
+          ON CONFLICT(paper_id) DO UPDATE SET
+            content = excluded.content,
+            updated_at = excluded.updated_at
+        `
+        )
+        .run(paperId, content, updatedAt);
+      this.database
+        .prepare('UPDATE papers SET updated_at = ? WHERE id = ?')
+        .run(updatedAt, paperId);
+      refreshSearchIndex(this.database, paperId);
+    });
+
+    saveNote();
+    return this.getPaper(paperId);
+  }
 }

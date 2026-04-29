@@ -39,6 +39,7 @@ describe('PaperDetailPane', () => {
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
         onDetachTag={vi.fn()}
+        onSaveNote={vi.fn()}
       />
     );
 
@@ -57,6 +58,7 @@ describe('PaperDetailPane', () => {
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
         onDetachTag={vi.fn()}
+        onSaveNote={vi.fn()}
       />
     );
 
@@ -80,6 +82,7 @@ describe('PaperDetailPane', () => {
         onCreateTag={onCreateTag}
         onAttachTag={vi.fn()}
         onDetachTag={onDetachTag}
+        onSaveNote={vi.fn()}
       />
     );
 
@@ -109,9 +112,41 @@ describe('PaperDetailPane', () => {
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
         onDetachTag={vi.fn()}
+        onSaveNote={vi.fn()}
       />
     );
 
     expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument();
+  });
+
+  it('renders an editable note tab and debounces save', () => {
+    vi.useFakeTimers();
+    const onSaveNote = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <PaperDetailPane
+        activeLibraryRoot="/papers/library"
+        selectedPaperId="paper-1"
+        detail={detail}
+        tags={[]}
+        activeDetailTab="note"
+        isLoading={false}
+        widthPercent={60}
+        onSelectTab={vi.fn()}
+        onCreateTag={vi.fn()}
+        onAttachTag={vi.fn()}
+        onDetachTag={vi.fn()}
+        onSaveNote={onSaveNote}
+      />
+    );
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Paper note' }), {
+      target: { value: '# Updated note' }
+    });
+
+    expect(onSaveNote).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(500);
+    expect(onSaveNote).toHaveBeenCalledWith('# Updated note');
+    vi.useRealTimers();
   });
 });

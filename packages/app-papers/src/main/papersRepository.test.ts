@@ -113,4 +113,22 @@ describe('PapersRepository', () => {
     });
     expect(repository.listPapers({ tagIds: [tag.id] })).toEqual([]);
   });
+
+  it('saves notes and updates the full-text search index', async () => {
+    database = await openPapersDatabase(await tempDir());
+    const repository = new PapersRepository(database);
+
+    const paper = repository.createPaper({
+      title: 'Modal Logic',
+      pdfPath: 'logic/modal.pdf'
+    });
+
+    expect(repository.listPapers({ query: 'Kripke' })).toEqual([]);
+
+    expect(repository.saveNote(paper.id, '# Reading note\nKripke semantics')).toMatchObject({
+      id: paper.id,
+      noteContent: '# Reading note\nKripke semantics'
+    });
+    expect(repository.listPapers({ query: 'Kripke' })).toMatchObject([{ id: paper.id }]);
+  });
 });
