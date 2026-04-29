@@ -17,6 +17,13 @@ const createAvailableClient = (): PapersExtensionServerClient => {
       listLibraries: () => ({
         libraries: [{ rootPath: 'C:/papers', name: 'papers', isActive: true }],
         activeLibraryRoot: 'C:/papers'
+      }),
+      listDirectories: () => ({
+        root: {
+          name: 'papers',
+          relativePath: '',
+          children: [{ name: 'articles', relativePath: 'articles', children: [] }]
+        }
       })
     });
     router.service(BrowserImportService, {
@@ -54,6 +61,16 @@ describe('PapersExtensionServerClient', () => {
     await expect(client.listLibraries()).resolves.toEqual({
       libraries: [{ rootPath: 'C:/papers', name: 'papers', isActive: true }],
       activeLibraryRoot: 'C:/papers'
+    });
+  });
+
+  it('loads directories from the generated LibraryService client', async () => {
+    const client = createAvailableClient();
+
+    await expect(client.listDirectories('C:/papers')).resolves.toEqual({
+      name: 'papers',
+      relativePath: '',
+      children: [{ name: 'articles', relativePath: 'articles', children: [] }]
     });
   });
 
