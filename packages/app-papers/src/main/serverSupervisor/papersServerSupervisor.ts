@@ -53,6 +53,8 @@ export class PapersServerSupervisor {
       windowsHide: true
     });
 
+    console.log(`Started papers server with PID ${this.childProcess.pid}`);
+
     await this.waitUntilHealthy();
     return 'started';
   }
