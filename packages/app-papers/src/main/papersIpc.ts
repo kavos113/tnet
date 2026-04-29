@@ -1,0 +1,41 @@
+import { ipcMain } from 'electron';
+import { papersIpcChannels } from '@tnet/app-papers/shared/ipc';
+import { importPdfFromDialog, loadPdfBytes, openPdfExternal } from './papersFileService';
+import { openPapersDatabase } from './papersDatabase';
+import { PapersRepository } from './papersRepository';
+
+const withRepository = async <T>(
+  libraryRoot: string,
+  run: (repository: PapersRepository) => T
+): Promise<T> => {
+  const database = await openPapersDatabase(libraryRoot);
+  try {
+    return run(new PapersRepository(database));
+  } finally {
+    database.close();
+  }
+};
+
+export const registerPapersDataIpc = (): void => {
+  ipcMain.handle(papersIpcChannels.library.importPdf, async (_event, request) =>
+    importPdfFromDialog(request)
+  );
+
+  ipcMain.handle(papersIpcChannels.papers.list, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) =>
+      repository.listPapers(request.directoryPath)
+    )
+  );
+
+  ipcMain.handle(papersIpcChannels.papers.get, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) => repository.getPaper(request.paperId))
+  );
+
+  ipcMain.handle(papersIpcChannels.pdf.loadBytes, async (_event, request) =>
+    loadPdfBytes(request.libraryRoot, request.pdfPath)
+  );
+
+  ipcMain.handle(papersIpcChannels.pdf.openExternal, async (_event, request) =>
+    openPdfExternal(request.libraryRoot, request.pdfPath)
+  );
+};

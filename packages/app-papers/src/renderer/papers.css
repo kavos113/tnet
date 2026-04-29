@@ -1,0 +1,237 @@
+.papers-app {
+  display: grid;
+  grid-template-columns: minmax(280px, 38%) minmax(360px, 1fr);
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.papers-list-pane,
+.papers-detail-pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.papers-list-pane {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--gray);
+}
+
+.papers-detail-pane {
+  display: flex;
+  flex-direction: column;
+}
+
+.papers-pane-header,
+.papers-detail-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-pane-header h1,
+.papers-detail-header h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papers-pane-header span,
+.papers-detail-header span {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papers-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+.papers-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  width: 100%;
+  padding: 10px 12px;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-list-item:hover,
+.papers-list-item.active {
+  background: var(--background-light);
+}
+
+.papers-list-title,
+.papers-list-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papers-list-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.papers-list-meta,
+.papers-list-footer {
+  font-size: 12px;
+  color: var(--foreground-muted);
+}
+
+.papers-list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.papers-list-pdf {
+  font-size: 16px;
+}
+
+.papers-detail-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-detail-tabs button {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px 4px 0 0;
+}
+
+.papers-detail-tabs button:hover,
+.papers-detail-tabs button.active {
+  color: var(--foreground);
+  background: var(--background-light);
+}
+
+.papers-metadata,
+.papers-pdf-viewer,
+.papers-note-editor {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.papers-metadata {
+  padding: 14px;
+  overflow: auto;
+}
+
+.papers-metadata dl {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.papers-metadata dt {
+  color: var(--foreground-muted);
+}
+
+.papers-metadata dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.papers-pdf-viewer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.papers-pdf-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  align-items: center;
+  height: 40px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.papers-pdf-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.papers-select {
+  height: 26px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
+.papers-pdf-frame {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  background: #2b2b2b;
+  border: 0;
+}
+
+.papers-note-editor {
+  width: 100%;
+  padding: 12px;
+  color: var(--foreground);
+  resize: none;
+  background: var(--background);
+  border: 0;
+}
+
+.papers-empty-state,
+.papers-error {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--foreground-muted);
+  text-align: center;
+}
+
+.papers-error {
+  min-height: auto;
+  color: #d86161;
+  border-bottom: 1px solid var(--gray);
+}

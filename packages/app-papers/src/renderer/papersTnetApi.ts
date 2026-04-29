@@ -31,6 +31,17 @@ export const papersTnetApi: PapersTnetApi = {
       loadLibrary: (libraryRoot) => getPapersApi().papers.config.loadLibrary(libraryRoot),
       saveLibrary: (libraryRoot, config) =>
         getPapersApi().papers.config.saveLibrary(libraryRoot, config)
+    },
+    library: {
+      importPdf: (request) => getPapersApi().papers.library.importPdf(request)
+    },
+    papers: {
+      list: (request) => getPapersApi().papers.papers.list(request),
+      get: (request) => getPapersApi().papers.papers.get(request)
+    },
+    pdf: {
+      loadBytes: (request) => getPapersApi().papers.pdf.loadBytes(request),
+      openExternal: (request) => getPapersApi().papers.pdf.openExternal(request)
     }
   }
 };

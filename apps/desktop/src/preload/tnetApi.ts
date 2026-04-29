@@ -60,6 +60,17 @@ export const tnetApi: DesktopTnetApi = {
         ipcRenderer.invoke(papersIpcChannels.config.loadLibrary, libraryRoot),
       saveLibrary: (libraryRoot, config) =>
         ipcRenderer.invoke(papersIpcChannels.config.saveLibrary, libraryRoot, config)
+    },
+    library: {
+      importPdf: (request) => ipcRenderer.invoke(papersIpcChannels.library.importPdf, request)
+    },
+    papers: {
+      list: (request) => ipcRenderer.invoke(papersIpcChannels.papers.list, request),
+      get: (request) => ipcRenderer.invoke(papersIpcChannels.papers.get, request)
+    },
+    pdf: {
+      loadBytes: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.loadBytes, request),
+      openExternal: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.openExternal, request)
     }
   }
 };

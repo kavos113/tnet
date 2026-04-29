@@ -1,7 +1,7 @@
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import appReducer from './appSlice';
 import { editorReducer, explorerReducer, workspaceReducer } from '@tnet/app-markdown/renderer';
-import { papersLibraryReducer } from '@tnet/app-papers/renderer';
+import { papersContentReducer, papersLibraryReducer } from '@tnet/app-papers/renderer';
 
 export interface RootState {
   app: ReturnType<typeof appReducer>;
@@ -9,6 +9,7 @@ export interface RootState {
   explorer: ReturnType<typeof explorerReducer>;
   editor: ReturnType<typeof editorReducer>;
   papersLibrary: ReturnType<typeof papersLibraryReducer>;
+  papersContent: ReturnType<typeof papersContentReducer>;
 }
 
 export const createAppStore = (): EnhancedStore<RootState> =>
@@ -18,7 +19,8 @@ export const createAppStore = (): EnhancedStore<RootState> =>
       workspace: workspaceReducer,
       explorer: explorerReducer,
       editor: editorReducer,
-      papersLibrary: papersLibraryReducer
+      papersLibrary: papersLibraryReducer,
+      papersContent: papersContentReducer
     },
     devTools: import.meta.env.DEV
   });
