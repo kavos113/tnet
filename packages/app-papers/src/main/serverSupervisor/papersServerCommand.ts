@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 
 export interface PapersServerCommandOptions {
@@ -6,6 +7,7 @@ export interface PapersServerCommandOptions {
   resourcesPath: string;
   userDataDir: string;
   platform?: NodeJS.Platform;
+  executableExists?: (filePath: string) => boolean;
 }
 
 export interface PapersServerCommand {
@@ -19,13 +21,14 @@ export const resolvePapersServerCommand = ({
   isPackaged,
   resourcesPath,
   userDataDir,
-  platform = process.platform
+  platform = process.platform,
+  executableExists = fs.existsSync
 }: PapersServerCommandOptions): PapersServerCommand => {
   const accessLogPath = path.join(userDataDir, 'papers-server-access.log');
   const userDataArgs = ['--user-data-dir', userDataDir, '--access-log-path', accessLogPath];
+  const executableName = platform === 'win32' ? 'papers-server.exe' : 'papers-server';
 
   if (isPackaged) {
-    const executableName = platform === 'win32' ? 'papers-server.exe' : 'papers-server';
     return {
       command: path.join(resourcesPath, 'papers-server', executableName),
       args: userDataArgs
@@ -33,20 +36,15 @@ export const resolvePapersServerCommand = ({
   }
 
   const repoRoot = path.resolve(appPath, '..', '..');
-  const devServerScript = path.join(repoRoot, 'scripts', 'start-paper-server-dev.ps1');
+  const devServerExecutable = path.join(repoRoot, 'dist', 'papers-server', executableName);
+  if (!executableExists(devServerExecutable)) {
+    throw new Error(
+      `Papers server executable was not found at ${devServerExecutable}. Run pnpm papers:server:build before starting the desktop app.`
+    );
+  }
+
   return {
-    command: 'powershell',
-    args: [
-      '-NoProfile',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-File',
-      devServerScript,
-      '-UserDataDir',
-      userDataDir,
-      '-AccessLogPath',
-      accessLogPath
-    ],
-    cwd: repoRoot
+    command: devServerExecutable,
+    args: userDataArgs
   };
 };

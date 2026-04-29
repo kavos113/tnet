@@ -12,21 +12,17 @@ describe('resolvePapersServerCommand', () => {
           isPackaged: false,
           resourcesPath: path.join('C:', 'dummy-repo', 'resources'),
           userDataDir: path.join('C:', 'dummy-user-data', 'tnet'),
-          platform: 'win32' as NodeJS.Platform
+          platform: 'win32' as NodeJS.Platform,
+          executableExists: () => true
         },
-        wantCommand: 'powershell',
+        wantCommand: path.join('C:', 'dummy-repo', 'dist', 'papers-server', 'papers-server.exe'),
         wantArgs: [
-          '-NoProfile',
-          '-ExecutionPolicy',
-          'Bypass',
-          '-File',
-          path.join('C:', 'dummy-repo', 'scripts', 'start-paper-server-dev.ps1'),
-          '-UserDataDir',
+          '--user-data-dir',
           path.join('C:', 'dummy-user-data', 'tnet'),
-          '-AccessLogPath',
+          '--access-log-path',
           path.join('C:', 'dummy-user-data', 'tnet', 'papers-server-access.log')
         ],
-        wantCwd: path.join('C:', 'dummy-repo')
+        wantCwd: undefined
       },
       {
         name: 'packaged windows',
@@ -62,5 +58,18 @@ describe('resolvePapersServerCommand', () => {
       expect(command.args, testcase.name).toEqual(testcase.wantArgs);
       expect(command.cwd, testcase.name).toBe(testcase.wantCwd);
     }
+  });
+
+  it('throws a clear error when the development executable has not been built', () => {
+    expect(() =>
+      resolvePapersServerCommand({
+        appPath: path.join('C:', 'dummy-repo', 'apps', 'desktop'),
+        isPackaged: false,
+        resourcesPath: path.join('C:', 'dummy-repo', 'resources'),
+        userDataDir: path.join('C:', 'dummy-user-data', 'tnet'),
+        platform: 'win32',
+        executableExists: () => false
+      })
+    ).toThrow(/pnpm papers:server:build/);
   });
 });
