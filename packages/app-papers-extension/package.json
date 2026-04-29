@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit -p tsconfig.json"
+    "build": "pnpm typecheck && node scripts/build-extension.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   }
 }
