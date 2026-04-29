@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package tnet.papers.v1;
+
+option go_package = "github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1;papersv1";
+
+service HealthService {
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+
+message CheckRequest {}
+
+message CheckResponse {
+  string status = 1;
+  string version = 2;
+}

@@ -8,6 +8,8 @@
     "lint": "eslint --cache .",
     "sqlite:node": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target node",
     "sqlite:electron": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target electron",
+    "papers:proto": "buf generate",
+    "papers:server:test": "cd services/papers-server && go test ./...",
     "test": "pnpm sqlite:node && vitest run",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
