@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import type { PaperDetail, PaperSummary } from '@tnet/app-papers/shared/paperTypes';
+import type { PaperDetail, PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes';
 import type { PapersDatabase } from './papersDatabase';
 
 export interface CreatePaperInput {
@@ -16,6 +16,12 @@ export interface CreatePaperInput {
   noteContent?: string;
 }
 
+export interface ListPapersFilter {
+  directoryPath?: string;
+  query?: string;
+  tagIds?: string[];
+}
+
 interface PaperRow {
   id: string;
   title: string;
@@ -29,7 +35,28 @@ interface PaperRow {
   directory_path: string;
 }
 
+interface PaperTagRow {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
 const nowIso = (): string => new Date().toISOString();
+
+const toTag = (row: PaperTagRow): PaperTag => ({
+  id: row.id,
+  name: row.name,
+  color: row.color ?? undefined
+});
+
+const toFtsQuery = (query: string): string => {
+  const terms = query
+    .trim()
+    .split(/\s+/)
+    .map((term) => term.replaceAll('"', '""'))
+    .filter(Boolean);
+  return terms.map((term) => `"${term}"`).join(' AND ');
+};
 
 const listAuthors = (database: PapersDatabase, paperId: string): string[] =>
   database
@@ -172,13 +199,45 @@ export class PapersRepository {
     return created;
   }
 
-  listPapers(directoryPath?: string): PaperSummary[] {
-    const rows =
-      directoryPath !== undefined
-        ? this.database
-            .prepare('SELECT * FROM papers WHERE directory_path = ? ORDER BY updated_at DESC')
-            .all(directoryPath)
-        : this.database.prepare('SELECT * FROM papers ORDER BY updated_at DESC').all();
+  listPapers(filter: ListPapersFilter | string = {}): PaperSummary[] {
+    const normalizedFilter: ListPapersFilter =
+      typeof filter === 'string' ? { directoryPath: filter } : filter;
+    const where: string[] = [];
+    const params: unknown[] = [];
+
+    if (normalizedFilter.directoryPath !== undefined) {
+      where.push('papers.directory_path = ?');
+      params.push(normalizedFilter.directoryPath);
+    }
+
+    const ftsQuery = normalizedFilter.query ? toFtsQuery(normalizedFilter.query) : '';
+    if (ftsQuery) {
+      where.push('papers.id IN (SELECT paper_id FROM paper_search WHERE paper_search MATCH ?)');
+      params.push(ftsQuery);
+    }
+
+    (normalizedFilter.tagIds ?? []).forEach((tagId) => {
+      where.push(
+        `EXISTS (
+          SELECT 1
+          FROM paper_tags
+          WHERE paper_tags.paper_id = papers.id
+            AND paper_tags.tag_id = ?
+        )`
+      );
+      params.push(tagId);
+    });
+
+    const rows = this.database
+      .prepare(
+        `
+        SELECT papers.*
+        FROM papers
+        ${where.length > 0 ? `WHERE ${where.join(' AND ')}` : ''}
+        ORDER BY papers.updated_at DESC
+      `
+      )
+      .all(...params);
 
     return (rows as PaperRow[]).map((row) => toSummary(this.database, row));
   }
@@ -195,5 +254,50 @@ export class PapersRepository {
       | PaperRow
       | undefined;
     return row ? toDetail(this.database, row) : null;
+  }
+
+  listTags(): PaperTag[] {
+    const rows = this.database
+      .prepare('SELECT * FROM tags ORDER BY name ASC')
+      .all() as PaperTagRow[];
+    return rows.map(toTag);
+  }
+
+  upsertTag(name: string, color?: string): PaperTag {
+    const normalizedName = name.trim();
+    if (!normalizedName) throw new Error('tag name is required');
+
+    const existing = this.database
+      .prepare('SELECT * FROM tags WHERE name = ?')
+      .get(normalizedName) as PaperTagRow | undefined;
+    if (existing) {
+      if (color !== undefined && color !== existing.color) {
+        this.database.prepare('UPDATE tags SET color = ? WHERE id = ?').run(color, existing.id);
+        return { ...toTag(existing), color };
+      }
+      return toTag(existing);
+    }
+
+    const id = randomUUID();
+    this.database
+      .prepare('INSERT INTO tags (id, name, color) VALUES (?, ?, ?)')
+      .run(id, normalizedName, color ?? null);
+
+    const created = this.database.prepare('SELECT * FROM tags WHERE id = ?').get(id) as PaperTagRow;
+    return toTag(created);
+  }
+
+  attachTag(paperId: string, tagId: string): PaperDetail | null {
+    this.database
+      .prepare('INSERT OR IGNORE INTO paper_tags (paper_id, tag_id) VALUES (?, ?)')
+      .run(paperId, tagId);
+    return this.getPaper(paperId);
+  }
+
+  detachTag(paperId: string, tagId: string): PaperDetail | null {
+    this.database
+      .prepare('DELETE FROM paper_tags WHERE paper_id = ? AND tag_id = ?')
+      .run(paperId, tagId);
+    return this.getPaper(paperId);
   }
 }

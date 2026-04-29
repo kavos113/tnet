@@ -59,6 +59,70 @@
   overflow-wrap: anywhere;
 }
 
+.papers-detail-tags {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.papers-detail-tags h3 {
+  margin: 0;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+}
+
+.papers-detail-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.papers-detail-no-tags {
+  font-size: 12px;
+  color: var(--foreground-muted);
+}
+
+.papers-detail-new-tag {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: end;
+}
+
+.papers-detail-new-tag span {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+}
+
+.papers-detail-new-tag input {
+  height: 28px;
+  min-width: 0;
+  padding: 0 8px;
+  color: var(--foreground);
+  background: var(--background-dark);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  outline: 0;
+}
+
+.papers-detail-new-tag input:focus {
+  border-color: var(--main-light);
+}
+
+.papers-detail-new-tag button {
+  height: 28px;
+  padding: 0 10px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
 .papers-note-editor {
   width: 100%;
   padding: 12px;

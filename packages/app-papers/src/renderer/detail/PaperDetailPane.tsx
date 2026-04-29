@@ -1,4 +1,4 @@
-import type { PaperDetail } from '@tnet/app-papers/shared/paperTypes';
+import type { PaperDetail, PaperTag } from '@tnet/app-papers/shared/paperTypes';
 import { PdfViewer } from '../papers/PdfViewer';
 import { formatAuthors } from '../papers/paperDisplay';
 import type { PapersDetailTab } from '../papers/papersSlice';
@@ -8,20 +8,28 @@ export interface PaperDetailPaneProps {
   activeLibraryRoot: string;
   selectedPaperId: string;
   detail: PaperDetail | null;
+  tags: PaperTag[];
   activeDetailTab: PapersDetailTab;
   isLoading: boolean;
   widthPercent: number;
   onSelectTab: (tab: PapersDetailTab) => void;
+  onCreateTag: (name: string) => void;
+  onAttachTag: (tagId: string) => void;
+  onDetachTag: (tagId: string) => void;
 }
 
 export const PaperDetailPane = ({
   activeLibraryRoot,
   selectedPaperId,
   detail,
+  tags,
   activeDetailTab,
   isLoading,
   widthPercent,
-  onSelectTab
+  onSelectTab,
+  onCreateTag,
+  onAttachTag,
+  onDetachTag
 }: PaperDetailPaneProps): React.JSX.Element => (
   <section
     className="papers-detail-pane"
@@ -52,7 +60,15 @@ export const PaperDetailPane = ({
             </button>
           ))}
         </nav>
-        {activeDetailTab === 'metadata' ? <PaperMetadataPanel detail={detail} /> : null}
+        {activeDetailTab === 'metadata' ? (
+          <PaperMetadataPanel
+            detail={detail}
+            availableTags={tags}
+            onCreateTag={onCreateTag}
+            onAttachTag={onAttachTag}
+            onDetachTag={onDetachTag}
+          />
+        ) : null}
         {activeDetailTab === 'pdf' ? (
           <PdfViewer libraryRoot={activeLibraryRoot} pdfPath={detail.pdfPath} />
         ) : null}

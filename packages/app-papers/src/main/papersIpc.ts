@@ -36,13 +36,33 @@ export const registerPapersDataIpc = (): void => {
   );
 
   ipcMain.handle(papersIpcChannels.papers.list, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) =>
-      repository.listPapers(request.directoryPath)
-    )
+    withRepository(request.libraryRoot, (repository) => repository.listPapers(request))
   );
 
   ipcMain.handle(papersIpcChannels.papers.get, async (_event, request) =>
     withRepository(request.libraryRoot, (repository) => repository.getPaper(request.paperId))
+  );
+
+  ipcMain.handle(papersIpcChannels.tags.list, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) => repository.listTags())
+  );
+
+  ipcMain.handle(papersIpcChannels.tags.upsert, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) =>
+      repository.upsertTag(request.name, request.color)
+    )
+  );
+
+  ipcMain.handle(papersIpcChannels.tags.attach, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) =>
+      repository.attachTag(request.paperId, request.tagId)
+    )
+  );
+
+  ipcMain.handle(papersIpcChannels.tags.detach, async (_event, request) =>
+    withRepository(request.libraryRoot, (repository) =>
+      repository.detachTag(request.paperId, request.tagId)
+    )
   );
 
   ipcMain.handle(papersIpcChannels.pdf.loadBytes, async (_event, request) =>

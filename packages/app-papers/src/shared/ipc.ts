@@ -1,5 +1,5 @@
 import type { PapersGlobalConfig, PapersLibraryConfig } from './config';
-import type { PaperDetail, PaperSummary } from './paperTypes';
+import type { PaperDetail, PaperSummary, PaperTag } from './paperTypes';
 
 export interface SelectedPdfImportCandidate {
   sourcePath: string;
@@ -23,6 +23,13 @@ export interface CreatePaperFromPdfRequest {
   directoryPath?: string;
 }
 
+export interface ListPapersRequest {
+  libraryRoot: string;
+  directoryPath?: string;
+  query?: string;
+  tagIds?: string[];
+}
+
 export const papersIpcChannels = {
   config: {
     loadGlobal: 'papers:config:loadGlobal',
@@ -38,6 +45,12 @@ export const papersIpcChannels = {
   papers: {
     list: 'papers:papers:list',
     get: 'papers:papers:get'
+  },
+  tags: {
+    list: 'papers:tags:list',
+    upsert: 'papers:tags:upsert',
+    attach: 'papers:tags:attach',
+    detach: 'papers:tags:detach'
   },
   pdf: {
     loadBytes: 'papers:pdf:loadBytes',
@@ -65,8 +78,22 @@ export interface PapersApi {
       }) => Promise<PaperDetail | null>;
     };
     papers: {
-      list: (request: { libraryRoot: string; directoryPath?: string }) => Promise<PaperSummary[]>;
+      list: (request: ListPapersRequest) => Promise<PaperSummary[]>;
       get: (request: { libraryRoot: string; paperId: string }) => Promise<PaperDetail | null>;
+    };
+    tags: {
+      list: (request: { libraryRoot: string }) => Promise<PaperTag[]>;
+      upsert: (request: { libraryRoot: string; name: string; color?: string }) => Promise<PaperTag>;
+      attach: (request: {
+        libraryRoot: string;
+        paperId: string;
+        tagId: string;
+      }) => Promise<PaperDetail | null>;
+      detach: (request: {
+        libraryRoot: string;
+        paperId: string;
+        tagId: string;
+      }) => Promise<PaperDetail | null>;
     };
     pdf: {
       loadBytes: (request: { libraryRoot: string; pdfPath: string }) => Promise<ArrayBuffer>;

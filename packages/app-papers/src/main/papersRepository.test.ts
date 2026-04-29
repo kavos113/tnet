@@ -75,4 +75,42 @@ describe('PapersRepository', () => {
         .sort()
     ).toEqual(['Nested paper', 'Root paper']);
   });
+
+  it('creates tags, attaches them to papers, and filters by tag and search query', async () => {
+    database = await openPapersDatabase(await tempDir());
+    const repository = new PapersRepository(database);
+
+    const logicPaper = repository.createPaper({
+      title: 'Lambda Calculus Foundations',
+      authors: ['Alonzo Church'],
+      abstract: 'Functions and logic.',
+      pdfPath: 'logic/lambda.pdf',
+      directoryPath: 'logic'
+    });
+    repository.createPaper({
+      title: 'Geometry Notes',
+      authors: ['Emmy Noether'],
+      abstract: 'Curves and surfaces.',
+      pdfPath: 'geometry/notes.pdf',
+      directoryPath: 'geometry'
+    });
+
+    const tag = repository.upsertTag('logic');
+    expect(repository.listTags()).toEqual([tag]);
+
+    expect(repository.attachTag(logicPaper.id, tag.id)).toMatchObject({
+      id: logicPaper.id,
+      tags: ['logic']
+    });
+    expect(
+      repository.listPapers({ directoryPath: 'logic', query: 'Lambda', tagIds: [tag.id] })
+    ).toMatchObject([{ title: 'Lambda Calculus Foundations', tags: ['logic'] }]);
+    expect(repository.listPapers({ query: 'surfaces', tagIds: [tag.id] })).toEqual([]);
+
+    expect(repository.detachTag(logicPaper.id, tag.id)).toMatchObject({
+      id: logicPaper.id,
+      tags: []
+    });
+    expect(repository.listPapers({ tagIds: [tag.id] })).toEqual([]);
+  });
 });

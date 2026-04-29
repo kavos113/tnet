@@ -53,15 +53,31 @@ CREATE TABLE IF NOT EXISTS notes (
   FOREIGN KEY (paper_id) REFERENCES papers(id) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS paper_search;
+
 CREATE VIRTUAL TABLE IF NOT EXISTS paper_search USING fts5(
   paper_id UNINDEXED,
   title,
   authors,
   abstract,
   note,
-  content='',
   tokenize='unicode61'
 );
+
+INSERT INTO paper_search (paper_id, title, authors, abstract, note)
+SELECT
+  papers.id,
+  papers.title,
+  COALESCE(paper_authors_agg.authors, ''),
+  COALESCE(papers.abstract, ''),
+  COALESCE(notes.content, '')
+FROM papers
+LEFT JOIN (
+  SELECT paper_id, group_concat(name, ', ') AS authors
+  FROM paper_authors
+  GROUP BY paper_id
+) AS paper_authors_agg ON paper_authors_agg.paper_id = papers.id
+LEFT JOIN notes ON notes.paper_id = papers.id;
 
 INSERT OR IGNORE INTO papers_schema_migrations (version, applied_at)
 VALUES (1, datetime('now'));

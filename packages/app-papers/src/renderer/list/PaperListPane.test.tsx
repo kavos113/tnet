@@ -10,7 +10,7 @@ const papers: PaperSummary[] = [
     authors: [],
     publishedYear: 1936,
     venue: 'Annals of Mathematics',
-    tags: [],
+    tags: ['logic'],
     hasPdf: true
   }
 ];
@@ -22,22 +22,25 @@ describe('PaperListPane', () => {
 
   it('renders a compact paper table and emits row/filter/import actions', () => {
     const onSelectPaper = vi.fn();
-    const onTitleFilterChange = vi.fn();
+    const onSearchQueryChange = vi.fn();
+    const onToggleTag = vi.fn();
     const onImportPdf = vi.fn();
 
     render(
       <PaperListPane
         items={papers}
-        filteredItems={papers}
+        tags={[{ id: 'tag-1', name: 'logic' }]}
         selectedPaperId=""
-        titleFilter=""
+        searchQuery=""
+        selectedTagIds={[]}
         paperCountLabel="1 papers"
         directoryLabel="All papers"
         isLoading={false}
         error=""
         widthPercent={40}
         onSelectPaper={onSelectPaper}
-        onTitleFilterChange={onTitleFilterChange}
+        onSearchQueryChange={onSearchQueryChange}
+        onToggleTag={onToggleTag}
         onImportPdf={onImportPdf}
       />
     );
@@ -45,15 +48,19 @@ describe('PaperListPane', () => {
     expect(screen.getByRole('columnheader', { name: 'Title' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Year' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Journal' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Tags' })).toBeInTheDocument();
     expect(screen.getByText('Lambda Calculus Foundations')).toBeInTheDocument();
+    expect(screen.getAllByText('logic')).toHaveLength(2);
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Filter papers by title' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), {
       target: { value: 'lambda' }
     });
+    fireEvent.click(screen.getByRole('button', { name: 'logic' }));
     fireEvent.click(screen.getByRole('row', { name: /Lambda Calculus Foundations/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Import PDF' }));
 
-    expect(onTitleFilterChange).toHaveBeenCalledWith('lambda');
+    expect(onSearchQueryChange).toHaveBeenCalledWith('lambda');
+    expect(onToggleTag).toHaveBeenCalledWith('tag-1');
     expect(onSelectPaper).toHaveBeenCalledWith('paper-1');
     expect(onImportPdf).toHaveBeenCalled();
   });
@@ -63,16 +70,18 @@ describe('PaperListPane', () => {
     const { rerender } = render(
       <PaperListPane
         items={[]}
-        filteredItems={[]}
+        tags={[]}
         selectedPaperId=""
-        titleFilter=""
+        searchQuery=""
+        selectedTagIds={[]}
         paperCountLabel="0 papers"
         directoryLabel="All papers"
         isLoading
         error="Failed"
         widthPercent={40}
         onSelectPaper={noop}
-        onTitleFilterChange={noop}
+        onSearchQueryChange={noop}
+        onToggleTag={noop}
         onImportPdf={noop}
       />
     );
@@ -82,21 +91,23 @@ describe('PaperListPane', () => {
 
     rerender(
       <PaperListPane
-        items={papers}
-        filteredItems={[]}
+        items={[]}
+        tags={[]}
         selectedPaperId=""
-        titleFilter="missing"
+        searchQuery="missing"
+        selectedTagIds={[]}
         paperCountLabel="0 of 1 papers"
         directoryLabel="All papers"
         isLoading={false}
         error=""
         widthPercent={40}
         onSelectPaper={noop}
-        onTitleFilterChange={noop}
+        onSearchQueryChange={noop}
+        onToggleTag={noop}
         onImportPdf={noop}
       />
     );
 
-    expect(screen.getByText('No papers match the current title filter.')).toBeInTheDocument();
+    expect(screen.getByText('No papers match the current filters.')).toBeInTheDocument();
   });
 });

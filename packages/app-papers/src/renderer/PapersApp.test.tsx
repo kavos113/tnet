@@ -15,6 +15,10 @@ const listPapers = vi.fn();
 const getPaper = vi.fn();
 const selectPdf = vi.fn();
 const createPaperFromPdf = vi.fn();
+const listTags = vi.fn();
+const upsertTag = vi.fn();
+const attachTag = vi.fn();
+const detachTag = vi.fn();
 
 interface PapersTestState {
   papersLibrary: ReturnType<typeof papersLibraryReducer>;
@@ -36,7 +40,7 @@ const papers: PaperSummary[] = [
     authors: ['Alonzo Church'],
     publishedYear: 1936,
     venue: 'Annals of Mathematics',
-    tags: [],
+    tags: ['logic'],
     hasPdf: true
   },
   {
@@ -95,6 +99,12 @@ const installTnetApi = (): void => {
           list: listPapers,
           get: getPaper
         },
+        tags: {
+          list: listTags,
+          upsert: upsertTag,
+          attach: attachTag,
+          detach: detachTag
+        },
         pdf: {
           loadBytes: vi.fn(),
           openExternal: vi.fn()
@@ -128,6 +138,10 @@ describe('PapersApp', () => {
     vi.clearAllMocks();
     listPapers.mockResolvedValue(papers);
     getPaper.mockResolvedValue(paperDetail);
+    listTags.mockResolvedValue([{ id: 'tag-1', name: 'logic' }]);
+    upsertTag.mockResolvedValue({ id: 'tag-2', name: 'semantics' });
+    attachTag.mockResolvedValue({ ...paperDetail, tags: ['logic', 'semantics'] });
+    detachTag.mockResolvedValue({ ...paperDetail, tags: [] });
     selectPdf.mockResolvedValue(null);
     createPaperFromPdf.mockResolvedValue(paperDetail);
     installTnetApi();
@@ -144,36 +158,49 @@ describe('PapersApp', () => {
     expect(screen.getByRole('columnheader', { name: 'Title' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Year' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Journal' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Tags' })).toBeInTheDocument();
     expect(screen.getByText('1936')).toBeInTheDocument();
     expect(screen.getByText('Annals of Mathematics')).toBeInTheDocument();
-    expect(screen.getAllByText('-')).toHaveLength(2);
+    expect(screen.getAllByText('logic')).toHaveLength(2);
   });
 
-  it('filters the paper table by title without requesting another list', async () => {
+  it('requests paper search through IPC', async () => {
     renderPapersApp();
 
     expect(await screen.findByText('Lambda Calculus Foundations')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Filter papers by title' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), {
       target: { value: 'type' }
     });
 
-    expect(screen.queryByText('Lambda Calculus Foundations')).not.toBeInTheDocument();
-    expect(screen.getByText('Type Theory Notes')).toBeInTheDocument();
-    expect(screen.getByText(/1 of 2 papers/)).toBeInTheDocument();
-    expect(listPapers).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(listPapers).toHaveBeenLastCalledWith({
+        libraryRoot: '/papers/library',
+        directoryPath: undefined,
+        query: 'type',
+        tagIds: []
+      });
+    });
   });
 
-  it('shows an empty state when the title filter has no matches', async () => {
+  it('combines tag filter with paper search', async () => {
     renderPapersApp();
 
     expect(await screen.findByText('Lambda Calculus Foundations')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Filter papers by title' }), {
-      target: { value: 'category theory' }
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search papers' }), {
+      target: { value: 'lambda' }
     });
+    fireEvent.click(screen.getByRole('button', { name: 'logic' }));
 
-    expect(screen.getByText('No papers match the current title filter.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(listPapers).toHaveBeenLastCalledWith({
+        libraryRoot: '/papers/library',
+        directoryPath: undefined,
+        query: 'lambda',
+        tagIds: ['tag-1']
+      });
+    });
   });
 
   it('selects a paper from the compact row', async () => {
@@ -186,6 +213,31 @@ describe('PapersApp', () => {
       expect(getPaper).toHaveBeenCalledWith({
         libraryRoot: '/papers/library',
         paperId: 'paper-1'
+      });
+    });
+  });
+
+  it('creates and attaches tags from the metadata tab', async () => {
+    renderPapersApp();
+
+    fireEvent.click(await screen.findByRole('row', { name: /Lambda Calculus Foundations/ }));
+    await screen.findByTestId('pdf-viewer');
+    fireEvent.click(screen.getByRole('button', { name: 'Metadata' }));
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'New paper tag' }), {
+      target: { value: 'semantics' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add paper tag' }));
+
+    await waitFor(() => {
+      expect(upsertTag).toHaveBeenCalledWith({
+        libraryRoot: '/papers/library',
+        name: 'semantics'
+      });
+      expect(attachTag).toHaveBeenCalledWith({
+        libraryRoot: '/papers/library',
+        paperId: 'paper-1',
+        tagId: 'tag-2'
       });
     });
   });

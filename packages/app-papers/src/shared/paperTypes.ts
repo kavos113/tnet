@@ -1,3 +1,9 @@
+export interface PaperTag {
+  id: string;
+  name: string;
+  color?: string;
+}
+
 export interface PaperSummary {
   id: string;
   title: string;

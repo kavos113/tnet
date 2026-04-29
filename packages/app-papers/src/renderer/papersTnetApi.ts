@@ -41,6 +41,12 @@ export const papersTnetApi: PapersTnetApi = {
       list: (request) => getPapersApi().papers.papers.list(request),
       get: (request) => getPapersApi().papers.papers.get(request)
     },
+    tags: {
+      list: (request) => getPapersApi().papers.tags.list(request),
+      upsert: (request) => getPapersApi().papers.tags.upsert(request),
+      attach: (request) => getPapersApi().papers.tags.attach(request),
+      detach: (request) => getPapersApi().papers.tags.detach(request)
+    },
     pdf: {
       loadBytes: (request) => getPapersApi().papers.pdf.loadBytes(request),
       openExternal: (request) => getPapersApi().papers.pdf.openExternal(request)

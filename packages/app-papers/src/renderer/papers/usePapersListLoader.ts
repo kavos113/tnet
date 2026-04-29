@@ -5,7 +5,9 @@ import { setPapers, setPapersError, setPapersListLoading } from './papersSlice';
 
 export const usePapersListLoader = (
   activeLibraryRoot: string,
-  selectedDirectoryRelativePath: string | undefined
+  selectedDirectoryRelativePath: string | undefined,
+  searchQuery: string,
+  selectedTagIds: string[]
 ): void => {
   const dispatch = usePapersDispatch();
 
@@ -19,7 +21,9 @@ export const usePapersListLoader = (
       try {
         const papers = await papersTnetApi.papers.papers.list({
           libraryRoot: activeLibraryRoot,
-          directoryPath: selectedDirectoryRelativePath
+          directoryPath: selectedDirectoryRelativePath,
+          query: searchQuery,
+          tagIds: selectedTagIds
         });
         if (!canceled) dispatch(setPapers(papers));
       } catch (loadError) {
@@ -35,5 +39,5 @@ export const usePapersListLoader = (
     return () => {
       canceled = true;
     };
-  }, [activeLibraryRoot, dispatch, selectedDirectoryRelativePath]);
+  }, [activeLibraryRoot, dispatch, searchQuery, selectedDirectoryRelativePath, selectedTagIds]);
 };
