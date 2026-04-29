@@ -1,4 +1,5 @@
 import { PapersExtensionServerClient } from '../papersServerClient';
+import type { BrowserDetectedPaperSource } from '../types';
 import type { PopupState } from './popupStore';
 import {
   flattenDirectoryTree,
@@ -6,6 +7,7 @@ import {
   loadPopupState,
   selectLibrary
 } from './popupStore';
+import { buildPopupSource } from './popupSource';
 
 const client = new PapersExtensionServerClient();
 let state: PopupState;
@@ -211,14 +213,33 @@ const renderState = (): void => {
 
 const bootstrap = async (): Promise<void> => {
   const [tab] = (await chrome?.tabs?.query?.({ active: true, currentWindow: true })) ?? [];
-  const source = {
-    sourceUrl: tab?.url ?? '',
-    pageTitle: tab?.title ?? ''
-  };
+  const pageMetadata = await readActiveTabMetadata(tab);
+  const source = buildPopupSource(tab, pageMetadata);
 
   renderMessage('Loading paper metadata...');
   state = await loadPopupState(client, source);
   renderState();
 };
+
+const readActiveTabMetadata = async (
+  tab: ChromeTab | undefined
+): Promise<BrowserDetectedPaperSource | undefined> => {
+  if (typeof tab?.id !== 'number') return undefined;
+
+  try {
+    const response = await chrome?.tabs?.sendMessage?.(tab.id, {
+      type: 'tnet:paper:read-metadata'
+    });
+    return isBrowserDetectedPaperSource(response) ? response : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const isBrowserDetectedPaperSource = (value: unknown): value is BrowserDetectedPaperSource =>
+  typeof value === 'object' &&
+  value !== null &&
+  'sourceUrl' in value &&
+  typeof value.sourceUrl === 'string';
 
 void bootstrap();

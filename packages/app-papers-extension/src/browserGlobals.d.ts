@@ -1,4 +1,5 @@
 interface ChromeTab {
+  id?: number;
   url?: string;
   title?: string;
 }
@@ -35,6 +36,7 @@ interface ChromeApi {
   };
   tabs?: {
     query: (queryInfo: { active: boolean; currentWindow: boolean }) => Promise<ChromeTab[]>;
+    sendMessage?: (tabId: number, message: unknown) => Promise<unknown>;
   };
 }
 
