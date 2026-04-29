@@ -24,6 +24,14 @@
   white-space: nowrap;
 }
 
+.papers-pdf-page-status {
+  flex: 0 0 auto;
+  min-width: 52px;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-align: center;
+}
+
 .papers-select {
   height: 26px;
   color: var(--foreground);
@@ -32,10 +40,32 @@
   border-radius: 4px;
 }
 
-.papers-pdf-frame {
+.papers-pdf-canvas-viewport {
+  position: relative;
   flex: 1 1 auto;
-  width: 100%;
   min-height: 0;
+  overflow: auto;
   background: #2b2b2b;
+}
+
+.papers-pdf-canvas {
+  display: block;
+  margin: 16px auto;
+  background: #ffffff;
   border: 0;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 35%);
+}
+
+.papers-pdf-rendering-state {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 1;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #ffffff;
+  pointer-events: none;
+  background: rgb(0 0 0 / 55%);
+  border-radius: 4px;
+  transform: translateX(-50%);
 }
