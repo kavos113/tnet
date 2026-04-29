@@ -1,8 +1,8 @@
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
-import type { SessionData } from '@tnet/shared/types/file';
+import type { MarkdownSessionData } from '@tnet/app-markdown/shared/session';
 
-type PersistSession = (rootDir: string, session: SessionData) => Promise<void>;
-type ReadSession = (rootDir: string) => Promise<SessionData>;
+type PersistSession = (rootDir: string, session: MarkdownSessionData) => Promise<void>;
+type ReadSession = (rootDir: string) => Promise<MarkdownSessionData>;
 
 export interface MarkdownSessionFileStateStore {
   loadSession: ReadSession;

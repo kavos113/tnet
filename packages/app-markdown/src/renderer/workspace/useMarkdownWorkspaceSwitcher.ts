@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { textByteLength } from '@tnet/shared/file/largeFile';
 import { toWorkspaceAbsolutePath } from '@tnet/shared/path/pathUtils';
-import { normalizeSessionData } from '@tnet/shared/types/file';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import {
   getMarkdownGlobalConfig,
   withMarkdownGlobalConfig
 } from '@tnet/app-markdown/shared/config';
+import { normalizeMarkdownSessionData } from '@tnet/app-markdown/shared/session';
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import {
   replaceEditorSession,
@@ -59,7 +59,7 @@ export const useMarkdownWorkspaceSwitcher = (): {
         markdownTnetApi.markdown.config.loadProject(rootPath),
         markdownTnetApi.session.load(rootPath)
       ]);
-      const session = normalizeSessionData(rawSession);
+      const session = normalizeMarkdownSessionData(rawSession);
       const markdownSession = session.apps.markdown;
       const sessionFilePaths = markdownSession.editorLayout
         ? Array.from(

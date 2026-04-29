@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { textByteLength } from '@tnet/shared/file/largeFile';
 import { basename } from '@tnet/shared/path/pathUtils';
-import type { ViewMode } from '@tnet/shared/types/viewMode';
+import type { ViewMode } from '@tnet/app-markdown/shared/session';
 
 export type EditorGroupId = 'primary' | 'secondary';
 

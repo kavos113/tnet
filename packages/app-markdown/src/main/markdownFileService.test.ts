@@ -13,7 +13,10 @@ import {
   writeMarkdownFile
 } from './markdownFileService';
 import type { MarkdownSessionFileStateStore } from './markdownSessionFileState';
-import { emptySessionData, type SessionData } from '@tnet/shared/types/file';
+import {
+  emptyMarkdownSessionData,
+  type MarkdownSessionData
+} from '@tnet/app-markdown/shared/session';
 
 const tempDir = async (name: string): Promise<string> => {
   return fs.mkdtemp(path.join(os.tmpdir(), `tnet-markdown-${name}-`));
@@ -24,10 +27,10 @@ const readJson = async <T>(filePath: string): Promise<T> => {
 };
 
 const createMemorySessionStore = (): MarkdownSessionFileStateStore & {
-  readSavedSession: () => SessionData;
-  setSession: (session: SessionData) => void;
+  readSavedSession: () => MarkdownSessionData;
+  setSession: (session: MarkdownSessionData) => void;
 } => {
-  let session = emptySessionData();
+  let session = emptyMarkdownSessionData();
   return {
     loadSession: async () => session,
     saveSession: async (_rootDir, nextSession) => {
