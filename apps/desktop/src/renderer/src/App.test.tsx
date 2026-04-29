@@ -53,6 +53,14 @@ describe('App', () => {
           llm: {
             getInlineCompletion: vi.fn()
           }
+        },
+        papers: {
+          config: {
+            loadGlobal: vi.fn().mockResolvedValue({ libraryRoots: [] }),
+            saveGlobal: vi.fn().mockResolvedValue(undefined),
+            loadLibrary: vi.fn(),
+            saveLibrary: vi.fn()
+          }
         }
       },
       writable: true

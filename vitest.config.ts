@@ -10,6 +10,7 @@ export default defineConfig({
       '@preload': resolve(__dirname, 'apps/desktop/src/preload'),
       '@renderer': resolve(__dirname, 'apps/desktop/src/renderer/src'),
       '@shared': resolve(__dirname, 'packages/shared/src'),
+      '@tnet/app-papers': resolve(__dirname, 'packages/app-papers/src'),
       '@tnet/app-markdown': resolve(__dirname, 'packages/app-markdown/src'),
       '@tnet/main-core': resolve(__dirname, 'packages/main-core/src'),
       '@tnet/renderer-core': resolve(__dirname, 'packages/renderer-core/src'),

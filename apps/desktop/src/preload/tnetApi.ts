@@ -2,8 +2,9 @@ import { ipcRenderer } from 'electron';
 import { ipcChannels } from '@tnet/shared/ipc/channels';
 import type { TnetApi } from '@tnet/shared/ipc/contracts';
 import { markdownIpcChannels, type MarkdownApi } from '@tnet/app-markdown/shared/ipc';
+import { papersIpcChannels, type PapersApi } from '@tnet/app-papers/shared/ipc';
 
-export type DesktopTnetApi = TnetApi & MarkdownApi;
+export type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi;
 
 export const tnetApi: DesktopTnetApi = {
   workspace: {
@@ -49,6 +50,16 @@ export const tnetApi: DesktopTnetApi = {
     llm: {
       getInlineCompletion: (request) =>
         ipcRenderer.invoke(markdownIpcChannels.llm.getInlineCompletion, request)
+    }
+  },
+  papers: {
+    config: {
+      loadGlobal: () => ipcRenderer.invoke(papersIpcChannels.config.loadGlobal),
+      saveGlobal: (config) => ipcRenderer.invoke(papersIpcChannels.config.saveGlobal, config),
+      loadLibrary: (libraryRoot) =>
+        ipcRenderer.invoke(papersIpcChannels.config.loadLibrary, libraryRoot),
+      saveLibrary: (libraryRoot, config) =>
+        ipcRenderer.invoke(papersIpcChannels.config.saveLibrary, libraryRoot, config)
     }
   }
 };

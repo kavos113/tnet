@@ -4,6 +4,7 @@ import { defineConfig } from 'electron-vite';
 import react from '@vitejs/plugin-react';
 
 const workspacePackages = [
+  '@tnet/app-papers',
   '@tnet/app-markdown',
   '@tnet/main-core',
   '@tnet/renderer-core',
@@ -33,6 +34,7 @@ export default defineConfig({
       alias: {
         '@main': resolve('src'),
         '@shared': resolve('../../packages/shared/src'),
+        '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/main-core': resolve('../../packages/main-core/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
@@ -53,6 +55,7 @@ export default defineConfig({
       alias: {
         '@preload': resolve('src/preload'),
         '@shared': resolve('../../packages/shared/src'),
+        '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
       }
@@ -63,6 +66,7 @@ export default defineConfig({
       alias: {
         '@renderer': resolve('src/renderer/src'),
         '@shared': resolve('../../packages/shared/src'),
+        '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/renderer-core': resolve('../../packages/renderer-core/src'),
         '@tnet/shared': resolve('../../packages/shared/src'),
