@@ -13,5 +13,7 @@
     "build:mac": "pnpm build && electron-builder --mac",
     "build:linux": "pnpm build && electron-builder --linux"
   },
-  "dependencies": {}
+  "dependencies": {
+    "better-sqlite3": "^12.9.0"
+  }
 }

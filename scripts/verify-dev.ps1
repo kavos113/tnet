@@ -51,6 +51,14 @@ try {
 
     Start-Sleep -Seconds $WaitSeconds
 
+    $stderr = if (Test-Path $errLog) { Get-Content -LiteralPath $errLog -Raw } else { '' }
+    $stdout = if (Test-Path $outLog) { Get-Content -LiteralPath $outLog -Raw } else { '' }
+    $combinedLog = "$stdout`n$stderr"
+    if ($combinedLog -match 'App threw an error' -or
+        $combinedLog -match 'error during start dev server and electron app') {
+        throw 'pnpm dev started but Electron reported a startup error.'
+    }
+
     Write-Host 'pnpm dev startup verified.'
     if (Test-Path $outLog) {
         Get-Content -LiteralPath $outLog

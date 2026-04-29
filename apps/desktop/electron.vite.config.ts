@@ -13,6 +13,7 @@ const workspacePackages = [
 ];
 const nodeExternal = [
   'electron',
+  'better-sqlite3',
   'bufferutil',
   'utf-8-validate',
   ...builtinModules,

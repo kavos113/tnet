@@ -13,6 +13,10 @@
   "dependencies": {
     "@tnet/main-core": "workspace:*",
     "@tnet/renderer-core": "workspace:*",
-    "@tnet/shared": "workspace:*"
+    "@tnet/shared": "workspace:*",
+    "better-sqlite3": "^12.9.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13"
   }
 }
