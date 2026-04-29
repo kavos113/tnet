@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import type { PaperSummary } from '@tnet/app-papers/shared/paperTypes';
+import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import { usePapersDispatch, usePapersSelector } from './storeHooks';
 import { papersTnetApi } from './papersTnetApi';
 import { PdfViewer } from './papers/PdfViewer';
@@ -28,9 +29,15 @@ export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
   const [importCandidate, setImportCandidate] = useState<SelectedPdfImportCandidate | null>(null);
   const [importTitle, setImportTitle] = useState('');
-  const { activeLibraryRoot, isRestored } = usePapersSelector((state) => state.papersLibrary);
+  const { activeLibraryRoot, isRestored, selectedDirectoryPath } = usePapersSelector(
+    (state) => state.papersLibrary
+  );
   const { activeDetailTab, detail, error, isLoadingDetail, isLoadingList, items, selectedPaperId } =
     usePapersSelector((state) => state.papersContent);
+  const selectedDirectoryRelativePath = useMemo(() => {
+    if (!activeLibraryRoot || selectedDirectoryPath === null) return undefined;
+    return toWorkspaceRelativePath(activeLibraryRoot, selectedDirectoryPath);
+  }, [activeLibraryRoot, selectedDirectoryPath]);
 
   useEffect(() => {
     let canceled = false;
@@ -40,7 +47,10 @@ export const PapersApp = (): React.JSX.Element => {
       dispatch(setPapersListLoading(true));
       dispatch(setPapersError(''));
       try {
-        const papers = await papersTnetApi.papers.papers.list({ libraryRoot: activeLibraryRoot });
+        const papers = await papersTnetApi.papers.papers.list({
+          libraryRoot: activeLibraryRoot,
+          directoryPath: selectedDirectoryRelativePath
+        });
         if (!canceled) dispatch(setPapers(papers));
       } catch (loadError) {
         console.error('Failed to load papers', loadError);
@@ -55,7 +65,7 @@ export const PapersApp = (): React.JSX.Element => {
     return () => {
       canceled = true;
     };
-  }, [activeLibraryRoot, dispatch]);
+  }, [activeLibraryRoot, dispatch, selectedDirectoryRelativePath]);
 
   useEffect(() => {
     let canceled = false;
@@ -88,7 +98,8 @@ export const PapersApp = (): React.JSX.Element => {
     if (!activeLibraryRoot) return;
 
     const candidate = await papersTnetApi.papers.library.selectPdf({
-      libraryRoot: activeLibraryRoot
+      libraryRoot: activeLibraryRoot,
+      directoryPath: selectedDirectoryRelativePath
     });
     if (!candidate) return;
 
@@ -108,7 +119,10 @@ export const PapersApp = (): React.JSX.Element => {
       title,
       directoryPath: importCandidate.targetDirectoryPath
     });
-    const papers = await papersTnetApi.papers.papers.list({ libraryRoot: activeLibraryRoot });
+    const papers = await papersTnetApi.papers.papers.list({
+      libraryRoot: activeLibraryRoot,
+      directoryPath: selectedDirectoryRelativePath
+    });
 
     dispatch(setPapers(papers));
     dispatch(selectPaper(imported.id));
@@ -152,7 +166,9 @@ export const PapersApp = (): React.JSX.Element => {
         <header className="papers-pane-header">
           <div>
             <h1>Papers</h1>
-            <span>{items.length} papers</span>
+            <span>
+              {selectedDirectoryRelativePath ?? 'All papers'} - {items.length} papers
+            </span>
           </div>
           <button className="icon-button" type="button" aria-label="Import PDF" onClick={importPdf}>
             <span className="material-icons-round" aria-hidden="true">

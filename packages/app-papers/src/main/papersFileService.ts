@@ -48,7 +48,7 @@ const targetImportDirectory = (libraryRoot: string, directoryPath?: string): str
 
 const targetRecordDirectoryPath = (relativePdfPath: string): string => {
   const directory = path.posix.dirname(relativePdfPath);
-  return directory === '.' || directory === 'papers' ? '' : directory;
+  return directory === '.' ? '' : directory;
 };
 
 const withRepository = async <T>(

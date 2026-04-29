@@ -20,12 +20,16 @@ export const usePapersLibrarySwitcher = (): {
       if (!libraryRoot) return;
 
       const nextLibraryRoots = Array.from(new Set([...libraryRootsRef.current, libraryRoot]));
-      const settings = await papersTnetApi.papers.config.loadLibrary(libraryRoot);
+      const [settings, directoryTree] = await Promise.all([
+        papersTnetApi.papers.config.loadLibrary(libraryRoot),
+        papersTnetApi.workspace.getFileTree(libraryRoot)
+      ]);
 
       dispatch(
         setPapersLibrary({
           libraryRoots: nextLibraryRoots,
           activeLibraryRoot: libraryRoot,
+          directoryTree,
           settings
         })
       );

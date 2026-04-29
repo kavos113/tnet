@@ -37,6 +37,7 @@ describe('papersFileService', () => {
 
     expect(paper.title).toBe('Imported paper');
     expect(paper.pdfPath).toBe('papers/source.pdf');
+    expect(paper.directoryPath).toBe('papers');
     expect(fs.readFileSync(path.join(libraryRoot, 'papers', 'source.pdf'), 'utf8')).toBe(
       'pdf-bytes'
     );

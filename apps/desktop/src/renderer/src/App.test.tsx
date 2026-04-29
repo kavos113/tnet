@@ -60,6 +60,19 @@ describe('App', () => {
             saveGlobal: vi.fn().mockResolvedValue(undefined),
             loadLibrary: vi.fn(),
             saveLibrary: vi.fn()
+          },
+          library: {
+            selectPdf: vi.fn(),
+            createPaperFromPdf: vi.fn(),
+            importPdf: vi.fn()
+          },
+          papers: {
+            list: vi.fn(),
+            get: vi.fn()
+          },
+          pdf: {
+            loadBytes: vi.fn(),
+            openExternal: vi.fn()
           }
         }
       },

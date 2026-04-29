@@ -39,6 +39,16 @@
   color: var(--foreground-muted);
 }
 
+.papers-directory-section {
+  display: grid;
+  gap: 6px;
+  padding: 0 0 12px;
+}
+
+.papers-all-directories {
+  padding-left: 12px;
+}
+
 .papers-list-pane,
 .papers-detail-pane {
   min-width: 0;

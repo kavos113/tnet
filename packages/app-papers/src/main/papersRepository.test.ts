@@ -51,4 +51,28 @@ describe('PapersRepository', () => {
     expect(repository.listPapers('logic')).toHaveLength(1);
     expect(repository.listPapers('algebra')).toHaveLength(0);
   });
+
+  it('filters root directory papers when directoryPath is an empty string', async () => {
+    database = await openPapersDatabase(await tempDir());
+    const repository = new PapersRepository(database);
+
+    repository.createPaper({
+      title: 'Root paper',
+      pdfPath: 'root.pdf',
+      directoryPath: ''
+    });
+    repository.createPaper({
+      title: 'Nested paper',
+      pdfPath: 'logic/nested.pdf',
+      directoryPath: 'logic'
+    });
+
+    expect(repository.listPapers('').map((paper) => paper.title)).toEqual(['Root paper']);
+    expect(
+      repository
+        .listPapers()
+        .map((paper) => paper.title)
+        .sort()
+    ).toEqual(['Nested paper', 'Root paper']);
+  });
 });

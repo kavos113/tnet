@@ -173,11 +173,12 @@ export class PapersRepository {
   }
 
   listPapers(directoryPath?: string): PaperSummary[] {
-    const rows = directoryPath
-      ? this.database
-          .prepare('SELECT * FROM papers WHERE directory_path = ? ORDER BY updated_at DESC')
-          .all(directoryPath)
-      : this.database.prepare('SELECT * FROM papers ORDER BY updated_at DESC').all();
+    const rows =
+      directoryPath !== undefined
+        ? this.database
+            .prepare('SELECT * FROM papers WHERE directory_path = ? ORDER BY updated_at DESC')
+            .all(directoryPath)
+        : this.database.prepare('SELECT * FROM papers ORDER BY updated_at DESC').all();
 
     return (rows as PaperRow[]).map((row) => toSummary(this.database, row));
   }

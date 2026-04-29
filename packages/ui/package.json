@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./AppRail": "./src/AppRail/AppRail.tsx"
+    "./AppRail": "./src/AppRail/AppRail.tsx",
+    "./DirectoryTree": "./src/DirectoryTree/DirectoryTree.tsx"
   },
   "dependencies": {
     "@tnet/shared": "workspace:*"

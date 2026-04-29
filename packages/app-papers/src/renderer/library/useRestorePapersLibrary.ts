@@ -13,9 +13,12 @@ export const useRestorePapersLibrary = (): boolean => {
     const restoreLibrary = async (): Promise<void> => {
       const config = await papersTnetApi.papers.config.loadGlobal();
       const libraryRoot = config.activeLibraryRoot ?? config.lastOpenedDirectory ?? '';
-      const settings = libraryRoot
-        ? await papersTnetApi.papers.config.loadLibrary(libraryRoot)
-        : undefined;
+      const [settings, directoryTree] = libraryRoot
+        ? await Promise.all([
+            papersTnetApi.papers.config.loadLibrary(libraryRoot),
+            papersTnetApi.workspace.getFileTree(libraryRoot)
+          ])
+        : [undefined, []];
 
       if (canceled) return;
       if (!libraryRoot) {
@@ -27,6 +30,7 @@ export const useRestorePapersLibrary = (): boolean => {
         restorePapersLibrary({
           libraryRoots: config.libraryRoots,
           activeLibraryRoot: libraryRoot,
+          directoryTree,
           settings
         })
       );
