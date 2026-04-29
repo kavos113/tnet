@@ -158,10 +158,13 @@ export const PapersSidebar = (): React.JSX.Element => {
           <strong>
             {activeLibraryRoot ? libraryLabel(activeLibraryRoot) : 'No library selected'}
           </strong>
-          {activeLibraryRoot ? <small title={activeLibraryRoot}>{activeLibraryRoot}</small> : null}
-          <button type="button" className="open-folder-button" onClick={openLibrary}>
-            Open Library
-          </button>
+          {activeLibraryRoot ? (
+            <small title={activeLibraryRoot}>{activeLibraryRoot}</small>
+          ) : (
+            <button type="button" className="open-folder-button" onClick={openLibrary}>
+              Open Library
+            </button>
+          )}
         </section>
         {activeLibraryRoot ? (
           <section className="papers-directory-section" aria-label="Paper directories">
