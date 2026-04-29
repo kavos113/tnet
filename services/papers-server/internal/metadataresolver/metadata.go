@@ -35,7 +35,7 @@ func NewCompositeResolver(resolvers ...Resolver) *CompositeResolver {
 }
 
 func NewDefaultResolver() *CompositeResolver {
-	return NewCompositeResolver(NewACMResolver(nil), NewCrossrefResolver(nil))
+	return NewCompositeResolver(NewCrossrefResolver(nil))
 }
 
 func (resolver *CompositeResolver) Resolve(ctx context.Context, source Source) (Metadata, error) {
