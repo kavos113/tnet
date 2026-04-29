@@ -1,9 +1,9 @@
 import type {
   InlineCompletionRequest,
   InlineCompletionResult
-} from '@tnet/shared/llm/inlineCompletionTypes';
+} from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import type { LlmProviderType } from '@tnet/app-markdown/shared/config';
-import { loadMarkdownProjectConfig } from '@tnet/app-markdown/main';
+import { loadMarkdownProjectConfig } from '../markdownConfigService';
 import { geminiSdkProvider } from './geminiSdkProvider';
 import { lmStudioProvider } from './lmStudioProvider';
 import { localHttpProvider } from './localHttpProvider';

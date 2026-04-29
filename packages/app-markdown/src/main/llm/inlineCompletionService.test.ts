@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { InlineCompletionRequest } from '@tnet/shared/llm/inlineCompletionTypes';
+import type { InlineCompletionRequest } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import {
   defaultMarkdownProjectConfig,
   type MarkdownProjectConfig

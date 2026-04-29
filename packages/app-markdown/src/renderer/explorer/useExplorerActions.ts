@@ -3,6 +3,7 @@ import { basename, dirname, joinPath, toWorkspaceRelativePath } from '@tnet/shar
 import type { FileItem } from '@tnet/shared/types/file';
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import { closeFileByPath, renameOpenedPath } from '@tnet/app-markdown/renderer/editor/editorSlice';
+import { markdownTnetApi } from '@tnet/app-markdown/renderer/markdownTnetApi';
 import { setFileTree } from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
 import { useActiveMarkdownWorkspaceApi } from '@tnet/app-markdown/renderer/workspace/useActiveMarkdownWorkspaceApi';
 import { useMarkdownWorkspaceSwitcher } from '@tnet/app-markdown/renderer/workspace/useMarkdownWorkspaceSwitcher';
@@ -121,7 +122,7 @@ export const useExplorerActions = (): {
     const targetPath = joinPath(parent, nextName);
 
     if (newEntry.mode === 'file') {
-      await tnetApi.file.create(toWorkspaceRequest(targetPath));
+      await markdownTnetApi.markdown.file.create(toWorkspaceRequest(targetPath));
       dispatch(selectFile(targetPath));
       await workspaceApi.openFile(targetPath);
     } else {
@@ -157,7 +158,7 @@ export const useExplorerActions = (): {
       return;
     }
 
-    await tnetApi.file.rename({
+    await markdownTnetApi.markdown.file.rename({
       rootDir: rootPath,
       oldPath: toWorkspaceRelativePath(rootPath, oldPath),
       newPath: toWorkspaceRelativePath(rootPath, newPath)
@@ -172,7 +173,7 @@ export const useExplorerActions = (): {
     if (!rootPath || !selectedPath) return;
     if (!window.confirm(`Delete ${basename(selectedPath)}?`)) return;
 
-    await tnetApi.file.delete(toWorkspaceRequest(selectedPath));
+    await markdownTnetApi.markdown.file.delete(toWorkspaceRequest(selectedPath));
     dispatch(closeFileByPath(selectedPath));
     dispatch(clearSelection());
     await refreshTree();

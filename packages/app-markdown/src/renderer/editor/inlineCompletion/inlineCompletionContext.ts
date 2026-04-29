@@ -1,9 +1,9 @@
 import type { EditorState } from '@codemirror/state';
-import { buildInlineCompletionContext } from '@tnet/shared/llm/inlineCompletionContext';
+import { buildInlineCompletionContext } from '@tnet/app-markdown/shared/llm/inlineCompletionContext';
 import type {
   InlineCompletionContext,
   InlineCompletionTrigger
-} from '@tnet/shared/llm/inlineCompletionTypes';
+} from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 
 export const buildEditorInlineCompletionContext = (
   state: EditorState,

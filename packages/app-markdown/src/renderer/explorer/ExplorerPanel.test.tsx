@@ -32,13 +32,7 @@ const installTnetApi = (): void => {
       file: {
         read: fileRead,
         openWithDefaultApp: fileOpenWithDefaultApp,
-        write: vi.fn(),
-        saveImage: vi.fn(),
-        readImage: vi.fn(),
-        create: fileCreate,
-        createDirectory: fileCreateDirectory,
-        delete: fileDelete,
-        rename: fileRename
+        createDirectory: fileCreateDirectory
       },
       session: {
         load: sessionLoad,
@@ -52,18 +46,26 @@ const installTnetApi = (): void => {
         config: {
           loadProject,
           saveProject: vi.fn()
+        },
+        file: {
+          write: vi.fn(),
+          saveImage: vi.fn(),
+          readImage: vi.fn(),
+          create: fileCreate,
+          delete: fileDelete,
+          rename: fileRename
+        },
+        keyword: {
+          loadIndex: vi.fn(),
+          getContent: vi.fn()
+        },
+        search: {
+          rebuild: searchRebuild,
+          workspace: searchWorkspace
+        },
+        llm: {
+          getInlineCompletion: vi.fn()
         }
-      },
-      keyword: {
-        loadIndex: vi.fn(),
-        getContent: vi.fn()
-      },
-      search: {
-        rebuild: searchRebuild,
-        workspace: searchWorkspace
-      },
-      llm: {
-        getInlineCompletion: vi.fn()
       }
     },
     writable: true

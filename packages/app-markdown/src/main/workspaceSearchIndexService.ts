@@ -6,7 +6,7 @@ import type {
   WorkspaceSearchIndexStats,
   WorkspaceSearchRequest,
   WorkspaceSearchResponse
-} from '@tnet/shared/search/searchTypes';
+} from '@tnet/app-markdown/shared/search/searchTypes';
 
 interface IndexedLine {
   id: number;

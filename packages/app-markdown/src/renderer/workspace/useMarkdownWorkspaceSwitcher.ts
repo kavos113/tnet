@@ -155,7 +155,7 @@ export const useMarkdownWorkspaceSwitcher = (): {
       searchRebuildRootRef.current = rootPath;
       searchRebuildTimerRef.current = window.setTimeout(() => {
         if (searchRebuildRootRef.current !== rootPath) return;
-        markdownTnetApi.search.rebuild(rootPath).catch((error: unknown) => {
+        markdownTnetApi.markdown.search.rebuild(rootPath).catch((error: unknown) => {
           console.error('Failed to rebuild markdown search index', error);
         });
       }, 500);

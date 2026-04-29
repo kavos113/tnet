@@ -11,7 +11,7 @@ import type {
   InlineCompletionContext,
   InlineCompletionTrigger,
   InlineCompletionResult
-} from '@tnet/shared/llm/inlineCompletionTypes';
+} from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { buildEditorInlineCompletionContext } from './inlineCompletionContext';
 import { acceptInlineCompletion, rejectInlineCompletion } from './inlineCompletionCommands';
 import {

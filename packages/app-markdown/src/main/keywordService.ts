@@ -3,7 +3,7 @@ import {
   extractKeywordContent,
   injectKeywordNames,
   parseKeywords
-} from '@tnet/shared/keyword/keywordParser';
+} from '@tnet/app-markdown/shared/keyword/keywordParser';
 import { readJsonFileOrDefault, writeJsonFile } from '@tnet/main-core/storage/jsonFile';
 import { keywordsFilePath, latestFilePath } from '@tnet/main-core/storage/paths';
 import {

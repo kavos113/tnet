@@ -7,10 +7,7 @@
     "./app/*": "./src/app/*",
     "./file/*": "./src/file/*",
     "./ipc/*": "./src/ipc/*",
-    "./keyword/*": "./src/keyword/*",
-    "./llm/*": "./src/llm/*",
     "./path/*": "./src/path/*",
-    "./search/*": "./src/search/*",
     "./types/*": "./src/types/*"
   }
 }

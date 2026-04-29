@@ -14,13 +14,7 @@ export const markdownTnetApi: MarkdownTnetApi = {
   file: {
     read: (request) => getMarkdownApi().file.read(request),
     openWithDefaultApp: (request) => getMarkdownApi().file.openWithDefaultApp(request),
-    write: (request) => getMarkdownApi().file.write(request),
-    saveImage: (request) => getMarkdownApi().file.saveImage(request),
-    readImage: (request) => getMarkdownApi().file.readImage(request),
-    create: (request) => getMarkdownApi().file.create(request),
-    createDirectory: (request) => getMarkdownApi().file.createDirectory(request),
-    delete: (request) => getMarkdownApi().file.delete(request),
-    rename: (request) => getMarkdownApi().file.rename(request)
+    createDirectory: (request) => getMarkdownApi().file.createDirectory(request)
   },
   session: {
     load: (rootDir) => getMarkdownApi().session.load(rootDir),
@@ -30,22 +24,30 @@ export const markdownTnetApi: MarkdownTnetApi = {
     loadGlobal: () => getMarkdownApi().config.loadGlobal(),
     saveGlobal: (config) => getMarkdownApi().config.saveGlobal(config)
   },
-  keyword: {
-    loadIndex: (rootDir) => getMarkdownApi().keyword.loadIndex(rootDir),
-    getContent: (request) => getMarkdownApi().keyword.getContent(request)
-  },
-  search: {
-    rebuild: (rootDir) => getMarkdownApi().search.rebuild(rootDir),
-    workspace: (request) => getMarkdownApi().search.workspace(request)
-  },
-  llm: {
-    getInlineCompletion: (request) => getMarkdownApi().llm.getInlineCompletion(request)
-  },
   markdown: {
     config: {
       loadProject: (rootDir) => getMarkdownApi().markdown.config.loadProject(rootDir),
       saveProject: (rootDir, config) =>
         getMarkdownApi().markdown.config.saveProject(rootDir, config)
+    },
+    file: {
+      write: (request) => getMarkdownApi().markdown.file.write(request),
+      saveImage: (request) => getMarkdownApi().markdown.file.saveImage(request),
+      readImage: (request) => getMarkdownApi().markdown.file.readImage(request),
+      create: (request) => getMarkdownApi().markdown.file.create(request),
+      delete: (request) => getMarkdownApi().markdown.file.delete(request),
+      rename: (request) => getMarkdownApi().markdown.file.rename(request)
+    },
+    keyword: {
+      loadIndex: (rootDir) => getMarkdownApi().markdown.keyword.loadIndex(rootDir),
+      getContent: (request) => getMarkdownApi().markdown.keyword.getContent(request)
+    },
+    search: {
+      rebuild: (rootDir) => getMarkdownApi().markdown.search.rebuild(rootDir),
+      workspace: (request) => getMarkdownApi().markdown.search.workspace(request)
+    },
+    llm: {
+      getInlineCompletion: (request) => getMarkdownApi().markdown.llm.getInlineCompletion(request)
     }
   }
 };

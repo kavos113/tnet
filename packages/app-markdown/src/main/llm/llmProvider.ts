@@ -1,7 +1,7 @@
 import type {
   InlineCompletionRequest,
   InlineCompletionResult
-} from '@tnet/shared/llm/inlineCompletionTypes';
+} from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import type { LlmSettings } from '@tnet/app-markdown/shared/config';
 
 export interface InlineCompletionProvider {

@@ -1,9 +1,12 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import type { SearchLineMatch, WorkspaceSearchResponse } from '@tnet/shared/search/searchTypes';
+import type {
+  SearchLineMatch,
+  WorkspaceSearchResponse
+} from '@tnet/app-markdown/shared/search/searchTypes';
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import { requestRevealLine } from '@tnet/app-markdown/renderer/editor/editorSlice';
+import { markdownTnetApi } from '@tnet/app-markdown/renderer/markdownTnetApi';
 import { useActiveMarkdownWorkspaceApi } from '@tnet/app-markdown/renderer/workspace/useActiveMarkdownWorkspaceApi';
-import { tnetApi } from '@tnet/renderer-core/tnetApi';
 
 export interface SearchPanelHandle {
   focusInput: () => void;
@@ -64,7 +67,7 @@ export const SearchPanel = forwardRef<SearchPanelHandle>((_, ref): React.JSX.Ele
     const timeoutId = window.setTimeout(() => {
       setIsLoading(true);
       setErrorMessage(null);
-      tnetApi.search
+      markdownTnetApi.markdown.search
         .workspace({ rootDir: rootPath, query })
         .then((nextResult) => {
           if (!canceled) setResult(nextResult);

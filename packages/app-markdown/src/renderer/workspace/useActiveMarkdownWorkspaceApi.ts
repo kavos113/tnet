@@ -2,10 +2,11 @@ import { useCallback } from 'react';
 import type {
   InlineCompletionContext,
   InlineCompletionResult
-} from '@tnet/shared/llm/inlineCompletionTypes';
+} from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { textByteLength } from '@tnet/shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import { openFile, type EditorGroupId } from '@tnet/app-markdown/renderer/editor/editorSlice';
+import { markdownTnetApi } from '@tnet/app-markdown/renderer/markdownTnetApi';
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import { tnetApi } from '@tnet/renderer-core/tnetApi';
 
@@ -46,7 +47,7 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
   const writeFile = useCallback(
     async (filePath: string, content: string): Promise<void> => {
       if (!rootPath) return;
-      await tnetApi.file.write({ ...toWorkspacePathRequest(filePath), content });
+      await markdownTnetApi.markdown.file.write({ ...toWorkspacePathRequest(filePath), content });
     },
     [rootPath, toWorkspacePathRequest]
   );
@@ -65,7 +66,7 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
       contentBase64: string;
     }): Promise<string | null> => {
       if (!rootPath) return null;
-      const result = await tnetApi.file.saveImage({
+      const result = await markdownTnetApi.markdown.file.saveImage({
         rootDir: rootPath,
         preferredName: request.preferredName,
         mimeType: request.mimeType,
@@ -79,7 +80,7 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
   const readImageDataUrl = useCallback(
     async (filename: string): Promise<string | null> => {
       if (!rootPath) return null;
-      const result = await tnetApi.file.readImage({ rootDir: rootPath, filename });
+      const result = await markdownTnetApi.markdown.file.readImage({ rootDir: rootPath, filename });
       return result.dataUrl;
     },
     [rootPath]
@@ -111,12 +112,15 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
 
   const loadKeywordIndex = useCallback(async (): Promise<Record<string, string>> => {
     if (!rootPath) return {};
-    return tnetApi.keyword.loadIndex(rootPath);
+    return markdownTnetApi.markdown.keyword.loadIndex(rootPath);
   }, [rootPath]);
 
   const getKeywordContent = useCallback(
     async (filePath: string, name: string): Promise<string | null> => {
-      return tnetApi.keyword.getContent({ ...toWorkspacePathRequest(filePath), name });
+      return markdownTnetApi.markdown.keyword.getContent({
+        ...toWorkspacePathRequest(filePath),
+        name
+      });
     },
     [toWorkspacePathRequest]
   );
@@ -129,7 +133,7 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
       if (!rootPath) return null;
       if (!llmSettings.llmInlineCompletionEnabled) return null;
       if (context.trigger === 'automatic' && !llmSettings.llmAutomaticTrigger) return null;
-      return tnetApi.llm.getInlineCompletion({
+      return markdownTnetApi.markdown.llm.getInlineCompletion({
         ...context,
         workspaceRoot: rootPath,
         filePath: toWorkspaceRelativePath(rootPath, filePath),

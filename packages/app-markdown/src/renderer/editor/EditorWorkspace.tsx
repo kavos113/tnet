@@ -3,7 +3,7 @@ import { shallowEqual } from 'react-redux';
 import type {
   InlineCompletionContext,
   InlineCompletionResult
-} from '@tnet/shared/llm/inlineCompletionTypes';
+} from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { largeMarkdownFileThresholdBytes } from '@tnet/shared/file/largeFile';
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import {

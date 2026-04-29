@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { InlineCompletionRequest } from '@tnet/shared/llm/inlineCompletionTypes';
+import type { InlineCompletionRequest } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { lmStudioProvider } from './lmStudioProvider';
 

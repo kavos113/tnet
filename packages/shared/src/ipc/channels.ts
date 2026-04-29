@@ -6,13 +6,7 @@ export const ipcChannels = {
   file: {
     read: 'file:read',
     openWithDefaultApp: 'file:openWithDefaultApp',
-    write: 'file:write',
-    saveImage: 'file:saveImage',
-    readImage: 'file:readImage',
-    create: 'file:create',
-    createDirectory: 'file:createDirectory',
-    delete: 'file:delete',
-    rename: 'file:rename'
+    createDirectory: 'file:createDirectory'
   },
   session: {
     load: 'session:load',
@@ -21,16 +15,5 @@ export const ipcChannels = {
   config: {
     loadGlobal: 'config:loadGlobal',
     saveGlobal: 'config:saveGlobal'
-  },
-  keyword: {
-    loadIndex: 'keyword:loadIndex',
-    getContent: 'keyword:getContent'
-  },
-  search: {
-    rebuild: 'search:rebuild',
-    workspace: 'search:workspace'
-  },
-  llm: {
-    getInlineCompletion: 'llm:getInlineCompletion'
   }
 } as const;

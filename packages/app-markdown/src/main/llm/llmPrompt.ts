@@ -1,4 +1,4 @@
-import type { InlineCompletionRequest } from '@tnet/shared/llm/inlineCompletionTypes';
+import type { InlineCompletionRequest } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 
 export const buildInlineCompletionPrompt = (request: InlineCompletionRequest): string => {
   return [
