@@ -74,12 +74,12 @@ func NewServiceWithDownloader(dbManager *sqlite.LibraryDBManager, downloader PDF
 	}
 }
 
-func (service *Service) ListPapers(
+func (s *Service) ListPapers(
 	ctx context.Context,
 	libraryRoot string,
 	filter ListFilter,
 ) ([]model.Paper, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -91,19 +91,19 @@ func (service *Service) ListPapers(
 	})
 }
 
-func (service *Service) GetPaper(
+func (s *Service) GetPaper(
 	ctx context.Context,
 	libraryRoot string,
 	paperID string,
 ) (model.Paper, bool, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return model.Paper{}, false, err
 	}
 	return repository.GetPaper(ctx, paperID)
 }
 
-func (service *Service) CreatePaperFromLocalPDF(
+func (s *Service) CreatePaperFromLocalPDF(
 	ctx context.Context,
 	input CreateFromLocalPDFInput,
 ) (model.Paper, error) {
@@ -115,12 +115,12 @@ func (service *Service) CreatePaperFromLocalPDF(
 		return model.Paper{}, errRequired("source path")
 	}
 
-	pdfPath, err := service.copyPDFIfNeeded(root, input.SourcePath, input.DirectoryPath)
+	pdfPath, err := s.copyPDFIfNeeded(root, input.SourcePath, input.DirectoryPath)
 	if err != nil {
 		return model.Paper{}, err
 	}
 
-	repository, err := service.repositoryForRoot(ctx, root)
+	repository, err := s.repositoryForRoot(ctx, root)
 	if err != nil {
 		return model.Paper{}, err
 	}
@@ -138,20 +138,20 @@ func (service *Service) CreatePaperFromLocalPDF(
 	})
 }
 
-func (service *Service) SaveNote(
+func (s *Service) SaveNote(
 	ctx context.Context,
 	libraryRoot string,
 	paperID string,
 	content string,
 ) (model.Paper, bool, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return model.Paper{}, false, err
 	}
 	return repository.SaveNote(ctx, paperID, content)
 }
 
-func (service *Service) ImportBrowserPaper(
+func (s *Service) ImportBrowserPaper(
 	ctx context.Context,
 	input BrowserImportInput,
 ) (BrowserImportResult, error) {
@@ -159,7 +159,7 @@ func (service *Service) ImportBrowserPaper(
 	if err != nil {
 		return BrowserImportResult{}, err
 	}
-	repository, err := service.repositoryForRoot(ctx, root)
+	repository, err := s.repositoryForRoot(ctx, root)
 	if err != nil {
 		return BrowserImportResult{}, err
 	}
@@ -175,9 +175,9 @@ func (service *Service) ImportBrowserPaper(
 	pdfPath := ""
 	status := string(model.BrowserImportStatusMetadataOnly)
 	if input.ImportPDF && input.Candidate.PDFURL != "" {
-		downloaded, err := service.downloader.Download(ctx, input.Candidate.PDFURL)
+		downloaded, err := s.downloader.Download(ctx, input.Candidate.PDFURL)
 		if err == nil {
-			pdfPath, err = service.saveDownloadedPDF(root, input.DirectoryPath, downloaded)
+			pdfPath, err = s.saveDownloadedPDF(root, input.DirectoryPath, downloaded)
 			if err != nil {
 				return BrowserImportResult{}, err
 			}
@@ -214,54 +214,54 @@ func (service *Service) ImportBrowserPaper(
 	return BrowserImportResult{Status: status, Paper: paper}, nil
 }
 
-func (service *Service) ListTags(ctx context.Context, libraryRoot string) ([]model.PaperTag, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+func (s *Service) ListTags(ctx context.Context, libraryRoot string) ([]model.PaperTag, error) {
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return nil, err
 	}
 	return repository.ListTags(ctx)
 }
 
-func (service *Service) UpsertTag(
+func (s *Service) UpsertTag(
 	ctx context.Context,
 	libraryRoot string,
 	name string,
 	color string,
 ) (model.PaperTag, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return model.PaperTag{}, err
 	}
 	return repository.UpsertTag(ctx, name, color)
 }
 
-func (service *Service) AttachTag(
+func (s *Service) AttachTag(
 	ctx context.Context,
 	libraryRoot string,
 	paperID string,
 	tagID string,
 ) (model.Paper, bool, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return model.Paper{}, false, err
 	}
 	return repository.AttachTag(ctx, paperID, tagID)
 }
 
-func (service *Service) DetachTag(
+func (s *Service) DetachTag(
 	ctx context.Context,
 	libraryRoot string,
 	paperID string,
 	tagID string,
 ) (model.Paper, bool, error) {
-	repository, err := service.repository(ctx, libraryRoot)
+	repository, err := s.repository(ctx, libraryRoot)
 	if err != nil {
 		return model.Paper{}, false, err
 	}
 	return repository.DetachTag(ctx, paperID, tagID)
 }
 
-func (service *Service) LoadPDFBytes(
+func (s *Service) LoadPDFBytes(
 	ctx context.Context,
 	libraryRoot string,
 	pdfPath string,
@@ -281,26 +281,26 @@ func (service *Service) LoadPDFBytes(
 	return os.ReadFile(filepath.Join(root.String(), filepath.FromSlash(pdfPath)))
 }
 
-func (service *Service) repository(ctx context.Context, libraryRoot string) (*sqlite.PaperRepository, error) {
+func (s *Service) repository(ctx context.Context, libraryRoot string) (*sqlite.PaperRepository, error) {
 	root, err := model.NewLibraryRoot(libraryRoot)
 	if err != nil {
 		return nil, err
 	}
-	return service.repositoryForRoot(ctx, root)
+	return s.repositoryForRoot(ctx, root)
 }
 
-func (service *Service) repositoryForRoot(
+func (s *Service) repositoryForRoot(
 	ctx context.Context,
 	root model.LibraryRoot,
 ) (*sqlite.PaperRepository, error) {
-	db, err := service.dbManager.OpenLibrary(ctx, root)
+	db, err := s.dbManager.OpenLibrary(ctx, root)
 	if err != nil {
 		return nil, err
 	}
 	return sqlite.NewPaperRepository(db), nil
 }
 
-func (service *Service) copyPDFIfNeeded(
+func (s *Service) copyPDFIfNeeded(
 	root model.LibraryRoot,
 	sourcePath string,
 	directoryPath string,
@@ -328,7 +328,7 @@ func (service *Service) copyPDFIfNeeded(
 	return toRelativeSlash(rootAbsolute, targetPath), nil
 }
 
-func (service *Service) saveDownloadedPDF(
+func (s *Service) saveDownloadedPDF(
 	root model.LibraryRoot,
 	directoryPath string,
 	downloaded pdfdownload.DownloadedPDF,

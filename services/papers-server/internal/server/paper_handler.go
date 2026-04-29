@@ -20,18 +20,18 @@ type PaperUsecase interface {
 }
 
 type PaperHandler struct {
-	service PaperUsecase
+	u PaperUsecase
 }
 
-func NewPaperHandler(service PaperUsecase) (string, http.Handler) {
-	return papersv1connect.NewPaperServiceHandler(&PaperHandler{service: service})
+func NewPaperHandler(u PaperUsecase) (string, http.Handler) {
+	return papersv1connect.NewPaperServiceHandler(&PaperHandler{u: u})
 }
 
-func (handler *PaperHandler) ListPapers(
+func (h *PaperHandler) ListPapers(
 	ctx context.Context,
 	request *connect.Request[papersv1.ListPapersRequest],
 ) (*connect.Response[papersv1.ListPapersResponse], error) {
-	papers, err := handler.service.ListPapers(ctx, request.Msg.LibraryRoot, paper.ListFilter{
+	papers, err := h.u.ListPapers(ctx, request.Msg.LibraryRoot, paper.ListFilter{
 		DirectoryPath: request.Msg.DirectoryPath,
 		HasDirectory:  request.Msg.DirectoryPath != "",
 		Query:         request.Msg.Query,
@@ -47,11 +47,11 @@ func (handler *PaperHandler) ListPapers(
 	return connect.NewResponse(response), nil
 }
 
-func (handler *PaperHandler) GetPaper(
+func (h *PaperHandler) GetPaper(
 	ctx context.Context,
 	request *connect.Request[papersv1.GetPaperRequest],
 ) (*connect.Response[papersv1.GetPaperResponse], error) {
-	paper, ok, err := handler.service.GetPaper(ctx, request.Msg.LibraryRoot, request.Msg.PaperId)
+	paper, ok, err := h.u.GetPaper(ctx, request.Msg.LibraryRoot, request.Msg.PaperId)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
@@ -61,11 +61,11 @@ func (handler *PaperHandler) GetPaper(
 	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
 }
 
-func (handler *PaperHandler) CreatePaperFromLocalPdf(
+func (h *PaperHandler) CreatePaperFromLocalPdf(
 	ctx context.Context,
 	request *connect.Request[papersv1.CreatePaperFromLocalPdfRequest],
 ) (*connect.Response[papersv1.PaperDetail], error) {
-	paper, err := handler.service.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
+	paper, err := h.u.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
 		LibraryRoot:   request.Msg.LibraryRoot,
 		SourcePath:    request.Msg.SourcePath,
 		Title:         request.Msg.Title,
@@ -84,11 +84,11 @@ func (handler *PaperHandler) CreatePaperFromLocalPdf(
 	return connect.NewResponse(toProtoPaperDetail(paper)), nil
 }
 
-func (handler *PaperHandler) ImportBrowserPaper(
+func (h *PaperHandler) ImportBrowserPaper(
 	ctx context.Context,
 	request *connect.Request[papersv1.ImportBrowserPaperRequest],
 ) (*connect.Response[papersv1.ImportBrowserPaperResponse], error) {
-	result, err := handler.service.ImportBrowserPaper(ctx, paper.BrowserImportInput{
+	result, err := h.u.ImportBrowserPaper(ctx, paper.BrowserImportInput{
 		LibraryRoot:   request.Msg.LibraryRoot,
 		DirectoryPath: request.Msg.DirectoryPath,
 		Candidate:     fromProtoBrowserCandidate(request.Msg.Candidate),
@@ -104,11 +104,11 @@ func (handler *PaperHandler) ImportBrowserPaper(
 	}), nil
 }
 
-func (handler *PaperHandler) SaveNote(
+func (h *PaperHandler) SaveNote(
 	ctx context.Context,
 	request *connect.Request[papersv1.SaveNoteRequest],
 ) (*connect.Response[papersv1.GetPaperResponse], error) {
-	paper, ok, err := handler.service.SaveNote(ctx, request.Msg.LibraryRoot, request.Msg.PaperId, request.Msg.Content)
+	paper, ok, err := h.u.SaveNote(ctx, request.Msg.LibraryRoot, request.Msg.PaperId, request.Msg.Content)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
