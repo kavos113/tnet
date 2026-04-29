@@ -1,78 +1,59 @@
 import { ipcMain } from 'electron';
 import { papersIpcChannels } from '@tnet/app-papers/shared/ipc';
-import {
-  createPaperFromPdf,
-  importPdfFromDialog,
-  loadPdfBytes,
-  openPdfExternal,
-  selectPdfForImport
-} from './papersFileService';
-import { openPapersDatabase } from './papersDatabase';
-import { PapersRepository } from './papersRepository';
+import { openPdfExternal, selectPdfForImport } from './papersFileService';
+import type { PapersServerClient } from './serverClient/papersServerClient';
 
-const withRepository = async <T>(
-  libraryRoot: string,
-  run: (repository: PapersRepository) => T
-): Promise<T> => {
-  const database = await openPapersDatabase(libraryRoot);
-  try {
-    return run(new PapersRepository(database));
-  } finally {
-    database.close();
-  }
-};
-
-export const registerPapersDataIpc = (): void => {
+export const registerPapersDataIpc = (serverClient: PapersServerClient): void => {
   ipcMain.handle(papersIpcChannels.library.selectPdf, async (_event, request) =>
     selectPdfForImport(request)
   );
 
   ipcMain.handle(papersIpcChannels.library.createPaperFromPdf, async (_event, request) =>
-    createPaperFromPdf(request)
+    serverClient.createPaperFromPdf(request)
   );
 
-  ipcMain.handle(papersIpcChannels.library.importPdf, async (_event, request) =>
-    importPdfFromDialog(request)
-  );
+  ipcMain.handle(papersIpcChannels.library.importPdf, async (_event, request) => {
+    const candidate = await selectPdfForImport(request);
+    if (!candidate) return null;
+
+    return serverClient.createPaperFromPdf({
+      libraryRoot: request.libraryRoot,
+      sourcePath: candidate.sourcePath,
+      title: candidate.suggestedTitle,
+      directoryPath: request.directoryPath
+    });
+  });
 
   ipcMain.handle(papersIpcChannels.papers.list, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) => repository.listPapers(request))
+    serverClient.listPapers(request)
   );
 
   ipcMain.handle(papersIpcChannels.papers.get, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) => repository.getPaper(request.paperId))
+    serverClient.getPaper(request)
   );
 
   ipcMain.handle(papersIpcChannels.tags.list, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) => repository.listTags())
+    serverClient.listTags(request)
   );
 
   ipcMain.handle(papersIpcChannels.tags.upsert, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) =>
-      repository.upsertTag(request.name, request.color)
-    )
+    serverClient.upsertTag(request)
   );
 
   ipcMain.handle(papersIpcChannels.tags.attach, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) =>
-      repository.attachTag(request.paperId, request.tagId)
-    )
+    serverClient.attachTag(request)
   );
 
   ipcMain.handle(papersIpcChannels.tags.detach, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) =>
-      repository.detachTag(request.paperId, request.tagId)
-    )
+    serverClient.detachTag(request)
   );
 
   ipcMain.handle(papersIpcChannels.notes.save, async (_event, request) =>
-    withRepository(request.libraryRoot, (repository) =>
-      repository.saveNote(request.paperId, request.content)
-    )
+    serverClient.saveNote(request)
   );
 
   ipcMain.handle(papersIpcChannels.pdf.loadBytes, async (_event, request) =>
-    loadPdfBytes(request.libraryRoot, request.pdfPath)
+    serverClient.loadPdfBytes(request)
   );
 
   ipcMain.handle(papersIpcChannels.pdf.openExternal, async (_event, request) =>

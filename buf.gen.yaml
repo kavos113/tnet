@@ -8,3 +8,15 @@ plugins:
     out: services/papers-server/internal/gen
     opt:
       - paths=source_relative
+  - local: protoc-gen-ts
+    out: packages/app-papers/src/main/generated
+    opt:
+      - client_grpc1
+  - local: protoc-gen-es
+    out: packages/app-papers-extension/src/generated
+    opt:
+      - target=ts
+  - local: protoc-gen-connect-es
+    out: packages/app-papers-extension/src/generated
+    opt:
+      - target=ts

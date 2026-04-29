@@ -6,6 +6,8 @@
     "apps/desktop/src/preload/types.ts",
     "packages/app-papers/src/renderer/**/*",
     "packages/app-papers/src/shared/**/*",
+    "packages/app-papers-extension/src/**/*",
+    "packages/app-papers-extension/tests/**/*",
     "packages/app-markdown/src/renderer/**/*",
     "packages/app-markdown/src/shared/**/*",
     "packages/renderer-core/src/**/*",

@@ -7,7 +7,8 @@ export const createPapersServerSupervisor = (): PapersServerSupervisor =>
     command: resolvePapersServerCommand({
       appPath: app.getAppPath(),
       isPackaged: app.isPackaged,
-      resourcesPath: process.resourcesPath
+      resourcesPath: process.resourcesPath,
+      userDataDir: app.getPath('userData')
     })
   });
 

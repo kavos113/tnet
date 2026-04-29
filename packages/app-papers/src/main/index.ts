@@ -1,15 +1,20 @@
 import { registerPapersConfigIpc } from './papersConfigIpc';
 import { registerPapersDataIpc } from './papersIpc';
-import type { PapersGlobalConfigStore } from './papersConfigService';
+import { createPapersServerClient } from './serverClient/papersServerClient';
 
-export const registerPapersIpcHandlers = (store: PapersGlobalConfigStore): void => {
-  registerPapersConfigIpc(store);
-  registerPapersDataIpc();
+export interface RegisterPapersIpcHandlersOptions {
+  userDataDir: string;
+}
+
+export const registerPapersIpcHandlers = ({
+  userDataDir
+}: RegisterPapersIpcHandlersOptions): void => {
+  const serverClient = createPapersServerClient({ userDataDir });
+  registerPapersConfigIpc(serverClient);
+  registerPapersDataIpc(serverClient);
 };
 
-export * from './papersDatabase';
-export * from './papersConfigService';
 export * from './papersFileService';
 export * from './papersPaths';
-export * from './papersRepository';
+export * from './serverClient/papersServerClient';
 export * from './serverSupervisor';

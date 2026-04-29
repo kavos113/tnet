@@ -8,32 +8,40 @@ describe('resolvePapersServerCommand', () => {
       {
         name: 'development',
         options: {
-          appPath: path.join('C:', 'repo', 'apps', 'desktop'),
+          appPath: path.join('C:', 'dummy-repo', 'apps', 'desktop'),
           isPackaged: false,
-          resourcesPath: path.join('C:', 'repo', 'resources'),
+          resourcesPath: path.join('C:', 'dummy-repo', 'resources'),
+          userDataDir: path.join('C:', 'dummy-user-data', 'tnet'),
           platform: 'win32' as NodeJS.Platform
         },
         wantCommand: 'go',
-        wantArgs: ['run', './cmd/papers-server'],
-        wantCwd: path.join('C:', 'repo', 'services', 'papers-server')
+        wantArgs: [
+          'run',
+          './cmd/papers-server',
+          '--',
+          '--user-data-dir',
+          path.join('C:', 'dummy-user-data', 'tnet')
+        ],
+        wantCwd: path.join('C:', 'dummy-repo', 'services', 'papers-server')
       },
       {
         name: 'packaged windows',
         options: {
-          appPath: path.join('C:', 'Program Files', 'tnet'),
+          appPath: path.join('C:', 'dummy-app', 'tnet'),
           isPackaged: true,
-          resourcesPath: path.join('C:', 'Program Files', 'tnet', 'resources'),
+          resourcesPath: path.join('C:', 'dummy-app', 'tnet', 'resources'),
+          userDataDir: path.join('C:', 'dummy-user-data', 'tnet'),
           platform: 'win32' as NodeJS.Platform
         },
         wantCommand: path.join(
           'C:',
-          'Program Files',
+          'dummy-app',
           'tnet',
           'resources',
           'papers-server',
           'papers-server.exe'
         ),
-        wantArgs: [],
+        wantArgs: ['--user-data-dir', path.join('C:', 'dummy-user-data', 'tnet')],
         wantCwd: undefined
       }
     ];

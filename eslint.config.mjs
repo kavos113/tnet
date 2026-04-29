@@ -4,7 +4,7 @@ import eslintConfigPrettier from '@electron-toolkit/eslint-config-prettier';
 
 export default defineConfig(
   {
-    ignores: ['**/node_modules', '**/dist', '**/out', 'old/**']
+    ignores: ['**/node_modules', '**/dist', '**/out', 'old/**', '**/generated/**']
   },
   tseslint.configs.recommended,
   {

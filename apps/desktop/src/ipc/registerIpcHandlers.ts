@@ -4,7 +4,6 @@ import { registerConfigIpc } from './configIpc';
 import { registerFileIpc } from './fileIpc';
 import { registerSessionIpc } from './sessionIpc';
 import { registerWorkspaceIpc } from './workspaceIpc';
-import { loadGlobalConfig, saveGlobalConfig } from '../services/configService';
 import { loadSession, saveSession } from '../services/sessionService';
 import { app } from 'electron';
 
@@ -15,7 +14,6 @@ export const registerIpcHandlers = (): void => {
   registerConfigIpc();
   registerMarkdownIpcHandlers({ loadSession, saveSession });
   registerPapersIpcHandlers({
-    loadGlobalConfig: () => loadGlobalConfig(app.getPath('userData')),
-    saveGlobalConfig: (config) => saveGlobalConfig(app.getPath('userData'), config)
+    userDataDir: app.getPath('userData')
   });
 };
