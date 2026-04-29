@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import type { PaperSummary } from '@tnet/app-papers/shared/paperTypes';
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
@@ -14,6 +14,7 @@ import {
   setPapersError,
   setPapersListLoading
 } from './papers/papersSlice';
+import { getPaperListPanePercent } from './papers/paperPaneResize';
 
 const formatAuthors = (paper: PaperSummary): string =>
   paper.authors.length > 0 ? paper.authors.join(', ') : 'No authors';
@@ -29,15 +30,33 @@ export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
   const [importCandidate, setImportCandidate] = useState<SelectedPdfImportCandidate | null>(null);
   const [importTitle, setImportTitle] = useState('');
-  const { activeLibraryRoot, isRestored, selectedDirectoryPath } = usePapersSelector(
-    (state) => state.papersLibrary
+  const [titleFilter, setTitleFilter] = useState('');
+  const [listWidthPercent, setListWidthPercent] = useState(40);
+  const activeLibraryRoot = usePapersSelector((state) => state.papersLibrary.activeLibraryRoot);
+  const isRestored = usePapersSelector((state) => state.papersLibrary.isRestored);
+  const selectedDirectoryPath = usePapersSelector(
+    (state) => state.papersLibrary.selectedDirectoryPath
   );
-  const { activeDetailTab, detail, error, isLoadingDetail, isLoadingList, items, selectedPaperId } =
-    usePapersSelector((state) => state.papersContent);
+  const activeDetailTab = usePapersSelector((state) => state.papersContent.activeDetailTab);
+  const detail = usePapersSelector((state) => state.papersContent.detail);
+  const error = usePapersSelector((state) => state.papersContent.error);
+  const isLoadingDetail = usePapersSelector((state) => state.papersContent.isLoadingDetail);
+  const isLoadingList = usePapersSelector((state) => state.papersContent.isLoadingList);
+  const items = usePapersSelector((state) => state.papersContent.items);
+  const selectedPaperId = usePapersSelector((state) => state.papersContent.selectedPaperId);
   const selectedDirectoryRelativePath = useMemo(() => {
     if (!activeLibraryRoot || selectedDirectoryPath === null) return undefined;
     return toWorkspaceRelativePath(activeLibraryRoot, selectedDirectoryPath);
   }, [activeLibraryRoot, selectedDirectoryPath]);
+  const normalizedTitleFilter = titleFilter.trim().toLowerCase();
+  const filteredItems = useMemo(() => {
+    if (!normalizedTitleFilter) return items;
+    return items.filter((paper) => paper.title.toLowerCase().includes(normalizedTitleFilter));
+  }, [items, normalizedTitleFilter]);
+  const paperCountLabel =
+    normalizedTitleFilter && filteredItems.length !== items.length
+      ? `${filteredItems.length} of ${items.length} papers`
+      : `${items.length} papers`;
 
   useEffect(() => {
     let canceled = false;
@@ -132,6 +151,31 @@ export const PapersApp = (): React.JSX.Element => {
     setImportTitle('');
   };
 
+  const startPaneResize = useCallback((event: React.MouseEvent<HTMLElement>): void => {
+    event.preventDefault();
+
+    const container = event.currentTarget.parentElement;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const handleMouseMove = (moveEvent: MouseEvent): void => {
+      setListWidthPercent(
+        getPaperListPanePercent({
+          clientX: moveEvent.clientX,
+          containerLeft: containerRect.left,
+          containerWidth: containerRect.width
+        })
+      );
+    };
+    const handleMouseUp = (): void => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
   if (!isRestored) {
     return (
       <main className="placeholder-app" aria-label="Papers">
@@ -162,12 +206,16 @@ export const PapersApp = (): React.JSX.Element => {
 
   return (
     <main className="papers-app" aria-label="Papers">
-      <section className="papers-list-pane" aria-label="Paper list">
+      <section
+        className="papers-list-pane"
+        aria-label="Paper list"
+        style={{ width: `${listWidthPercent}%` } as CSSProperties}
+      >
         <header className="papers-pane-header">
           <div>
             <h1>Papers</h1>
             <span>
-              {selectedDirectoryRelativePath ?? 'All papers'} - {items.length} papers
+              {selectedDirectoryRelativePath ?? 'All papers'} - {paperCountLabel}
             </span>
           </div>
           <button className="icon-button" type="button" aria-label="Import PDF" onClick={importPdf}>
@@ -176,34 +224,64 @@ export const PapersApp = (): React.JSX.Element => {
             </span>
           </button>
         </header>
+        <div className="papers-list-filter">
+          <label className="papers-title-filter">
+            <span>Title filter</span>
+            <input
+              value={titleFilter}
+              aria-label="Filter papers by title"
+              placeholder="Filter by title"
+              onChange={(event) => setTitleFilter(event.target.value)}
+            />
+          </label>
+        </div>
         {error ? <div className="papers-error">{error}</div> : null}
         {isLoadingList ? <div className="papers-empty-state">Loading papers...</div> : null}
         {!isLoadingList && items.length === 0 ? (
           <div className="papers-empty-state">Import a PDF to register a paper.</div>
         ) : null}
-        <div className="papers-list">
-          {items.map((paper) => (
+        {!isLoadingList && items.length > 0 && filteredItems.length === 0 ? (
+          <div className="papers-empty-state">No papers match the current title filter.</div>
+        ) : null}
+        <div className="papers-list" role="table" aria-label="Papers table">
+          <div className="papers-list-header" role="row">
+            <span role="columnheader">Title</span>
+            <span role="columnheader">Year</span>
+            <span role="columnheader">Journal</span>
+          </div>
+          {filteredItems.map((paper) => (
             <button
               key={paper.id}
               className={`papers-list-item ${paper.id === selectedPaperId ? 'active' : ''}`}
               type="button"
+              role="row"
               onClick={() => dispatch(selectPaper(paper.id))}
             >
-              <span className="papers-list-title">{paper.title}</span>
-              <span className="papers-list-meta">{formatAuthors(paper)}</span>
-              <span className="papers-list-footer">
-                <span>{paper.publishedYear ?? 'Year unknown'}</span>
-                {paper.hasPdf ? (
-                  <span className="material-icons-round papers-list-pdf" aria-label="Has PDF">
-                    picture_as_pdf
-                  </span>
-                ) : null}
+              <span className="papers-list-title" role="cell" title={paper.title}>
+                {paper.title}
+              </span>
+              <span className="papers-list-year" role="cell">
+                {paper.publishedYear ?? '-'}
+              </span>
+              <span className="papers-list-journal" role="cell" title={paper.venue ?? '-'}>
+                {paper.venue ?? '-'}
               </span>
             </button>
           ))}
         </div>
       </section>
-      <section className="papers-detail-pane" aria-label="Paper detail">
+      <div
+        className="papers-pane-resizer"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize paper list and preview"
+        onMouseDown={startPaneResize}
+      />
+      <section
+        className="papers-detail-pane"
+        aria-label="Paper detail"
+        style={{ width: `${100 - listWidthPercent}%` } as CSSProperties}
+      >
         {!selectedPaperId ? <div className="papers-empty-state">Select a paper.</div> : null}
         {selectedPaperId && isLoadingDetail ? (
           <div className="papers-empty-state">Loading paper detail...</div>
