@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/kavos113/tnet/services/papers-server/internal/app"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 func main() {
@@ -34,7 +36,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:              *addr,
-		Handler:           container.Handler(),
+		Handler:           h2c.NewHandler(container.Handler(), &http2.Server{}),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
