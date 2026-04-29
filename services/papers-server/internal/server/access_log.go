@@ -1,8 +1,7 @@
 package server
 
 import (
-	"fmt"
-	"io"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -28,7 +27,7 @@ func (writer *responseStatusWriter) Flush() {
 	}
 }
 
-func NewAccessLogHandler(next http.Handler, output io.Writer) http.Handler {
+func NewAccessLogHandler(next http.Handler, logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startedAt := time.Now()
 		statusWriter := &responseStatusWriter{
@@ -38,15 +37,13 @@ func NewAccessLogHandler(next http.Handler, output io.Writer) http.Handler {
 
 		next.ServeHTTP(statusWriter, r)
 
-		_, _ = fmt.Fprintf(
-			output,
-			"%s method=%s path=%s status=%d duration_ms=%d remote_addr=%s\n",
-			startedAt.Format(time.RFC3339),
-			r.Method,
-			r.URL.Path,
-			statusWriter.statusCode,
-			time.Since(startedAt).Milliseconds(),
-			r.RemoteAddr,
+		logger.Info(
+			"http request",
+			"method", r.Method,
+			"path", r.URL.Path,
+			"status", statusWriter.statusCode,
+			"duration_ms", time.Since(startedAt).Milliseconds(),
+			"remote_addr", r.RemoteAddr,
 		)
 	})
 }

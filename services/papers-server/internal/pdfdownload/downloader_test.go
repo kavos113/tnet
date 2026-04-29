@@ -19,6 +19,7 @@ func TestHTTPDownloaderDownloadWithProgress(t *testing.T) {
 	downloaded, err := downloader.DownloadWithProgress(
 		context.Background(),
 		server.URL+"/paper.pdf",
+		RequestOptions{},
 		func(next Progress) {
 			progress = append(progress, next)
 		},
@@ -55,6 +56,7 @@ func TestHTTPDownloaderDownloadWithProgressWithoutContentLength(t *testing.T) {
 	_, err := downloader.DownloadWithProgress(
 		context.Background(),
 		server.URL+"/paper.pdf",
+		RequestOptions{},
 		func(next Progress) {
 			progress = append(progress, next)
 		},
@@ -69,5 +71,35 @@ func TestHTTPDownloaderDownloadWithProgressWithoutContentLength(t *testing.T) {
 	last := progress[len(progress)-1]
 	if last.DownloadedBytes != 7 || last.TotalBytes != 0 {
 		t.Fatalf("last progress = %+v, want 7/0", last)
+	}
+}
+
+func TestHTTPDownloaderDownloadWithProgressSendsBrowserCompatibleHeaders(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		if request.Header.Get("User-Agent") == "" {
+			t.Fatal("expected User-Agent header")
+		}
+		if request.Header.Get("Accept") == "" {
+			t.Fatal("expected Accept header")
+		}
+		if request.Header.Get("Accept-Language") == "" {
+			t.Fatal("expected Accept-Language header")
+		}
+		if request.Header.Get("Referer") != "https://example.test/paper" {
+			t.Fatalf("Referer = %q, want source page URL", request.Header.Get("Referer"))
+		}
+		_, _ = response.Write([]byte("pdfdata"))
+	}))
+	defer server.Close()
+	downloader := NewHTTPDownloader(server.Client())
+
+	_, err := downloader.DownloadWithProgress(
+		context.Background(),
+		server.URL+"/paper.pdf",
+		RequestOptions{Referer: "https://example.test/paper"},
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("DownloadWithProgress() error = %v", err)
 	}
 }

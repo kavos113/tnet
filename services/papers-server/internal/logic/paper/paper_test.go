@@ -20,6 +20,7 @@ type fakeDownloader struct {
 func (downloader fakeDownloader) DownloadWithProgress(
 	_ context.Context,
 	_ string,
+	_ pdfdownload.RequestOptions,
 	report pdfdownload.ProgressReporter,
 ) (pdfdownload.DownloadedPDF, error) {
 	for _, progress := range downloader.progress {

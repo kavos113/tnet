@@ -14,6 +14,7 @@ export interface PapersServerCommand {
   command: string;
   args: string[];
   cwd?: string;
+  logPath: string;
 }
 
 export const resolvePapersServerCommand = ({
@@ -24,14 +25,15 @@ export const resolvePapersServerCommand = ({
   platform = process.platform,
   executableExists = fs.existsSync
 }: PapersServerCommandOptions): PapersServerCommand => {
-  const accessLogPath = path.join(userDataDir, 'papers-server-access.log');
-  const userDataArgs = ['--user-data-dir', userDataDir, '--access-log-path', accessLogPath];
+  const logPath = path.join(userDataDir, 'papers-server.log');
+  const userDataArgs = ['--user-data-dir', userDataDir];
   const executableName = platform === 'win32' ? 'papers-server.exe' : 'papers-server';
 
   if (isPackaged) {
     return {
       command: path.join(resourcesPath, 'papers-server', executableName),
-      args: userDataArgs
+      args: userDataArgs,
+      logPath
     };
   }
 
@@ -45,6 +47,7 @@ export const resolvePapersServerCommand = ({
 
   return {
     command: devServerExecutable,
-    args: userDataArgs
+    args: userDataArgs,
+    logPath
   };
 };

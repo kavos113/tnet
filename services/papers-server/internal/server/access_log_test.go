@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,11 +11,12 @@ import (
 
 func TestNewAccessLogHandlerWritesRequestLine(t *testing.T) {
 	var output bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&output, nil))
 	handler := NewAccessLogHandler(
 		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusCreated)
 		}),
-		&output,
+		logger,
 	)
 
 	request := httptest.NewRequest(http.MethodPost, "/tnet.papers.v1.PaperService/ListPapers", nil)
@@ -23,6 +25,7 @@ func TestNewAccessLogHandlerWritesRequestLine(t *testing.T) {
 
 	logLine := output.String()
 	for _, want := range []string{
+		"msg=\"http request\"",
 		"method=POST",
 		"path=/tnet.papers.v1.PaperService/ListPapers",
 		"status=201",
@@ -37,9 +40,10 @@ func TestNewAccessLogHandlerWritesRequestLine(t *testing.T) {
 
 func TestNewAccessLogHandlerDefaultsStatusToOK(t *testing.T) {
 	var output bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(&output, nil))
 	handler := NewAccessLogHandler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("ok"))
-	}), &output)
+	}), logger)
 
 	handler.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/health", nil))
 

@@ -76,7 +76,7 @@ const (
 )
 
 type PDFDownloader interface {
-	DownloadWithProgress(context.Context, string, pdfdownload.ProgressReporter) (pdfdownload.DownloadedPDF, error)
+	DownloadWithProgress(context.Context, string, pdfdownload.RequestOptions, pdfdownload.ProgressReporter) (pdfdownload.DownloadedPDF, error)
 }
 
 func NewService(dbManager *sqlite.LibraryDBManager) *Service {
@@ -212,13 +212,18 @@ func (s *Service) importBrowserPaper(
 	pdfPath := ""
 	status := string(model.BrowserImportStatusMetadataOnly)
 	if input.ImportPDF && input.Candidate.PDFURL != "" {
-		downloaded, err := s.downloader.DownloadWithProgress(ctx, input.Candidate.PDFURL, func(progress pdfdownload.Progress) {
-			reportImportProgress(report, ImportProgress{
-				Stage:           ImportProgressStageDownloadingPDF,
-				DownloadedBytes: progress.DownloadedBytes,
-				TotalBytes:      progress.TotalBytes,
-			})
-		})
+		downloaded, err := s.downloader.DownloadWithProgress(
+			ctx,
+			input.Candidate.PDFURL,
+			pdfdownload.RequestOptions{Referer: input.Candidate.URL},
+			func(progress pdfdownload.Progress) {
+				reportImportProgress(report, ImportProgress{
+					Stage:           ImportProgressStageDownloadingPDF,
+					DownloadedBytes: progress.DownloadedBytes,
+					TotalBytes:      progress.TotalBytes,
+				})
+			},
+		)
 		if err == nil {
 			reportImportProgress(report, ImportProgress{
 				Stage:           ImportProgressStageDownloadedPDF,

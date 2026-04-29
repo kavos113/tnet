@@ -16,12 +16,8 @@ describe('resolvePapersServerCommand', () => {
           executableExists: () => true
         },
         wantCommand: path.join('C:', 'dummy-repo', 'dist', 'papers-server', 'papers-server.exe'),
-        wantArgs: [
-          '--user-data-dir',
-          path.join('C:', 'dummy-user-data', 'tnet'),
-          '--access-log-path',
-          path.join('C:', 'dummy-user-data', 'tnet', 'papers-server-access.log')
-        ],
+        wantArgs: ['--user-data-dir', path.join('C:', 'dummy-user-data', 'tnet')],
+        wantLogPath: path.join('C:', 'dummy-user-data', 'tnet', 'papers-server.log'),
         wantCwd: undefined
       },
       {
@@ -41,12 +37,8 @@ describe('resolvePapersServerCommand', () => {
           'papers-server',
           'papers-server.exe'
         ),
-        wantArgs: [
-          '--user-data-dir',
-          path.join('C:', 'dummy-user-data', 'tnet'),
-          '--access-log-path',
-          path.join('C:', 'dummy-user-data', 'tnet', 'papers-server-access.log')
-        ],
+        wantArgs: ['--user-data-dir', path.join('C:', 'dummy-user-data', 'tnet')],
+        wantLogPath: path.join('C:', 'dummy-user-data', 'tnet', 'papers-server.log'),
         wantCwd: undefined
       }
     ];
@@ -56,6 +48,7 @@ describe('resolvePapersServerCommand', () => {
 
       expect(command.command, testcase.name).toBe(testcase.wantCommand);
       expect(command.args, testcase.name).toEqual(testcase.wantArgs);
+      expect(command.logPath, testcase.name).toBe(testcase.wantLogPath);
       expect(command.cwd, testcase.name).toBe(testcase.wantCwd);
     }
   });

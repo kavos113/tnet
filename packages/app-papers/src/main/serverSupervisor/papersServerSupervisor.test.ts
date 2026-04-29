@@ -37,26 +37,40 @@ describe('PapersServerSupervisor', () => {
         return healthy;
       });
       const spawnImpl = vi.fn(() => new FakeChildProcess() as never);
+      const openLogFile = vi.fn(() => 123);
       const supervisor = new PapersServerSupervisor({
-        command: { command: 'go', args: ['run', './cmd/papers-server'] },
+        command: {
+          command: 'go',
+          args: ['run', './cmd/papers-server'],
+          logPath: 'papers-server.log'
+        },
         healthCheck,
         spawnImpl,
+        openLogFile,
         pollIntervalMs: 1,
         startupTimeoutMs: 100
       });
 
       await expect(supervisor.start()).resolves.toBe(testcase.wantStatus);
       expect(spawnImpl).toHaveBeenCalledTimes(testcase.wantSpawnCount);
+      expect(openLogFile).toHaveBeenCalledTimes(testcase.wantSpawnCount);
     }
   });
 
   it('stops the child process it started', async () => {
     const child = new FakeChildProcess();
     const healthCheck = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const closeLogFile = vi.fn();
     const supervisor = new PapersServerSupervisor({
-      command: { command: 'go', args: ['run', './cmd/papers-server'] },
+      command: {
+        command: 'go',
+        args: ['run', './cmd/papers-server'],
+        logPath: 'papers-server.log'
+      },
       healthCheck,
       spawnImpl: vi.fn(() => child as never),
+      openLogFile: vi.fn(() => 123),
+      closeLogFile,
       pollIntervalMs: 1,
       startupTimeoutMs: 100
     });
@@ -65,5 +79,33 @@ describe('PapersServerSupervisor', () => {
     await supervisor.stop();
 
     expect(child.killed).toBe(true);
+    expect(closeLogFile).toHaveBeenCalledWith(123);
+  });
+
+  it('redirects stdout and stderr to the papers server log file', async () => {
+    const healthCheck = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const spawnImpl = vi.fn(() => new FakeChildProcess() as never);
+    const supervisor = new PapersServerSupervisor({
+      command: {
+        command: 'go',
+        args: ['run', './cmd/papers-server'],
+        logPath: 'papers-server.log'
+      },
+      healthCheck,
+      spawnImpl,
+      openLogFile: vi.fn(() => 456),
+      pollIntervalMs: 1,
+      startupTimeoutMs: 100
+    });
+
+    await supervisor.start();
+
+    expect(spawnImpl).toHaveBeenCalledWith(
+      'go',
+      ['run', './cmd/papers-server'],
+      expect.objectContaining({
+        stdio: ['ignore', 456, 456]
+      })
+    );
   });
 });

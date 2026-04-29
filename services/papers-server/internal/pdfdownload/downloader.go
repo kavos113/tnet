@@ -22,6 +22,10 @@ type Progress struct {
 
 type ProgressReporter func(Progress)
 
+type RequestOptions struct {
+	Referer string
+}
+
 type HTTPDownloader struct {
 	client *http.Client
 }
@@ -34,18 +38,20 @@ func NewHTTPDownloader(client *http.Client) *HTTPDownloader {
 }
 
 func (downloader *HTTPDownloader) Download(ctx context.Context, pdfURL string) (DownloadedPDF, error) {
-	return downloader.DownloadWithProgress(ctx, pdfURL, nil)
+	return downloader.DownloadWithProgress(ctx, pdfURL, RequestOptions{}, nil)
 }
 
 func (downloader *HTTPDownloader) DownloadWithProgress(
 	ctx context.Context,
 	pdfURL string,
+	options RequestOptions,
 	report ProgressReporter,
 ) (DownloadedPDF, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, pdfURL, nil)
 	if err != nil {
 		return DownloadedPDF{}, err
 	}
+	applyBrowserCompatibleHeaders(request, options)
 	response, err := downloader.client.Do(request)
 	if err != nil {
 		return DownloadedPDF{}, err
@@ -64,6 +70,19 @@ func (downloader *HTTPDownloader) DownloadWithProgress(
 		fileName = "paper.pdf"
 	}
 	return DownloadedPDF{FileName: fileName, Bytes: bytes}, nil
+}
+
+func applyBrowserCompatibleHeaders(request *http.Request, options RequestOptions) {
+	request.Header.Set(
+		"User-Agent",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+	)
+	request.Header.Set("Accept", "application/pdf,application/octet-stream;q=0.9,*/*;q=0.8")
+	request.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	request.Header.Set("Connection", "keep-alive")
+	if options.Referer != "" {
+		request.Header.Set("Referer", options.Referer)
+	}
 }
 
 func readAllWithProgress(reader io.Reader, totalBytes int64, report ProgressReporter) ([]byte, error) {
