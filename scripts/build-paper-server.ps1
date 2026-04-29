@@ -12,13 +12,13 @@ New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 
 Push-Location $serverRoot
 try {
-  go build -o $outputPath ./cmd/papers-server
-  if ($LASTEXITCODE -ne 0) {
-    exit $LASTEXITCODE
-  }
+    go build -o $outputPath ./cmd/papers-server
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
 }
 finally {
-  Pop-Location
+    Pop-Location
 }
 
 Write-Host "Built papers server: $outputPath"

@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	papersv1 "github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1"
 	"github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1/papersv1connect"
+	mock_server "github.com/kavos113/tnet/services/papers-server/internal/server/mock"
 	"go.uber.org/mock/gomock"
 )
 
@@ -31,7 +32,7 @@ func TestHealthHandlerCheck(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
-			mockHealthChecker := NewMockHealthChecker(ctrl)
+			mockHealthChecker := mock_server.NewMockHealthChecker(ctrl)
 			mockHealthChecker.EXPECT().Status().Return(testcase.status, testcase.version)
 
 			_, handler := NewHealthHandler(mockHealthChecker)

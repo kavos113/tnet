@@ -10,7 +10,7 @@
     "sqlite:electron": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target electron",
     "papers:proto": "buf generate",
     "papers:server:build": "powershell -ExecutionPolicy Bypass -File scripts/build-paper-server.ps1",
-    "papers:server:mocks": "powershell -ExecutionPolicy Bypass -File scripts/generate-go-mocks.ps1",
+    "papers:server:mocks": "cd services/papers-server && go generate ./internal/server",
     "papers:server:test": "cd services/papers-server && go test ./...",
     "test": "pnpm sqlite:node && vitest run",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
