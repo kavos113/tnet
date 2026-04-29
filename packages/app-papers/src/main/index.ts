@@ -12,3 +12,4 @@ export * from './papersConfigService';
 export * from './papersFileService';
 export * from './papersPaths';
 export * from './papersRepository';
+export * from './serverSupervisor';

@@ -22,91 +22,133 @@ func newTestLibraryRoot(t *testing.T, name string) model.LibraryRoot {
 }
 
 func TestLibraryDBManagerReusesConnectionForSameLibrary(t *testing.T) {
-	ctx := context.Background()
-	manager := NewLibraryDBManager()
-	defer closeManager(t, manager)
-
-	root := newTestLibraryRoot(t, "library")
-
-	first, err := manager.OpenLibrary(ctx, root)
-	if err != nil {
-		t.Fatalf("OpenLibrary() first error = %v", err)
+	testcases := []struct {
+		name string
+	}{
+		{name: "same library root reuses connection"},
 	}
 
-	second, err := manager.OpenLibrary(ctx, root)
-	if err != nil {
-		t.Fatalf("OpenLibrary() second error = %v", err)
-	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			manager := NewLibraryDBManager()
+			defer closeManager(t, manager)
 
-	if first != second {
-		t.Fatal("OpenLibrary() returned different DB instances for the same library")
+			root := newTestLibraryRoot(t, "library")
+
+			first, err := manager.OpenLibrary(ctx, root)
+			if err != nil {
+				t.Fatalf("OpenLibrary() first error = %v", err)
+			}
+
+			second, err := manager.OpenLibrary(ctx, root)
+			if err != nil {
+				t.Fatalf("OpenLibrary() second error = %v", err)
+			}
+
+			if first != second {
+				t.Fatal("OpenLibrary() returned different DB instances for the same library")
+			}
+		})
 	}
 }
 
 func TestLibraryDBManagerCreatesConnectionPerLibrary(t *testing.T) {
-	ctx := context.Background()
-	manager := NewLibraryDBManager()
-	defer closeManager(t, manager)
-
-	first, err := manager.OpenLibrary(ctx, newTestLibraryRoot(t, "first"))
-	if err != nil {
-		t.Fatalf("OpenLibrary() first error = %v", err)
+	testcases := []struct {
+		name string
+	}{
+		{name: "different library roots create different connections"},
 	}
 
-	second, err := manager.OpenLibrary(ctx, newTestLibraryRoot(t, "second"))
-	if err != nil {
-		t.Fatalf("OpenLibrary() second error = %v", err)
-	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			manager := NewLibraryDBManager()
+			defer closeManager(t, manager)
 
-	if first == second {
-		t.Fatal("OpenLibrary() returned the same DB instance for different libraries")
+			first, err := manager.OpenLibrary(ctx, newTestLibraryRoot(t, "first"))
+			if err != nil {
+				t.Fatalf("OpenLibrary() first error = %v", err)
+			}
+
+			second, err := manager.OpenLibrary(ctx, newTestLibraryRoot(t, "second"))
+			if err != nil {
+				t.Fatalf("OpenLibrary() second error = %v", err)
+			}
+
+			if first == second {
+				t.Fatal("OpenLibrary() returned the same DB instance for different libraries")
+			}
+		})
 	}
 }
 
 func TestLibraryDBManagerCreatesDatabaseAndRunsMigration(t *testing.T) {
-	ctx := context.Background()
-	manager := NewLibraryDBManager()
-	defer closeManager(t, manager)
-
-	root := newTestLibraryRoot(t, "library")
-	db, err := manager.OpenLibrary(ctx, root)
-	if err != nil {
-		t.Fatalf("OpenLibrary() error = %v", err)
+	testcases := []struct {
+		name          string
+		expectedTable string
+	}{
+		{name: "creates database and papers table", expectedTable: "papers"},
 	}
 
-	if _, err := os.Stat(PapersDatabasePath(root)); err != nil {
-		t.Fatalf("expected database file to exist: %v", err)
-	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			manager := NewLibraryDBManager()
+			defer closeManager(t, manager)
 
-	var tableName string
-	err = db.QueryRowContext(
-		ctx,
-		"SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'papers'",
-	).Scan(&tableName)
-	if err != nil {
-		t.Fatalf("expected papers table to exist: %v", err)
-	}
-	if tableName != "papers" {
-		t.Fatalf("tableName = %q, want papers", tableName)
+			root := newTestLibraryRoot(t, "library")
+			db, err := manager.OpenLibrary(ctx, root)
+			if err != nil {
+				t.Fatalf("OpenLibrary() error = %v", err)
+			}
+
+			if _, err := os.Stat(PapersDatabasePath(root)); err != nil {
+				t.Fatalf("expected database file to exist: %v", err)
+			}
+
+			var tableName string
+			err = db.QueryRowContext(
+				ctx,
+				"SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+				testcase.expectedTable,
+			).Scan(&tableName)
+			if err != nil {
+				t.Fatalf("expected %s table to exist: %v", testcase.expectedTable, err)
+			}
+			if tableName != testcase.expectedTable {
+				t.Fatalf("tableName = %q, want %q", tableName, testcase.expectedTable)
+			}
+		})
 	}
 }
 
 func TestLibraryDBManagerCloseClosesConnections(t *testing.T) {
-	ctx := context.Background()
-	manager := NewLibraryDBManager()
-
-	root := newTestLibraryRoot(t, "library")
-	db, err := manager.OpenLibrary(ctx, root)
-	if err != nil {
-		t.Fatalf("OpenLibrary() error = %v", err)
+	testcases := []struct {
+		name string
+	}{
+		{name: "close closes opened database connections"},
 	}
 
-	if err := manager.Close(); err != nil {
-		t.Fatalf("Close() error = %v", err)
-	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			manager := NewLibraryDBManager()
 
-	if err := db.PingContext(ctx); err == nil {
-		t.Fatal("PingContext() succeeded after manager closed the DB")
+			root := newTestLibraryRoot(t, "library")
+			db, err := manager.OpenLibrary(ctx, root)
+			if err != nil {
+				t.Fatalf("OpenLibrary() error = %v", err)
+			}
+
+			if err := manager.Close(); err != nil {
+				t.Fatalf("Close() error = %v", err)
+			}
+
+			if err := db.PingContext(ctx); err == nil {
+				t.Fatal("PingContext() succeeded after manager closed the DB")
+			}
+		})
 	}
 }
 

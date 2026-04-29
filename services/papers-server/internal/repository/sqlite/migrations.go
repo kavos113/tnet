@@ -1,6 +1,5 @@
 package sqlite
 
-import _ "embed"
+import "github.com/kavos113/tnet/services/papers-server/migrations"
 
-//go:embed migrations/schema.sql
-var schemaSQL string
+var schemaSQL = migrations.SchemaSQL

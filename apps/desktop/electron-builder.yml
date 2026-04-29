@@ -11,6 +11,11 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+extraResources:
+  - from: ../../dist/papers-server
+    to: papers-server
+    filter:
+      - '**/*'
 win:
   executableName: tnet
 nsis:

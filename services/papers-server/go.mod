@@ -4,6 +4,7 @@ go 1.25.1
 
 require (
 	connectrpc.com/connect v1.19.1
+	go.uber.org/mock v0.6.0
 	google.golang.org/protobuf v1.36.10
 	modernc.org/sqlite v1.40.1
 )

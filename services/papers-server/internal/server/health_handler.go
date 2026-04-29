@@ -7,14 +7,17 @@ import (
 	"connectrpc.com/connect"
 	papersv1 "github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1"
 	"github.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1/papersv1connect"
-	"github.com/kavos113/tnet/services/papers-server/internal/logic/health"
 )
 
-type HealthHandler struct {
-	service *health.Service
+type HealthChecker interface {
+	Status() (string, string)
 }
 
-func NewHealthHandler(service *health.Service) (string, http.Handler) {
+type HealthHandler struct {
+	service HealthChecker
+}
+
+func NewHealthHandler(service HealthChecker) (string, http.Handler) {
 	return papersv1connect.NewHealthServiceHandler(&HealthHandler{service: service})
 }
 
