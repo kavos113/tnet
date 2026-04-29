@@ -8,7 +8,7 @@
       html,
       body {
         width: 460px;
-        min-height: 560px;
+        min-height: 640px;
         margin: 0;
       }
 
@@ -95,7 +95,8 @@
       }
 
       .paper-popup-field input,
-      .paper-popup-field select {
+      .paper-popup-field select,
+      .paper-popup-field textarea {
         border: 1px solid #bcccdc;
         border-radius: 5px;
         box-sizing: border-box;
@@ -104,6 +105,11 @@
         min-height: 32px;
         padding: 6px 8px;
         width: 100%;
+      }
+
+      .paper-popup-field textarea {
+        min-height: 128px;
+        resize: vertical;
       }
 
       .paper-popup-checkbox {
@@ -123,6 +129,23 @@
         font-weight: 650;
         min-height: 34px;
         padding: 8px 12px;
+      }
+
+      .paper-popup-secondary {
+        background: #f0f4f8;
+        border: 1px solid #bcccdc;
+        border-radius: 5px;
+        color: #243b53;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 650;
+        min-height: 32px;
+        padding: 7px 10px;
+      }
+
+      .paper-popup-progress {
+        color: #627d98;
+        font-size: 12px;
       }
 
       .paper-popup-primary:disabled {

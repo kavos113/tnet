@@ -15,6 +15,7 @@ import type {
 import type {
   BrowserDetectedPaperSource,
   BrowserPaperImportCandidate,
+  CreatePaperFromPdfBytesRequest,
   DirectoryNode,
   ImportBrowserPaperProgress,
   ImportBrowserPaperRequest,
@@ -117,6 +118,24 @@ export class PapersExtensionServerClient {
       throw new Error('Paper import completed without a final response.');
     }
     return result;
+  }
+
+  async createPaperFromPdfBytes(request: CreatePaperFromPdfBytesRequest): Promise<unknown> {
+    const response = await this.paperClient.createPaperFromPdfBytes({
+      libraryRoot: request.libraryRoot,
+      directoryPath: request.directoryPath ?? '',
+      fileName: request.fileName,
+      pdfBytes: request.pdfBytes,
+      title: request.metadata.title ?? request.fileName.replace(/\.pdf$/i, ''),
+      authors: request.metadata.authors ?? [],
+      abstract: request.metadata.abstract ?? '',
+      publishedYear: request.metadata.publishedYear ?? 0,
+      venue: request.metadata.venue ?? '',
+      doi: request.metadata.doi ?? '',
+      arxivId: request.metadata.arxivId ?? '',
+      url: request.metadata.url ?? ''
+    });
+    return response;
   }
 }
 

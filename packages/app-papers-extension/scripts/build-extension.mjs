@@ -15,7 +15,12 @@ const sharedBuild = {
   base: './',
   root: packageRoot,
   publicDir: false,
-  logLevel: 'info'
+  logLevel: 'info',
+  resolve: {
+    alias: {
+      '@tnet/app-papers/shared': path.resolve(packageRoot, '..', 'app-papers', 'src', 'shared')
+    }
+  }
 };
 
 await build({
@@ -75,7 +80,7 @@ manifest.action = {
   ...manifest.action,
   default_popup: 'src/popup/index.html'
 };
-manifest.content_scripts = manifest.content_scripts.map((script) => ({
+manifest.content_scripts = (manifest.content_scripts ?? []).map((script) => ({
   ...script,
   js: ['contentScript.js']
 }));

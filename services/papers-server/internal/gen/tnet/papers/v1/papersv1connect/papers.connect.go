@@ -70,6 +70,9 @@ const (
 	// PaperServiceCreatePaperFromLocalPdfProcedure is the fully-qualified name of the PaperService's
 	// CreatePaperFromLocalPdf RPC.
 	PaperServiceCreatePaperFromLocalPdfProcedure = "/tnet.papers.v1.PaperService/CreatePaperFromLocalPdf"
+	// PaperServiceCreatePaperFromPdfBytesProcedure is the fully-qualified name of the PaperService's
+	// CreatePaperFromPdfBytes RPC.
+	PaperServiceCreatePaperFromPdfBytesProcedure = "/tnet.papers.v1.PaperService/CreatePaperFromPdfBytes"
 	// PaperServiceImportBrowserPaperProcedure is the fully-qualified name of the PaperService's
 	// ImportBrowserPaper RPC.
 	PaperServiceImportBrowserPaperProcedure = "/tnet.papers.v1.PaperService/ImportBrowserPaper"
@@ -368,6 +371,7 @@ type PaperServiceClient interface {
 	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
+	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error)
 	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
 	ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.ServerStreamForClient[v1.ImportBrowserPaperProgress], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
@@ -402,6 +406,12 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromLocalPdf")),
 			connect.WithClientOptions(opts...),
 		),
+		createPaperFromPdfBytes: connect.NewClient[v1.CreatePaperFromPdfBytesRequest, v1.PaperDetail](
+			httpClient,
+			baseURL+PaperServiceCreatePaperFromPdfBytesProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromPdfBytes")),
+			connect.WithClientOptions(opts...),
+		),
 		importBrowserPaper: connect.NewClient[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse](
 			httpClient,
 			baseURL+PaperServiceImportBrowserPaperProcedure,
@@ -428,6 +438,7 @@ type paperServiceClient struct {
 	listPapers                     *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
 	getPaper                       *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
 	createPaperFromLocalPdf        *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
+	createPaperFromPdfBytes        *connect.Client[v1.CreatePaperFromPdfBytesRequest, v1.PaperDetail]
 	importBrowserPaper             *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse]
 	importBrowserPaperWithProgress *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperProgress]
 	saveNote                       *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
@@ -446,6 +457,11 @@ func (c *paperServiceClient) GetPaper(ctx context.Context, req *connect.Request[
 // CreatePaperFromLocalPdf calls tnet.papers.v1.PaperService.CreatePaperFromLocalPdf.
 func (c *paperServiceClient) CreatePaperFromLocalPdf(ctx context.Context, req *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error) {
 	return c.createPaperFromLocalPdf.CallUnary(ctx, req)
+}
+
+// CreatePaperFromPdfBytes calls tnet.papers.v1.PaperService.CreatePaperFromPdfBytes.
+func (c *paperServiceClient) CreatePaperFromPdfBytes(ctx context.Context, req *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error) {
+	return c.createPaperFromPdfBytes.CallUnary(ctx, req)
 }
 
 // ImportBrowserPaper calls tnet.papers.v1.PaperService.ImportBrowserPaper.
@@ -468,6 +484,7 @@ type PaperServiceHandler interface {
 	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
+	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error)
 	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
 	ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest], *connect.ServerStream[v1.ImportBrowserPaperProgress]) error
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
@@ -498,6 +515,12 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromLocalPdf")),
 		connect.WithHandlerOptions(opts...),
 	)
+	paperServiceCreatePaperFromPdfBytesHandler := connect.NewUnaryHandler(
+		PaperServiceCreatePaperFromPdfBytesProcedure,
+		svc.CreatePaperFromPdfBytes,
+		connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromPdfBytes")),
+		connect.WithHandlerOptions(opts...),
+	)
 	paperServiceImportBrowserPaperHandler := connect.NewUnaryHandler(
 		PaperServiceImportBrowserPaperProcedure,
 		svc.ImportBrowserPaper,
@@ -524,6 +547,8 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 			paperServiceGetPaperHandler.ServeHTTP(w, r)
 		case PaperServiceCreatePaperFromLocalPdfProcedure:
 			paperServiceCreatePaperFromLocalPdfHandler.ServeHTTP(w, r)
+		case PaperServiceCreatePaperFromPdfBytesProcedure:
+			paperServiceCreatePaperFromPdfBytesHandler.ServeHTTP(w, r)
 		case PaperServiceImportBrowserPaperProcedure:
 			paperServiceImportBrowserPaperHandler.ServeHTTP(w, r)
 		case PaperServiceImportBrowserPaperWithProgressProcedure:
@@ -549,6 +574,10 @@ func (UnimplementedPaperServiceHandler) GetPaper(context.Context, *connect.Reque
 
 func (UnimplementedPaperServiceHandler) CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.CreatePaperFromLocalPdf is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.CreatePaperFromPdfBytes is not implemented"))
 }
 
 func (UnimplementedPaperServiceHandler) ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error) {

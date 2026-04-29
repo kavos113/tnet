@@ -15,6 +15,7 @@ type PaperUsecase interface {
 	ListPapers(context.Context, string, paper.ListFilter) ([]model.Paper, error)
 	GetPaper(context.Context, string, string) (model.Paper, bool, error)
 	CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (model.Paper, error)
+	CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (model.Paper, error)
 	ImportBrowserPaper(context.Context, paper.BrowserImportInput) (paper.BrowserImportResult, error)
 	ImportBrowserPaperWithProgress(context.Context, paper.BrowserImportInput, paper.ImportProgressReporter) (paper.BrowserImportResult, error)
 	SaveNote(context.Context, string, string, string) (model.Paper, bool, error)
@@ -69,6 +70,30 @@ func (h *PaperHandler) CreatePaperFromLocalPdf(
 	paper, err := h.u.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
 		LibraryRoot:   request.Msg.LibraryRoot,
 		SourcePath:    request.Msg.SourcePath,
+		Title:         request.Msg.Title,
+		Authors:       request.Msg.Authors,
+		Abstract:      request.Msg.Abstract,
+		PublishedYear: request.Msg.PublishedYear,
+		Venue:         request.Msg.Venue,
+		DOI:           request.Msg.Doi,
+		ArxivID:       request.Msg.ArxivId,
+		URL:           request.Msg.Url,
+		DirectoryPath: request.Msg.DirectoryPath,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	return connect.NewResponse(toProtoPaperDetail(paper)), nil
+}
+
+func (h *PaperHandler) CreatePaperFromPdfBytes(
+	ctx context.Context,
+	request *connect.Request[papersv1.CreatePaperFromPdfBytesRequest],
+) (*connect.Response[papersv1.PaperDetail], error) {
+	paper, err := h.u.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
+		LibraryRoot:   request.Msg.LibraryRoot,
+		FileName:      request.Msg.FileName,
+		Bytes:         request.Msg.PdfBytes,
 		Title:         request.Msg.Title,
 		Authors:       request.Msg.Authors,
 		Abstract:      request.Msg.Abstract,

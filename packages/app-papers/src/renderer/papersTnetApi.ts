@@ -35,6 +35,8 @@ export const papersTnetApi: PapersTnetApi = {
     library: {
       selectPdf: (request) => getPapersApi().papers.library.selectPdf(request),
       createPaperFromPdf: (request) => getPapersApi().papers.library.createPaperFromPdf(request),
+      createPaperFromPdfBytes: (request) =>
+        getPapersApi().papers.library.createPaperFromPdfBytes(request),
       importPdf: (request) => getPapersApi().papers.library.importPdf(request)
     },
     papers: {

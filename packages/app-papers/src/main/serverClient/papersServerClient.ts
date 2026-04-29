@@ -4,7 +4,11 @@ import {
   type PapersGlobalConfig,
   type PapersLibraryConfig
 } from '@tnet/app-papers/shared/config';
-import type { CreatePaperFromPdfRequest, ListPapersRequest } from '@tnet/app-papers/shared/ipc';
+import type {
+  CreatePaperFromPdfBytesRequest,
+  CreatePaperFromPdfRequest,
+  ListPapersRequest
+} from '@tnet/app-papers/shared/ipc';
 import type { PaperDetail, PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes';
 import {
   LibraryServiceClient,
@@ -121,6 +125,24 @@ export class PapersServerClient {
     const response = await unary(this.paperClient.createPaperFromLocalPdf.bind(this.paperClient), {
       libraryRoot: request.libraryRoot,
       sourcePath: request.sourcePath,
+      title: request.title,
+      authors: request.authors ?? [],
+      abstract: request.abstract ?? '',
+      publishedYear: request.publishedYear ?? 0,
+      venue: request.venue ?? '',
+      doi: request.doi ?? '',
+      arxivId: request.arxivId ?? '',
+      url: request.url ?? '',
+      directoryPath: request.directoryPath ?? ''
+    });
+    return toPaperDetail(response);
+  }
+
+  async createPaperFromPdfBytes(request: CreatePaperFromPdfBytesRequest): Promise<PaperDetail> {
+    const response = await unary(this.paperClient.createPaperFromPdfBytes.bind(this.paperClient), {
+      libraryRoot: request.libraryRoot,
+      fileName: request.fileName,
+      pdfBytes: request.pdfBytes,
       title: request.title,
       authors: request.authors ?? [],
       abstract: request.abstract ?? '',

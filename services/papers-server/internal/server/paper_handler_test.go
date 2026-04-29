@@ -26,6 +26,10 @@ func (fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFro
 	return model.Paper{}, nil
 }
 
+func (fakePaperUsecase) CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (model.Paper, error) {
+	return model.Paper{}, nil
+}
+
 func (fakePaperUsecase) ImportBrowserPaper(context.Context, paper.BrowserImportInput) (paper.BrowserImportResult, error) {
 	return paper.BrowserImportResult{}, nil
 }

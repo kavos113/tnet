@@ -1,11 +1,6 @@
-import type {
-  BrowserDetectedPaperSource,
-  BrowserPaperImportCandidate,
-  DirectoryNode,
-  ImportBrowserPaperProgress,
-  ImportBrowserPaperResponse,
-  LibraryInfo
-} from '../types';
+import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
+import { parseBibtexMetadata } from '@tnet/app-papers/shared/bibtex';
+import type { DirectoryNode, LibraryInfo } from '../types';
 import type { PapersExtensionServerClient } from '../papersServerClient';
 
 export type PopupStatus =
@@ -24,11 +19,12 @@ export interface PopupState {
   selectedLibraryRoot?: string;
   selectedDirectoryPath?: string;
   directoryTree?: DirectoryNode | null;
-  candidate?: BrowserPaperImportCandidate;
-  importPdf: boolean;
+  bibtexInput: string;
+  metadata: BibtexPaperMetadata;
   tagsInput: string;
-  importResult?: ImportBrowserPaperResponse;
-  importProgress?: ImportBrowserPaperProgress;
+  selectedPdfFileName?: string;
+  importResult?: unknown;
+  importStatusMessage?: string;
 }
 
 export interface DirectoryOption {
@@ -39,7 +35,8 @@ export interface DirectoryOption {
 export const initialPopupState = (): PopupState => ({
   status: 'idle',
   libraries: [],
-  importPdf: false,
+  bibtexInput: '',
+  metadata: {},
   tagsInput: ''
 });
 
@@ -76,10 +73,20 @@ export const parseTagsInput = (value: string): string[] =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-export const loadPopupState = async (
-  client: PapersExtensionServerClient,
-  source: BrowserDetectedPaperSource
-): Promise<PopupState> => {
+export const updateBibtexInput = (state: PopupState, bibtexInput: string): PopupState => ({
+  ...state,
+  bibtexInput,
+  metadata: parseBibtexMetadata(bibtexInput),
+  errorMessage: undefined
+});
+
+export const updateMetadata = (state: PopupState, metadata: BibtexPaperMetadata): PopupState => ({
+  ...state,
+  metadata,
+  errorMessage: undefined
+});
+
+export const loadPopupState = async (client: PapersExtensionServerClient): Promise<PopupState> => {
   if (!(await client.checkHealth())) {
     return {
       ...initialPopupState(),
@@ -89,10 +96,7 @@ export const loadPopupState = async (
   }
 
   try {
-    const [libraries, candidate] = await Promise.all([
-      client.listLibraries(),
-      client.resolveMetadata(source)
-    ]);
+    const libraries = await client.listLibraries();
     const selectedLibraryRoot = resolveInitialLibraryRoot(
       libraries.libraries,
       libraries.activeLibraryRoot
@@ -102,15 +106,13 @@ export const loadPopupState = async (
       : null;
 
     return {
+      ...initialPopupState(),
       status: 'ready',
       libraries: libraries.libraries,
       activeLibraryRoot: libraries.activeLibraryRoot,
       selectedLibraryRoot,
       selectedDirectoryPath: '',
-      directoryTree,
-      candidate,
-      importPdf: Boolean(candidate.pdfUrl),
-      tagsInput: candidate.tags?.join(', ') ?? ''
+      directoryTree
     };
   } catch (error) {
     return {
@@ -137,32 +139,36 @@ export const selectLibrary = async (
 export const importSelectedPaper = async (
   client: PapersExtensionServerClient,
   state: PopupState,
-  onProgress?: (progress: ImportBrowserPaperProgress) => void
+  pdfFile: { name: string; bytes: Uint8Array<ArrayBuffer> } | null
 ): Promise<PopupState> => {
-  if (!state.selectedLibraryRoot || !state.candidate) {
+  if (!state.selectedLibraryRoot) {
     return {
       ...state,
       status: 'error',
       errorMessage: 'Select a paper library before importing.'
     };
   }
+  if (!pdfFile) {
+    return {
+      ...state,
+      status: 'error',
+      errorMessage: 'Select a downloaded PDF before importing.'
+    };
+  }
 
   try {
-    const importResult = await client.importPaperWithProgress(
-      {
-        libraryRoot: state.selectedLibraryRoot,
-        directoryPath: state.selectedDirectoryPath ?? '',
-        candidate: state.candidate,
-        importPdf: state.importPdf && Boolean(state.candidate.pdfUrl),
-        tags: parseTagsInput(state.tagsInput)
-      },
-      onProgress ?? (() => {})
-    );
+    const importResult = await client.createPaperFromPdfBytes({
+      libraryRoot: state.selectedLibraryRoot,
+      directoryPath: state.selectedDirectoryPath ?? '',
+      fileName: pdfFile.name,
+      pdfBytes: pdfFile.bytes,
+      metadata: state.metadata
+    });
     return {
       ...state,
       status: 'imported',
       importResult,
-      importProgress: undefined,
+      importStatusMessage: 'Import complete.',
       errorMessage: undefined
     };
   } catch (error) {

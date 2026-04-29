@@ -384,6 +384,59 @@ export interface CreatePaperFromLocalPdfRequest {
   directoryPath: string;
 }
 /**
+ * @generated from protobuf message tnet.papers.v1.CreatePaperFromPdfBytesRequest
+ */
+export interface CreatePaperFromPdfBytesRequest {
+  /**
+   * @generated from protobuf field: string library_root = 1
+   */
+  libraryRoot: string;
+  /**
+   * @generated from protobuf field: string file_name = 2
+   */
+  fileName: string;
+  /**
+   * @generated from protobuf field: bytes pdf_bytes = 3
+   */
+  pdfBytes: Uint8Array;
+  /**
+   * @generated from protobuf field: string title = 4
+   */
+  title: string;
+  /**
+   * @generated from protobuf field: repeated string authors = 5
+   */
+  authors: string[];
+  /**
+   * @generated from protobuf field: string abstract = 6
+   */
+  abstract: string;
+  /**
+   * @generated from protobuf field: int32 published_year = 7
+   */
+  publishedYear: number;
+  /**
+   * @generated from protobuf field: string venue = 8
+   */
+  venue: string;
+  /**
+   * @generated from protobuf field: string doi = 9
+   */
+  doi: string;
+  /**
+   * @generated from protobuf field: string arxiv_id = 10
+   */
+  arxivId: string;
+  /**
+   * @generated from protobuf field: string url = 11
+   */
+  url: string;
+  /**
+   * @generated from protobuf field: string directory_path = 12
+   */
+  directoryPath: string;
+}
+/**
  * @generated from protobuf message tnet.papers.v1.PaperTag
  */
 export interface PaperTag {
@@ -2529,6 +2582,155 @@ class CreatePaperFromLocalPdfRequest$Type extends MessageType<CreatePaperFromLoc
  */
 export const CreatePaperFromLocalPdfRequest = new CreatePaperFromLocalPdfRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class CreatePaperFromPdfBytesRequest$Type extends MessageType<CreatePaperFromPdfBytesRequest> {
+  constructor() {
+    super('tnet.papers.v1.CreatePaperFromPdfBytesRequest', [
+      { no: 1, name: 'library_root', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'file_name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 3, name: 'pdf_bytes', kind: 'scalar', T: 12 /*ScalarType.BYTES*/ },
+      { no: 4, name: 'title', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 5,
+        name: 'authors',
+        kind: 'scalar',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: 9 /*ScalarType.STRING*/
+      },
+      { no: 6, name: 'abstract', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 7, name: 'published_year', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      { no: 8, name: 'venue', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 9, name: 'doi', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 10, name: 'arxiv_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 11, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 12, name: 'directory_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+    ]);
+  }
+  create(value?: PartialMessage<CreatePaperFromPdfBytesRequest>): CreatePaperFromPdfBytesRequest {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.libraryRoot = '';
+    message.fileName = '';
+    message.pdfBytes = new Uint8Array(0);
+    message.title = '';
+    message.authors = [];
+    message.abstract = '';
+    message.publishedYear = 0;
+    message.venue = '';
+    message.doi = '';
+    message.arxivId = '';
+    message.url = '';
+    message.directoryPath = '';
+    if (value !== undefined)
+      reflectionMergePartial<CreatePaperFromPdfBytesRequest>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: CreatePaperFromPdfBytesRequest
+  ): CreatePaperFromPdfBytesRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string library_root */ 1:
+          message.libraryRoot = reader.string();
+          break;
+        case /* string file_name */ 2:
+          message.fileName = reader.string();
+          break;
+        case /* bytes pdf_bytes */ 3:
+          message.pdfBytes = reader.bytes();
+          break;
+        case /* string title */ 4:
+          message.title = reader.string();
+          break;
+        case /* repeated string authors */ 5:
+          message.authors.push(reader.string());
+          break;
+        case /* string abstract */ 6:
+          message.abstract = reader.string();
+          break;
+        case /* int32 published_year */ 7:
+          message.publishedYear = reader.int32();
+          break;
+        case /* string venue */ 8:
+          message.venue = reader.string();
+          break;
+        case /* string doi */ 9:
+          message.doi = reader.string();
+          break;
+        case /* string arxiv_id */ 10:
+          message.arxivId = reader.string();
+          break;
+        case /* string url */ 11:
+          message.url = reader.string();
+          break;
+        case /* string directory_path */ 12:
+          message.directoryPath = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: CreatePaperFromPdfBytesRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* string library_root = 1; */
+    if (message.libraryRoot !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.libraryRoot);
+    /* string file_name = 2; */
+    if (message.fileName !== '') writer.tag(2, WireType.LengthDelimited).string(message.fileName);
+    /* bytes pdf_bytes = 3; */
+    if (message.pdfBytes.length) writer.tag(3, WireType.LengthDelimited).bytes(message.pdfBytes);
+    /* string title = 4; */
+    if (message.title !== '') writer.tag(4, WireType.LengthDelimited).string(message.title);
+    /* repeated string authors = 5; */
+    for (let i = 0; i < message.authors.length; i++)
+      writer.tag(5, WireType.LengthDelimited).string(message.authors[i]);
+    /* string abstract = 6; */
+    if (message.abstract !== '') writer.tag(6, WireType.LengthDelimited).string(message.abstract);
+    /* int32 published_year = 7; */
+    if (message.publishedYear !== 0) writer.tag(7, WireType.Varint).int32(message.publishedYear);
+    /* string venue = 8; */
+    if (message.venue !== '') writer.tag(8, WireType.LengthDelimited).string(message.venue);
+    /* string doi = 9; */
+    if (message.doi !== '') writer.tag(9, WireType.LengthDelimited).string(message.doi);
+    /* string arxiv_id = 10; */
+    if (message.arxivId !== '') writer.tag(10, WireType.LengthDelimited).string(message.arxivId);
+    /* string url = 11; */
+    if (message.url !== '') writer.tag(11, WireType.LengthDelimited).string(message.url);
+    /* string directory_path = 12; */
+    if (message.directoryPath !== '')
+      writer.tag(12, WireType.LengthDelimited).string(message.directoryPath);
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.CreatePaperFromPdfBytesRequest
+ */
+export const CreatePaperFromPdfBytesRequest = new CreatePaperFromPdfBytesRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class PaperTag$Type extends MessageType<PaperTag> {
   constructor() {
     super('tnet.papers.v1.PaperTag', [
@@ -3866,6 +4068,12 @@ export const PaperService = new ServiceType('tnet.papers.v1.PaperService', [
     name: 'CreatePaperFromLocalPdf',
     options: {},
     I: CreatePaperFromLocalPdfRequest,
+    O: PaperDetail
+  },
+  {
+    name: 'CreatePaperFromPdfBytes',
+    options: {},
+    I: CreatePaperFromPdfBytesRequest,
     O: PaperDetail
   },
   {

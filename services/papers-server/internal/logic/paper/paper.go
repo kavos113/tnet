@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
 	"github.com/kavos113/tnet/services/papers-server/internal/pdfdownload"
@@ -32,6 +33,21 @@ type ListFilter struct {
 type CreateFromLocalPDFInput struct {
 	LibraryRoot   string
 	SourcePath    string
+	Title         string
+	Authors       []string
+	Abstract      string
+	PublishedYear int32
+	Venue         string
+	DOI           string
+	ArxivID       string
+	URL           string
+	DirectoryPath string
+}
+
+type CreateFromPDFBytesInput struct {
+	LibraryRoot   string
+	FileName      string
+	Bytes         []byte
 	Title         string
 	Authors       []string
 	Abstract      string
@@ -135,6 +151,44 @@ func (s *Service) CreatePaperFromLocalPDF(
 	}
 
 	pdfPath, err := s.copyPDFIfNeeded(root, input.SourcePath, input.DirectoryPath)
+	if err != nil {
+		return model.Paper{}, err
+	}
+
+	repository, err := s.repositoryForRoot(ctx, root)
+	if err != nil {
+		return model.Paper{}, err
+	}
+	return repository.CreatePaper(ctx, sqlite.CreatePaperInput{
+		Title:         input.Title,
+		Authors:       input.Authors,
+		Abstract:      input.Abstract,
+		PublishedYear: input.PublishedYear,
+		Venue:         input.Venue,
+		DOI:           input.DOI,
+		ArxivID:       input.ArxivID,
+		URL:           input.URL,
+		PDFPath:       pdfPath,
+		DirectoryPath: directoryPathForPDF(pdfPath),
+	})
+}
+
+func (s *Service) CreatePaperFromPDFBytes(
+	ctx context.Context,
+	input CreateFromPDFBytesInput,
+) (model.Paper, error) {
+	root, err := model.NewLibraryRoot(input.LibraryRoot)
+	if err != nil {
+		return model.Paper{}, err
+	}
+	if len(input.Bytes) == 0 {
+		return model.Paper{}, errRequired("pdf bytes")
+	}
+
+	pdfPath, err := s.saveDownloadedPDF(root, input.DirectoryPath, pdfdownload.DownloadedPDF{
+		FileName: safePDFFileName(input.FileName),
+		Bytes:    input.Bytes,
+	})
 	if err != nil {
 		return model.Paper{}, err
 	}
@@ -438,6 +492,14 @@ func nextAvailablePath(directory string, fileName string) string {
 		candidate = filepath.Join(directory, fmt.Sprintf("%s %d%s", baseName, counter, extension))
 		counter++
 	}
+}
+
+func safePDFFileName(fileName string) string {
+	name := filepath.Base(fileName)
+	if name == "." || name == string(filepath.Separator) || name == "" || !strings.HasSuffix(strings.ToLower(name), ".pdf") {
+		return "paper.pdf"
+	}
+	return name
 }
 
 func copyFile(sourcePath string, targetPath string) error {

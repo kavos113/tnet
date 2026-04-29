@@ -9,6 +9,7 @@ import {
   CheckRequest,
   CheckResponse,
   CreatePaperFromLocalPdfRequest,
+  CreatePaperFromPdfBytesRequest,
   DetachTagRequest,
   GetPaperRequest,
   GetPaperResponse,
@@ -152,6 +153,15 @@ export const PaperService = {
     createPaperFromLocalPdf: {
       name: 'CreatePaperFromLocalPdf',
       I: CreatePaperFromLocalPdfRequest,
+      O: PaperDetail,
+      kind: MethodKind.Unary
+    },
+    /**
+     * @generated from rpc tnet.papers.v1.PaperService.CreatePaperFromPdfBytes
+     */
+    createPaperFromPdfBytes: {
+      name: 'CreatePaperFromPdfBytes',
+      I: CreatePaperFromPdfBytesRequest,
       O: PaperDetail,
       kind: MethodKind.Unary
     },

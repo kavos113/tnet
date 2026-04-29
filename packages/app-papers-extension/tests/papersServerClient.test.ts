@@ -35,6 +35,7 @@ const createAvailableClient = (): PapersExtensionServerClient => {
       })
     });
     router.service(PaperService, {
+      createPaperFromPdfBytes: () => ({ id: 'paper-1', title: 'Paper', hasPdf: true }),
       importBrowserPaper: () => ({ status: 'created', paper: { id: 'paper-1', title: 'Paper' } }),
       importBrowserPaperWithProgress: async function* () {
         yield { stage: 'downloading_pdf', downloadedBytes: BigInt(50), totalBytes: BigInt(100) };
@@ -133,5 +134,19 @@ describe('PapersExtensionServerClient', () => {
       )
     ).resolves.toMatchObject({ status: 'created', paper: { id: 'paper-1' } });
     expect(stages).toEqual(['downloading_pdf', 'downloaded_pdf', 'completed']);
+  });
+
+  it('imports manually selected PDF bytes through the generated PaperService client', async () => {
+    const client = createAvailableClient();
+
+    await expect(
+      client.createPaperFromPdfBytes({
+        libraryRoot: 'C:/papers',
+        directoryPath: 'articles',
+        fileName: 'paper.pdf',
+        pdfBytes: new Uint8Array([1, 2, 3]),
+        metadata: { title: 'Paper', authors: ['Alice'] }
+      })
+    ).resolves.toMatchObject({ id: 'paper-1', title: 'Paper' });
   });
 });

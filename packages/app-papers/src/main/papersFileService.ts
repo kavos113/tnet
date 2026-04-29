@@ -1,5 +1,5 @@
 import path from 'path';
-import { dialog, shell } from 'electron';
+import { clipboard, dialog, shell } from 'electron';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import {
   isInsidePapersLibrary,
@@ -38,6 +38,7 @@ export const selectPdfForImport = async (
   return {
     sourcePath,
     suggestedTitle: withoutExtension(sourcePath),
+    clipboardBibtex: clipboard.readText(),
     sourceRelativePath,
     willCopy: sourceRelativePath === undefined,
     targetDirectoryPath: normalizeDirectoryPath(request.directoryPath)

@@ -15,6 +15,9 @@ const electronMock = vi.hoisted(() => {
     },
     dialog: {
       showOpenDialog: vi.fn()
+    },
+    clipboard: {
+      readText: vi.fn()
     }
   };
 });
@@ -22,6 +25,7 @@ const electronMock = vi.hoisted(() => {
 vi.mock('electron', () => ({
   ipcMain: electronMock.ipcMain,
   shell: electronMock.shell,
+  clipboard: electronMock.clipboard,
   dialog: electronMock.dialog
 }));
 

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
+import { parseBibtexMetadata } from '@tnet/app-papers/shared/bibtex';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import { usePapersDispatch } from '../storeHooks';
 import { papersTnetApi } from '../papersTnetApi';
@@ -12,7 +14,11 @@ import {
 
 export interface PaperImportState {
   importCandidate: SelectedPdfImportCandidate | null;
+  importBibtex: string;
+  importMetadata: BibtexPaperMetadata;
   importTitle: string;
+  setImportBibtex: (bibtex: string) => void;
+  setImportMetadata: (metadata: BibtexPaperMetadata) => void;
   setImportTitle: (title: string) => void;
   importPdf: () => Promise<void>;
   confirmImportPdf: () => Promise<void>;
@@ -28,7 +34,18 @@ export const usePaperImport = ({
 }): PaperImportState => {
   const dispatch = usePapersDispatch();
   const [importCandidate, setImportCandidate] = useState<SelectedPdfImportCandidate | null>(null);
+  const [importBibtex, setImportBibtexState] = useState('');
+  const [importMetadata, setImportMetadata] = useState<BibtexPaperMetadata>({});
   const [importTitle, setImportTitle] = useState('');
+
+  const setImportBibtex = (bibtex: string): void => {
+    setImportBibtexState(bibtex);
+    const metadata = parseBibtexMetadata(bibtex);
+    setImportMetadata(metadata);
+    if (metadata.title) {
+      setImportTitle(metadata.title);
+    }
+  };
 
   const importPdf = async (): Promise<void> => {
     if (!activeLibraryRoot) return;
@@ -40,7 +57,10 @@ export const usePaperImport = ({
     if (!candidate) return;
 
     setImportCandidate(candidate);
-    setImportTitle(candidate.suggestedTitle);
+    const metadata = parseBibtexMetadata(candidate.clipboardBibtex ?? '');
+    setImportBibtexState(candidate.clipboardBibtex ?? '');
+    setImportMetadata(metadata);
+    setImportTitle(metadata.title ?? candidate.suggestedTitle);
   };
 
   const confirmImportPdf = async (): Promise<void> => {
@@ -53,6 +73,13 @@ export const usePaperImport = ({
       libraryRoot: activeLibraryRoot,
       sourcePath: importCandidate.sourcePath,
       title,
+      authors: importMetadata.authors,
+      abstract: importMetadata.abstract,
+      publishedYear: importMetadata.publishedYear,
+      venue: importMetadata.venue,
+      doi: importMetadata.doi,
+      arxivId: importMetadata.arxivId,
+      url: importMetadata.url,
       directoryPath: importCandidate.targetDirectoryPath
     });
     const papers = await papersTnetApi.papers.papers.list({
@@ -65,18 +92,26 @@ export const usePaperImport = ({
     dispatch(setPaperDetail(imported));
     dispatch(setActivePapersDetailTab('pdf'));
     setImportCandidate(null);
+    setImportBibtexState('');
+    setImportMetadata({});
     setImportTitle('');
   };
 
   const cancelImportPdf = (): void => {
     setImportCandidate(null);
+    setImportBibtexState('');
+    setImportMetadata({});
     setImportTitle('');
     dispatch(setPapersError(''));
   };
 
   return {
     importCandidate,
+    importBibtex,
+    importMetadata,
     importTitle,
+    setImportBibtex,
+    setImportMetadata,
     setImportTitle,
     importPdf,
     confirmImportPdf,

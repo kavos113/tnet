@@ -12,6 +12,22 @@ const createTestClient = (): PapersServerClient => {
       }))
     },
     paperClient: {
+      createPaperFromPdfBytes: unaryStub(() => ({
+        id: 'paper-2',
+        title: 'Bytes Paper',
+        authors: ['Alice'],
+        publishedYear: 2025,
+        venue: 'Venue',
+        tags: [],
+        hasPdf: true,
+        abstract: '',
+        doi: '',
+        arxivId: '',
+        url: '',
+        pdfPath: 'papers/bytes.pdf',
+        directoryPath: 'papers',
+        noteContent: ''
+      })),
       getPaper: unaryStub(() => ({
         paper: {
           id: 'paper-1',
@@ -81,6 +97,25 @@ describe('PapersServerClient', () => {
     const bytes = await client.loadPdfBytes({ libraryRoot: 'C:/papers', pdfPath: 'papers/a.pdf' });
 
     expect([...new Uint8Array(bytes)]).toEqual([1, 2, 3]);
+  });
+
+  it('creates a paper from PDF bytes', async () => {
+    const client = createTestClient();
+
+    await expect(
+      client.createPaperFromPdfBytes({
+        libraryRoot: 'C:/papers',
+        fileName: 'paper.pdf',
+        pdfBytes: new Uint8Array([1, 2, 3]),
+        title: 'Bytes Paper',
+        authors: ['Alice'],
+        publishedYear: 2025
+      })
+    ).resolves.toMatchObject({
+      id: 'paper-2',
+      title: 'Bytes Paper',
+      hasPdf: true
+    });
   });
 
   it('treats empty library requests as an unselected library state', async () => {

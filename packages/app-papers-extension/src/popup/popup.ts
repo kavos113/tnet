@@ -1,16 +1,18 @@
+import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
 import { PapersExtensionServerClient } from '../papersServerClient';
-import type { BrowserDetectedPaperSource } from '../types';
 import type { PopupState } from './popupStore';
 import {
   flattenDirectoryTree,
   importSelectedPaper,
   loadPopupState,
-  selectLibrary
+  selectLibrary,
+  updateBibtexInput,
+  updateMetadata
 } from './popupStore';
-import { buildPopupSource } from './popupSource';
 
 const client = new PapersExtensionServerClient();
 let state: PopupState;
+let selectedPdfFile: File | null = null;
 
 const rootElement = (): HTMLElement => {
   const root = document.getElementById('root');
@@ -19,8 +21,7 @@ const rootElement = (): HTMLElement => {
 };
 
 const setRoot = (content: Node): void => {
-  const root = rootElement();
-  root.replaceChildren(content);
+  rootElement().replaceChildren(content);
 };
 
 const createElement = <K extends keyof HTMLElementTagNameMap>(
@@ -41,28 +42,11 @@ const renderMessage = (title: string, message?: string): void => {
   setRoot(container);
 };
 
-const metadataRows = (state: PopupState): Array<[string, string]> => {
-  const candidate = state.candidate;
-  if (!candidate) return [];
-  const rows: Array<[string, string]> = [
-    ['Title', candidate.title ?? 'Untitled paper'],
-    ['Authors', candidate.authors?.join(', ') ?? ''],
-    ['Year', candidate.publishedYear ? String(candidate.publishedYear) : ''],
-    ['Venue', candidate.venue ?? ''],
-    ['DOI', candidate.doi ?? ''],
-    ['arXiv', candidate.arxivId ?? ''],
-    ['PDF', candidate.pdfUrl ?? '']
-  ];
-  return rows.filter(([, value]) => Boolean(value));
-};
-
 const renderReady = (): void => {
   const container = createElement('main', 'paper-popup');
   const title = createElement('h1', undefined, 'Import Paper');
   const form = createElement('form', 'paper-popup-form');
 
-  const candidate = state.candidate;
-  const hasPdfUrl = Boolean(candidate?.pdfUrl);
   const librarySelect = createElement('select');
   librarySelect.name = 'libraryRoot';
   librarySelect.disabled = state.libraries.length === 0;
@@ -103,39 +87,68 @@ const renderReady = (): void => {
     state = { ...state, selectedDirectoryPath: directorySelect.value };
   });
 
-  const tagsInput = createElement('input');
-  tagsInput.type = 'text';
-  tagsInput.name = 'tags';
-  tagsInput.placeholder = 'tag, another tag';
-  tagsInput.value = state.tagsInput;
-  tagsInput.addEventListener('input', () => {
-    state = { ...state, tagsInput: tagsInput.value };
+  const bibtexInput = createElement('textarea');
+  bibtexInput.name = 'bibtex';
+  bibtexInput.rows = 8;
+  bibtexInput.placeholder = '@article{...}';
+  bibtexInput.value = state.bibtexInput;
+  bibtexInput.addEventListener('input', () => {
+    state = updateBibtexInput(state, bibtexInput.value);
   });
 
-  const importPdfInput = createElement('input');
-  importPdfInput.type = 'checkbox';
-  importPdfInput.name = 'importPdf';
-  importPdfInput.checked = state.importPdf && hasPdfUrl;
-  importPdfInput.disabled = !hasPdfUrl;
-  importPdfInput.addEventListener('change', () => {
-    state = { ...state, importPdf: importPdfInput.checked };
+  const pasteButton = createElement('button', 'paper-popup-secondary', 'Paste from clipboard');
+  pasteButton.type = 'button';
+  pasteButton.addEventListener('click', () => {
+    navigator.clipboard
+      .readText()
+      .then((text) => {
+        state = updateBibtexInput(state, text);
+        renderReady();
+      })
+      .catch(() => {
+        state = {
+          ...state,
+          errorMessage: 'Clipboard read failed. Paste BibTeX manually.'
+        };
+        renderReady();
+      });
+  });
+
+  const fileInput = createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'application/pdf,.pdf';
+  fileInput.addEventListener('change', () => {
+    selectedPdfFile = fileInput.files?.[0] ?? null;
+    state = { ...state, selectedPdfFileName: selectedPdfFile?.name, errorMessage: undefined };
+    renderReady();
+  });
+
+  const metadata = createMetadataFields(state.metadata, (nextMetadata) => {
+    state = updateMetadata(state, nextMetadata);
   });
 
   const importButton = createElement('button', 'paper-popup-primary', 'Import');
   importButton.type = 'submit';
-  importButton.disabled = !state.selectedLibraryRoot || !state.candidate;
-  const progressMessage = createElement('p', 'paper-popup-progress');
-  progressMessage.hidden = !state.importProgress;
-  progressMessage.textContent = state.importProgress
-    ? formatImportProgress(state.importProgress)
-    : '';
+  importButton.disabled = !state.selectedLibraryRoot || !selectedPdfFile;
+  const statusMessage = createElement('p', 'paper-popup-progress');
+  statusMessage.hidden = !state.importStatusMessage;
+  statusMessage.textContent = state.importStatusMessage ?? '';
 
   form.append(
     createField('Library', librarySelect),
     createField('Directory', directorySelect),
-    createField('Tags', tagsInput),
-    createCheckboxField('Download PDF when available', importPdfInput),
-    progressMessage,
+    createField('BibTeX', bibtexInput),
+    pasteButton,
+    metadata,
+    createField('Downloaded PDF', fileInput),
+    selectedPdfFile
+      ? createElement('p', 'paper-popup-progress', `Selected: ${selectedPdfFile.name}`)
+      : createElement(
+          'p',
+          'paper-popup-progress',
+          'Select a PDF from Downloads or another folder.'
+        ),
+    statusMessage,
     importButton
   );
 
@@ -143,17 +156,18 @@ const renderReady = (): void => {
     event.preventDefault();
     importButton.disabled = true;
     importButton.textContent = 'Importing...';
-    const startedProgress = { stage: 'started', downloadedBytes: 0, totalBytes: 0 };
-    state = { ...state, importProgress: startedProgress };
-    progressMessage.hidden = false;
-    progressMessage.textContent = formatImportProgress(startedProgress);
-    importSelectedPaper(client, state, (progress) => {
-      state = { ...state, importProgress: progress };
-      progressMessage.hidden = false;
-      progressMessage.textContent = formatImportProgress(progress);
-    })
+    state = { ...state, importStatusMessage: 'Reading PDF...' };
+    statusMessage.hidden = false;
+    statusMessage.textContent = state.importStatusMessage ?? '';
+    readSelectedPdf()
+      .then((pdfFile) => {
+        state = { ...state, importStatusMessage: 'Saving paper...' };
+        statusMessage.textContent = state.importStatusMessage ?? '';
+        return importSelectedPaper(client, state, pdfFile);
+      })
       .then((nextState) => {
         state = nextState;
+        selectedPdfFile = null;
         renderState();
       })
       .catch((error: unknown) => {
@@ -166,14 +180,6 @@ const renderReady = (): void => {
       });
   });
 
-  const metadata = createElement('section', 'paper-popup-card');
-  metadata.append(createElement('h2', undefined, 'Detected Metadata'));
-  const rows = createElement('dl', 'paper-popup-metadata');
-  for (const [label, value] of metadataRows(state)) {
-    rows.append(createElement('dt', undefined, label), createElement('dd', undefined, value));
-  }
-  metadata.append(rows);
-
   if (state.errorMessage) {
     container.append(createElement('p', 'paper-popup-error', state.errorMessage));
   }
@@ -183,39 +189,64 @@ const renderReady = (): void => {
     );
   }
 
-  container.append(title, metadata, form);
+  container.append(title, form);
   setRoot(container);
 };
 
-const formatImportProgress = (progress: NonNullable<PopupState['importProgress']>): string => {
-  if (progress.response) {
-    return 'Import complete.';
-  }
-  if (progress.stage === 'downloading_pdf') {
-    if (progress.totalBytes > 0) {
-      return `Downloading PDF... ${Math.round((progress.downloadedBytes / progress.totalBytes) * 100)}%`;
-    }
-    return `Downloading PDF... ${formatBytes(progress.downloadedBytes)}`;
-  }
-  if (progress.stage === 'downloaded_pdf') {
-    return 'PDF downloaded.';
-  }
-  if (progress.stage === 'metadata_only') {
-    return 'PDF download failed. Importing metadata only.';
-  }
-  if (progress.stage === 'duplicate') {
-    return 'This paper is already in the library.';
-  }
-  if (progress.stage === 'saving') {
-    return 'Saving paper...';
-  }
-  return 'Starting import...';
+const createMetadataFields = (
+  metadata: BibtexPaperMetadata,
+  onChange: (metadata: BibtexPaperMetadata) => void
+): HTMLElement => {
+  const container = createElement('section', 'paper-popup-card');
+  container.append(createElement('h2', undefined, 'Metadata'));
+  const title = createTextInput(metadata.title ?? '', (value) =>
+    onChange({ ...metadata, title: value })
+  );
+  const authors = createTextInput(metadata.authors?.join(', ') ?? '', (value) =>
+    onChange({
+      ...metadata,
+      authors: value
+        .split(',')
+        .map((author) => author.trim())
+        .filter(Boolean)
+    })
+  );
+  const year = createTextInput(
+    metadata.publishedYear ? String(metadata.publishedYear) : '',
+    (value) => onChange({ ...metadata, publishedYear: value ? Number(value) : undefined })
+  );
+  const venue = createTextInput(metadata.venue ?? '', (value) =>
+    onChange({ ...metadata, venue: value })
+  );
+  const doi = createTextInput(metadata.doi ?? '', (value) => onChange({ ...metadata, doi: value }));
+  const url = createTextInput(metadata.url ?? '', (value) => onChange({ ...metadata, url: value }));
+  container.append(
+    createField('Title', title),
+    createField('Authors', authors),
+    createField('Year', year),
+    createField('Venue', venue),
+    createField('DOI', doi),
+    createField('URL', url)
+  );
+  return container;
 };
 
-const formatBytes = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+const createTextInput = (value: string, onInput: (value: string) => void): HTMLInputElement => {
+  const input = createElement('input');
+  input.value = value;
+  input.addEventListener('input', () => onInput(input.value));
+  return input;
+};
+
+const readSelectedPdf = async (): Promise<{
+  name: string;
+  bytes: Uint8Array<ArrayBuffer>;
+} | null> => {
+  if (!selectedPdfFile) return null;
+  return {
+    name: selectedPdfFile.name,
+    bytes: new Uint8Array(await selectedPdfFile.arrayBuffer())
+  };
 };
 
 const createField = (labelText: string, control: HTMLElement): HTMLLabelElement => {
@@ -224,18 +255,11 @@ const createField = (labelText: string, control: HTMLElement): HTMLLabelElement 
   return label;
 };
 
-const createCheckboxField = (labelText: string, control: HTMLInputElement): HTMLLabelElement => {
-  const label = createElement('label', 'paper-popup-checkbox');
-  label.append(control, createElement('span', undefined, labelText));
-  return label;
-};
-
 const renderImported = (): void => {
-  const status = state.importResult?.status ?? 'imported';
   const container = createElement('main', 'paper-popup paper-popup-message');
   container.append(
     createElement('h1', undefined, 'Import Complete'),
-    createElement('p', undefined, `Status: ${status}`)
+    createElement('p', undefined, 'The selected PDF and BibTeX metadata were imported.')
   );
   setRoot(container);
 };
@@ -257,34 +281,9 @@ const renderState = (): void => {
 };
 
 const bootstrap = async (): Promise<void> => {
-  const [tab] = (await chrome?.tabs?.query?.({ active: true, currentWindow: true })) ?? [];
-  const pageMetadata = await readActiveTabMetadata(tab);
-  const source = buildPopupSource(tab, pageMetadata);
-
-  renderMessage('Loading paper metadata...');
-  state = await loadPopupState(client, source);
+  renderMessage('Loading paper libraries...');
+  state = await loadPopupState(client);
   renderState();
 };
-
-const readActiveTabMetadata = async (
-  tab: ChromeTab | undefined
-): Promise<BrowserDetectedPaperSource | undefined> => {
-  if (typeof tab?.id !== 'number') return undefined;
-
-  try {
-    const response = await chrome?.tabs?.sendMessage?.(tab.id, {
-      type: 'tnet:paper:read-metadata'
-    });
-    return isBrowserDetectedPaperSource(response) ? response : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
-const isBrowserDetectedPaperSource = (value: unknown): value is BrowserDetectedPaperSource =>
-  typeof value === 'object' &&
-  value !== null &&
-  'sourceUrl' in value &&
-  typeof value.sourceUrl === 'string';
 
 void bootstrap();

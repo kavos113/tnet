@@ -56,3 +56,12 @@ export interface ImportBrowserPaperProgress {
   totalBytes: number;
   response?: ImportBrowserPaperResponse;
 }
+
+export interface CreatePaperFromPdfBytesRequest {
+  libraryRoot: string;
+  directoryPath?: string;
+  fileName: string;
+  pdfBytes: Uint8Array<ArrayBuffer>;
+  metadata: BibtexPaperMetadata;
+}
+import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';

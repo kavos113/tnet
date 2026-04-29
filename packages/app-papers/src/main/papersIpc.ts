@@ -12,6 +12,10 @@ export const registerPapersDataIpc = (serverClient: PapersServerClient): void =>
     serverClient.createPaperFromPdf(request)
   );
 
+  ipcMain.handle(papersIpcChannels.library.createPaperFromPdfBytes, async (_event, request) =>
+    serverClient.createPaperFromPdfBytes(request)
+  );
+
   ipcMain.handle(papersIpcChannels.library.importPdf, async (_event, request) => {
     const candidate = await selectPdfForImport(request);
     if (!candidate) return null;

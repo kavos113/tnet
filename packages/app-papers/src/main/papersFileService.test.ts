@@ -6,11 +6,15 @@ const electronMock = vi.hoisted(() => ({
   },
   shell: {
     openPath: vi.fn()
+  },
+  clipboard: {
+    readText: vi.fn()
   }
 }));
 
 vi.mock('electron', () => ({
   dialog: electronMock.dialog,
+  clipboard: electronMock.clipboard,
   shell: electronMock.shell
 }));
 
@@ -18,6 +22,7 @@ describe('papersFileService', () => {
   beforeEach(() => {
     electronMock.dialog.showOpenDialog.mockReset();
     electronMock.shell.openPath.mockReset();
+    electronMock.clipboard.readText.mockReset();
   });
 
   it('selects a pdf import candidate without touching the database', async () => {
@@ -26,12 +31,14 @@ describe('papersFileService', () => {
       canceled: false,
       filePaths: ['C:\\outside\\paper.pdf']
     });
+    electronMock.clipboard.readText.mockReturnValue('@article{paper,title={Paper}}');
 
     await expect(
       selectPdfForImport({ libraryRoot: 'C:\\library', directoryPath: 'articles' })
     ).resolves.toEqual({
       sourcePath: 'C:\\outside\\paper.pdf',
       suggestedTitle: 'paper',
+      clipboardBibtex: '@article{paper,title={Paper}}',
       sourceRelativePath: undefined,
       willCopy: true,
       targetDirectoryPath: 'articles'

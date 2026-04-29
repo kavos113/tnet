@@ -1282,6 +1282,121 @@ export class CreatePaperFromLocalPdfRequest extends Message<CreatePaperFromLocal
 }
 
 /**
+ * @generated from message tnet.papers.v1.CreatePaperFromPdfBytesRequest
+ */
+export class CreatePaperFromPdfBytesRequest extends Message<CreatePaperFromPdfBytesRequest> {
+  /**
+   * @generated from field: string library_root = 1;
+   */
+  libraryRoot = '';
+
+  /**
+   * @generated from field: string file_name = 2;
+   */
+  fileName = '';
+
+  /**
+   * @generated from field: bytes pdf_bytes = 3;
+   */
+  pdfBytes = new Uint8Array(0);
+
+  /**
+   * @generated from field: string title = 4;
+   */
+  title = '';
+
+  /**
+   * @generated from field: repeated string authors = 5;
+   */
+  authors: string[] = [];
+
+  /**
+   * @generated from field: string abstract = 6;
+   */
+  abstract = '';
+
+  /**
+   * @generated from field: int32 published_year = 7;
+   */
+  publishedYear = 0;
+
+  /**
+   * @generated from field: string venue = 8;
+   */
+  venue = '';
+
+  /**
+   * @generated from field: string doi = 9;
+   */
+  doi = '';
+
+  /**
+   * @generated from field: string arxiv_id = 10;
+   */
+  arxivId = '';
+
+  /**
+   * @generated from field: string url = 11;
+   */
+  url = '';
+
+  /**
+   * @generated from field: string directory_path = 12;
+   */
+  directoryPath = '';
+
+  constructor(data?: PartialMessage<CreatePaperFromPdfBytesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.CreatePaperFromPdfBytesRequest';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'library_root', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: 'file_name', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: 'pdf_bytes', kind: 'scalar', T: 12 /* ScalarType.BYTES */ },
+    { no: 4, name: 'title', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: 'authors', kind: 'scalar', T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: 'abstract', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: 'published_year', kind: 'scalar', T: 5 /* ScalarType.INT32 */ },
+    { no: 8, name: 'venue', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: 'doi', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: 'arxiv_id', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: 'url', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: 'directory_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+  ]);
+
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): CreatePaperFromPdfBytesRequest {
+    return new CreatePaperFromPdfBytesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): CreatePaperFromPdfBytesRequest {
+    return new CreatePaperFromPdfBytesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): CreatePaperFromPdfBytesRequest {
+    return new CreatePaperFromPdfBytesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: CreatePaperFromPdfBytesRequest | PlainMessage<CreatePaperFromPdfBytesRequest> | undefined,
+    b: CreatePaperFromPdfBytesRequest | PlainMessage<CreatePaperFromPdfBytesRequest> | undefined
+  ): boolean {
+    return proto3.util.equals(CreatePaperFromPdfBytesRequest, a, b);
+  }
+}
+
+/**
  * @generated from message tnet.papers.v1.PaperTag
  */
 export class PaperTag extends Message<PaperTag> {

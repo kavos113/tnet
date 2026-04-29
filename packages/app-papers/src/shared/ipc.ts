@@ -4,6 +4,7 @@ import type { PaperDetail, PaperSummary, PaperTag } from './paperTypes';
 export interface SelectedPdfImportCandidate {
   sourcePath: string;
   suggestedTitle: string;
+  clipboardBibtex?: string;
   sourceRelativePath?: string;
   willCopy: boolean;
   targetDirectoryPath: string;
@@ -12,6 +13,21 @@ export interface SelectedPdfImportCandidate {
 export interface CreatePaperFromPdfRequest {
   libraryRoot: string;
   sourcePath: string;
+  title: string;
+  authors?: string[];
+  abstract?: string;
+  publishedYear?: number;
+  venue?: string;
+  doi?: string;
+  arxivId?: string;
+  url?: string;
+  directoryPath?: string;
+}
+
+export interface CreatePaperFromPdfBytesRequest {
+  libraryRoot: string;
+  fileName: string;
+  pdfBytes: Uint8Array<ArrayBuffer>;
   title: string;
   authors?: string[];
   abstract?: string;
@@ -40,6 +56,7 @@ export const papersIpcChannels = {
   library: {
     selectPdf: 'papers:library:selectPdf',
     createPaperFromPdf: 'papers:library:createPaperFromPdf',
+    createPaperFromPdfBytes: 'papers:library:createPaperFromPdfBytes',
     importPdf: 'papers:library:importPdf'
   },
   papers: {
@@ -75,6 +92,7 @@ export interface PapersApi {
         directoryPath?: string;
       }) => Promise<SelectedPdfImportCandidate | null>;
       createPaperFromPdf: (request: CreatePaperFromPdfRequest) => Promise<PaperDetail>;
+      createPaperFromPdfBytes: (request: CreatePaperFromPdfBytesRequest) => Promise<PaperDetail>;
       importPdf: (request: {
         libraryRoot: string;
         directoryPath?: string;

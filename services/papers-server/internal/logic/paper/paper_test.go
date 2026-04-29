@@ -67,6 +67,56 @@ func TestServiceCreatePaperFromLocalPDFCopiesExternalPDF(t *testing.T) {
 	}
 }
 
+func TestServiceCreatePaperFromPDFBytes(t *testing.T) {
+	ctx := context.Background()
+	libraryRoot := t.TempDir()
+	service, closeService := newTestService(t)
+	defer closeService()
+
+	paper, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+		LibraryRoot:   libraryRoot,
+		FileName:      "download.pdf",
+		Bytes:         []byte("pdf"),
+		Title:         "Paper",
+		Authors:       []string{"Alice"},
+		PublishedYear: 2025,
+		Venue:         "Journal",
+		DOI:           "10.1000/bytes",
+		DirectoryPath: "articles",
+	})
+	if err != nil {
+		t.Fatalf("CreatePaperFromPDFBytes() error = %v", err)
+	}
+
+	if paper.PDFPath != "articles/download.pdf" {
+		t.Fatalf("PDFPath = %q, want articles/download.pdf", paper.PDFPath)
+	}
+	if _, err := os.Stat(filepath.Join(libraryRoot, filepath.FromSlash(paper.PDFPath))); err != nil {
+		t.Fatalf("expected saved PDF: %v", err)
+	}
+}
+
+func TestServiceCreatePaperFromPDFBytesUsesSafeFileName(t *testing.T) {
+	ctx := context.Background()
+	libraryRoot := t.TempDir()
+	service, closeService := newTestService(t)
+	defer closeService()
+
+	paper, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+		LibraryRoot: libraryRoot,
+		FileName:    "not-pdf.txt",
+		Bytes:       []byte("pdf"),
+		Title:       "Paper",
+	})
+	if err != nil {
+		t.Fatalf("CreatePaperFromPDFBytes() error = %v", err)
+	}
+
+	if paper.PDFPath != "papers/paper.pdf" {
+		t.Fatalf("PDFPath = %q, want papers/paper.pdf", paper.PDFPath)
+	}
+}
+
 func TestServiceImportBrowserPaperWithProgress(t *testing.T) {
 	testcases := []struct {
 		name       string

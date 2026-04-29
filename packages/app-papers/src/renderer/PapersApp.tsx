@@ -52,7 +52,11 @@ export const PapersApp = (): React.JSX.Element => {
   const { listWidthPercent, detailWidthPercent, startPaneResize } = usePaperPaneResize();
   const {
     importCandidate,
+    importBibtex,
+    importMetadata,
     importTitle,
+    setImportBibtex,
+    setImportMetadata,
     setImportTitle,
     importPdf,
     confirmImportPdf,
@@ -280,7 +284,11 @@ export const PapersApp = (): React.JSX.Element => {
       {importCandidate ? (
         <PaperImportDialog
           candidate={importCandidate}
+          bibtex={importBibtex}
+          metadata={importMetadata}
           title={importTitle}
+          onBibtexChange={setImportBibtex}
+          onMetadataChange={setImportMetadata}
           onTitleChange={setImportTitle}
           onCancel={cancelImportPdf}
           onConfirm={async () => {

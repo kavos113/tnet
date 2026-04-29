@@ -1,4 +1,4 @@
 {
   "extends": "../../tsconfig.web.json",
-  "include": ["src/**/*", "tests/**/*"]
+  "include": ["src/**/*", "tests/**/*", "../app-papers/src/shared/bibtex.ts"]
 }

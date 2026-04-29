@@ -5,24 +5,23 @@ import {
   loadPopupState,
   parseTagsInput,
   resolveInitialLibraryRoot,
-  selectLibrary
+  selectLibrary,
+  updateBibtexInput
 } from '../src/popup/popupStore';
 
-describe('loadPopupState', () => {
+describe('popupStore', () => {
   it('shows retryable unavailable state when backend is not running', async () => {
     const client = {
       checkHealth: vi.fn(async () => false)
     };
 
-    await expect(
-      loadPopupState(client as never, { sourceUrl: 'https://example.test' })
-    ).resolves.toMatchObject({
+    await expect(loadPopupState(client as never)).resolves.toMatchObject({
       status: 'server-unavailable',
       errorMessage: 'TNet desktop app is not running.'
     });
   });
 
-  it('loads libraries and normalized metadata when backend is available', async () => {
+  it('loads libraries and directories when backend is available', async () => {
     const client = {
       checkHealth: vi.fn(async () => true),
       listLibraries: vi.fn(async () => ({
@@ -33,25 +32,15 @@ describe('loadPopupState', () => {
         name: 'papers',
         relativePath: '',
         children: [{ name: 'articles', relativePath: 'articles', children: [] }]
-      })),
-      resolveMetadata: vi.fn(async () => ({
-        title: 'Paper',
-        pdfUrl: 'https://example.test/paper.pdf',
-        tags: ['ai']
       }))
     };
 
-    await expect(
-      loadPopupState(client as never, { sourceUrl: 'https://example.test' })
-    ).resolves.toMatchObject({
+    await expect(loadPopupState(client as never)).resolves.toMatchObject({
       status: 'ready',
       libraries: [{ rootPath: 'C:/papers', name: 'papers', isActive: true }],
       activeLibraryRoot: 'C:/papers',
       selectedLibraryRoot: 'C:/papers',
-      selectedDirectoryPath: '',
-      candidate: { title: 'Paper' },
-      importPdf: true,
-      tagsInput: 'ai'
+      selectedDirectoryPath: ''
     });
     expect(client.listDirectories).toHaveBeenCalledWith('C:/papers');
   });
@@ -110,7 +99,8 @@ describe('loadPopupState', () => {
           selectedLibraryRoot: 'C:/first',
           selectedDirectoryPath: 'articles',
           directoryTree: null,
-          importPdf: false,
+          bibtexInput: '',
+          metadata: {},
           tagsInput: ''
         },
         'C:/second'
@@ -122,23 +112,31 @@ describe('loadPopupState', () => {
     });
   });
 
-  it('imports the selected candidate with library, directory, pdf flag, and tags', async () => {
-    const client = {
-      importPaperWithProgress: vi.fn(
-        async (
-          _request: unknown,
-          onProgress: (progress: {
-            stage: string;
-            downloadedBytes: number;
-            totalBytes: number;
-          }) => void
-        ) => {
-          onProgress({ stage: 'downloading_pdf', downloadedBytes: 1, totalBytes: 2 });
-          return { status: 'created', paper: { id: 'paper-1' } };
-        }
+  it('updates metadata from pasted BibTeX', () => {
+    expect(
+      updateBibtexInput(
+        {
+          status: 'ready',
+          libraries: [],
+          bibtexInput: '',
+          metadata: {},
+          tagsInput: ''
+        },
+        '@article{paper,title={Paper},author={Alice and Bob},year={2025}}'
       )
+    ).toMatchObject({
+      metadata: {
+        title: 'Paper',
+        authors: ['Alice', 'Bob'],
+        publishedYear: 2025
+      }
+    });
+  });
+
+  it('imports selected PDF bytes with parsed metadata', async () => {
+    const client = {
+      createPaperFromPdfBytes: vi.fn(async () => ({ id: 'paper-1', title: 'Paper' }))
     };
-    const progress = vi.fn();
 
     await expect(
       importSelectedPaper(
@@ -148,30 +146,22 @@ describe('loadPopupState', () => {
           libraries: [],
           selectedLibraryRoot: 'C:/papers',
           selectedDirectoryPath: 'articles',
-          candidate: { title: 'Paper', pdfUrl: 'https://example.test/paper.pdf' },
-          importPdf: true,
-          tagsInput: 'ai, retrieval'
+          bibtexInput: '',
+          metadata: { title: 'Paper', authors: ['Alice'] },
+          tagsInput: 'ai'
         },
-        progress
+        { name: 'paper.pdf', bytes: new Uint8Array([1, 2, 3]) }
       )
     ).resolves.toMatchObject({
       status: 'imported',
-      importResult: { status: 'created', paper: { id: 'paper-1' } }
+      importResult: { id: 'paper-1', title: 'Paper' }
     });
-    expect(client.importPaperWithProgress).toHaveBeenCalledWith(
-      {
-        libraryRoot: 'C:/papers',
-        directoryPath: 'articles',
-        candidate: { title: 'Paper', pdfUrl: 'https://example.test/paper.pdf' },
-        importPdf: true,
-        tags: ['ai', 'retrieval']
-      },
-      progress
-    );
-    expect(progress).toHaveBeenCalledWith({
-      stage: 'downloading_pdf',
-      downloadedBytes: 1,
-      totalBytes: 2
+    expect(client.createPaperFromPdfBytes).toHaveBeenCalledWith({
+      libraryRoot: 'C:/papers',
+      directoryPath: 'articles',
+      fileName: 'paper.pdf',
+      pdfBytes: new Uint8Array([1, 2, 3]),
+      metadata: { title: 'Paper', authors: ['Alice'] }
     });
   });
 });

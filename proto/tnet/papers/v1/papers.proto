@@ -21,6 +21,7 @@ service PaperService {
   rpc ListPapers(ListPapersRequest) returns (ListPapersResponse);
   rpc GetPaper(GetPaperRequest) returns (GetPaperResponse);
   rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (PaperDetail);
+  rpc CreatePaperFromPdfBytes(CreatePaperFromPdfBytesRequest) returns (PaperDetail);
   rpc ImportBrowserPaper(ImportBrowserPaperRequest) returns (ImportBrowserPaperResponse);
   rpc ImportBrowserPaperWithProgress(ImportBrowserPaperRequest) returns (stream ImportBrowserPaperProgress);
   rpc SaveNote(SaveNoteRequest) returns (GetPaperResponse);
@@ -170,6 +171,21 @@ message CreatePaperFromLocalPdfRequest {
   string arxiv_id = 9;
   string url = 10;
   string directory_path = 11;
+}
+
+message CreatePaperFromPdfBytesRequest {
+  string library_root = 1;
+  string file_name = 2;
+  bytes pdf_bytes = 3;
+  string title = 4;
+  repeated string authors = 5;
+  string abstract = 6;
+  int32 published_year = 7;
+  string venue = 8;
+  string doi = 9;
+  string arxiv_id = 10;
+  string url = 11;
+  string directory_path = 12;
 }
 
 message PaperTag {

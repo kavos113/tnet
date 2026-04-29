@@ -24,7 +24,11 @@ describe('PaperImportDialog', () => {
     render(
       <PaperImportDialog
         candidate={candidate}
+        bibtex="@article{paper,title={Lambda Calculus Foundations}}"
+        metadata={{ title: 'Lambda Calculus Foundations' }}
         title="Lambda Calculus Foundations"
+        onBibtexChange={vi.fn()}
+        onMetadataChange={vi.fn()}
         onTitleChange={onTitleChange}
         onCancel={onCancel}
         onConfirm={onConfirm}
@@ -34,7 +38,9 @@ describe('PaperImportDialog', () => {
     expect(screen.getByText('Copy to library')).toBeInTheDocument();
     expect(screen.getByText('logic/lambda.pdf')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'New title' } });
+    fireEvent.change(screen.getByDisplayValue('Lambda Calculus Foundations'), {
+      target: { value: 'New title' }
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel import' }));
     fireEvent.submit(screen.getByRole('form', { name: 'Import PDF metadata' }));
 
@@ -47,7 +53,11 @@ describe('PaperImportDialog', () => {
     render(
       <PaperImportDialog
         candidate={candidate}
+        bibtex=""
+        metadata={{}}
         title=" "
+        onBibtexChange={vi.fn()}
+        onMetadataChange={vi.fn()}
         onTitleChange={vi.fn()}
         onCancel={vi.fn()}
         onConfirm={vi.fn()}
