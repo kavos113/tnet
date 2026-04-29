@@ -1,0 +1,9 @@
+{
+  "name": "@tnet/app-papers-extension",
+  "version": "2.0.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json"
+  }
+}
