@@ -1,6 +1,12 @@
 import { ipcMain } from 'electron';
 import { papersIpcChannels } from '@tnet/app-papers/shared/ipc';
-import { importPdfFromDialog, loadPdfBytes, openPdfExternal } from './papersFileService';
+import {
+  createPaperFromPdf,
+  importPdfFromDialog,
+  loadPdfBytes,
+  openPdfExternal,
+  selectPdfForImport
+} from './papersFileService';
 import { openPapersDatabase } from './papersDatabase';
 import { PapersRepository } from './papersRepository';
 
@@ -17,6 +23,14 @@ const withRepository = async <T>(
 };
 
 export const registerPapersDataIpc = (): void => {
+  ipcMain.handle(papersIpcChannels.library.selectPdf, async (_event, request) =>
+    selectPdfForImport(request)
+  );
+
+  ipcMain.handle(papersIpcChannels.library.createPaperFromPdf, async (_event, request) =>
+    createPaperFromPdf(request)
+  );
+
   ipcMain.handle(papersIpcChannels.library.importPdf, async (_event, request) =>
     importPdfFromDialog(request)
   );

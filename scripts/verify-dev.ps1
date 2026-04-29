@@ -55,7 +55,9 @@ try {
     $stdout = if (Test-Path $outLog) { Get-Content -LiteralPath $outLog -Raw } else { '' }
     $combinedLog = "$stdout`n$stderr"
     if ($combinedLog -match 'App threw an error' -or
-        $combinedLog -match 'error during start dev server and electron app') {
+        $combinedLog -match 'error during start dev server and electron app' -or
+        $combinedLog -match 'Error occurred in handler' -or
+        $combinedLog -match 'ERR_DLOPEN_FAILED') {
         throw 'pnpm dev started but Electron reported a startup error.'
     }
 

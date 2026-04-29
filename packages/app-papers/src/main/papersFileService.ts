@@ -1,9 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import { dialog, shell } from 'electron';
+import type {
+  CreatePaperFromPdfRequest,
+  SelectedPdfImportCandidate
+} from '@tnet/app-papers/shared/ipc';
 import type { PaperDetail } from '@tnet/app-papers/shared/paperTypes';
 import { openPapersDatabase } from './papersDatabase';
 import {
+  isInsidePapersLibrary,
   papersImportedPdfDir,
   resolvePapersRelativePath,
   toPapersRelativePath
@@ -18,6 +23,9 @@ export interface ImportPdfRequest {
 const withoutExtension = (filePath: string): string =>
   path.basename(filePath, path.extname(filePath));
 
+const normalizeDirectoryPath = (directoryPath?: string): string =>
+  (directoryPath ?? '').replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+
 const nextAvailablePath = (directory: string, fileName: string): string => {
   const parsed = path.parse(fileName);
   let candidate = path.join(directory, fileName);
@@ -29,6 +37,18 @@ const nextAvailablePath = (directory: string, fileName: string): string => {
   }
 
   return candidate;
+};
+
+const targetImportDirectory = (libraryRoot: string, directoryPath?: string): string => {
+  const normalizedDirectoryPath = normalizeDirectoryPath(directoryPath);
+  return normalizedDirectoryPath
+    ? resolvePapersRelativePath(libraryRoot, normalizedDirectoryPath)
+    : papersImportedPdfDir(libraryRoot);
+};
+
+const targetRecordDirectoryPath = (relativePdfPath: string): string => {
+  const directory = path.posix.dirname(relativePdfPath);
+  return directory === '.' || directory === 'papers' ? '' : directory;
 };
 
 const withRepository = async <T>(
@@ -43,9 +63,9 @@ const withRepository = async <T>(
   }
 };
 
-export const importPdfFromDialog = async (
+export const selectPdfForImport = async (
   request: ImportPdfRequest
-): Promise<PaperDetail | null> => {
+): Promise<SelectedPdfImportCandidate | null> => {
   if (!request.libraryRoot) throw new Error('libraryRoot is required');
 
   const result = await dialog.showOpenDialog({
@@ -56,19 +76,66 @@ export const importPdfFromDialog = async (
   if (result.canceled || result.filePaths.length === 0) return null;
 
   const sourcePath = result.filePaths[0];
-  const targetDir = papersImportedPdfDir(request.libraryRoot);
-  fs.mkdirSync(targetDir, { recursive: true });
+  const sourceRelativePath = isInsidePapersLibrary(request.libraryRoot, sourcePath)
+    ? toPapersRelativePath(request.libraryRoot, sourcePath)
+    : undefined;
 
-  const targetPath = nextAvailablePath(targetDir, path.basename(sourcePath));
-  fs.copyFileSync(sourcePath, targetPath);
+  return {
+    sourcePath,
+    suggestedTitle: withoutExtension(sourcePath),
+    sourceRelativePath,
+    willCopy: sourceRelativePath === undefined,
+    targetDirectoryPath: normalizeDirectoryPath(request.directoryPath)
+  };
+};
 
-  return await withRepository(request.libraryRoot, (repository) =>
+export const createPaperFromPdf = async (
+  request: CreatePaperFromPdfRequest
+): Promise<PaperDetail> => {
+  if (!request.libraryRoot) throw new Error('libraryRoot is required');
+  if (!request.sourcePath) throw new Error('sourcePath is required');
+  const title = request.title.trim();
+  if (!title) throw new Error('title is required');
+
+  let pdfPath: string;
+  if (isInsidePapersLibrary(request.libraryRoot, request.sourcePath)) {
+    pdfPath = toPapersRelativePath(request.libraryRoot, request.sourcePath);
+  } else {
+    const targetDir = targetImportDirectory(request.libraryRoot, request.directoryPath);
+    fs.mkdirSync(targetDir, { recursive: true });
+    const targetPath = nextAvailablePath(targetDir, path.basename(request.sourcePath));
+    fs.copyFileSync(request.sourcePath, targetPath);
+    pdfPath = toPapersRelativePath(request.libraryRoot, targetPath);
+  }
+
+  return withRepository(request.libraryRoot, (repository) =>
     repository.createPaper({
-      title: withoutExtension(sourcePath),
-      pdfPath: toPapersRelativePath(request.libraryRoot, targetPath),
-      directoryPath: request.directoryPath ?? ''
+      title,
+      authors: request.authors,
+      abstract: request.abstract,
+      publishedYear: request.publishedYear,
+      venue: request.venue,
+      doi: request.doi,
+      arxivId: request.arxivId,
+      url: request.url,
+      pdfPath,
+      directoryPath: targetRecordDirectoryPath(pdfPath)
     })
   );
+};
+
+export const importPdfFromDialog = async (
+  request: ImportPdfRequest
+): Promise<PaperDetail | null> => {
+  const candidate = await selectPdfForImport(request);
+  if (!candidate) return null;
+
+  return createPaperFromPdf({
+    libraryRoot: request.libraryRoot,
+    sourcePath: candidate.sourcePath,
+    title: candidate.suggestedTitle,
+    directoryPath: request.directoryPath
+  });
 };
 
 export const loadPdfBytes = (libraryRoot: string, pdfPath: string): ArrayBuffer => {

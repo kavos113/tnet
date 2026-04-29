@@ -104,6 +104,13 @@ export class PapersRepository {
   constructor(private readonly database: PapersDatabase) {}
 
   createPaper(input: CreatePaperInput): PaperDetail {
+    const title = input.title.trim();
+    if (!title) throw new Error('title is required');
+    if (input.pdfPath) {
+      const existing = this.getPaperByPdfPath(input.pdfPath);
+      if (existing) return existing;
+    }
+
     const id = randomUUID();
     const createdAt = nowIso();
     const authors = input.authors ?? [];
@@ -132,7 +139,7 @@ export class PapersRepository {
         )
         .run(
           id,
-          input.title,
+          title,
           input.abstract ?? null,
           input.publishedYear ?? null,
           input.venue ?? null,
@@ -177,6 +184,13 @@ export class PapersRepository {
 
   getPaper(id: string): PaperDetail | null {
     const row = this.database.prepare('SELECT * FROM papers WHERE id = ?').get(id) as
+      | PaperRow
+      | undefined;
+    return row ? toDetail(this.database, row) : null;
+  }
+
+  getPaperByPdfPath(pdfPath: string): PaperDetail | null {
+    const row = this.database.prepare('SELECT * FROM papers WHERE pdf_path = ?').get(pdfPath) as
       | PaperRow
       | undefined;
     return row ? toDetail(this.database, row) : null;

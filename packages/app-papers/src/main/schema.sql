@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS papers (
   updated_at TEXT NOT NULL
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_papers_pdf_path
+ON papers(pdf_path)
+WHERE pdf_path IS NOT NULL;
+
 CREATE TABLE IF NOT EXISTS paper_authors (
   id TEXT PRIMARY KEY,
   paper_id TEXT NOT NULL,

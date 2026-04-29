@@ -1,6 +1,28 @@
 import type { PapersGlobalConfig, PapersLibraryConfig } from './config';
 import type { PaperDetail, PaperSummary } from './paperTypes';
 
+export interface SelectedPdfImportCandidate {
+  sourcePath: string;
+  suggestedTitle: string;
+  sourceRelativePath?: string;
+  willCopy: boolean;
+  targetDirectoryPath: string;
+}
+
+export interface CreatePaperFromPdfRequest {
+  libraryRoot: string;
+  sourcePath: string;
+  title: string;
+  authors?: string[];
+  abstract?: string;
+  publishedYear?: number;
+  venue?: string;
+  doi?: string;
+  arxivId?: string;
+  url?: string;
+  directoryPath?: string;
+}
+
 export const papersIpcChannels = {
   config: {
     loadGlobal: 'papers:config:loadGlobal',
@@ -9,6 +31,8 @@ export const papersIpcChannels = {
     saveLibrary: 'papers:config:saveLibrary'
   },
   library: {
+    selectPdf: 'papers:library:selectPdf',
+    createPaperFromPdf: 'papers:library:createPaperFromPdf',
     importPdf: 'papers:library:importPdf'
   },
   papers: {
@@ -30,6 +54,11 @@ export interface PapersApi {
       saveLibrary: (libraryRoot: string, config: PapersLibraryConfig) => Promise<void>;
     };
     library: {
+      selectPdf: (request: {
+        libraryRoot: string;
+        directoryPath?: string;
+      }) => Promise<SelectedPdfImportCandidate | null>;
+      createPaperFromPdf: (request: CreatePaperFromPdfRequest) => Promise<PaperDetail>;
       importPdf: (request: {
         libraryRoot: string;
         directoryPath?: string;

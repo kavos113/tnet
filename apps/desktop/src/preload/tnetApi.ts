@@ -62,6 +62,9 @@ export const tnetApi: DesktopTnetApi = {
         ipcRenderer.invoke(papersIpcChannels.config.saveLibrary, libraryRoot, config)
     },
     library: {
+      selectPdf: (request) => ipcRenderer.invoke(papersIpcChannels.library.selectPdf, request),
+      createPaperFromPdf: (request) =>
+        ipcRenderer.invoke(papersIpcChannels.library.createPaperFromPdf, request),
       importPdf: (request) => ipcRenderer.invoke(papersIpcChannels.library.importPdf, request)
     },
     papers: {

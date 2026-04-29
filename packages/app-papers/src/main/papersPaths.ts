@@ -17,3 +17,8 @@ export const toPapersRelativePath = (libraryRoot: string, absolutePath: string):
 
 export const resolvePapersRelativePath = (libraryRoot: string, relativePath: string): string =>
   path.resolve(libraryRoot, relativePath);
+
+export const isInsidePapersLibrary = (libraryRoot: string, absolutePath: string): boolean => {
+  const relativePath = path.relative(libraryRoot, absolutePath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
+};

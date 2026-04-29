@@ -33,11 +33,25 @@ const librarySlice = createSlice({
       state.settings = action.payload.settings ?? defaultPapersLibraryConfig();
       state.isRestored = true;
     },
+    setPapersLibrary: (
+      state,
+      action: PayloadAction<{
+        libraryRoots: string[];
+        activeLibraryRoot: string;
+        settings?: PapersLibraryConfig;
+      }>
+    ) => {
+      state.libraryRoots = action.payload.libraryRoots;
+      state.activeLibraryRoot = action.payload.activeLibraryRoot;
+      state.settings = action.payload.settings ?? defaultPapersLibraryConfig();
+      state.isRestored = true;
+    },
     markPapersLibraryRestored: (state) => {
       state.isRestored = true;
     }
   }
 });
 
-export const { markPapersLibraryRestored, restorePapersLibrary } = librarySlice.actions;
+export const { markPapersLibraryRestored, restorePapersLibrary, setPapersLibrary } =
+  librarySlice.actions;
 export default librarySlice.reducer;

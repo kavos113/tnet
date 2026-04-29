@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import type { PaperSummary } from '@tnet/app-papers/shared/paperTypes';
 import { usePapersDispatch, usePapersSelector } from './storeHooks';
 import { papersTnetApi } from './papersTnetApi';
@@ -16,8 +17,17 @@ import {
 const formatAuthors = (paper: PaperSummary): string =>
   paper.authors.length > 0 ? paper.authors.join(', ') : 'No authors';
 
+const importTargetLabel = (candidate: SelectedPdfImportCandidate): string => {
+  if (candidate.sourceRelativePath) return candidate.sourceRelativePath;
+  const fileName = candidate.sourcePath.split(/[\\/]/).pop() ?? 'paper.pdf';
+  const directoryPath = candidate.targetDirectoryPath || 'papers';
+  return `${directoryPath}/${fileName}`;
+};
+
 export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
+  const [importCandidate, setImportCandidate] = useState<SelectedPdfImportCandidate | null>(null);
+  const [importTitle, setImportTitle] = useState('');
   const { activeLibraryRoot, isRestored } = usePapersSelector((state) => state.papersLibrary);
   const { activeDetailTab, detail, error, isLoadingDetail, isLoadingList, items, selectedPaperId } =
     usePapersSelector((state) => state.papersContent);
@@ -34,7 +44,7 @@ export const PapersApp = (): React.JSX.Element => {
         if (!canceled) dispatch(setPapers(papers));
       } catch (loadError) {
         console.error('Failed to load papers', loadError);
-        if (!canceled) dispatch(setPapersError('論文リストを読み込めませんでした。'));
+        if (!canceled) dispatch(setPapersError('Failed to load papers.'));
       } finally {
         if (!canceled) dispatch(setPapersListLoading(false));
       }
@@ -61,7 +71,7 @@ export const PapersApp = (): React.JSX.Element => {
         if (!canceled) dispatch(setPaperDetail(paper));
       } catch (loadError) {
         console.error('Failed to load paper detail', loadError);
-        if (!canceled) dispatch(setPapersError('論文の詳細を読み込めませんでした。'));
+        if (!canceled) dispatch(setPapersError('Failed to load paper detail.'));
       } finally {
         if (!canceled) dispatch(setPapersDetailLoading(false));
       }
@@ -77,16 +87,35 @@ export const PapersApp = (): React.JSX.Element => {
   const importPdf = async (): Promise<void> => {
     if (!activeLibraryRoot) return;
 
-    const imported = await papersTnetApi.papers.library.importPdf({
+    const candidate = await papersTnetApi.papers.library.selectPdf({
       libraryRoot: activeLibraryRoot
     });
-    if (!imported) return;
+    if (!candidate) return;
 
+    setImportCandidate(candidate);
+    setImportTitle(candidate.suggestedTitle);
+  };
+
+  const confirmImportPdf = async (): Promise<void> => {
+    if (!activeLibraryRoot || !importCandidate) return;
+
+    const title = importTitle.trim();
+    if (!title) return;
+
+    const imported = await papersTnetApi.papers.library.createPaperFromPdf({
+      libraryRoot: activeLibraryRoot,
+      sourcePath: importCandidate.sourcePath,
+      title,
+      directoryPath: importCandidate.targetDirectoryPath
+    });
     const papers = await papersTnetApi.papers.papers.list({ libraryRoot: activeLibraryRoot });
+
     dispatch(setPapers(papers));
     dispatch(selectPaper(imported.id));
     dispatch(setPaperDetail(imported));
     dispatch(setActivePapersDetailTab('pdf'));
+    setImportCandidate(null);
+    setImportTitle('');
   };
 
   if (!isRestored) {
@@ -132,9 +161,9 @@ export const PapersApp = (): React.JSX.Element => {
           </button>
         </header>
         {error ? <div className="papers-error">{error}</div> : null}
-        {isLoadingList ? <div className="papers-empty-state">論文リストを読み込み中...</div> : null}
+        {isLoadingList ? <div className="papers-empty-state">Loading papers...</div> : null}
         {!isLoadingList && items.length === 0 ? (
-          <div className="papers-empty-state">PDFをインポートしてください。</div>
+          <div className="papers-empty-state">Import a PDF to register a paper.</div>
         ) : null}
         <div className="papers-list">
           {items.map((paper) => (
@@ -159,11 +188,9 @@ export const PapersApp = (): React.JSX.Element => {
         </div>
       </section>
       <section className="papers-detail-pane" aria-label="Paper detail">
-        {!selectedPaperId ? (
-          <div className="papers-empty-state">論文を選択してください。</div>
-        ) : null}
+        {!selectedPaperId ? <div className="papers-empty-state">Select a paper.</div> : null}
         {selectedPaperId && isLoadingDetail ? (
-          <div className="papers-empty-state">論文の詳細を読み込み中...</div>
+          <div className="papers-empty-state">Loading paper detail...</div>
         ) : null}
         {detail && !isLoadingDetail ? (
           <>
@@ -210,6 +237,60 @@ export const PapersApp = (): React.JSX.Element => {
           </>
         ) : null}
       </section>
+      {importCandidate ? (
+        <div className="papers-import-backdrop" role="presentation">
+          <form
+            className="papers-import-dialog"
+            aria-label="Import PDF metadata"
+            onSubmit={(event) => {
+              event.preventDefault();
+              confirmImportPdf().catch((importError: unknown) => {
+                console.error('Failed to import PDF', importError);
+                dispatch(setPapersError('Failed to import PDF.'));
+              });
+            }}
+          >
+            <header>
+              <h2>Import PDF</h2>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Cancel import"
+                onClick={() => setImportCandidate(null)}
+              >
+                <span className="material-icons-round" aria-hidden="true">
+                  close
+                </span>
+              </button>
+            </header>
+            <label className="papers-form-field">
+              <span>Title</span>
+              <input
+                value={importTitle}
+                autoFocus
+                required
+                onChange={(event) => setImportTitle(event.target.value)}
+              />
+            </label>
+            <div className="papers-import-paths">
+              <span>{importCandidate.willCopy ? 'Copy to library' : 'Register existing file'}</span>
+              <code>{importTargetLabel(importCandidate)}</code>
+            </div>
+            <footer>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setImportCandidate(null)}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="primary-button" disabled={!importTitle.trim()}>
+                Import
+              </button>
+            </footer>
+          </form>
+        </div>
+      ) : null}
     </main>
   );
 };
