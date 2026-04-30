@@ -100,6 +100,20 @@ describe('parseBibtexMetadata', () => {
     });
   });
 
+  it('preserves month and parses keywords as tag candidates', () => {
+    expect(
+      parseBibtexMetadata(`@article{paper,
+        title = {Tagged Paper},
+        month = {jan},
+        keywords = {ai; retrieval, llm}
+      }`)
+    ).toMatchObject({
+      title: 'Tagged Paper',
+      month: 'jan',
+      keywords: ['ai', 'retrieval', 'llm']
+    });
+  });
+
   it('returns parse diagnostics for invalid or incomplete BibTeX', () => {
     expect(parseBibtexMetadataResult('plain text')).toEqual({
       metadata: {},

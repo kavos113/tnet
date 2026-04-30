@@ -166,6 +166,11 @@ export class PapersLibraryConfig extends Message<PapersLibraryConfig> {
    */
   noteEditorMode = '';
 
+  /**
+   * @generated from field: int32 note_auto_save_debounce_ms = 4;
+   */
+  noteAutoSaveDebounceMs = 0;
+
   constructor(data?: PartialMessage<PapersLibraryConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -176,7 +181,8 @@ export class PapersLibraryConfig extends Message<PapersLibraryConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: 'list_density', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 2, name: 'pdf_zoom_mode', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: 'note_editor_mode', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+    { no: 3, name: 'note_editor_mode', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: 'note_auto_save_debounce_ms', kind: 'scalar', T: 5 /* ScalarType.INT32 */ }
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PapersLibraryConfig {
@@ -1173,6 +1179,61 @@ export class GetPaperResponse extends Message<GetPaperResponse> {
 }
 
 /**
+ * @generated from message tnet.papers.v1.ImportPaperResponse
+ */
+export class ImportPaperResponse extends Message<ImportPaperResponse> {
+  /**
+   * @generated from field: tnet.papers.v1.PaperDetail paper = 1;
+   */
+  paper?: PaperDetail;
+
+  /**
+   * @generated from field: bool already_exists = 2;
+   */
+  alreadyExists = false;
+
+  /**
+   * @generated from field: string duplicate_field = 3;
+   */
+  duplicateField = '';
+
+  constructor(data?: PartialMessage<ImportPaperResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.ImportPaperResponse';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'paper', kind: 'message', T: PaperDetail },
+    { no: 2, name: 'already_exists', kind: 'scalar', T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: 'duplicate_field', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ImportPaperResponse {
+    return new ImportPaperResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ImportPaperResponse {
+    return new ImportPaperResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): ImportPaperResponse {
+    return new ImportPaperResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: ImportPaperResponse | PlainMessage<ImportPaperResponse> | undefined,
+    b: ImportPaperResponse | PlainMessage<ImportPaperResponse> | undefined
+  ): boolean {
+    return proto3.util.equals(ImportPaperResponse, a, b);
+  }
+}
+
+/**
  * @generated from message tnet.papers.v1.CreatePaperFromLocalPdfRequest
  */
 export class CreatePaperFromLocalPdfRequest extends Message<CreatePaperFromLocalPdfRequest> {
@@ -1231,6 +1292,11 @@ export class CreatePaperFromLocalPdfRequest extends Message<CreatePaperFromLocal
    */
   directoryPath = '';
 
+  /**
+   * @generated from field: repeated string tags = 12;
+   */
+  tags: string[] = [];
+
   constructor(data?: PartialMessage<CreatePaperFromLocalPdfRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1249,7 +1315,8 @@ export class CreatePaperFromLocalPdfRequest extends Message<CreatePaperFromLocal
     { no: 8, name: 'doi', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 9, name: 'arxiv_id', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 10, name: 'url', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
-    { no: 11, name: 'directory_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+    { no: 11, name: 'directory_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: 'tags', kind: 'scalar', T: 9 /* ScalarType.STRING */, repeated: true }
   ]);
 
   static fromBinary(
@@ -1345,6 +1412,11 @@ export class CreatePaperFromPdfBytesRequest extends Message<CreatePaperFromPdfBy
    */
   directoryPath = '';
 
+  /**
+   * @generated from field: repeated string tags = 13;
+   */
+  tags: string[] = [];
+
   constructor(data?: PartialMessage<CreatePaperFromPdfBytesRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1364,7 +1436,8 @@ export class CreatePaperFromPdfBytesRequest extends Message<CreatePaperFromPdfBy
     { no: 9, name: 'doi', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 10, name: 'arxiv_id', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 11, name: 'url', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
-    { no: 12, name: 'directory_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+    { no: 12, name: 'directory_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: 'tags', kind: 'scalar', T: 9 /* ScalarType.STRING */, repeated: true }
   ]);
 
   static fromBinary(

@@ -89,7 +89,8 @@ export class PapersServerClient {
     return {
       listDensity: (config.listDensity || 'comfortable') as PapersLibraryConfig['listDensity'],
       pdfZoomMode: (config.pdfZoomMode || 'page-width') as PapersLibraryConfig['pdfZoomMode'],
-      noteEditorMode: (config.noteEditorMode || 'split') as PapersLibraryConfig['noteEditorMode']
+      noteEditorMode: (config.noteEditorMode || 'split') as PapersLibraryConfig['noteEditorMode'],
+      noteAutoSaveDebounceMs: config.noteAutoSaveDebounceMs || 500
     };
   }
 
@@ -98,7 +99,10 @@ export class PapersServerClient {
 
     await unary(this.libraryClient.saveLibraryConfig.bind(this.libraryClient), {
       libraryRoot,
-      config
+      config: {
+        ...config,
+        noteAutoSaveDebounceMs: config.noteAutoSaveDebounceMs
+      }
     });
   }
 
@@ -133,9 +137,10 @@ export class PapersServerClient {
       doi: request.doi ?? '',
       arxivId: request.arxivId ?? '',
       url: request.url ?? '',
-      directoryPath: request.directoryPath ?? ''
+      directoryPath: request.directoryPath ?? '',
+      tags: request.tags ?? []
     });
-    return toPaperDetail(response);
+    return toPaperDetail(requireImportedPaper(response.paper));
   }
 
   async createPaperFromPdfBytes(request: CreatePaperFromPdfBytesRequest): Promise<PaperDetail> {
@@ -151,9 +156,10 @@ export class PapersServerClient {
       doi: request.doi ?? '',
       arxivId: request.arxivId ?? '',
       url: request.url ?? '',
-      directoryPath: request.directoryPath ?? ''
+      directoryPath: request.directoryPath ?? '',
+      tags: request.tags ?? []
     });
-    return toPaperDetail(response);
+    return toPaperDetail(requireImportedPaper(response.paper));
   }
 
   async listTags(request: { libraryRoot: string }): Promise<PaperTag[]> {
@@ -295,3 +301,10 @@ const toPaperTag = (tag: GeneratedPaperTag): PaperTag => ({
   name: tag.name,
   color: tag.color || undefined
 });
+
+const requireImportedPaper = (paper: GeneratedPaperDetail | undefined): GeneratedPaperDetail => {
+  if (!paper) {
+    throw new Error('gRPC import response was empty');
+  }
+  return paper;
+};

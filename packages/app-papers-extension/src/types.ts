@@ -16,5 +16,6 @@ export interface CreatePaperFromPdfBytesRequest {
   fileName: string;
   pdfBytes: Uint8Array<ArrayBuffer>;
   metadata: BibtexPaperMetadata;
+  tags?: string[];
 }
 import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';

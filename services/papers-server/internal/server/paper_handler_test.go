@@ -24,20 +24,23 @@ func (fakePaperUsecase) GetPaper(context.Context, string, string) (model.Paper, 
 	return model.Paper{}, false, nil
 }
 
-func (fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (model.Paper, error) {
-	return model.Paper{}, nil
+func (fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (paper.ImportResult, error) {
+	return paper.ImportResult{}, nil
 }
 
 func (usecase *fakePaperUsecase) CreatePaperFromPDFBytes(
 	_ context.Context,
 	input paper.CreateFromPDFBytesInput,
-) (model.Paper, error) {
+) (paper.ImportResult, error) {
 	usecase.createdFromBytes = input
-	return model.Paper{
-		ID:            "paper-1",
-		Title:         input.Title,
-		PDFPath:       "papers/" + input.FileName,
-		DirectoryPath: input.DirectoryPath,
+	return paper.ImportResult{
+		Paper: model.Paper{
+			ID:            "paper-1",
+			Title:         input.Title,
+			Tags:          input.Tags,
+			PDFPath:       "papers/" + input.FileName,
+			DirectoryPath: input.DirectoryPath,
+		},
 	}, nil
 }
 
@@ -74,19 +77,22 @@ func TestPaperHandlerCreatePaperFromPdfBytes(t *testing.T) {
 					Doi:           "10.1000/paper",
 					ArxivId:       "2601.00001",
 					Url:           "https://example.test/paper",
+					Tags:          []string{"ai"},
 				}),
 			)
 			if err != nil {
 				t.Fatalf("CreatePaperFromPdfBytes() error = %v", err)
 			}
 
-			if response.Msg.GetId() != "paper-1" {
-				t.Fatalf("paper ID = %q, want paper-1", response.Msg.GetId())
+			if response.Msg.GetPaper().GetId() != "paper-1" {
+				t.Fatalf("paper ID = %q, want paper-1", response.Msg.GetPaper().GetId())
 			}
 			if usecase.createdFromBytes.LibraryRoot != "C:/papers" ||
 				usecase.createdFromBytes.DirectoryPath != "articles" ||
 				usecase.createdFromBytes.FileName != "paper.pdf" ||
-				usecase.createdFromBytes.Title != "Paper" {
+				usecase.createdFromBytes.Title != "Paper" ||
+				len(usecase.createdFromBytes.Tags) != 1 ||
+				usecase.createdFromBytes.Tags[0] != "ai" {
 				t.Fatalf("createdFromBytes = %+v", usecase.createdFromBytes)
 			}
 		})

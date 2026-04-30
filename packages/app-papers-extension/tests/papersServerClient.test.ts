@@ -26,7 +26,11 @@ const createAvailableClient = (): PapersExtensionServerClient => {
       })
     });
     router.service(PaperService, {
-      createPaperFromPdfBytes: () => ({ id: 'paper-1', title: 'Paper', hasPdf: true })
+      createPaperFromPdfBytes: () => ({
+        paper: { id: 'paper-1', title: 'Paper', hasPdf: true },
+        alreadyExists: false,
+        duplicateField: ''
+      })
     });
   });
   return new PapersExtensionServerClient({ transport });
@@ -74,8 +78,9 @@ describe('PapersExtensionServerClient', () => {
         directoryPath: 'articles',
         fileName: 'paper.pdf',
         pdfBytes: new Uint8Array([1, 2, 3]),
-        metadata: { title: 'Paper', authors: ['Alice'] }
+        metadata: { title: 'Paper', authors: ['Alice'] },
+        tags: ['ai']
       })
-    ).resolves.toMatchObject({ id: 'paper-1', title: 'Paper' });
+    ).resolves.toMatchObject({ paper: { id: 'paper-1', title: 'Paper' } });
   });
 });

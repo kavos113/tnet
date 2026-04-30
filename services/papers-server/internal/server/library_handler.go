@@ -122,9 +122,10 @@ func fromProtoGlobalConfig(config *papersv1.PapersGlobalConfig) model.PapersGlob
 
 func toProtoLibraryConfig(config model.PapersLibraryConfig) *papersv1.PapersLibraryConfig {
 	return &papersv1.PapersLibraryConfig{
-		ListDensity:    config.ListDensity,
-		PdfZoomMode:    config.PDFZoomMode,
-		NoteEditorMode: config.NoteEditorMode,
+		ListDensity:            config.ListDensity,
+		PdfZoomMode:            config.PDFZoomMode,
+		NoteEditorMode:         config.NoteEditorMode,
+		NoteAutoSaveDebounceMs: config.NoteAutoSaveDebounceMs,
 	}
 }
 
@@ -133,9 +134,10 @@ func fromProtoLibraryConfig(config *papersv1.PapersLibraryConfig) model.PapersLi
 		return model.DefaultPapersLibraryConfig()
 	}
 	return model.PapersLibraryConfig{
-		ListDensity:    config.ListDensity,
-		PDFZoomMode:    config.PdfZoomMode,
-		NoteEditorMode: config.NoteEditorMode,
+		ListDensity:            config.ListDensity,
+		PDFZoomMode:            config.PdfZoomMode,
+		NoteEditorMode:         config.NoteEditorMode,
+		NoteAutoSaveDebounceMs: config.NoteAutoSaveDebounceMs,
 	}
 }
 

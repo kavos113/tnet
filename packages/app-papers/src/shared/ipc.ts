@@ -22,6 +22,7 @@ export interface CreatePaperFromPdfRequest {
   arxivId?: string;
   url?: string;
   directoryPath?: string;
+  tags?: string[];
 }
 
 export interface CreatePaperFromPdfBytesRequest {
@@ -37,6 +38,7 @@ export interface CreatePaperFromPdfBytesRequest {
   arxivId?: string;
   url?: string;
   directoryPath?: string;
+  tags?: string[];
 }
 
 export interface ListPapersRequest {

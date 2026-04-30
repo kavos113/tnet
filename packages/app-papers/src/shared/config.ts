@@ -15,6 +15,7 @@ export interface PapersLibraryConfig {
   listDensity: PapersListDensity;
   pdfZoomMode: PapersPdfZoomMode;
   noteEditorMode: PapersNoteEditorMode;
+  noteAutoSaveDebounceMs: number;
 }
 
 export const defaultPapersGlobalConfig = (): PapersGlobalConfig => ({
@@ -24,7 +25,8 @@ export const defaultPapersGlobalConfig = (): PapersGlobalConfig => ({
 export const defaultPapersLibraryConfig = (): PapersLibraryConfig => ({
   listDensity: 'comfortable',
   pdfZoomMode: 'page-width',
-  noteEditorMode: 'split'
+  noteEditorMode: 'split',
+  noteAutoSaveDebounceMs: 500
 });
 
 export const getPapersGlobalConfig = (config: GlobalConfig): PapersGlobalConfig => ({
@@ -51,5 +53,9 @@ export const normalizePapersLibraryConfig = (
   config: Partial<PapersLibraryConfig> = {}
 ): PapersLibraryConfig => ({
   ...defaultPapersLibraryConfig(),
-  ...config
+  ...config,
+  noteAutoSaveDebounceMs:
+    config.noteAutoSaveDebounceMs && config.noteAutoSaveDebounceMs > 0
+      ? config.noteAutoSaveDebounceMs
+      : defaultPapersLibraryConfig().noteAutoSaveDebounceMs
 });

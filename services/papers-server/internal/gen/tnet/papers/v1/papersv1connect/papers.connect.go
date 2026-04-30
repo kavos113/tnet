@@ -359,8 +359,8 @@ func (UnimplementedLibraryServiceHandler) ListDirectories(context.Context, *conn
 type PaperServiceClient interface {
 	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
-	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
-	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error)
+	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.ImportPaperResponse], error)
+	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.ImportPaperResponse], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
 }
 
@@ -387,13 +387,13 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(paperServiceMethods.ByName("GetPaper")),
 			connect.WithClientOptions(opts...),
 		),
-		createPaperFromLocalPdf: connect.NewClient[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail](
+		createPaperFromLocalPdf: connect.NewClient[v1.CreatePaperFromLocalPdfRequest, v1.ImportPaperResponse](
 			httpClient,
 			baseURL+PaperServiceCreatePaperFromLocalPdfProcedure,
 			connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromLocalPdf")),
 			connect.WithClientOptions(opts...),
 		),
-		createPaperFromPdfBytes: connect.NewClient[v1.CreatePaperFromPdfBytesRequest, v1.PaperDetail](
+		createPaperFromPdfBytes: connect.NewClient[v1.CreatePaperFromPdfBytesRequest, v1.ImportPaperResponse](
 			httpClient,
 			baseURL+PaperServiceCreatePaperFromPdfBytesProcedure,
 			connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromPdfBytes")),
@@ -412,8 +412,8 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 type paperServiceClient struct {
 	listPapers              *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
 	getPaper                *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
-	createPaperFromLocalPdf *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
-	createPaperFromPdfBytes *connect.Client[v1.CreatePaperFromPdfBytesRequest, v1.PaperDetail]
+	createPaperFromLocalPdf *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.ImportPaperResponse]
+	createPaperFromPdfBytes *connect.Client[v1.CreatePaperFromPdfBytesRequest, v1.ImportPaperResponse]
 	saveNote                *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
 }
 
@@ -428,12 +428,12 @@ func (c *paperServiceClient) GetPaper(ctx context.Context, req *connect.Request[
 }
 
 // CreatePaperFromLocalPdf calls tnet.papers.v1.PaperService.CreatePaperFromLocalPdf.
-func (c *paperServiceClient) CreatePaperFromLocalPdf(ctx context.Context, req *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error) {
+func (c *paperServiceClient) CreatePaperFromLocalPdf(ctx context.Context, req *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.ImportPaperResponse], error) {
 	return c.createPaperFromLocalPdf.CallUnary(ctx, req)
 }
 
 // CreatePaperFromPdfBytes calls tnet.papers.v1.PaperService.CreatePaperFromPdfBytes.
-func (c *paperServiceClient) CreatePaperFromPdfBytes(ctx context.Context, req *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error) {
+func (c *paperServiceClient) CreatePaperFromPdfBytes(ctx context.Context, req *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.ImportPaperResponse], error) {
 	return c.createPaperFromPdfBytes.CallUnary(ctx, req)
 }
 
@@ -446,8 +446,8 @@ func (c *paperServiceClient) SaveNote(ctx context.Context, req *connect.Request[
 type PaperServiceHandler interface {
 	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
-	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
-	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error)
+	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.ImportPaperResponse], error)
+	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.ImportPaperResponse], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
 }
 
@@ -517,11 +517,11 @@ func (UnimplementedPaperServiceHandler) GetPaper(context.Context, *connect.Reque
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.GetPaper is not implemented"))
 }
 
-func (UnimplementedPaperServiceHandler) CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error) {
+func (UnimplementedPaperServiceHandler) CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.ImportPaperResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.CreatePaperFromLocalPdf is not implemented"))
 }
 
-func (UnimplementedPaperServiceHandler) CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error) {
+func (UnimplementedPaperServiceHandler) CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.ImportPaperResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.CreatePaperFromPdfBytes is not implemented"))
 }
 

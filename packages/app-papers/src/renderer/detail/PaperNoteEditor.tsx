@@ -3,14 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 export interface PaperNoteEditorProps {
   paperId: string;
   content: string;
+  autoSaveDebounceMs: number;
   onSave: (content: string) => Promise<void>;
 }
-
-const noteSaveDebounceMs = 500;
 
 export const PaperNoteEditor = ({
   paperId,
   content,
+  autoSaveDebounceMs,
   onSave
 }: PaperNoteEditorProps): React.JSX.Element => {
   const [draft, setDraft] = useState(content);
@@ -37,10 +37,10 @@ export const PaperNoteEditor = ({
           console.error('Failed to save paper note', error);
           setStatus('error');
         });
-    }, noteSaveDebounceMs);
+    }, autoSaveDebounceMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [draft, onSave]);
+  }, [autoSaveDebounceMs, draft, onSave]);
 
   return (
     <section className="papers-note-panel" aria-label="Paper note editor">

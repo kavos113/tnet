@@ -35,6 +35,20 @@ describe('pdfViewerLayout', () => {
     ).toBe(1);
   });
 
+  it('fits page height when fit page is narrower than fit width', () => {
+    expect(
+      getPdfRenderScale({
+        zoom: 'page-fit',
+        pageWidth: 100,
+        pageHeight: 200,
+        viewportWidth: 832,
+        viewportHeight: 432,
+        pagesInRow: 1,
+        gapPx: pdfSpreadGapPx
+      })
+    ).toBe(2);
+  });
+
   it('keeps fixed zoom values independent from viewport size', () => {
     expect(
       getPdfRenderScale({

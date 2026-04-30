@@ -124,15 +124,17 @@ describe('popupStore', () => {
           metadata: {},
           tagsInput: ''
         },
-        '@article{paper,title={Paper},author={Alice and Bob},year={2025}}'
+        '@article{paper,title={Paper},author={Alice and Bob},year={2025},keywords={ai; llm}}'
       )
     ).toMatchObject({
       bibtexDiagnostics: [],
       metadata: {
         title: 'Paper',
         authors: ['Alice', 'Bob'],
-        publishedYear: 2025
-      }
+        publishedYear: 2025,
+        keywords: ['ai', 'llm']
+      },
+      tagsInput: 'ai, llm'
     });
   });
 
@@ -184,7 +186,8 @@ describe('popupStore', () => {
       directoryPath: 'articles',
       fileName: 'paper.pdf',
       pdfBytes: new Uint8Array([1, 2, 3]),
-      metadata: { title: 'Paper', authors: ['Alice'] }
+      metadata: { title: 'Paper', authors: ['Alice'] },
+      tags: ['ai']
     });
   });
 

@@ -14,8 +14,8 @@ import (
 type PaperUsecase interface {
 	ListPapers(context.Context, string, paper.ListFilter) ([]model.Paper, error)
 	GetPaper(context.Context, string, string) (model.Paper, bool, error)
-	CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (model.Paper, error)
-	CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (model.Paper, error)
+	CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (paper.ImportResult, error)
+	CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (paper.ImportResult, error)
 	SaveNote(context.Context, string, string, string) (model.Paper, bool, error)
 }
 
@@ -64,8 +64,8 @@ func (h *PaperHandler) GetPaper(
 func (h *PaperHandler) CreatePaperFromLocalPdf(
 	ctx context.Context,
 	request *connect.Request[papersv1.CreatePaperFromLocalPdfRequest],
-) (*connect.Response[papersv1.PaperDetail], error) {
-	paper, err := h.u.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
+) (*connect.Response[papersv1.ImportPaperResponse], error) {
+	result, err := h.u.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
 		LibraryRoot:   request.Msg.LibraryRoot,
 		SourcePath:    request.Msg.SourcePath,
 		Title:         request.Msg.Title,
@@ -77,18 +77,19 @@ func (h *PaperHandler) CreatePaperFromLocalPdf(
 		ArxivID:       request.Msg.ArxivId,
 		URL:           request.Msg.Url,
 		DirectoryPath: request.Msg.DirectoryPath,
+		Tags:          request.Msg.Tags,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	return connect.NewResponse(toProtoPaperDetail(paper)), nil
+	return connect.NewResponse(toProtoImportPaperResponse(result)), nil
 }
 
 func (h *PaperHandler) CreatePaperFromPdfBytes(
 	ctx context.Context,
 	request *connect.Request[papersv1.CreatePaperFromPdfBytesRequest],
-) (*connect.Response[papersv1.PaperDetail], error) {
-	paper, err := h.u.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
+) (*connect.Response[papersv1.ImportPaperResponse], error) {
+	result, err := h.u.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 		LibraryRoot:   request.Msg.LibraryRoot,
 		FileName:      request.Msg.FileName,
 		Bytes:         request.Msg.PdfBytes,
@@ -101,11 +102,12 @@ func (h *PaperHandler) CreatePaperFromPdfBytes(
 		ArxivID:       request.Msg.ArxivId,
 		URL:           request.Msg.Url,
 		DirectoryPath: request.Msg.DirectoryPath,
+		Tags:          request.Msg.Tags,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	return connect.NewResponse(toProtoPaperDetail(paper)), nil
+	return connect.NewResponse(toProtoImportPaperResponse(result)), nil
 }
 
 func (h *PaperHandler) SaveNote(
@@ -150,5 +152,13 @@ func toProtoPaperDetail(paper model.Paper) *papersv1.PaperDetail {
 		PdfPath:       paper.PDFPath,
 		DirectoryPath: paper.DirectoryPath,
 		NoteContent:   paper.NoteContent,
+	}
+}
+
+func toProtoImportPaperResponse(result paper.ImportResult) *papersv1.ImportPaperResponse {
+	return &papersv1.ImportPaperResponse{
+		Paper:          toProtoPaperDetail(result.Paper),
+		AlreadyExists:  result.AlreadyExists,
+		DuplicateField: result.DuplicateField,
 	}
 }

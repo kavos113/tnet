@@ -13,6 +13,7 @@ export interface PaperDetailPaneProps {
   activeDetailTab: PapersDetailTab;
   isLoading: boolean;
   widthPercent: number;
+  noteAutoSaveDebounceMs: number;
   onSelectTab: (tab: PapersDetailTab) => void;
   onCreateTag: (name: string) => void;
   onAttachTag: (tagId: string) => void;
@@ -28,6 +29,7 @@ export const PaperDetailPane = ({
   activeDetailTab,
   isLoading,
   widthPercent,
+  noteAutoSaveDebounceMs,
   onSelectTab,
   onCreateTag,
   onAttachTag,
@@ -76,7 +78,12 @@ export const PaperDetailPane = ({
           <PdfViewer libraryRoot={activeLibraryRoot} pdfPath={detail.pdfPath} />
         ) : null}
         {activeDetailTab === 'note' ? (
-          <PaperNoteEditor paperId={detail.id} content={detail.noteContent} onSave={onSaveNote} />
+          <PaperNoteEditor
+            paperId={detail.id}
+            content={detail.noteContent}
+            autoSaveDebounceMs={noteAutoSaveDebounceMs}
+            onSave={onSaveNote}
+          />
         ) : null}
       </>
     ) : null}

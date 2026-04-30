@@ -83,7 +83,8 @@ describe('PapersSettingsDialog', () => {
     loadLibrary.mockResolvedValue({
       listDensity: 'comfortable',
       pdfZoomMode: 'page-width',
-      noteEditorMode: 'split'
+      noteEditorMode: 'split',
+      noteAutoSaveDebounceMs: 500
     });
     saveLibrary.mockResolvedValue(undefined);
     installTnetApi();
@@ -122,18 +123,23 @@ describe('PapersSettingsDialog', () => {
     fireEvent.change(screen.getByLabelText('Mode'), {
       target: { value: 'editor' }
     });
+    fireEvent.change(screen.getByLabelText('Auto save delay (ms)'), {
+      target: { value: '1000' }
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
       expect(saveLibrary).toHaveBeenCalledWith('/papers/library', {
         listDensity: 'compact',
         pdfZoomMode: 'actual-size',
-        noteEditorMode: 'editor'
+        noteEditorMode: 'editor',
+        noteAutoSaveDebounceMs: 1000
       });
       expect(store.getState().papersLibrary.settings).toEqual({
         listDensity: 'compact',
         pdfZoomMode: 'actual-size',
-        noteEditorMode: 'editor'
+        noteEditorMode: 'editor',
+        noteAutoSaveDebounceMs: 1000
       });
       expect(onClose).toHaveBeenCalled();
     });

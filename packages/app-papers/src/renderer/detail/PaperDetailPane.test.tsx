@@ -36,6 +36,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading={false}
         widthPercent={60}
+        noteAutoSaveDebounceMs={500}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -55,6 +56,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading
         widthPercent={60}
+        noteAutoSaveDebounceMs={500}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -79,6 +81,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="metadata"
         isLoading={false}
         widthPercent={60}
+        noteAutoSaveDebounceMs={500}
         onSelectTab={onSelectTab}
         onCreateTag={onCreateTag}
         onAttachTag={vi.fn()}
@@ -112,6 +115,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading={false}
         widthPercent={60}
+        noteAutoSaveDebounceMs={500}
         onSelectTab={onSelectTab}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -136,6 +140,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="note"
         isLoading={false}
         widthPercent={60}
+        noteAutoSaveDebounceMs={1000}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -149,7 +154,9 @@ describe('PaperDetailPane', () => {
     });
 
     expect(onSaveNote).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(500);
+    vi.advanceTimersByTime(999);
+    expect(onSaveNote).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
     expect(onSaveNote).toHaveBeenCalledWith('# Updated note');
     vi.useRealTimers();
   });

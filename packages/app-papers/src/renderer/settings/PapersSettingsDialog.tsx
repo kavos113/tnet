@@ -130,6 +130,19 @@ export const PapersSettingsDialog = ({
                   <option value="split">Split</option>
                 </select>
               </label>
+              <label className="form-item" htmlFor="papers-note-debounce">
+                <span>Auto save delay (ms)</span>
+                <input
+                  id="papers-note-debounce"
+                  type="number"
+                  min={100}
+                  step={100}
+                  value={draft.noteAutoSaveDebounceMs}
+                  onChange={(event) =>
+                    updateDraft('noteAutoSaveDebounceMs', Number(event.target.value))
+                  }
+                />
+              </label>
             </div>
           </>
         )}

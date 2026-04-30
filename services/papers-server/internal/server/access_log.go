@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type responseStatusWriter struct {
@@ -30,6 +32,11 @@ func (writer *responseStatusWriter) Flush() {
 func NewAccessLogHandler(next http.Handler, logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		startedAt := time.Now()
+		requestID := r.Header.Get("X-Request-Id")
+		if requestID == "" {
+			requestID = uuid.NewString()
+		}
+		w.Header().Set("X-Request-Id", requestID)
 		statusWriter := &responseStatusWriter{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,
@@ -44,6 +51,7 @@ func NewAccessLogHandler(next http.Handler, logger *slog.Logger) http.Handler {
 			"status", statusWriter.statusCode,
 			"duration_ms", time.Since(startedAt).Milliseconds(),
 			"remote_addr", r.RemoteAddr,
+			"request_id", requestID,
 		)
 	})
 }

@@ -84,6 +84,7 @@ export const updateBibtexInput = (state: PopupState, bibtexInput: string): Popup
     bibtexInput,
     bibtexDiagnostics: diagnostics,
     metadata,
+    tagsInput: state.tagsInput || metadata.keywords?.join(', ') || '',
     errorMessage: undefined
   };
 };
@@ -170,7 +171,8 @@ export const importSelectedPaper = async (
       directoryPath: state.selectedDirectoryPath ?? '',
       fileName: pdfFile.name,
       pdfBytes: pdfFile.bytes,
-      metadata: state.metadata
+      metadata: state.metadata,
+      tags: parseTagsInput(state.tagsInput)
     });
     return {
       ...state,

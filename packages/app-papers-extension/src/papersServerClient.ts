@@ -71,7 +71,8 @@ export class PapersExtensionServerClient {
       venue: request.metadata.venue ?? '',
       doi: request.metadata.doi ?? '',
       arxivId: request.metadata.arxivId ?? '',
-      url: request.metadata.url ?? ''
+      url: request.metadata.url ?? '',
+      tags: request.tags ?? []
     });
     return response;
   }

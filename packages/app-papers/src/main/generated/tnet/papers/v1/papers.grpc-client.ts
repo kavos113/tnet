@@ -14,7 +14,7 @@ import type { ListTagsRequest } from './papers';
 import { PaperService } from './papers';
 import type { SaveNoteRequest } from './papers';
 import type { CreatePaperFromPdfBytesRequest } from './papers';
-import type { PaperDetail } from './papers';
+import type { ImportPaperResponse } from './papers';
 import type { CreatePaperFromLocalPdfRequest } from './papers';
 import type { GetPaperResponse } from './papers';
 import type { GetPaperRequest } from './papers';
@@ -476,21 +476,21 @@ export interface IPaperServiceClient {
     input: CreatePaperFromLocalPdfRequest,
     metadata: grpc.Metadata,
     options: grpc.CallOptions,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   createPaperFromLocalPdf(
     input: CreatePaperFromLocalPdfRequest,
     metadata: grpc.Metadata,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   createPaperFromLocalPdf(
     input: CreatePaperFromLocalPdfRequest,
     options: grpc.CallOptions,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   createPaperFromLocalPdf(
     input: CreatePaperFromLocalPdfRequest,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   /**
    * @generated from protobuf rpc: CreatePaperFromPdfBytes
@@ -499,21 +499,21 @@ export interface IPaperServiceClient {
     input: CreatePaperFromPdfBytesRequest,
     metadata: grpc.Metadata,
     options: grpc.CallOptions,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   createPaperFromPdfBytes(
     input: CreatePaperFromPdfBytesRequest,
     metadata: grpc.Metadata,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   createPaperFromPdfBytes(
     input: CreatePaperFromPdfBytesRequest,
     options: grpc.CallOptions,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   createPaperFromPdfBytes(
     input: CreatePaperFromPdfBytesRequest,
-    callback: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+    callback: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall;
   /**
    * @generated from protobuf rpc: SaveNote
@@ -613,16 +613,18 @@ export class PaperServiceClient extends grpc.Client implements IPaperServiceClie
     metadata:
       | grpc.Metadata
       | grpc.CallOptions
-      | ((err: grpc.ServiceError | null, value?: PaperDetail) => void),
-    options?: grpc.CallOptions | ((err: grpc.ServiceError | null, value?: PaperDetail) => void),
-    callback?: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+      | ((err: grpc.ServiceError | null, value?: ImportPaperResponse) => void),
+    options?:
+      | grpc.CallOptions
+      | ((err: grpc.ServiceError | null, value?: ImportPaperResponse) => void),
+    callback?: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall {
     const method = PaperService.methods[2];
-    return this.makeUnaryRequest<CreatePaperFromLocalPdfRequest, PaperDetail>(
+    return this.makeUnaryRequest<CreatePaperFromLocalPdfRequest, ImportPaperResponse>(
       `/${PaperService.typeName}/${method.name}`,
       (value: CreatePaperFromLocalPdfRequest): Buffer =>
         Buffer.from(method.I.toBinary(value, this._binaryOptions)),
-      (value: Buffer): PaperDetail => method.O.fromBinary(value, this._binaryOptions),
+      (value: Buffer): ImportPaperResponse => method.O.fromBinary(value, this._binaryOptions),
       input,
       metadata as any,
       options as any,
@@ -637,16 +639,18 @@ export class PaperServiceClient extends grpc.Client implements IPaperServiceClie
     metadata:
       | grpc.Metadata
       | grpc.CallOptions
-      | ((err: grpc.ServiceError | null, value?: PaperDetail) => void),
-    options?: grpc.CallOptions | ((err: grpc.ServiceError | null, value?: PaperDetail) => void),
-    callback?: (err: grpc.ServiceError | null, value?: PaperDetail) => void
+      | ((err: grpc.ServiceError | null, value?: ImportPaperResponse) => void),
+    options?:
+      | grpc.CallOptions
+      | ((err: grpc.ServiceError | null, value?: ImportPaperResponse) => void),
+    callback?: (err: grpc.ServiceError | null, value?: ImportPaperResponse) => void
   ): grpc.ClientUnaryCall {
     const method = PaperService.methods[3];
-    return this.makeUnaryRequest<CreatePaperFromPdfBytesRequest, PaperDetail>(
+    return this.makeUnaryRequest<CreatePaperFromPdfBytesRequest, ImportPaperResponse>(
       `/${PaperService.typeName}/${method.name}`,
       (value: CreatePaperFromPdfBytesRequest): Buffer =>
         Buffer.from(method.I.toBinary(value, this._binaryOptions)),
-      (value: Buffer): PaperDetail => method.O.fromBinary(value, this._binaryOptions),
+      (value: Buffer): ImportPaperResponse => method.O.fromBinary(value, this._binaryOptions),
       input,
       metadata as any,
       options as any,

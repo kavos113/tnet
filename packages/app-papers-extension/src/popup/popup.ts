@@ -300,18 +300,40 @@ const renderImported = (): void => {
   const container = createElement('main', 'paper-popup paper-popup-message');
   const importedPaper = readImportedPaper(state.importResult);
   container.append(
-    createElement('h1', undefined, 'Import Complete'),
+    createElement(
+      'h1',
+      undefined,
+      importedPaper.alreadyExists ? 'Already Imported' : 'Import Complete'
+    ),
     createElement('p', undefined, importedPaper.title || 'The selected PDF was imported.')
   );
+  if (importedPaper.alreadyExists) {
+    container.append(
+      createElement(
+        'p',
+        'paper-popup-warning',
+        `Matched existing paper${importedPaper.duplicateField ? ` by ${importedPaper.duplicateField}` : ''}.`
+      )
+    );
+  }
   if (importedPaper.destination) {
     container.append(createElement('p', 'paper-popup-progress', importedPaper.destination));
   }
   setRoot(container);
 };
 
-const readImportedPaper = (result: unknown): { title?: string; destination?: string } => {
+const readImportedPaper = (
+  result: unknown
+): { title?: string; destination?: string; alreadyExists?: boolean; duplicateField?: string } => {
   if (!result || typeof result !== 'object') return {};
-  const paper = result as { title?: unknown; directoryPath?: unknown; pdfPath?: unknown };
+  const importResult = result as {
+    paper?: unknown;
+    alreadyExists?: unknown;
+    duplicateField?: unknown;
+  };
+  const paperSource =
+    importResult.paper && typeof importResult.paper === 'object' ? importResult.paper : result;
+  const paper = paperSource as { title?: unknown; directoryPath?: unknown; pdfPath?: unknown };
   return {
     title: typeof paper.title === 'string' ? paper.title : undefined,
     destination:
@@ -319,7 +341,10 @@ const readImportedPaper = (result: unknown): { title?: string; destination?: str
         ? paper.pdfPath
         : typeof paper.directoryPath === 'string'
           ? paper.directoryPath
-          : undefined
+          : undefined,
+    alreadyExists: importResult.alreadyExists === true,
+    duplicateField:
+      typeof importResult.duplicateField === 'string' ? importResult.duplicateField : undefined
   };
 };
 

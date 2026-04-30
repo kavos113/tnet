@@ -61,6 +61,10 @@ export interface PapersLibraryConfig {
    * @generated from protobuf field: string note_editor_mode = 3
    */
   noteEditorMode: string;
+  /**
+   * @generated from protobuf field: int32 note_auto_save_debounce_ms = 4
+   */
+  noteAutoSaveDebounceMs: number;
 }
 /**
  * @generated from protobuf message tnet.papers.v1.LoadGlobalConfigRequest
@@ -335,6 +339,23 @@ export interface GetPaperResponse {
   paper?: PaperDetail;
 }
 /**
+ * @generated from protobuf message tnet.papers.v1.ImportPaperResponse
+ */
+export interface ImportPaperResponse {
+  /**
+   * @generated from protobuf field: tnet.papers.v1.PaperDetail paper = 1
+   */
+  paper?: PaperDetail;
+  /**
+   * @generated from protobuf field: bool already_exists = 2
+   */
+  alreadyExists: boolean;
+  /**
+   * @generated from protobuf field: string duplicate_field = 3
+   */
+  duplicateField: string;
+}
+/**
  * @generated from protobuf message tnet.papers.v1.CreatePaperFromLocalPdfRequest
  */
 export interface CreatePaperFromLocalPdfRequest {
@@ -382,6 +403,10 @@ export interface CreatePaperFromLocalPdfRequest {
    * @generated from protobuf field: string directory_path = 11
    */
   directoryPath: string;
+  /**
+   * @generated from protobuf field: repeated string tags = 12
+   */
+  tags: string[];
 }
 /**
  * @generated from protobuf message tnet.papers.v1.CreatePaperFromPdfBytesRequest
@@ -435,6 +460,10 @@ export interface CreatePaperFromPdfBytesRequest {
    * @generated from protobuf field: string directory_path = 12
    */
   directoryPath: string;
+  /**
+   * @generated from protobuf field: repeated string tags = 13
+   */
+  tags: string[];
 }
 /**
  * @generated from protobuf message tnet.papers.v1.PaperTag
@@ -775,7 +804,8 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
     super('tnet.papers.v1.PapersLibraryConfig', [
       { no: 1, name: 'list_density', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'pdf_zoom_mode', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 3, name: 'note_editor_mode', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+      { no: 3, name: 'note_editor_mode', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 4, name: 'note_auto_save_debounce_ms', kind: 'scalar', T: 5 /*ScalarType.INT32*/ }
     ]);
   }
   create(value?: PartialMessage<PapersLibraryConfig>): PapersLibraryConfig {
@@ -783,6 +813,7 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
     message.listDensity = '';
     message.pdfZoomMode = '';
     message.noteEditorMode = '';
+    message.noteAutoSaveDebounceMs = 0;
     if (value !== undefined) reflectionMergePartial<PapersLibraryConfig>(this, message, value);
     return message;
   }
@@ -805,6 +836,9 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
           break;
         case /* string note_editor_mode */ 3:
           message.noteEditorMode = reader.string();
+          break;
+        case /* int32 note_auto_save_debounce_ms */ 4:
+          message.noteAutoSaveDebounceMs = reader.int32();
           break;
         default:
           let u = options.readUnknownField;
@@ -839,6 +873,9 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
     /* string note_editor_mode = 3; */
     if (message.noteEditorMode !== '')
       writer.tag(3, WireType.LengthDelimited).string(message.noteEditorMode);
+    /* int32 note_auto_save_debounce_ms = 4; */
+    if (message.noteAutoSaveDebounceMs !== 0)
+      writer.tag(4, WireType.Varint).int32(message.noteAutoSaveDebounceMs);
     let u = options.writeUnknownFields;
     if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
     return writer;
@@ -2277,6 +2314,92 @@ class GetPaperResponse$Type extends MessageType<GetPaperResponse> {
  */
 export const GetPaperResponse = new GetPaperResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ImportPaperResponse$Type extends MessageType<ImportPaperResponse> {
+  constructor() {
+    super('tnet.papers.v1.ImportPaperResponse', [
+      { no: 1, name: 'paper', kind: 'message', T: () => PaperDetail },
+      { no: 2, name: 'already_exists', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
+      { no: 3, name: 'duplicate_field', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+    ]);
+  }
+  create(value?: PartialMessage<ImportPaperResponse>): ImportPaperResponse {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.alreadyExists = false;
+    message.duplicateField = '';
+    if (value !== undefined) reflectionMergePartial<ImportPaperResponse>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ImportPaperResponse
+  ): ImportPaperResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* tnet.papers.v1.PaperDetail paper */ 1:
+          message.paper = PaperDetail.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.paper
+          );
+          break;
+        case /* bool already_exists */ 2:
+          message.alreadyExists = reader.bool();
+          break;
+        case /* string duplicate_field */ 3:
+          message.duplicateField = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ImportPaperResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* tnet.papers.v1.PaperDetail paper = 1; */
+    if (message.paper)
+      PaperDetail.internalBinaryWrite(
+        message.paper,
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options
+      ).join();
+    /* bool already_exists = 2; */
+    if (message.alreadyExists !== false) writer.tag(2, WireType.Varint).bool(message.alreadyExists);
+    /* string duplicate_field = 3; */
+    if (message.duplicateField !== '')
+      writer.tag(3, WireType.LengthDelimited).string(message.duplicateField);
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.ImportPaperResponse
+ */
+export const ImportPaperResponse = new ImportPaperResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class CreatePaperFromLocalPdfRequest$Type extends MessageType<CreatePaperFromLocalPdfRequest> {
   constructor() {
     super('tnet.papers.v1.CreatePaperFromLocalPdfRequest', [
@@ -2296,7 +2419,14 @@ class CreatePaperFromLocalPdfRequest$Type extends MessageType<CreatePaperFromLoc
       { no: 8, name: 'doi', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 9, name: 'arxiv_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 10, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 11, name: 'directory_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+      { no: 11, name: 'directory_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 12,
+        name: 'tags',
+        kind: 'scalar',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: 9 /*ScalarType.STRING*/
+      }
     ]);
   }
   create(value?: PartialMessage<CreatePaperFromLocalPdfRequest>): CreatePaperFromLocalPdfRequest {
@@ -2312,6 +2442,7 @@ class CreatePaperFromLocalPdfRequest$Type extends MessageType<CreatePaperFromLoc
     message.arxivId = '';
     message.url = '';
     message.directoryPath = '';
+    message.tags = [];
     if (value !== undefined)
       reflectionMergePartial<CreatePaperFromLocalPdfRequest>(this, message, value);
     return message;
@@ -2359,6 +2490,9 @@ class CreatePaperFromLocalPdfRequest$Type extends MessageType<CreatePaperFromLoc
           break;
         case /* string directory_path */ 11:
           message.directoryPath = reader.string();
+          break;
+        case /* repeated string tags */ 12:
+          message.tags.push(reader.string());
           break;
         default:
           let u = options.readUnknownField;
@@ -2410,6 +2544,9 @@ class CreatePaperFromLocalPdfRequest$Type extends MessageType<CreatePaperFromLoc
     /* string directory_path = 11; */
     if (message.directoryPath !== '')
       writer.tag(11, WireType.LengthDelimited).string(message.directoryPath);
+    /* repeated string tags = 12; */
+    for (let i = 0; i < message.tags.length; i++)
+      writer.tag(12, WireType.LengthDelimited).string(message.tags[i]);
     let u = options.writeUnknownFields;
     if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
     return writer;
@@ -2440,7 +2577,14 @@ class CreatePaperFromPdfBytesRequest$Type extends MessageType<CreatePaperFromPdf
       { no: 9, name: 'doi', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 10, name: 'arxiv_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 11, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 12, name: 'directory_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+      { no: 12, name: 'directory_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 13,
+        name: 'tags',
+        kind: 'scalar',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: 9 /*ScalarType.STRING*/
+      }
     ]);
   }
   create(value?: PartialMessage<CreatePaperFromPdfBytesRequest>): CreatePaperFromPdfBytesRequest {
@@ -2457,6 +2601,7 @@ class CreatePaperFromPdfBytesRequest$Type extends MessageType<CreatePaperFromPdf
     message.arxivId = '';
     message.url = '';
     message.directoryPath = '';
+    message.tags = [];
     if (value !== undefined)
       reflectionMergePartial<CreatePaperFromPdfBytesRequest>(this, message, value);
     return message;
@@ -2507,6 +2652,9 @@ class CreatePaperFromPdfBytesRequest$Type extends MessageType<CreatePaperFromPdf
           break;
         case /* string directory_path */ 12:
           message.directoryPath = reader.string();
+          break;
+        case /* repeated string tags */ 13:
+          message.tags.push(reader.string());
           break;
         default:
           let u = options.readUnknownField;
@@ -2559,6 +2707,9 @@ class CreatePaperFromPdfBytesRequest$Type extends MessageType<CreatePaperFromPdf
     /* string directory_path = 12; */
     if (message.directoryPath !== '')
       writer.tag(12, WireType.LengthDelimited).string(message.directoryPath);
+    /* repeated string tags = 13; */
+    for (let i = 0; i < message.tags.length; i++)
+      writer.tag(13, WireType.LengthDelimited).string(message.tags[i]);
     let u = options.writeUnknownFields;
     if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
     return writer;
@@ -3251,13 +3402,13 @@ export const PaperService = new ServiceType('tnet.papers.v1.PaperService', [
     name: 'CreatePaperFromLocalPdf',
     options: {},
     I: CreatePaperFromLocalPdfRequest,
-    O: PaperDetail
+    O: ImportPaperResponse
   },
   {
     name: 'CreatePaperFromPdfBytes',
     options: {},
     I: CreatePaperFromPdfBytesRequest,
-    O: PaperDetail
+    O: ImportPaperResponse
   },
   { name: 'SaveNote', options: {}, I: SaveNoteRequest, O: GetPaperResponse }
 ]);

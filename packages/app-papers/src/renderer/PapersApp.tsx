@@ -40,6 +40,7 @@ export const PapersApp = (): React.JSX.Element => {
   const selectedPaperId = usePapersSelector((state) => state.papersContent.selectedPaperId);
   const selectedTagIds = usePapersSelector((state) => state.papersContent.selectedTagIds);
   const tags = usePapersSelector((state) => state.papersContent.tags);
+  const paperSettings = usePapersSelector((state) => state.papersLibrary.settings);
   const selectedDirectoryRelativePath = useMemo(() => {
     if (!activeLibraryRoot || selectedDirectoryPath === null) return undefined;
     return toWorkspaceRelativePath(activeLibraryRoot, selectedDirectoryPath);
@@ -265,6 +266,7 @@ export const PapersApp = (): React.JSX.Element => {
         activeDetailTab={activeDetailTab}
         isLoading={isLoadingDetail}
         widthPercent={detailWidthPercent}
+        noteAutoSaveDebounceMs={paperSettings.noteAutoSaveDebounceMs}
         onSelectTab={(tab) => dispatch(setActivePapersDetailTab(tab))}
         onCreateTag={(name) => {
           createAndAttachTag(name).catch((tagError: unknown) => {

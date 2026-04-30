@@ -9,24 +9,35 @@ const createTestClient = (): PapersServerClient => {
         libraryRoots: ['C:/papers'],
         activeLibraryRoot: request.userDataDir === 'C:/user-data' ? 'C:/papers' : '',
         lastOpenedDirectory: ''
-      }))
+      })),
+      loadLibraryConfig: unaryStub(() => ({
+        listDensity: 'comfortable',
+        pdfZoomMode: 'page-width',
+        noteEditorMode: 'split',
+        noteAutoSaveDebounceMs: 750
+      })),
+      saveLibraryConfig: unaryStub(() => ({}))
     },
     paperClient: {
       createPaperFromPdfBytes: unaryStub(() => ({
-        id: 'paper-2',
-        title: 'Bytes Paper',
-        authors: ['Alice'],
-        publishedYear: 2025,
-        venue: 'Venue',
-        tags: [],
-        hasPdf: true,
-        abstract: '',
-        doi: '',
-        arxivId: '',
-        url: '',
-        pdfPath: 'papers/bytes.pdf',
-        directoryPath: 'papers',
-        noteContent: ''
+        paper: {
+          id: 'paper-2',
+          title: 'Bytes Paper',
+          authors: ['Alice'],
+          publishedYear: 2025,
+          venue: 'Venue',
+          tags: [],
+          hasPdf: true,
+          abstract: '',
+          doi: '',
+          arxivId: '',
+          url: '',
+          pdfPath: 'papers/bytes.pdf',
+          directoryPath: 'papers',
+          noteContent: ''
+        },
+        alreadyExists: false,
+        duplicateField: ''
       })),
       getPaper: unaryStub(() => ({
         paper: {

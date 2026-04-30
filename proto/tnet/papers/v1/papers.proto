@@ -20,8 +20,8 @@ service LibraryService {
 service PaperService {
   rpc ListPapers(ListPapersRequest) returns (ListPapersResponse);
   rpc GetPaper(GetPaperRequest) returns (GetPaperResponse);
-  rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (PaperDetail);
-  rpc CreatePaperFromPdfBytes(CreatePaperFromPdfBytesRequest) returns (PaperDetail);
+  rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (ImportPaperResponse);
+  rpc CreatePaperFromPdfBytes(CreatePaperFromPdfBytesRequest) returns (ImportPaperResponse);
   rpc SaveNote(SaveNoteRequest) returns (GetPaperResponse);
 }
 
@@ -53,6 +53,7 @@ message PapersLibraryConfig {
   string list_density = 1;
   string pdf_zoom_mode = 2;
   string note_editor_mode = 3;
+  int32 note_auto_save_debounce_ms = 4;
 }
 
 message LoadGlobalConfigRequest {
@@ -153,6 +154,12 @@ message GetPaperResponse {
   PaperDetail paper = 1;
 }
 
+message ImportPaperResponse {
+  PaperDetail paper = 1;
+  bool already_exists = 2;
+  string duplicate_field = 3;
+}
+
 message CreatePaperFromLocalPdfRequest {
   string library_root = 1;
   string source_path = 2;
@@ -165,6 +172,7 @@ message CreatePaperFromLocalPdfRequest {
   string arxiv_id = 9;
   string url = 10;
   string directory_path = 11;
+  repeated string tags = 12;
 }
 
 message CreatePaperFromPdfBytesRequest {
@@ -180,6 +188,7 @@ message CreatePaperFromPdfBytesRequest {
   string arxiv_id = 10;
   string url = 11;
   string directory_path = 12;
+  repeated string tags = 13;
 }
 
 message PaperTag {

@@ -27,7 +27,7 @@ func TestServiceCreatePaperFromLocalPDFCopiesExternalPDF(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			paper, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
+			result, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
 				LibraryRoot:   libraryRoot,
 				SourcePath:    sourcePath,
 				Title:         "Paper",
@@ -37,10 +37,10 @@ func TestServiceCreatePaperFromLocalPDFCopiesExternalPDF(t *testing.T) {
 				t.Fatalf("CreatePaperFromLocalPDF() error = %v", err)
 			}
 
-			if paper.PDFPath != "articles/paper.pdf" {
-				t.Fatalf("PDFPath = %q, want articles/paper.pdf", paper.PDFPath)
+			if result.Paper.PDFPath != "articles/paper.pdf" {
+				t.Fatalf("PDFPath = %q, want articles/paper.pdf", result.Paper.PDFPath)
 			}
-			if _, err := os.Stat(filepath.Join(libraryRoot, filepath.FromSlash(paper.PDFPath))); err != nil {
+			if _, err := os.Stat(filepath.Join(libraryRoot, filepath.FromSlash(result.Paper.PDFPath))); err != nil {
 				t.Fatalf("expected copied PDF: %v", err)
 			}
 		})
@@ -85,11 +85,14 @@ func TestServiceCreatePaperFromLocalPDFReturnsExistingPaperForSameLibraryPath(t 
 				t.Fatalf("second CreatePaperFromLocalPDF() error = %v", err)
 			}
 
-			if second.ID != first.ID {
-				t.Fatalf("second ID = %q, want existing %q", second.ID, first.ID)
+			if second.Paper.ID != first.Paper.ID {
+				t.Fatalf("second ID = %q, want existing %q", second.Paper.ID, first.Paper.ID)
 			}
-			if second.Title != "First" {
-				t.Fatalf("second Title = %q, want existing title First", second.Title)
+			if second.Paper.Title != "First" {
+				t.Fatalf("second Title = %q, want existing title First", second.Paper.Title)
+			}
+			if !second.AlreadyExists || second.DuplicateField != "pdf_path" {
+				t.Fatalf("second duplicate status = %+v, want pdf_path duplicate", second)
 			}
 		})
 	}
@@ -122,7 +125,7 @@ func TestServiceCreatePaperFromPDFBytes(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			paper, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			result, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
 				LibraryRoot:   libraryRoot,
 				FileName:      testcase.fileName,
 				Bytes:         []byte("pdf"),
@@ -137,10 +140,10 @@ func TestServiceCreatePaperFromPDFBytes(t *testing.T) {
 				t.Fatalf("CreatePaperFromPDFBytes() error = %v", err)
 			}
 
-			if paper.PDFPath != testcase.wantPDFPath {
-				t.Fatalf("PDFPath = %q, want %q", paper.PDFPath, testcase.wantPDFPath)
+			if result.Paper.PDFPath != testcase.wantPDFPath {
+				t.Fatalf("PDFPath = %q, want %q", result.Paper.PDFPath, testcase.wantPDFPath)
 			}
-			if _, err := os.Stat(filepath.Join(libraryRoot, filepath.FromSlash(paper.PDFPath))); err != nil {
+			if _, err := os.Stat(filepath.Join(libraryRoot, filepath.FromSlash(result.Paper.PDFPath))); err != nil {
 				t.Fatalf("expected saved PDF: %v", err)
 			}
 		})
@@ -182,11 +185,112 @@ func TestServiceCreatePaperFromPDFBytesAvoidsFileNameCollision(t *testing.T) {
 				t.Fatalf("second CreatePaperFromPDFBytes() error = %v", err)
 			}
 
-			if first.PDFPath != "papers/paper.pdf" {
-				t.Fatalf("first PDFPath = %q, want papers/paper.pdf", first.PDFPath)
+			if first.Paper.PDFPath != "papers/paper.pdf" {
+				t.Fatalf("first PDFPath = %q, want papers/paper.pdf", first.Paper.PDFPath)
 			}
-			if second.PDFPath != "papers/paper 2.pdf" {
-				t.Fatalf("second PDFPath = %q, want papers/paper 2.pdf", second.PDFPath)
+			if second.Paper.PDFPath != "papers/paper 2.pdf" {
+				t.Fatalf("second PDFPath = %q, want papers/paper 2.pdf", second.Paper.PDFPath)
+			}
+		})
+	}
+}
+
+func TestServiceCreatePaperFromPDFBytesReturnsExistingPaperForIdentifiers(t *testing.T) {
+	testcases := []struct {
+		name          string
+		firstDOI      string
+		firstArxivID  string
+		secondDOI     string
+		secondArxivID string
+		wantDuplicate string
+	}{
+		{
+			name:          "returns existing paper for duplicate DOI",
+			firstDOI:      "10.1000/duplicate",
+			secondDOI:     "10.1000/duplicate",
+			wantDuplicate: "doi",
+		},
+		{
+			name:          "returns existing paper for duplicate arXiv ID",
+			firstArxivID:  "2601.00001",
+			secondArxivID: "2601.00001",
+			wantDuplicate: "arxiv_id",
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			libraryRoot := t.TempDir()
+			service, closeService := newTestService(t)
+			defer closeService()
+
+			first, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+				LibraryRoot: libraryRoot,
+				FileName:    "first.pdf",
+				Bytes:       []byte("first"),
+				Title:       "First",
+				DOI:         testcase.firstDOI,
+				ArxivID:     testcase.firstArxivID,
+			})
+			if err != nil {
+				t.Fatalf("first CreatePaperFromPDFBytes() error = %v", err)
+			}
+			second, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+				LibraryRoot: libraryRoot,
+				FileName:    "second.pdf",
+				Bytes:       []byte("second"),
+				Title:       "Second",
+				DOI:         testcase.secondDOI,
+				ArxivID:     testcase.secondArxivID,
+			})
+			if err != nil {
+				t.Fatalf("second CreatePaperFromPDFBytes() error = %v", err)
+			}
+
+			if second.Paper.ID != first.Paper.ID {
+				t.Fatalf("second ID = %q, want existing %q", second.Paper.ID, first.Paper.ID)
+			}
+			if !second.AlreadyExists || second.DuplicateField != testcase.wantDuplicate {
+				t.Fatalf("duplicate status = %+v, want %s", second, testcase.wantDuplicate)
+			}
+		})
+	}
+}
+
+func TestServiceCreatePaperFromPDFBytesAttachesImportTags(t *testing.T) {
+	testcases := []struct {
+		name string
+		tags []string
+		want []string
+	}{
+		{name: "attaches comma parsed import tags", tags: []string{"ai", "retrieval"}, want: []string{"ai", "retrieval"}},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			libraryRoot := t.TempDir()
+			service, closeService := newTestService(t)
+			defer closeService()
+
+			result, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+				LibraryRoot: libraryRoot,
+				FileName:    "paper.pdf",
+				Bytes:       []byte("pdf"),
+				Title:       "Paper",
+				Tags:        testcase.tags,
+			})
+			if err != nil {
+				t.Fatalf("CreatePaperFromPDFBytes() error = %v", err)
+			}
+			if len(result.Paper.Tags) != len(testcase.want) {
+				t.Fatalf("Tags = %+v, want %+v", result.Paper.Tags, testcase.want)
+			}
+			for index, want := range testcase.want {
+				if result.Paper.Tags[index] != want {
+					t.Fatalf("Tags = %+v, want %+v", result.Paper.Tags, testcase.want)
+				}
 			}
 		})
 	}
@@ -218,7 +322,7 @@ func TestServiceCreatePaperFromPDFBytesNormalizesDirectoryPath(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			paper, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			result, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
 				LibraryRoot:   libraryRoot,
 				FileName:      "paper.pdf",
 				Bytes:         []byte("pdf"),
@@ -235,11 +339,11 @@ func TestServiceCreatePaperFromPDFBytesNormalizesDirectoryPath(t *testing.T) {
 			if err != nil {
 				t.Fatalf("CreatePaperFromPDFBytes() error = %v", err)
 			}
-			if paper.PDFPath != testcase.wantPDFPath {
-				t.Fatalf("PDFPath = %q, want %q", paper.PDFPath, testcase.wantPDFPath)
+			if result.Paper.PDFPath != testcase.wantPDFPath {
+				t.Fatalf("PDFPath = %q, want %q", result.Paper.PDFPath, testcase.wantPDFPath)
 			}
-			if paper.DirectoryPath != "articles/accepted" {
-				t.Fatalf("DirectoryPath = %q, want articles/accepted", paper.DirectoryPath)
+			if result.Paper.DirectoryPath != "articles/accepted" {
+				t.Fatalf("DirectoryPath = %q, want articles/accepted", result.Paper.DirectoryPath)
 			}
 		})
 	}

@@ -12,9 +12,10 @@ type GlobalConfig struct {
 }
 
 type PapersLibraryConfig struct {
-	ListDensity    string `json:"listDensity"`
-	PDFZoomMode    string `json:"pdfZoomMode"`
-	NoteEditorMode string `json:"noteEditorMode"`
+	ListDensity            string `json:"listDensity"`
+	PDFZoomMode            string `json:"pdfZoomMode"`
+	NoteEditorMode         string `json:"noteEditorMode"`
+	NoteAutoSaveDebounceMs int32  `json:"noteAutoSaveDebounceMs"`
 }
 
 func DefaultPapersGlobalConfig() PapersGlobalConfig {
@@ -23,9 +24,10 @@ func DefaultPapersGlobalConfig() PapersGlobalConfig {
 
 func DefaultPapersLibraryConfig() PapersLibraryConfig {
 	return PapersLibraryConfig{
-		ListDensity:    "comfortable",
-		PDFZoomMode:    "page-width",
-		NoteEditorMode: "split",
+		ListDensity:            "comfortable",
+		PDFZoomMode:            "page-width",
+		NoteEditorMode:         "split",
+		NoteAutoSaveDebounceMs: 500,
 	}
 }
 
@@ -39,6 +41,9 @@ func NormalizePapersLibraryConfig(config PapersLibraryConfig) PapersLibraryConfi
 	}
 	if config.NoteEditorMode == "" {
 		config.NoteEditorMode = defaults.NoteEditorMode
+	}
+	if config.NoteAutoSaveDebounceMs <= 0 {
+		config.NoteAutoSaveDebounceMs = defaults.NoteAutoSaveDebounceMs
 	}
 	return config
 }

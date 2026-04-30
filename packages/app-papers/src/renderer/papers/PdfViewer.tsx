@@ -176,6 +176,7 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
 
       setIsLoading(true);
       try {
+        const loadStartedAt = performance.now();
         const bytes = await papersTnetApi.papers.pdf.loadBytes({ libraryRoot, pdfPath });
         if (canceled) return;
 
@@ -188,6 +189,12 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
 
         setPdfDocument(loadedDocument);
         setPageCount(loadedDocument.numPages);
+        console.info('Loaded PDF', {
+          pdfPath,
+          byteLength: bytes.byteLength,
+          pageCount: loadedDocument.numPages,
+          durationMs: Math.round(performance.now() - loadStartedAt)
+        });
       } catch (loadError) {
         console.error('Failed to load PDF', loadError);
         if (!canceled) setError('Failed to load PDF.');

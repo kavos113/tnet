@@ -40,6 +40,7 @@ type CreateFromLocalPDFInput struct {
 	ArxivID       string
 	URL           string
 	DirectoryPath string
+	Tags          []string
 }
 
 type CreateFromPDFBytesInput struct {
@@ -55,6 +56,13 @@ type CreateFromPDFBytesInput struct {
 	ArxivID       string
 	URL           string
 	DirectoryPath string
+	Tags          []string
+}
+
+type ImportResult struct {
+	Paper          model.Paper
+	AlreadyExists  bool
+	DuplicateField string
 }
 
 func NewService(dbManager *sqlite.LibraryDBManager) *Service {
@@ -93,18 +101,18 @@ func (s *Service) GetPaper(
 func (s *Service) CreatePaperFromLocalPDF(
 	ctx context.Context,
 	input CreateFromLocalPDFInput,
-) (model.Paper, error) {
+) (ImportResult, error) {
 	root, err := model.NewLibraryRoot(input.LibraryRoot)
 	if err != nil {
-		return model.Paper{}, err
+		return ImportResult{}, err
 	}
 	if input.SourcePath == "" {
-		return model.Paper{}, errRequired("source path")
+		return ImportResult{}, errRequired("source path")
 	}
 
 	pdfPath, err := s.copyPDFIfNeeded(root, input.SourcePath, input.DirectoryPath)
 	if err != nil {
-		return model.Paper{}, err
+		return ImportResult{}, err
 	}
 	return s.createPaperWithPDFPath(ctx, root, createPaperMetadata{
 		Title:         input.Title,
@@ -116,19 +124,25 @@ func (s *Service) CreatePaperFromLocalPDF(
 		ArxivID:       input.ArxivID,
 		URL:           input.URL,
 		PDFPath:       pdfPath,
+		Tags:          input.Tags,
 	})
 }
 
 func (s *Service) CreatePaperFromPDFBytes(
 	ctx context.Context,
 	input CreateFromPDFBytesInput,
-) (model.Paper, error) {
+) (ImportResult, error) {
 	root, err := model.NewLibraryRoot(input.LibraryRoot)
 	if err != nil {
-		return model.Paper{}, err
+		return ImportResult{}, err
 	}
 	if len(input.Bytes) == 0 {
-		return model.Paper{}, errRequired("pdf bytes")
+		return ImportResult{}, errRequired("pdf bytes")
+	}
+	if duplicate, ok, err := s.findIdentifierDuplicate(ctx, root, input.DOI, input.ArxivID); err != nil {
+		return ImportResult{}, err
+	} else if ok {
+		return duplicate, nil
 	}
 
 	pdfPath, err := s.savePDFBytes(root, input.DirectoryPath, storedPDF{
@@ -136,7 +150,7 @@ func (s *Service) CreatePaperFromPDFBytes(
 		Bytes:    input.Bytes,
 	})
 	if err != nil {
-		return model.Paper{}, err
+		return ImportResult{}, err
 	}
 	return s.createPaperWithPDFPath(ctx, root, createPaperMetadata{
 		Title:         input.Title,
@@ -148,6 +162,7 @@ func (s *Service) CreatePaperFromPDFBytes(
 		ArxivID:       input.ArxivID,
 		URL:           input.URL,
 		PDFPath:       pdfPath,
+		Tags:          input.Tags,
 	})
 }
 
@@ -161,18 +176,33 @@ type createPaperMetadata struct {
 	ArxivID       string
 	URL           string
 	PDFPath       string
+	Tags          []string
 }
 
 func (s *Service) createPaperWithPDFPath(
 	ctx context.Context,
 	root model.LibraryRoot,
 	metadata createPaperMetadata,
-) (model.Paper, error) {
+) (ImportResult, error) {
 	repository, err := s.repositoryForRoot(ctx, root)
 	if err != nil {
-		return model.Paper{}, err
+		return ImportResult{}, err
 	}
-	return repository.CreatePaper(ctx, sqlite.CreatePaperInput{
+	if duplicate, ok, err := findIdentifierDuplicate(ctx, repository, metadata.DOI, metadata.ArxivID); err != nil {
+		return ImportResult{}, err
+	} else if ok {
+		return duplicate, nil
+	}
+	if metadata.PDFPath != "" {
+		paper, ok, err := repository.GetPaperByPDFPath(ctx, metadata.PDFPath)
+		if err != nil {
+			return ImportResult{}, err
+		}
+		if ok {
+			return ImportResult{Paper: paper, AlreadyExists: true, DuplicateField: "pdf_path"}, nil
+		}
+	}
+	paper, err := repository.CreatePaper(ctx, sqlite.CreatePaperInput{
 		Title:         metadata.Title,
 		Authors:       metadata.Authors,
 		Abstract:      metadata.Abstract,
@@ -184,6 +214,69 @@ func (s *Service) createPaperWithPDFPath(
 		PDFPath:       metadata.PDFPath,
 		DirectoryPath: directoryPathForPDF(metadata.PDFPath),
 	})
+	if err != nil {
+		return ImportResult{}, err
+	}
+	paper, err = attachImportTags(ctx, repository, paper, metadata.Tags)
+	if err != nil {
+		return ImportResult{}, err
+	}
+	return ImportResult{Paper: paper}, nil
+}
+
+func (s *Service) findIdentifierDuplicate(
+	ctx context.Context,
+	root model.LibraryRoot,
+	doi string,
+	arxivID string,
+) (ImportResult, bool, error) {
+	repository, err := s.repositoryForRoot(ctx, root)
+	if err != nil {
+		return ImportResult{}, false, err
+	}
+	return findIdentifierDuplicate(ctx, repository, doi, arxivID)
+}
+
+func findIdentifierDuplicate(
+	ctx context.Context,
+	repository *sqlite.PaperRepository,
+	doi string,
+	arxivID string,
+) (ImportResult, bool, error) {
+	paper, ok, err := repository.GetPaperByIdentifiers(ctx, doi, arxivID)
+	if err != nil || !ok {
+		return ImportResult{}, false, err
+	}
+	duplicateField := "identifier"
+	if doi != "" && paper.DOI == doi {
+		duplicateField = "doi"
+	} else if arxivID != "" && paper.ArxivID == arxivID {
+		duplicateField = "arxiv_id"
+	}
+	return ImportResult{Paper: paper, AlreadyExists: true, DuplicateField: duplicateField}, true, nil
+}
+
+func attachImportTags(
+	ctx context.Context,
+	repository *sqlite.PaperRepository,
+	paper model.Paper,
+	tags []string,
+) (model.Paper, error) {
+	updated := paper
+	for _, tagName := range tags {
+		tag, err := repository.UpsertTag(ctx, tagName, "")
+		if err != nil {
+			return model.Paper{}, err
+		}
+		next, ok, err := repository.AttachTag(ctx, updated.ID, tag.ID)
+		if err != nil {
+			return model.Paper{}, err
+		}
+		if ok {
+			updated = next
+		}
+	}
+	return updated, nil
 }
 
 func (s *Service) SaveNote(

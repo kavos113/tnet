@@ -12,6 +12,7 @@ import {
   DetachTagRequest,
   GetPaperRequest,
   GetPaperResponse,
+  ImportPaperResponse,
   ListDirectoriesRequest,
   ListDirectoriesResponse,
   ListLibrariesRequest,
@@ -24,7 +25,6 @@ import {
   LoadLibraryConfigRequest,
   LoadPdfBytesRequest,
   LoadPdfBytesResponse,
-  PaperDetail,
   PapersGlobalConfig,
   PapersLibraryConfig,
   PaperTag,
@@ -148,7 +148,7 @@ export const PaperService = {
     createPaperFromLocalPdf: {
       name: 'CreatePaperFromLocalPdf',
       I: CreatePaperFromLocalPdfRequest,
-      O: PaperDetail,
+      O: ImportPaperResponse,
       kind: MethodKind.Unary
     },
     /**
@@ -157,7 +157,7 @@ export const PaperService = {
     createPaperFromPdfBytes: {
       name: 'CreatePaperFromPdfBytes',
       I: CreatePaperFromPdfBytesRequest,
-      O: PaperDetail,
+      O: ImportPaperResponse,
       kind: MethodKind.Unary
     },
     /**

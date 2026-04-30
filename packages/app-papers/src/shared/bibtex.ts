@@ -4,10 +4,12 @@ export interface BibtexPaperMetadata {
   authors?: string[];
   abstract?: string;
   publishedYear?: number;
+  month?: string;
   venue?: string;
   doi?: string;
   arxivId?: string;
   url?: string;
+  keywords?: string[];
 }
 
 export interface BibtexParseDiagnostic {
@@ -42,6 +44,7 @@ export const parseBibtexMetadataResult = (input: string): BibtexParseResult => {
     authors: parseAuthors(fields.get('author')),
     abstract: cleanBibtexValue(fields.get('abstract')),
     publishedYear: parseYear(fields.get('year')) ?? parseYear(fields.get('date')),
+    month: cleanBibtexValue(fields.get('month')),
     venue: cleanBibtexValue(
       fields.get('journal') ??
         fields.get('booktitle') ??
@@ -50,7 +53,8 @@ export const parseBibtexMetadataResult = (input: string): BibtexParseResult => {
     ),
     doi: cleanBibtexValue(fields.get('doi')),
     arxivId: parseArxivId(fields),
-    url: cleanBibtexValue(fields.get('url'))
+    url: cleanBibtexValue(fields.get('url')),
+    keywords: parseKeywords(fields.get('keywords') ?? fields.get('keyword'))
   };
 
   const parsedMetadata = Object.fromEntries(
@@ -183,6 +187,17 @@ const parseAuthors = (value?: string): string[] | undefined => {
 const parseYear = (value?: string): number | undefined => {
   const match = cleanBibtexValue(value)?.match(/\d{4}/);
   return match ? Number(match[0]) : undefined;
+};
+
+const parseKeywords = (value?: string): string[] | undefined => {
+  const cleaned = cleanBibtexValue(value);
+  if (!cleaned) return undefined;
+
+  const keywords = cleaned
+    .split(/[;,]/)
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
+  return keywords.length > 0 ? keywords : undefined;
 };
 
 const parseArxivId = (fields: Map<string, string>): string | undefined => {
