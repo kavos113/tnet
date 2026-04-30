@@ -7,6 +7,12 @@ import {
   PapersSidebar
 } from '@tnet/app-papers/renderer';
 import {
+  RequesterApp,
+  RequesterRuntime,
+  RequesterSettingsDialog,
+  RequesterSidebar
+} from '@tnet/app-requester/renderer';
+import {
   MarkdownApp,
   MarkdownRuntime,
   MarkdownSettingsDialog,
@@ -41,6 +47,15 @@ export const appRegistry: AppModule[] = [
     Sidebar: PapersSidebar,
     Runtime: PapersRuntime,
     Settings: PapersSettingsDialog
+  },
+  {
+    id: 'requester',
+    label: 'Requester',
+    icon: 'api',
+    Main: RequesterApp,
+    Sidebar: RequesterSidebar,
+    Runtime: RequesterRuntime,
+    Settings: RequesterSettingsDialog
   },
   {
     id: 'code',

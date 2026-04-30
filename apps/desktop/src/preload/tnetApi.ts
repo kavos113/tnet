@@ -3,8 +3,9 @@ import { ipcChannels } from '@tnet/shared/ipc/channels';
 import type { TnetApi } from '@tnet/shared/ipc/contracts';
 import { markdownIpcChannels, type MarkdownApi } from '@tnet/app-markdown/shared/ipc';
 import { papersIpcChannels, type PapersApi } from '@tnet/app-papers/shared/ipc';
+import { requesterIpcChannels, type RequesterApi } from '@tnet/app-requester/shared/ipc';
 
-export type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi;
+export type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi & RequesterApi;
 
 export const tnetApi: DesktopTnetApi = {
   workspace: {
@@ -85,6 +86,25 @@ export const tnetApi: DesktopTnetApi = {
     pdf: {
       loadBytes: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.loadBytes, request),
       openExternal: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.openExternal, request)
+    }
+  },
+  requester: {
+    config: {
+      loadGlobal: () => ipcRenderer.invoke(requesterIpcChannels.config.loadGlobal),
+      saveGlobal: (config) => ipcRenderer.invoke(requesterIpcChannels.config.saveGlobal, config)
+    },
+    workspaces: {
+      list: () => ipcRenderer.invoke(requesterIpcChannels.workspaces.list),
+      create: (request) => ipcRenderer.invoke(requesterIpcChannels.workspaces.create, request),
+      update: (request) => ipcRenderer.invoke(requesterIpcChannels.workspaces.update, request),
+      remove: (request) => ipcRenderer.invoke(requesterIpcChannels.workspaces.remove, request),
+      getSettings: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.workspaces.getSettings, request),
+      saveSettings: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.workspaces.saveSettings, request)
+    },
+    requests: {
+      list: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.list, request)
     }
   }
 };

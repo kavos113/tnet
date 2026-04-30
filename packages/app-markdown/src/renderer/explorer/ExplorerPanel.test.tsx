@@ -66,6 +66,23 @@ const installTnetApi = (): void => {
         llm: {
           getInlineCompletion: vi.fn()
         }
+      },
+      requester: {
+        config: {
+          loadGlobal: vi.fn(),
+          saveGlobal: vi.fn()
+        },
+        workspaces: {
+          list: vi.fn(),
+          create: vi.fn(),
+          update: vi.fn(),
+          remove: vi.fn(),
+          getSettings: vi.fn(),
+          saveSettings: vi.fn()
+        },
+        requests: {
+          list: vi.fn()
+        }
       }
     },
     writable: true
@@ -249,6 +266,7 @@ describe('ExplorerPanel', () => {
             workspaceRoots: ['/workspace', '/second']
           },
           papers: {},
+          requester: {},
           code: {}
         }
       });
@@ -299,6 +317,7 @@ describe('ExplorerPanel', () => {
             workspaceRoots: ['/workspace', '/second']
           },
           papers: {},
+          requester: {},
           code: {}
         }
       });
@@ -368,6 +387,7 @@ describe('ExplorerPanel', () => {
             workspaceRoots: ['/workspace', '/legacy']
           },
           papers: {},
+          requester: {},
           code: {}
         }
       });

@@ -40,6 +40,7 @@ describe('config services', () => {
           workspaceRoots: ['C:/workspace', 'D:/notes']
         },
         papers: {},
+        requester: {},
         code: {}
       }
     });

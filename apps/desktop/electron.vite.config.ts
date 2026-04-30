@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 const workspacePackages = [
   '@tnet/app-papers',
   '@tnet/app-markdown',
+  '@tnet/app-requester',
   '@tnet/main-core',
   '@tnet/markdown-editor',
   '@tnet/renderer-core',
@@ -38,6 +39,7 @@ export default defineConfig({
         '@shared': resolve('../../packages/shared/src'),
         '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
+        '@tnet/app-requester': resolve('../../packages/app-requester/src'),
         '@tnet/main-core': resolve('../../packages/main-core/src'),
         '@tnet/markdown-editor': resolve('../../packages/markdown-editor/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
@@ -60,6 +62,7 @@ export default defineConfig({
         '@shared': resolve('../../packages/shared/src'),
         '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
+        '@tnet/app-requester': resolve('../../packages/app-requester/src'),
         '@tnet/markdown-editor': resolve('../../packages/markdown-editor/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
       }
@@ -72,6 +75,7 @@ export default defineConfig({
         '@shared': resolve('../../packages/shared/src'),
         '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
+        '@tnet/app-requester': resolve('../../packages/app-requester/src'),
         '@tnet/markdown-editor': resolve('../../packages/markdown-editor/src'),
         '@tnet/renderer-core': resolve('../../packages/renderer-core/src'),
         '@tnet/shared': resolve('../../packages/shared/src'),

@@ -250,6 +250,18 @@ importers:
 
   packages/app-papers-extension: {}
 
+  packages/app-requester:
+    dependencies:
+      '@tnet/main-core':
+        specifier: workspace:*
+        version: link:../main-core
+      '@tnet/renderer-core':
+        specifier: workspace:*
+        version: link:../renderer-core
+      '@tnet/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/main-core:
     dependencies:
       '@tnet/shared':

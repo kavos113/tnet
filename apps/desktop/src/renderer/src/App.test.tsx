@@ -64,6 +64,7 @@ describe('App', () => {
           library: {
             selectPdf: vi.fn(),
             createPaperFromPdf: vi.fn(),
+            createPaperFromPdfBytes: vi.fn(),
             importPdf: vi.fn()
           },
           papers: {
@@ -82,6 +83,23 @@ describe('App', () => {
           pdf: {
             loadBytes: vi.fn(),
             openExternal: vi.fn()
+          }
+        },
+        requester: {
+          config: {
+            loadGlobal: vi.fn().mockResolvedValue({}),
+            saveGlobal: vi.fn().mockResolvedValue(undefined)
+          },
+          workspaces: {
+            list: vi.fn().mockResolvedValue([]),
+            create: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn(),
+            getSettings: vi.fn(),
+            saveSettings: vi.fn()
+          },
+          requests: {
+            list: vi.fn().mockResolvedValue([])
           }
         }
       },
@@ -129,5 +147,18 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText('No file selected')).toBeInTheDocument();
     });
+  });
+
+  it('opens the requester app module from the app rail', async () => {
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Requester' }));
+
+    expect(screen.getByRole('main', { name: 'Requester' })).toBeInTheDocument();
+    expect(screen.getByText('Create a request workspace to begin.')).toBeInTheDocument();
   });
 });

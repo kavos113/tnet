@@ -3,8 +3,9 @@
 import type { TnetApi } from '@tnet/shared/ipc/contracts';
 import type { MarkdownApi } from '@tnet/app-markdown/shared/ipc';
 import type { PapersApi } from '@tnet/app-papers/shared/ipc';
+import type { RequesterApi } from '@tnet/app-requester/shared/ipc';
 
-type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi;
+type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi & RequesterApi;
 
 declare global {
   interface Window {

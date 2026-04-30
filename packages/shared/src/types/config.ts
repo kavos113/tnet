@@ -10,6 +10,7 @@ export const defaultGlobalConfig = (): GlobalConfig => ({
   apps: {
     markdown: {},
     papers: {},
+    requester: {},
     code: {}
   }
 });

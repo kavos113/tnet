@@ -12,6 +12,7 @@ export default defineConfig({
       '@shared': resolve(__dirname, 'packages/shared/src'),
       '@tnet/app-papers': resolve(__dirname, 'packages/app-papers/src'),
       '@tnet/app-markdown': resolve(__dirname, 'packages/app-markdown/src'),
+      '@tnet/app-requester': resolve(__dirname, 'packages/app-requester/src'),
       '@tnet/main-core': resolve(__dirname, 'packages/main-core/src'),
       '@tnet/markdown-editor': resolve(__dirname, 'packages/markdown-editor/src'),
       '@tnet/renderer-core': resolve(__dirname, 'packages/renderer-core/src'),
