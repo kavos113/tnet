@@ -14,18 +14,22 @@ import (
 
 type fakePaperUsecase struct {
 	createdFromBytes paper.CreateFromPDFBytesInput
+	papers           []model.Paper
+	paper            model.Paper
+	ok               bool
+	err              error
 }
 
-func (fakePaperUsecase) ListPapers(context.Context, string, paper.ListFilter) ([]model.Paper, error) {
-	return nil, nil
+func (usecase fakePaperUsecase) ListPapers(context.Context, string, paper.ListFilter) ([]model.Paper, error) {
+	return usecase.papers, usecase.err
 }
 
-func (fakePaperUsecase) GetPaper(context.Context, string, string) (model.Paper, bool, error) {
-	return model.Paper{}, false, nil
+func (usecase fakePaperUsecase) GetPaper(context.Context, string, string) (model.Paper, bool, error) {
+	return usecase.paper, usecase.ok, usecase.err
 }
 
-func (fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (paper.ImportResult, error) {
-	return paper.ImportResult{}, nil
+func (usecase fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (paper.ImportResult, error) {
+	return paper.ImportResult{Paper: usecase.paper}, usecase.err
 }
 
 func (usecase *fakePaperUsecase) CreatePaperFromPDFBytes(
@@ -44,8 +48,8 @@ func (usecase *fakePaperUsecase) CreatePaperFromPDFBytes(
 	}, nil
 }
 
-func (fakePaperUsecase) SaveNote(context.Context, string, string, string) (model.Paper, bool, error) {
-	return model.Paper{}, false, nil
+func (usecase fakePaperUsecase) SaveNote(context.Context, string, string, string) (model.Paper, bool, error) {
+	return usecase.paper, usecase.ok, usecase.err
 }
 
 func TestPaperHandlerCreatePaperFromPdfBytes(t *testing.T) {
@@ -95,6 +99,73 @@ func TestPaperHandlerCreatePaperFromPdfBytes(t *testing.T) {
 				usecase.createdFromBytes.Tags[0] != "ai" {
 				t.Fatalf("createdFromBytes = %+v", usecase.createdFromBytes)
 			}
+		})
+	}
+}
+
+func TestPaperHandlerListGetAndSaveNote(t *testing.T) {
+	testcases := []struct {
+		name string
+		run  func(t *testing.T, handler *PaperHandler)
+	}{
+		{
+			name: "lists paper summaries",
+			run: func(t *testing.T, handler *PaperHandler) {
+				t.Helper()
+				response, err := handler.ListPapers(
+					context.Background(),
+					connect.NewRequest(&papersv1.ListPapersRequest{LibraryRoot: "C:/papers", Query: "Paper"}),
+				)
+				if err != nil {
+					t.Fatalf("ListPapers() error = %v", err)
+				}
+				if len(response.Msg.Papers) != 1 || response.Msg.Papers[0].Title != "Paper" {
+					t.Fatalf("ListPapers() = %+v", response.Msg)
+				}
+			},
+		},
+		{
+			name: "gets paper detail",
+			run: func(t *testing.T, handler *PaperHandler) {
+				t.Helper()
+				response, err := handler.GetPaper(
+					context.Background(),
+					connect.NewRequest(&papersv1.GetPaperRequest{LibraryRoot: "C:/papers", PaperId: "paper-1"}),
+				)
+				if err != nil {
+					t.Fatalf("GetPaper() error = %v", err)
+				}
+				if response.Msg.Paper == nil || response.Msg.Paper.Id != "paper-1" {
+					t.Fatalf("GetPaper() = %+v", response.Msg)
+				}
+			},
+		},
+		{
+			name: "saves note",
+			run: func(t *testing.T, handler *PaperHandler) {
+				t.Helper()
+				response, err := handler.SaveNote(
+					context.Background(),
+					connect.NewRequest(&papersv1.SaveNoteRequest{LibraryRoot: "C:/papers", PaperId: "paper-1", Content: "note"}),
+				)
+				if err != nil {
+					t.Fatalf("SaveNote() error = %v", err)
+				}
+				if response.Msg.Paper == nil || response.Msg.Paper.NoteContent != "note" {
+					t.Fatalf("SaveNote() = %+v", response.Msg)
+				}
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			handler := &PaperHandler{u: &fakePaperUsecase{
+				papers: []model.Paper{{ID: "paper-1", Title: "Paper", PDFPath: "papers/a.pdf"}},
+				paper:  model.Paper{ID: "paper-1", Title: "Paper", NoteContent: "note"},
+				ok:     true,
+			}}
+			testcase.run(t, handler)
 		})
 	}
 }

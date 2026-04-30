@@ -14,13 +14,6 @@ type Service struct {
 	store Store
 }
 
-type ListFilter struct {
-	DirectoryPath string
-	HasDirectory  bool
-	Query         string
-	TagIDs        []string
-}
-
 type CreateFromLocalPDFInput struct {
 	LibraryRoot   string
 	SourcePath    string
@@ -91,35 +84,6 @@ type CreatePaperInput struct {
 
 func NewService(store Store) *Service {
 	return &Service{store: store}
-}
-
-func (s *Service) ListPapers(
-	ctx context.Context,
-	libraryRoot string,
-	filter ListFilter,
-) ([]model.Paper, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return nil, err
-	}
-	return repository.ListPapers(ctx, ListFilter{
-		DirectoryPath: filter.DirectoryPath,
-		HasDirectory:  filter.HasDirectory,
-		Query:         filter.Query,
-		TagIDs:        filter.TagIDs,
-	})
-}
-
-func (s *Service) GetPaper(
-	ctx context.Context,
-	libraryRoot string,
-	paperID string,
-) (model.Paper, bool, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return model.Paper{}, false, err
-	}
-	return repository.GetPaper(ctx, paperID)
 }
 
 func (s *Service) CreatePaperFromLocalPDF(
@@ -301,86 +265,6 @@ func attachImportTags(
 		}
 	}
 	return updated, nil
-}
-
-func (s *Service) SaveNote(
-	ctx context.Context,
-	libraryRoot string,
-	paperID string,
-	content string,
-) (model.Paper, bool, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return model.Paper{}, false, err
-	}
-	return repository.SaveNote(ctx, paperID, content)
-}
-
-func (s *Service) ListTags(ctx context.Context, libraryRoot string) ([]model.PaperTag, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return nil, err
-	}
-	return repository.ListTags(ctx)
-}
-
-func (s *Service) UpsertTag(
-	ctx context.Context,
-	libraryRoot string,
-	name string,
-	color string,
-) (model.PaperTag, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return model.PaperTag{}, err
-	}
-	return repository.UpsertTag(ctx, name, color)
-}
-
-func (s *Service) AttachTag(
-	ctx context.Context,
-	libraryRoot string,
-	paperID string,
-	tagID string,
-) (model.Paper, bool, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return model.Paper{}, false, err
-	}
-	return repository.AttachTag(ctx, paperID, tagID)
-}
-
-func (s *Service) DetachTag(
-	ctx context.Context,
-	libraryRoot string,
-	paperID string,
-	tagID string,
-) (model.Paper, bool, error) {
-	repository, err := s.repository(ctx, libraryRoot)
-	if err != nil {
-		return model.Paper{}, false, err
-	}
-	return repository.DetachTag(ctx, paperID, tagID)
-}
-
-func (s *Service) LoadPDFBytes(
-	ctx context.Context,
-	libraryRoot string,
-	pdfPath string,
-) ([]byte, error) {
-	root, err := model.NewLibraryRoot(libraryRoot)
-	if err != nil {
-		return nil, err
-	}
-	if pdfPath == "" {
-		return nil, errRequired("pdf path")
-	}
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-	}
-	return os.ReadFile(filepath.Join(root.String(), filepath.FromSlash(pdfPath)))
 }
 
 func (s *Service) repository(ctx context.Context, libraryRoot string) (Repository, error) {

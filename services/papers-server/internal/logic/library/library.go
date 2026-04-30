@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
-	"github.com/kavos113/tnet/services/papers-server/internal/repository/filesystem"
 )
 
 type ConfigRepository interface {
@@ -16,7 +15,7 @@ type ConfigRepository interface {
 }
 
 type DirectoryRepository interface {
-	ListDirectories(context.Context, model.LibraryRoot) (filesystem.DirectoryNode, error)
+	ListDirectories(context.Context, model.LibraryRoot) (model.DirectoryNode, error)
 }
 
 type LibraryInfo struct {
@@ -112,10 +111,10 @@ func (service *Service) resolveUserDataDir(userDataDir string) string {
 func (service *Service) ListDirectories(
 	ctx context.Context,
 	libraryRoot string,
-) (filesystem.DirectoryNode, error) {
+) (model.DirectoryNode, error) {
 	root, err := model.NewLibraryRoot(libraryRoot)
 	if err != nil {
-		return filesystem.DirectoryNode{}, err
+		return model.DirectoryNode{}, err
 	}
 	return service.directoryRepository.ListDirectories(ctx, root)
 }

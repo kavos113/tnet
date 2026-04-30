@@ -27,7 +27,7 @@ func (handler *PDFHandler) LoadPdfBytes(
 ) (*connect.Response[papersv1.LoadPdfBytesResponse], error) {
 	bytes, err := handler.service.LoadPDFBytes(ctx, request.Msg.LibraryRoot, request.Msg.PdfPath)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	return connect.NewResponse(&papersv1.LoadPdfBytesResponse{Bytes: bytes}), nil
 }

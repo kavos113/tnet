@@ -38,7 +38,7 @@ func (h *PaperHandler) ListPapers(
 		TagIDs:        request.Msg.TagIds,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	response := &papersv1.ListPapersResponse{}
 	for _, item := range papers {
@@ -53,7 +53,7 @@ func (h *PaperHandler) GetPaper(
 ) (*connect.Response[papersv1.GetPaperResponse], error) {
 	paper, ok, err := h.u.GetPaper(ctx, request.Msg.LibraryRoot, request.Msg.PaperId)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	if !ok {
 		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
@@ -80,7 +80,7 @@ func (h *PaperHandler) CreatePaperFromLocalPdf(
 		Tags:          request.Msg.Tags,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	return connect.NewResponse(toProtoImportPaperResponse(result)), nil
 }
@@ -105,7 +105,7 @@ func (h *PaperHandler) CreatePaperFromPdfBytes(
 		Tags:          request.Msg.Tags,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	return connect.NewResponse(toProtoImportPaperResponse(result)), nil
 }
@@ -116,49 +116,10 @@ func (h *PaperHandler) SaveNote(
 ) (*connect.Response[papersv1.GetPaperResponse], error) {
 	paper, ok, err := h.u.SaveNote(ctx, request.Msg.LibraryRoot, request.Msg.PaperId, request.Msg.Content)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	if !ok {
 		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
 	}
 	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
-}
-
-func toProtoPaperSummary(paper model.Paper) *papersv1.PaperSummary {
-	return &papersv1.PaperSummary{
-		Id:            paper.ID,
-		Title:         paper.Title,
-		Authors:       paper.Authors,
-		PublishedYear: paper.PublishedYear,
-		Venue:         paper.Venue,
-		Tags:          paper.Tags,
-		HasPdf:        paper.PDFPath != "",
-	}
-}
-
-func toProtoPaperDetail(paper model.Paper) *papersv1.PaperDetail {
-	return &papersv1.PaperDetail{
-		Id:            paper.ID,
-		Title:         paper.Title,
-		Authors:       paper.Authors,
-		PublishedYear: paper.PublishedYear,
-		Venue:         paper.Venue,
-		Tags:          paper.Tags,
-		HasPdf:        paper.PDFPath != "",
-		Abstract:      paper.Abstract,
-		Doi:           paper.DOI,
-		ArxivId:       paper.ArxivID,
-		Url:           paper.URL,
-		PdfPath:       paper.PDFPath,
-		DirectoryPath: paper.DirectoryPath,
-		NoteContent:   paper.NoteContent,
-	}
-}
-
-func toProtoImportPaperResponse(result paper.ImportResult) *papersv1.ImportPaperResponse {
-	return &papersv1.ImportPaperResponse{
-		Paper:          toProtoPaperDetail(result.Paper),
-		AlreadyExists:  result.AlreadyExists,
-		DuplicateField: result.DuplicateField,
-	}
 }

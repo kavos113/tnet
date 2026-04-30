@@ -10,12 +10,6 @@ import (
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
 )
 
-type DirectoryNode struct {
-	Name         string
-	RelativePath string
-	Children     []DirectoryNode
-}
-
 type DirectoryRepository struct{}
 
 func NewDirectoryRepository() *DirectoryRepository {
@@ -25,20 +19,20 @@ func NewDirectoryRepository() *DirectoryRepository {
 func (repository *DirectoryRepository) ListDirectories(
 	ctx context.Context,
 	libraryRoot model.LibraryRoot,
-) (DirectoryNode, error) {
-	root := DirectoryNode{Name: filepath.Base(libraryRoot.String()), RelativePath: ""}
+) (model.DirectoryNode, error) {
+	root := model.DirectoryNode{Name: filepath.Base(libraryRoot.String()), RelativePath: ""}
 	children, err := listChildren(ctx, libraryRoot.String(), "")
 	if err != nil {
 		if os.IsNotExist(err) {
 			return root, nil
 		}
-		return DirectoryNode{}, err
+		return model.DirectoryNode{}, err
 	}
 	root.Children = children
 	return root, nil
 }
 
-func listChildren(ctx context.Context, root string, relativePath string) ([]DirectoryNode, error) {
+func listChildren(ctx context.Context, root string, relativePath string) ([]model.DirectoryNode, error) {
 	select {
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -50,7 +44,7 @@ func listChildren(ctx context.Context, root string, relativePath string) ([]Dire
 		return nil, err
 	}
 
-	nodes := make([]DirectoryNode, 0)
+	nodes := make([]model.DirectoryNode, 0)
 	for _, entry := range entries {
 		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
 			continue
@@ -63,7 +57,7 @@ func listChildren(ctx context.Context, root string, relativePath string) ([]Dire
 		if err != nil {
 			return nil, err
 		}
-		nodes = append(nodes, DirectoryNode{
+		nodes = append(nodes, model.DirectoryNode{
 			Name:         entry.Name(),
 			RelativePath: childRelativePath,
 			Children:     children,

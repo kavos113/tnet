@@ -31,7 +31,7 @@ func (handler *TagHandler) ListTags(
 ) (*connect.Response[papersv1.ListTagsResponse], error) {
 	tags, err := handler.service.ListTags(ctx, request.Msg.LibraryRoot)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	response := &papersv1.ListTagsResponse{}
 	for _, tag := range tags {
@@ -46,7 +46,7 @@ func (handler *TagHandler) UpsertTag(
 ) (*connect.Response[papersv1.PaperTag], error) {
 	tag, err := handler.service.UpsertTag(ctx, request.Msg.LibraryRoot, request.Msg.Name, request.Msg.Color)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	return connect.NewResponse(toProtoPaperTag(tag)), nil
 }
@@ -57,7 +57,7 @@ func (handler *TagHandler) AttachTag(
 ) (*connect.Response[papersv1.GetPaperResponse], error) {
 	paper, ok, err := handler.service.AttachTag(ctx, request.Msg.LibraryRoot, request.Msg.PaperId, request.Msg.TagId)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	if !ok {
 		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
@@ -71,18 +71,10 @@ func (handler *TagHandler) DetachTag(
 ) (*connect.Response[papersv1.GetPaperResponse], error) {
 	paper, ok, err := handler.service.DetachTag(ctx, request.Msg.LibraryRoot, request.Msg.PaperId, request.Msg.TagId)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		return nil, invalidArgumentError(err)
 	}
 	if !ok {
 		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
 	}
 	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
-}
-
-func toProtoPaperTag(tag model.PaperTag) *papersv1.PaperTag {
-	return &papersv1.PaperTag{
-		Id:    tag.ID,
-		Name:  tag.Name,
-		Color: tag.Color,
-	}
 }

@@ -13,6 +13,7 @@
     "papers:server:mocks": "cd services/papers-server && go generate ./...",
     "papers:server:test": "powershell -ExecutionPolicy Bypass -File scripts/paper-server-test.ps1",
     "papers:server:test:coverage": "powershell -ExecutionPolicy Bypass -File scripts/paper-server-test.ps1 cover",
+    "papers:server:test:coverage:filtered": "powershell -ExecutionPolicy Bypass -File scripts/paper-server-coverage.ps1",
     "papers:extension:build": "pnpm --filter @tnet/app-papers-extension build",
     "test": "pnpm sqlite:node && vitest run",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
