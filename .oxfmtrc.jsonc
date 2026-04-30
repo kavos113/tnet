@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "trailingComma": "none",
+  "tabWidth": 2,
+  "semi": true,
+  "singleQuote": true,
+  "printWidth": 100,
+  "useTabs": false,
+  "endOfLine": "lf",
+  "ignorePatterns": ["old", "out", "dist", "node_modules", "services/papers-server/cover"]
+}
