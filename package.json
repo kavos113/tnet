@@ -4,7 +4,7 @@
   "private": true,
   "description": "Workspace for the tnet Electron app and packages",
   "scripts": {
-    "format": "prettier --write .",
+    "format": "oxfmt",
     "lint": "eslint --cache .",
     "sqlite:node": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target node",
     "sqlite:electron": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target electron",
@@ -91,6 +91,7 @@
     "electron-vite": "^5.0.0",
     "eslint": "^9.39.1",
     "happy-dom": "^20.7.0",
+    "oxfmt": "^0.47.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "vite": "^7.2.6",
