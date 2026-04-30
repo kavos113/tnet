@@ -94,6 +94,24 @@ const installTnetApi = (): void => {
           save: vi.fn(),
           remove: vi.fn(),
           setActive: vi.fn()
+        },
+        execution: {
+          send: vi.fn(),
+          abort: vi.fn()
+        },
+        history: {
+          list: vi.fn(),
+          get: vi.fn(),
+          remove: vi.fn(),
+          clear: vi.fn()
+        },
+        files: {
+          selectBinaryBody: vi.fn(),
+          saveResponseBody: vi.fn(),
+          openResponseExternally: vi.fn()
+        },
+        graphql: {
+          introspect: vi.fn()
         }
       }
     },

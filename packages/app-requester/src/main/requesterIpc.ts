@@ -3,11 +3,20 @@ import type { RequesterGlobalConfig } from '@tnet/app-requester/shared/config';
 import { requesterIpcChannels } from '@tnet/app-requester/shared/ipc';
 import { loadRequesterGlobalConfig, saveRequesterGlobalConfig } from './requesterConfigService';
 import {
+  GraphqlSchemaRepository,
   openRequesterDatabase,
+  HistoryRepository,
   RequestRepository,
   VariableSetRepository,
   WorkspaceRepository
 } from './repository';
+import { RequestExecutionService } from './service/requestExecutionService';
+import {
+  openResponseExternally,
+  saveResponseBody,
+  selectBinaryBodyFile
+} from './requesterFileService';
+import { GraphqlIntrospectionService } from './graphql/graphqlIntrospectionService';
 
 export interface RegisterRequesterIpcOptions {
   userDataDir: string;
@@ -18,6 +27,10 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   const workspaceRepository = new WorkspaceRepository(database);
   const requestRepository = new RequestRepository(database);
   const variableSetRepository = new VariableSetRepository(database);
+  const historyRepository = new HistoryRepository(database);
+  const graphqlSchemaRepository = new GraphqlSchemaRepository(database);
+  const requestExecutionService = new RequestExecutionService(historyRepository);
+  const graphqlIntrospectionService = new GraphqlIntrospectionService(graphqlSchemaRepository);
 
   ipcMain.handle(requesterIpcChannels.config.loadGlobal, async () =>
     loadRequesterGlobalConfig(userDataDir)
@@ -83,4 +96,31 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
       defaultVariableSetId: request.variableSetId
     });
   });
+
+  ipcMain.handle(requesterIpcChannels.execution.send, async (_event, request) =>
+    requestExecutionService.send(request)
+  );
+  ipcMain.handle(requesterIpcChannels.execution.abort, async () => undefined);
+  ipcMain.handle(requesterIpcChannels.history.list, async (_event, request) =>
+    historyRepository.list(request.workspaceId)
+  );
+  ipcMain.handle(requesterIpcChannels.history.get, async (_event, request) =>
+    historyRepository.get(request.historyId)
+  );
+  ipcMain.handle(requesterIpcChannels.history.remove, async (_event, request) => {
+    historyRepository.remove(request.historyId);
+  });
+  ipcMain.handle(requesterIpcChannels.history.clear, async (_event, request) => {
+    historyRepository.clear(request.workspaceId);
+  });
+  ipcMain.handle(requesterIpcChannels.files.selectBinaryBody, async () => selectBinaryBodyFile());
+  ipcMain.handle(requesterIpcChannels.files.saveResponseBody, async (_event, request) =>
+    saveResponseBody(request)
+  );
+  ipcMain.handle(requesterIpcChannels.files.openResponseExternally, async (_event, request) =>
+    openResponseExternally(userDataDir, request)
+  );
+  ipcMain.handle(requesterIpcChannels.graphql.introspect, async (_event, request) =>
+    graphqlIntrospectionService.introspect(request)
+  );
 };

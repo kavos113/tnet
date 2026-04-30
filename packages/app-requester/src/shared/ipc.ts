@@ -1,6 +1,9 @@
 import type { RequesterGlobalConfig, RequesterWorkspaceSettings } from './config';
 import type {
   RequesterRequestDetail,
+  RequesterExecutionResult,
+  RequesterHistoryDetail,
+  RequesterHistoryEntry,
   RequesterRequestSummary,
   RequesterVariableSet,
   RequesterWorkspace,
@@ -34,6 +37,24 @@ export const requesterIpcChannels = {
     save: 'requester:variableSets:save',
     remove: 'requester:variableSets:remove',
     setActive: 'requester:variableSets:setActive'
+  },
+  execution: {
+    send: 'requester:execution:send',
+    abort: 'requester:execution:abort'
+  },
+  history: {
+    list: 'requester:history:list',
+    get: 'requester:history:get',
+    remove: 'requester:history:remove',
+    clear: 'requester:history:clear'
+  },
+  files: {
+    selectBinaryBody: 'requester:files:selectBinaryBody',
+    saveResponseBody: 'requester:files:saveResponseBody',
+    openResponseExternally: 'requester:files:openResponseExternally'
+  },
+  graphql: {
+    introspect: 'requester:graphql:introspect'
   }
 } as const;
 
@@ -72,6 +93,45 @@ export interface RequesterApi {
       }) => Promise<RequesterVariableSet>;
       remove: (request: { variableSetId: string }) => Promise<void>;
       setActive: (request: { workspaceId: string; variableSetId?: string }) => Promise<void>;
+    };
+    execution: {
+      send: (request: SaveRequesterRequestInput) => Promise<RequesterExecutionResult>;
+      abort: (request: { executionId: string }) => Promise<void>;
+    };
+    history: {
+      list: (request: { workspaceId: string }) => Promise<RequesterHistoryEntry[]>;
+      get: (request: { historyId: string }) => Promise<RequesterHistoryDetail | null>;
+      remove: (request: { historyId: string }) => Promise<void>;
+      clear: (request: { workspaceId: string }) => Promise<void>;
+    };
+    files: {
+      selectBinaryBody: () => Promise<{ path: string; name: string } | null>;
+      saveResponseBody: (request: {
+        suggestedName: string;
+        bodyText: string;
+        bodyBase64?: string;
+      }) => Promise<string | null>;
+      openResponseExternally: (request: {
+        suggestedName: string;
+        bodyText: string;
+        bodyBase64?: string;
+      }) => Promise<void>;
+    };
+    graphql: {
+      introspect: (request: {
+        workspaceId: string;
+        endpointUrl: string;
+        headers?: SaveRequesterRequestInput['headers'];
+        auth?: Pick<
+          SaveRequesterRequestInput,
+          | 'authType'
+          | 'authUsername'
+          | 'authPassword'
+          | 'authToken'
+          | 'authApiKeyName'
+          | 'authApiKeyValue'
+        >;
+      }) => Promise<{ schemaJson: string; fetchedAt: string }>;
     };
   };
 }

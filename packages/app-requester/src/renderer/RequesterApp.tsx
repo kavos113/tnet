@@ -7,7 +7,9 @@ import type {
 import {
   setActiveRequesterRequest,
   setRequesterError,
-  setRequesterRequests
+  setRequesterHistory,
+  setRequesterRequests,
+  setRequesterResponse
 } from './requesterSlice';
 import { requesterTnetApi } from './requesterTnetApi';
 import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
@@ -21,7 +23,14 @@ const httpMethods: RequesterHttpMethod[] = [
   'HEAD',
   'OPTIONS'
 ];
-const bodyModes: RequesterBodyMode[] = ['none', 'json', 'text', 'form-url-encoded', 'graphql'];
+const bodyModes: RequesterBodyMode[] = [
+  'none',
+  'json',
+  'text',
+  'form-url-encoded',
+  'graphql',
+  'binary-file'
+];
 
 const createEmptyRow = (): RequesterKeyValueRow => ({
   id: crypto.randomUUID(),
@@ -33,8 +42,10 @@ const createEmptyRow = (): RequesterKeyValueRow => ({
 export const RequesterApp = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
   const activeRequest = useRequesterSelector((state) => state.requester.activeRequest);
+  const activeResponse = useRequesterSelector((state) => state.requester.activeResponse);
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const error = useRequesterSelector((state) => state.requester.error);
+  const history = useRequesterSelector((state) => state.requester.history);
   const isRestored = useRequesterSelector((state) => state.requester.isRestored);
   const [name, setName] = useState('');
   const [method, setMethod] = useState<RequesterHttpMethod>('GET');
@@ -43,6 +54,15 @@ export const RequesterApp = (): React.JSX.Element => {
   const [queryParams, setQueryParams] = useState<RequesterKeyValueRow[]>([]);
   const [bodyMode, setBodyMode] = useState<RequesterBodyMode>('none');
   const [bodyText, setBodyText] = useState('');
+  const [binaryFilePath, setBinaryFilePath] = useState('');
+  const [graphqlVariablesText, setGraphqlVariablesText] = useState('');
+  const [graphqlOperationName, setGraphqlOperationName] = useState('');
+  const [authType, setAuthType] = useState(activeRequest?.authType ?? 'none');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authToken, setAuthToken] = useState('');
+  const [authApiKeyName, setAuthApiKeyName] = useState('');
+  const [authApiKeyValue, setAuthApiKeyValue] = useState('');
 
   useEffect(() => {
     setName(activeRequest?.name ?? '');
@@ -52,6 +72,15 @@ export const RequesterApp = (): React.JSX.Element => {
     setQueryParams(activeRequest?.queryParams ?? []);
     setBodyMode(activeRequest?.bodyMode ?? 'none');
     setBodyText(activeRequest?.bodyText ?? '');
+    setBinaryFilePath(activeRequest?.binaryFilePath ?? '');
+    setGraphqlVariablesText(activeRequest?.graphqlVariablesText ?? '');
+    setGraphqlOperationName(activeRequest?.graphqlOperationName ?? '');
+    setAuthType(activeRequest?.authType ?? 'none');
+    setAuthUsername(activeRequest?.authUsername ?? '');
+    setAuthPassword(activeRequest?.authPassword ?? '');
+    setAuthToken(activeRequest?.authToken ?? '');
+    setAuthApiKeyName(activeRequest?.authApiKeyName ?? '');
+    setAuthApiKeyValue(activeRequest?.authApiKeyValue ?? '');
   }, [activeRequest]);
 
   const saveRequest = async (): Promise<void> => {
@@ -64,8 +93,17 @@ export const RequesterApp = (): React.JSX.Element => {
       url,
       bodyMode,
       bodyText,
+      binaryFilePath,
+      graphqlVariablesText,
+      graphqlOperationName,
       headers,
-      queryParams
+      queryParams,
+      authType,
+      authUsername,
+      authPassword,
+      authToken,
+      authApiKeyName,
+      authApiKeyValue
     });
     const requests = await requesterTnetApi.requester.requests.list({
       workspaceId: activeWorkspaceId
@@ -79,6 +117,109 @@ export const RequesterApp = (): React.JSX.Element => {
       console.error('Failed to save request', error);
       dispatch(setRequesterError('Failed to save request.'));
     });
+  };
+
+  const sendRequest = async (): Promise<void> => {
+    if (!activeWorkspaceId) return;
+    const result = await requesterTnetApi.requester.execution.send({
+      id: activeRequest?.id,
+      workspaceId: activeWorkspaceId,
+      name: name.trim() || 'Untitled Request',
+      method,
+      url,
+      bodyMode,
+      bodyText,
+      binaryFilePath,
+      graphqlVariablesText,
+      graphqlOperationName,
+      headers,
+      queryParams,
+      authType,
+      authUsername,
+      authPassword,
+      authToken,
+      authApiKeyName,
+      authApiKeyValue
+    });
+    const history = await requesterTnetApi.requester.history.list({
+      workspaceId: activeWorkspaceId
+    });
+    dispatch(setRequesterResponse(result.response));
+    dispatch(setRequesterHistory(history));
+  };
+
+  const runSend = (): void => {
+    sendRequest().catch((error: unknown) => {
+      console.error('Failed to send request', error);
+      dispatch(setRequesterError('Failed to send request.'));
+    });
+  };
+
+  const selectBinaryBody = (): void => {
+    requesterTnetApi.requester.files
+      .selectBinaryBody()
+      .then((file) => {
+        if (file) setBinaryFilePath(file.path);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to select binary body', error);
+        dispatch(setRequesterError('Failed to select binary body.'));
+      });
+  };
+
+  const saveResponse = (): void => {
+    if (!activeResponse) return;
+    requesterTnetApi.requester.files
+      .saveResponseBody({
+        suggestedName: activeResponse.previewType === 'pdf' ? 'response.pdf' : 'response.txt',
+        bodyText: activeResponse.bodyText,
+        bodyBase64: activeResponse.bodyBase64
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to save response', error);
+        dispatch(setRequesterError('Failed to save response.'));
+      });
+  };
+
+  const openResponse = (): void => {
+    if (!activeResponse) return;
+    requesterTnetApi.requester.files
+      .openResponseExternally({
+        suggestedName:
+          activeResponse.previewType === 'pdf'
+            ? 'response.pdf'
+            : activeResponse.previewType === 'image'
+              ? 'response-image'
+              : 'response.txt',
+        bodyText: activeResponse.bodyText,
+        bodyBase64: activeResponse.bodyBase64
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to open response', error);
+        dispatch(setRequesterError('Failed to open response.'));
+      });
+  };
+
+  const introspectGraphql = (): void => {
+    if (!activeWorkspaceId || !url.trim()) return;
+    requesterTnetApi.requester.graphql
+      .introspect({
+        workspaceId: activeWorkspaceId,
+        endpointUrl: url,
+        headers,
+        auth: {
+          authType,
+          authUsername,
+          authPassword,
+          authToken,
+          authApiKeyName,
+          authApiKeyValue
+        }
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to introspect GraphQL schema', error);
+        dispatch(setRequesterError('Failed to introspect GraphQL schema.'));
+      });
   };
 
   const updateRow = (
@@ -215,11 +356,73 @@ export const RequesterApp = (): React.JSX.Element => {
             value={url}
             onChange={(event) => setUrl(event.target.value)}
           />
-          <button type="button" className="open-folder-button" disabled>
+          <button
+            type="button"
+            className="open-folder-button"
+            disabled={!url.trim()}
+            onClick={runSend}
+          >
             Send
           </button>
         </div>
         <section className="requester-body-editor">
+          <section className="requester-auth-section" aria-label="Auth">
+            <label>
+              Auth
+              <select
+                aria-label="Auth type"
+                value={authType}
+                onChange={(event) => setAuthType(event.target.value as typeof authType)}
+              >
+                <option value="none">none</option>
+                <option value="basic">basic</option>
+                <option value="bearer">bearer</option>
+                <option value="api-key-header">api-key-header</option>
+                <option value="api-key-query">api-key-query</option>
+              </select>
+            </label>
+            {authType === 'basic' ? (
+              <div className="requester-auth-fields">
+                <input
+                  aria-label="Auth username"
+                  placeholder="Username"
+                  value={authUsername}
+                  onChange={(event) => setAuthUsername(event.target.value)}
+                />
+                <input
+                  aria-label="Auth password"
+                  placeholder="Password"
+                  type="password"
+                  value={authPassword}
+                  onChange={(event) => setAuthPassword(event.target.value)}
+                />
+              </div>
+            ) : authType === 'bearer' ? (
+              <input
+                aria-label="Bearer token"
+                placeholder="Token"
+                type="password"
+                value={authToken}
+                onChange={(event) => setAuthToken(event.target.value)}
+              />
+            ) : authType === 'api-key-header' || authType === 'api-key-query' ? (
+              <div className="requester-auth-fields">
+                <input
+                  aria-label="API key name"
+                  placeholder="Key"
+                  value={authApiKeyName}
+                  onChange={(event) => setAuthApiKeyName(event.target.value)}
+                />
+                <input
+                  aria-label="API key value"
+                  placeholder="Value"
+                  type="password"
+                  value={authApiKeyValue}
+                  onChange={(event) => setAuthApiKeyValue(event.target.value)}
+                />
+              </div>
+            ) : null}
+          </section>
           <div className="requester-kv-grid">
             {renderKeyValueTable('Query Params', queryParams, setQueryParams)}
             {renderKeyValueTable('Headers', headers, setHeaders)}
@@ -238,18 +441,104 @@ export const RequesterApp = (): React.JSX.Element => {
               ))}
             </select>
           </label>
+          {bodyMode === 'graphql' ? (
+            <div className="requester-graphql-fields">
+              <input
+                aria-label="GraphQL operation name"
+                placeholder="Operation name"
+                value={graphqlOperationName}
+                onChange={(event) => setGraphqlOperationName(event.target.value)}
+              />
+              <button type="button" className="open-folder-button" onClick={introspectGraphql}>
+                Introspect
+              </button>
+              <textarea
+                aria-label="GraphQL variables"
+                placeholder='{"id":"123"}'
+                value={graphqlVariablesText}
+                onChange={(event) => setGraphqlVariablesText(event.target.value)}
+              />
+            </div>
+          ) : null}
           <textarea
             aria-label="Request body"
             value={bodyText}
-            disabled={bodyMode === 'none'}
+            disabled={bodyMode === 'none' || bodyMode === 'binary-file'}
             onChange={(event) => setBodyText(event.target.value)}
           />
+          {bodyMode === 'binary-file' ? (
+            <div className="requester-binary-body-row">
+              <input aria-label="Binary body file" value={binaryFilePath} readOnly />
+              <button type="button" className="open-folder-button" onClick={selectBinaryBody}>
+                Select File
+              </button>
+            </div>
+          ) : null}
         </section>
         {error ? <p className="requester-error">{error}</p> : null}
       </section>
       <section className="requester-response-placeholder" aria-label="API response">
         <h2>Response</h2>
-        <p>HTTP execution will be wired in the next implementation step.</p>
+        {activeResponse ? (
+          <>
+            <dl className="requester-response-summary">
+              <div>
+                <dt>Status</dt>
+                <dd>
+                  {activeResponse.status} {activeResponse.statusText}
+                </dd>
+              </div>
+              <div>
+                <dt>Time</dt>
+                <dd>{activeResponse.durationMs} ms</dd>
+              </div>
+              <div>
+                <dt>Size</dt>
+                <dd>{activeResponse.byteSize} bytes</dd>
+              </div>
+            </dl>
+            <div className="requester-response-actions">
+              <button type="button" className="open-folder-button" onClick={saveResponse}>
+                Save Body
+              </button>
+              <button type="button" className="open-folder-button" onClick={openResponse}>
+                Open
+              </button>
+            </div>
+            {activeResponse.isBodyTruncated ? (
+              <p className="requester-error">Response body preview was truncated at 1 MB.</p>
+            ) : null}
+            {activeResponse.previewType === 'image' ? (
+              <img
+                className="requester-response-image"
+                alt="Response preview"
+                src={`data:${activeResponse.contentType};base64,${activeResponse.bodyBase64}`}
+              />
+            ) : activeResponse.previewType === 'pdf' ? (
+              <iframe
+                className="requester-response-pdf"
+                title="PDF response preview"
+                src={`data:application/pdf;base64,${activeResponse.bodyBase64}`}
+              />
+            ) : (
+              <pre className="requester-response-body">{activeResponse.bodyText}</pre>
+            )}
+          </>
+        ) : (
+          <p>Send a request to view the response.</p>
+        )}
+        <section className="requester-history-list" aria-label="Request history">
+          <h3>History</h3>
+          {history.slice(0, 5).map((entry) => (
+            <div className="requester-history-row" key={entry.id}>
+              <span>{entry.method}</span>
+              <span>{entry.status ?? '-'}</span>
+              <span>{entry.requestName}</span>
+              <time>{new Date(entry.startedAt).toLocaleTimeString()}</time>
+            </div>
+          ))}
+          {history.length === 0 ? <p>No history yet.</p> : null}
+        </section>
       </section>
     </main>
   );

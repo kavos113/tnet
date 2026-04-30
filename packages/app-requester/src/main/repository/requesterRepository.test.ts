@@ -5,6 +5,8 @@ import path from 'path';
 import { describe, expect, it } from 'vitest';
 import { normalizeRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import { openRequesterDatabase } from './requesterDb';
+import { HistoryRepository } from './historyRepository';
+import { GraphqlSchemaRepository } from './graphqlSchemaRepository';
 import { RequestRepository } from './requestRepository';
 import { VariableSetRepository } from './variableSetRepository';
 import { WorkspaceRepository } from './workspaceRepository';
@@ -17,6 +19,8 @@ const createRepositories = async (
 ): Promise<{
   database: ReturnType<typeof openRequesterDatabase>;
   requestRepository: RequestRepository;
+  historyRepository: HistoryRepository;
+  graphqlSchemaRepository: GraphqlSchemaRepository;
   userDataDir: string;
   variableSetRepository: VariableSetRepository;
   workspaceRepository: WorkspaceRepository;
@@ -25,6 +29,8 @@ const createRepositories = async (
   const database = openRequesterDatabase(userDataDir);
   return {
     database,
+    graphqlSchemaRepository: new GraphqlSchemaRepository(database),
+    historyRepository: new HistoryRepository(database),
     requestRepository: new RequestRepository(database),
     userDataDir,
     variableSetRepository: new VariableSetRepository(database),
@@ -115,6 +121,68 @@ describe('Requester repositories', () => {
 
     variableSetRepository.remove(variableSet.id);
     expect(variableSetRepository.list(workspace.id)).toEqual([]);
+    database.close();
+  });
+
+  it('stores request execution history', async () => {
+    const { database, historyRepository, workspaceRepository } =
+      await createRepositories('history');
+    const workspace = workspaceRepository.create('Local Dev');
+    const historyId = historyRepository.saveExecution({
+      startedAt: '2026-05-01T00:00:00.000Z',
+      request: {
+        workspaceId: workspace.id,
+        name: 'Health',
+        method: 'GET',
+        url: 'https://example.test/health'
+      },
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [],
+        bodyText: '{"ok":true}',
+        bodyBase64: 'eyJvayI6dHJ1ZX0=',
+        contentType: 'application/json',
+        byteSize: 11,
+        durationMs: 42,
+        isBodyTruncated: false,
+        previewType: 'json'
+      }
+    });
+
+    expect(historyRepository.list(workspace.id)).toEqual([
+      {
+        id: historyId,
+        workspaceId: workspace.id,
+        requestId: undefined,
+        requestName: 'Health',
+        method: 'GET',
+        url: 'https://example.test/health',
+        startedAt: '2026-05-01T00:00:00.000Z',
+        durationMs: 42,
+        status: 200
+      }
+    ]);
+    expect(historyRepository.get(historyId ?? '')?.responseSnapshot.bodyText).toBe('{"ok":true}');
+    historyRepository.clear(workspace.id);
+    expect(historyRepository.list(workspace.id)).toEqual([]);
+    database.close();
+  });
+
+  it('caches GraphQL schemas per workspace and endpoint', async () => {
+    const { database, graphqlSchemaRepository, workspaceRepository } =
+      await createRepositories('graphql-schema');
+    const workspace = workspaceRepository.create('Local Dev');
+
+    const cached = graphqlSchemaRepository.save({
+      workspaceId: workspace.id,
+      endpointUrl: 'https://example.test/graphql',
+      schemaJson: '{"data":{"__schema":{"queryType":{"name":"Query"}}}}'
+    });
+
+    expect(graphqlSchemaRepository.get(workspace.id, 'https://example.test/graphql')).toEqual(
+      cached
+    );
     database.close();
   });
 });

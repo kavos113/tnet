@@ -118,6 +118,26 @@ export const tnetApi: DesktopTnetApi = {
       remove: (request) => ipcRenderer.invoke(requesterIpcChannels.variableSets.remove, request),
       setActive: (request) =>
         ipcRenderer.invoke(requesterIpcChannels.variableSets.setActive, request)
+    },
+    execution: {
+      send: (request) => ipcRenderer.invoke(requesterIpcChannels.execution.send, request),
+      abort: (request) => ipcRenderer.invoke(requesterIpcChannels.execution.abort, request)
+    },
+    history: {
+      list: (request) => ipcRenderer.invoke(requesterIpcChannels.history.list, request),
+      get: (request) => ipcRenderer.invoke(requesterIpcChannels.history.get, request),
+      remove: (request) => ipcRenderer.invoke(requesterIpcChannels.history.remove, request),
+      clear: (request) => ipcRenderer.invoke(requesterIpcChannels.history.clear, request)
+    },
+    files: {
+      selectBinaryBody: () => ipcRenderer.invoke(requesterIpcChannels.files.selectBinaryBody),
+      saveResponseBody: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.files.saveResponseBody, request),
+      openResponseExternally: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.files.openResponseExternally, request)
+    },
+    graphql: {
+      introspect: (request) => ipcRenderer.invoke(requesterIpcChannels.graphql.introspect, request)
     }
   }
 };

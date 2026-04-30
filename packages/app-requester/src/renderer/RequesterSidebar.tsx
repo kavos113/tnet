@@ -16,10 +16,11 @@ export const RequesterSidebar = (): React.JSX.Element => {
   const workspaces = useRequesterSelector((state) => state.requester.workspaces);
 
   const activateWorkspace = async (workspaceId: string): Promise<void> => {
-    const [latestWorkspaces, latestRequests, settings] = await Promise.all([
+    const [latestWorkspaces, latestRequests, settings, history] = await Promise.all([
       requesterTnetApi.requester.workspaces.list(),
       requesterTnetApi.requester.requests.list({ workspaceId }),
-      requesterTnetApi.requester.workspaces.getSettings({ workspaceId })
+      requesterTnetApi.requester.workspaces.getSettings({ workspaceId }),
+      requesterTnetApi.requester.history.list({ workspaceId })
     ]);
     await requesterTnetApi.requester.config.saveGlobal({
       activeWorkspaceId: workspaceId,
@@ -30,6 +31,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
         activeWorkspaceId: workspaceId,
         workspaces: latestWorkspaces,
         requests: latestRequests,
+        history,
         settings
       })
     );

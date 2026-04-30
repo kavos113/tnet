@@ -16,12 +16,13 @@ export const useRestoreRequester = (): void => {
       ]);
       const activeWorkspaceId =
         config.activeWorkspaceId ?? config.lastOpenedWorkspaceId ?? workspaces[0]?.id;
-      const [requests, settings] = activeWorkspaceId
+      const [requests, settings, history] = activeWorkspaceId
         ? await Promise.all([
             requesterTnetApi.requester.requests.list({ workspaceId: activeWorkspaceId }),
-            requesterTnetApi.requester.workspaces.getSettings({ workspaceId: activeWorkspaceId })
+            requesterTnetApi.requester.workspaces.getSettings({ workspaceId: activeWorkspaceId }),
+            requesterTnetApi.requester.history.list({ workspaceId: activeWorkspaceId })
           ])
-        : [[], undefined];
+        : [[], undefined, []];
 
       if (canceled) return;
       dispatch(
@@ -29,6 +30,7 @@ export const useRestoreRequester = (): void => {
           activeWorkspaceId,
           workspaces,
           requests,
+          history,
           settings
         })
       );

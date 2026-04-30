@@ -38,6 +38,52 @@
   color: var(--foreground);
 }
 
+.requester-binary-body-row,
+.requester-response-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.requester-graphql-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.requester-graphql-fields input,
+.requester-graphql-fields textarea {
+  min-width: 0;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.requester-graphql-fields input {
+  height: 30px;
+  padding: 0 8px;
+}
+
+.requester-graphql-fields textarea {
+  grid-column: 1 / -1;
+  min-height: 64px;
+  padding: 8px;
+  font-family: monospace;
+  resize: vertical;
+}
+
+.requester-binary-body-row input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
 .requester-name-input {
   flex: 1;
   min-width: 0;
@@ -132,6 +178,32 @@
   text-transform: uppercase;
 }
 
+.requester-auth-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
+.requester-auth-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.requester-auth-section input,
+.requester-auth-section select {
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--foreground);
+}
+
 .requester-body-editor textarea {
   flex: 1;
   min-height: 160px;
@@ -153,6 +225,77 @@
   margin: 0 0 8px;
   color: var(--foreground);
   font-size: 14px;
+}
+
+.requester-response-summary {
+  display: flex;
+  gap: 16px;
+  margin: 0 0 10px;
+}
+
+.requester-response-summary div {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.requester-response-summary dt {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.requester-response-summary dd {
+  margin: 0;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.requester-response-body {
+  max-height: 150px;
+  margin: 0;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.requester-response-image,
+.requester-response-pdf {
+  display: block;
+  max-width: 100%;
+  max-height: 150px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
+.requester-response-pdf {
+  width: 100%;
+  height: 150px;
+}
+
+.requester-history-list {
+  margin-top: 12px;
+}
+
+.requester-history-list h3 {
+  margin: 0 0 6px;
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.requester-history-row {
+  display: grid;
+  grid-template-columns: 56px 48px minmax(0, 1fr) 88px;
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid var(--gray);
+  color: var(--foreground);
+  font-size: 12px;
 }
 
 .requester-method-label {

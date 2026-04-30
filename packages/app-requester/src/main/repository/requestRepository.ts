@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { normalizeRequestPath, requestNameFromPath } from '@tnet/app-requester/shared/requestPath';
 import type {
   RequesterBodyMode,
+  RequesterAuthType,
   RequesterHttpMethod,
   RequesterKeyValueRow,
   RequesterRequestDetail,
@@ -25,13 +26,31 @@ interface RequestJson {
   queryParams?: RequesterKeyValueRow[];
   bodyMode?: RequesterBodyMode;
   bodyText?: string;
+  binaryFilePath?: string;
+  graphqlVariablesText?: string;
+  graphqlOperationName?: string;
+  authType?: RequesterAuthType;
+  authUsername?: string;
+  authPassword?: string;
+  authToken?: string;
+  authApiKeyName?: string;
+  authApiKeyValue?: string;
 }
 
 const emptyRequestJson = (): Required<RequestJson> => ({
   headers: [],
   queryParams: [],
   bodyMode: 'none',
-  bodyText: ''
+  bodyText: '',
+  binaryFilePath: '',
+  graphqlVariablesText: '',
+  graphqlOperationName: '',
+  authType: 'none',
+  authUsername: '',
+  authPassword: '',
+  authToken: '',
+  authApiKeyName: '',
+  authApiKeyValue: ''
 });
 
 const parseRequestJson = (json: string): Required<RequestJson> => ({
@@ -55,7 +74,16 @@ const toDetail = (row: RequestRow): RequesterRequestDetail => {
     headers: requestJson.headers,
     queryParams: requestJson.queryParams,
     bodyMode: requestJson.bodyMode,
-    bodyText: requestJson.bodyText
+    bodyText: requestJson.bodyText,
+    binaryFilePath: requestJson.binaryFilePath,
+    graphqlVariablesText: requestJson.graphqlVariablesText,
+    graphqlOperationName: requestJson.graphqlOperationName,
+    authType: requestJson.authType,
+    authUsername: requestJson.authUsername,
+    authPassword: requestJson.authPassword,
+    authToken: requestJson.authToken,
+    authApiKeyName: requestJson.authApiKeyName,
+    authApiKeyValue: requestJson.authApiKeyValue
   };
 };
 
@@ -151,7 +179,16 @@ export class RequestRepository {
           headers: input.headers ?? [],
           queryParams: input.queryParams ?? [],
           bodyMode: input.bodyMode ?? 'none',
-          bodyText: input.bodyText ?? ''
+          bodyText: input.bodyText ?? '',
+          binaryFilePath: input.binaryFilePath ?? '',
+          graphqlVariablesText: input.graphqlVariablesText ?? '',
+          graphqlOperationName: input.graphqlOperationName ?? '',
+          authType: input.authType ?? 'none',
+          authUsername: input.authUsername ?? '',
+          authPassword: input.authPassword ?? '',
+          authToken: input.authToken ?? '',
+          authApiKeyName: input.authApiKeyName ?? '',
+          authApiKeyValue: input.authApiKeyValue ?? ''
         }),
         createdAt: now,
         updatedAt: now
@@ -189,7 +226,16 @@ export class RequestRepository {
           headers: input.headers ?? existing.headers,
           queryParams: input.queryParams ?? existing.queryParams,
           bodyMode: input.bodyMode ?? existing.bodyMode,
-          bodyText: input.bodyText ?? existing.bodyText
+          bodyText: input.bodyText ?? existing.bodyText,
+          binaryFilePath: input.binaryFilePath ?? existing.binaryFilePath,
+          graphqlVariablesText: input.graphqlVariablesText ?? existing.graphqlVariablesText,
+          graphqlOperationName: input.graphqlOperationName ?? existing.graphqlOperationName,
+          authType: input.authType ?? existing.authType,
+          authUsername: input.authUsername ?? existing.authUsername,
+          authPassword: input.authPassword ?? existing.authPassword,
+          authToken: input.authToken ?? existing.authToken,
+          authApiKeyName: input.authApiKeyName ?? existing.authApiKeyName,
+          authApiKeyValue: input.authApiKeyValue ?? existing.authApiKeyValue
         }),
         updatedAt: new Date().toISOString()
       });

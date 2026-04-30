@@ -32,6 +32,24 @@ export const requesterTnetApi: RequesterApi = {
       save: (request) => getApi().requester.variableSets.save(request),
       remove: (request) => getApi().requester.variableSets.remove(request),
       setActive: (request) => getApi().requester.variableSets.setActive(request)
+    },
+    execution: {
+      send: (request) => getApi().requester.execution.send(request),
+      abort: (request) => getApi().requester.execution.abort(request)
+    },
+    history: {
+      list: (request) => getApi().requester.history.list(request),
+      get: (request) => getApi().requester.history.get(request),
+      remove: (request) => getApi().requester.history.remove(request),
+      clear: (request) => getApi().requester.history.clear(request)
+    },
+    files: {
+      selectBinaryBody: () => getApi().requester.files.selectBinaryBody(),
+      saveResponseBody: (request) => getApi().requester.files.saveResponseBody(request),
+      openResponseExternally: (request) => getApi().requester.files.openResponseExternally(request)
+    },
+    graphql: {
+      introspect: (request) => getApi().requester.graphql.introspect(request)
     }
   }
 };
