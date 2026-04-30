@@ -1,4 +1,5 @@
 import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
+import { PAPER_METADATA_FIELD_LABELS } from '@tnet/app-papers/shared/paperMetadataFields';
 import { PapersExtensionServerClient } from '../papersServerClient';
 import type { PopupState } from './popupStore';
 import {
@@ -244,14 +245,23 @@ const createMetadataFields = (
     onChange({ ...metadata, venue: value })
   );
   const doi = createTextInput(metadata.doi ?? '', (value) => onChange({ ...metadata, doi: value }));
+  const arxivId = createTextInput(metadata.arxivId ?? '', (value) =>
+    onChange({ ...metadata, arxivId: value })
+  );
   const url = createTextInput(metadata.url ?? '', (value) => onChange({ ...metadata, url: value }));
+  const abstract = createElement('textarea');
+  abstract.rows = 4;
+  abstract.value = metadata.abstract ?? '';
+  abstract.addEventListener('input', () => onChange({ ...metadata, abstract: abstract.value }));
   container.append(
-    createField('Title', title),
-    createField('Authors', authors),
-    createField('Year', year),
-    createField('Venue', venue),
-    createField('DOI', doi),
-    createField('URL', url)
+    createField(PAPER_METADATA_FIELD_LABELS.title, title),
+    createField(PAPER_METADATA_FIELD_LABELS.authors, authors),
+    createField(PAPER_METADATA_FIELD_LABELS.publishedYear, year),
+    createField(PAPER_METADATA_FIELD_LABELS.venue, venue),
+    createField(PAPER_METADATA_FIELD_LABELS.doi, doi),
+    createField(PAPER_METADATA_FIELD_LABELS.arxivId, arxivId),
+    createField(PAPER_METADATA_FIELD_LABELS.url, url),
+    createField(PAPER_METADATA_FIELD_LABELS.abstract, abstract)
   );
   return container;
 };

@@ -54,10 +54,11 @@ export const PapersApp = (): React.JSX.Element => {
     importCandidate,
     importBibtex,
     importBibtexDiagnostics,
+    importError,
     importMetadata,
     importTitle,
     setImportBibtex,
-    setImportMetadata,
+    setImportMetadataField,
     setImportTitle,
     importPdf,
     confirmImportPdf,
@@ -287,10 +288,11 @@ export const PapersApp = (): React.JSX.Element => {
           candidate={importCandidate}
           bibtex={importBibtex}
           bibtexDiagnostics={importBibtexDiagnostics}
+          importError={importError}
           metadata={importMetadata}
           title={importTitle}
           onBibtexChange={setImportBibtex}
-          onMetadataChange={setImportMetadata}
+          onMetadataFieldChange={setImportMetadataField}
           onTitleChange={setImportTitle}
           onCancel={cancelImportPdf}
           onConfirm={async () => {

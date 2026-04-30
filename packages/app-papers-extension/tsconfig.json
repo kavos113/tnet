@@ -1,4 +1,10 @@
 {
   "extends": "../../tsconfig.web.json",
-  "include": ["src/**/*", "tests/**/*", "../app-papers/src/shared/bibtex.ts"]
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "../app-papers/src/shared/bibtex.ts",
+    "../app-papers/src/shared/paperImportErrors.ts",
+    "../app-papers/src/shared/paperMetadataFields.ts"
+  ]
 }

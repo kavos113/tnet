@@ -110,4 +110,27 @@ describe('PaperListPane', () => {
 
     expect(screen.getByText('No papers match the current filters.')).toBeInTheDocument();
   });
+
+  it('highlights search matches in visible result fields', () => {
+    render(
+      <PaperListPane
+        items={papers}
+        tags={[]}
+        selectedPaperId=""
+        searchQuery="lambda"
+        selectedTagIds={[]}
+        paperCountLabel="1 papers"
+        directoryLabel="All papers"
+        isLoading={false}
+        error=""
+        widthPercent={40}
+        onSelectPaper={vi.fn()}
+        onSearchQueryChange={vi.fn()}
+        onToggleTag={vi.fn()}
+        onImportPdf={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Lambda')).toHaveClass('papers-list-highlight');
+  });
 });

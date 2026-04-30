@@ -1,5 +1,6 @@
 import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
 import { parseBibtexMetadataResult } from '@tnet/app-papers/shared/bibtex';
+import { formatPaperImportError } from '@tnet/app-papers/shared/paperImportErrors';
 import type { DirectoryNode, LibraryInfo } from '../types';
 import type { PapersExtensionServerClient } from '../papersServerClient';
 
@@ -182,7 +183,7 @@ export const importSelectedPaper = async (
     return {
       ...state,
       status: 'error',
-      errorMessage: error instanceof Error ? error.message : 'Failed to import paper.'
+      errorMessage: formatPaperImportError(error)
     };
   }
 };

@@ -141,3 +141,9 @@
 .papers-list-tags {
   color: var(--foreground-muted);
 }
+
+.papers-list-highlight {
+  color: var(--foreground);
+  background: rgb(255 221 87 / 28%);
+  border-radius: 2px;
+}

@@ -1,14 +1,20 @@
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
+import { PAPER_METADATA_FIELD_LABELS } from '@tnet/app-papers/shared/paperMetadataFields';
+import type { PaperImportMetadataField } from './usePaperImport';
 
 export interface PaperImportDialogProps {
   candidate: SelectedPdfImportCandidate;
   bibtex: string;
   bibtexDiagnostics: BibtexParseDiagnostic[];
+  importError: string;
   metadata: BibtexPaperMetadata;
   title: string;
   onBibtexChange: (bibtex: string) => void;
-  onMetadataChange: (metadata: BibtexPaperMetadata) => void;
+  onMetadataFieldChange: <Field extends PaperImportMetadataField>(
+    field: Field,
+    value: BibtexPaperMetadata[Field]
+  ) => void;
   onTitleChange: (title: string) => void;
   onCancel: () => void;
   onConfirm: () => Promise<void>;
@@ -25,10 +31,11 @@ export const PaperImportDialog = ({
   candidate,
   bibtex,
   bibtexDiagnostics,
+  importError,
   metadata,
   title,
   onBibtexChange,
-  onMetadataChange,
+  onMetadataFieldChange,
   onTitleChange,
   onCancel,
   onConfirm
@@ -84,8 +91,13 @@ export const PaperImportDialog = ({
           ))}
         </div>
       ) : null}
+      {importError ? (
+        <div className="papers-import-diagnostics" role="alert">
+          <p className="error">{importError}</p>
+        </div>
+      ) : null}
       <label className="papers-form-field">
-        <span>Title</span>
+        <span>{PAPER_METADATA_FIELD_LABELS.title}</span>
         <input
           value={title}
           autoFocus
@@ -94,63 +106,63 @@ export const PaperImportDialog = ({
         />
       </label>
       <label className="papers-form-field">
-        <span>Authors</span>
+        <span>{PAPER_METADATA_FIELD_LABELS.authors}</span>
         <input
           value={metadata.authors?.join(', ') ?? ''}
           onChange={(event) =>
-            onMetadataChange({
-              ...metadata,
-              authors: event.target.value
+            onMetadataFieldChange(
+              'authors',
+              event.target.value
                 .split(',')
                 .map((author) => author.trim())
                 .filter(Boolean)
-            })
+            )
           }
         />
       </label>
       <div className="papers-import-grid">
         <label className="papers-form-field">
-          <span>Year</span>
+          <span>{PAPER_METADATA_FIELD_LABELS.publishedYear}</span>
           <input
             type="number"
             value={metadata.publishedYear ?? ''}
             onChange={(event) =>
-              onMetadataChange({
-                ...metadata,
-                publishedYear: event.target.value ? Number(event.target.value) : undefined
-              })
+              onMetadataFieldChange(
+                'publishedYear',
+                event.target.value ? Number(event.target.value) : undefined
+              )
             }
           />
         </label>
         <label className="papers-form-field">
-          <span>Venue</span>
+          <span>{PAPER_METADATA_FIELD_LABELS.venue}</span>
           <input
             value={metadata.venue ?? ''}
-            onChange={(event) => onMetadataChange({ ...metadata, venue: event.target.value })}
+            onChange={(event) => onMetadataFieldChange('venue', event.target.value)}
           />
         </label>
       </div>
       <div className="papers-import-grid">
         <label className="papers-form-field">
-          <span>DOI</span>
+          <span>{PAPER_METADATA_FIELD_LABELS.doi}</span>
           <input
             value={metadata.doi ?? ''}
-            onChange={(event) => onMetadataChange({ ...metadata, doi: event.target.value })}
+            onChange={(event) => onMetadataFieldChange('doi', event.target.value)}
           />
         </label>
         <label className="papers-form-field">
-          <span>arXiv</span>
+          <span>{PAPER_METADATA_FIELD_LABELS.arxivId}</span>
           <input
             value={metadata.arxivId ?? ''}
-            onChange={(event) => onMetadataChange({ ...metadata, arxivId: event.target.value })}
+            onChange={(event) => onMetadataFieldChange('arxivId', event.target.value)}
           />
         </label>
       </div>
       <label className="papers-form-field">
-        <span>URL</span>
+        <span>{PAPER_METADATA_FIELD_LABELS.url}</span>
         <input
           value={metadata.url ?? ''}
-          onChange={(event) => onMetadataChange({ ...metadata, url: event.target.value })}
+          onChange={(event) => onMetadataFieldChange('url', event.target.value)}
         />
       </label>
       <div className="papers-import-paths">

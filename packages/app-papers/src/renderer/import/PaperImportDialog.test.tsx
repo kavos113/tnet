@@ -18,6 +18,7 @@ describe('PaperImportDialog', () => {
 
   it('renders import metadata and emits title/cancel/confirm actions', () => {
     const onTitleChange = vi.fn();
+    const onMetadataFieldChange = vi.fn();
     const onCancel = vi.fn();
     const onConfirm = vi.fn().mockResolvedValue(undefined);
 
@@ -26,10 +27,11 @@ describe('PaperImportDialog', () => {
         candidate={candidate}
         bibtex="@article{paper,title={Lambda Calculus Foundations}}"
         bibtexDiagnostics={[]}
+        importError=""
         metadata={{ title: 'Lambda Calculus Foundations' }}
         title="Lambda Calculus Foundations"
         onBibtexChange={vi.fn()}
-        onMetadataChange={vi.fn()}
+        onMetadataFieldChange={onMetadataFieldChange}
         onTitleChange={onTitleChange}
         onCancel={onCancel}
         onConfirm={onConfirm}
@@ -46,6 +48,10 @@ describe('PaperImportDialog', () => {
     fireEvent.submit(screen.getByRole('form', { name: 'Import PDF metadata' }));
 
     expect(onTitleChange).toHaveBeenCalledWith('New title');
+    fireEvent.change(screen.getByLabelText('Authors'), {
+      target: { value: 'Alice, Bob' }
+    });
+    expect(onMetadataFieldChange).toHaveBeenCalledWith('authors', ['Alice', 'Bob']);
     expect(onCancel).toHaveBeenCalled();
     expect(onConfirm).toHaveBeenCalled();
   });
@@ -56,10 +62,11 @@ describe('PaperImportDialog', () => {
         candidate={candidate}
         bibtex=""
         bibtexDiagnostics={[]}
+        importError=""
         metadata={{}}
         title=" "
         onBibtexChange={vi.fn()}
-        onMetadataChange={vi.fn()}
+        onMetadataFieldChange={vi.fn()}
         onTitleChange={vi.fn()}
         onCancel={vi.fn()}
         onConfirm={vi.fn()}
@@ -83,10 +90,11 @@ describe('PaperImportDialog', () => {
         candidate={candidate}
         bibtex="plain text"
         bibtexDiagnostics={[{ severity: 'error', message: 'BibTeX entry must start with @.' }]}
+        importError=""
         metadata={{}}
         title="Fallback"
         onBibtexChange={onBibtexChange}
-        onMetadataChange={vi.fn()}
+        onMetadataFieldChange={vi.fn()}
         onTitleChange={vi.fn()}
         onCancel={vi.fn()}
         onConfirm={vi.fn()}
@@ -99,5 +107,27 @@ describe('PaperImportDialog', () => {
     await waitFor(() => {
       expect(onBibtexChange).toHaveBeenCalledWith('@article{paper,title={Clipboard Paper}}');
     });
+  });
+
+  it('shows import validation errors', () => {
+    render(
+      <PaperImportDialog
+        candidate={candidate}
+        bibtex=""
+        bibtexDiagnostics={[]}
+        importError="Destination directory must stay inside the paper library."
+        metadata={{}}
+        title="Paper"
+        onBibtexChange={vi.fn()}
+        onMetadataFieldChange={vi.fn()}
+        onTitleChange={vi.fn()}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Destination directory must stay inside the paper library.'
+    );
   });
 });

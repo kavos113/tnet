@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
 import { parseBibtexMetadataResult } from '@tnet/app-papers/shared/bibtex';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
+import { formatPaperImportError } from '@tnet/app-papers/shared/paperImportErrors';
 import { usePapersDispatch } from '../storeHooks';
 import { papersTnetApi } from '../papersTnetApi';
 import {
@@ -12,14 +13,29 @@ import {
   setPapersError
 } from '../papers/papersSlice';
 
+export type PaperImportMetadataField =
+  | 'authors'
+  | 'abstract'
+  | 'publishedYear'
+  | 'venue'
+  | 'doi'
+  | 'arxivId'
+  | 'url';
+export type PaperImportDirtyField = PaperImportMetadataField | 'title';
+export type PaperImportDirtyFields = Partial<Record<PaperImportDirtyField, true>>;
+
 export interface PaperImportState {
   importCandidate: SelectedPdfImportCandidate | null;
   importBibtex: string;
   importBibtexDiagnostics: BibtexParseDiagnostic[];
+  importError: string;
   importMetadata: BibtexPaperMetadata;
   importTitle: string;
   setImportBibtex: (bibtex: string) => void;
-  setImportMetadata: (metadata: BibtexPaperMetadata) => void;
+  setImportMetadataField: <Field extends PaperImportMetadataField>(
+    field: Field,
+    value: BibtexPaperMetadata[Field]
+  ) => void;
   setImportTitle: (title: string) => void;
   importPdf: () => Promise<void>;
   confirmImportPdf: () => Promise<void>;
@@ -39,17 +55,39 @@ export const usePaperImport = ({
   const [importBibtexDiagnostics, setImportBibtexDiagnostics] = useState<BibtexParseDiagnostic[]>(
     []
   );
+  const [importError, setImportError] = useState('');
   const [importMetadata, setImportMetadata] = useState<BibtexPaperMetadata>({});
   const [importTitle, setImportTitle] = useState('');
+  const [dirtyFields, setDirtyFields] = useState<PaperImportDirtyFields>({});
 
   const setImportBibtex = (bibtex: string): void => {
     setImportBibtexState(bibtex);
+    setImportError('');
     const { metadata, diagnostics } = parseBibtexMetadataResult(bibtex);
+    const merged = mergeBibtexMetadata({
+      currentMetadata: importMetadata,
+      currentTitle: importTitle,
+      dirtyFields,
+      parsedMetadata: metadata
+    });
     setImportBibtexDiagnostics(diagnostics);
-    setImportMetadata(metadata);
-    if (metadata.title) {
-      setImportTitle(metadata.title);
-    }
+    setImportMetadata(merged.metadata);
+    setImportTitle(merged.title);
+  };
+
+  const setImportMetadataField = <Field extends PaperImportMetadataField>(
+    field: Field,
+    value: BibtexPaperMetadata[Field]
+  ): void => {
+    setDirtyFields((current) => ({ ...current, [field]: true }));
+    setImportError('');
+    setImportMetadata((current) => ({ ...current, [field]: value }));
+  };
+
+  const setDirtyImportTitle = (title: string): void => {
+    setDirtyFields((current) => ({ ...current, title: true }));
+    setImportError('');
+    setImportTitle(title);
   };
 
   const importPdf = async (): Promise<void> => {
@@ -67,6 +105,8 @@ export const usePaperImport = ({
     setImportBibtexDiagnostics(diagnostics);
     setImportMetadata(metadata);
     setImportTitle(metadata.title ?? candidate.suggestedTitle);
+    setImportError('');
+    setDirtyFields({});
   };
 
   const confirmImportPdf = async (): Promise<void> => {
@@ -75,23 +115,30 @@ export const usePaperImport = ({
     const title = importTitle.trim();
     if (!title) return;
 
-    const imported = await papersTnetApi.papers.library.createPaperFromPdf({
-      libraryRoot: activeLibraryRoot,
-      sourcePath: importCandidate.sourcePath,
-      title,
-      authors: importMetadata.authors,
-      abstract: importMetadata.abstract,
-      publishedYear: importMetadata.publishedYear,
-      venue: importMetadata.venue,
-      doi: importMetadata.doi,
-      arxivId: importMetadata.arxivId,
-      url: importMetadata.url,
-      directoryPath: importCandidate.targetDirectoryPath
-    });
-    const papers = await papersTnetApi.papers.papers.list({
-      libraryRoot: activeLibraryRoot,
-      directoryPath: selectedDirectoryRelativePath
-    });
+    let imported;
+    let papers;
+    try {
+      imported = await papersTnetApi.papers.library.createPaperFromPdf({
+        libraryRoot: activeLibraryRoot,
+        sourcePath: importCandidate.sourcePath,
+        title,
+        authors: importMetadata.authors,
+        abstract: importMetadata.abstract,
+        publishedYear: importMetadata.publishedYear,
+        venue: importMetadata.venue,
+        doi: importMetadata.doi,
+        arxivId: importMetadata.arxivId,
+        url: importMetadata.url,
+        directoryPath: importCandidate.targetDirectoryPath
+      });
+      papers = await papersTnetApi.papers.papers.list({
+        libraryRoot: activeLibraryRoot,
+        directoryPath: selectedDirectoryRelativePath
+      });
+    } catch (error) {
+      setImportError(formatPaperImportError(error));
+      throw error;
+    }
 
     dispatch(setPapers(papers));
     dispatch(selectPaper(imported.id));
@@ -100,16 +147,20 @@ export const usePaperImport = ({
     setImportCandidate(null);
     setImportBibtexState('');
     setImportBibtexDiagnostics([]);
+    setImportError('');
     setImportMetadata({});
     setImportTitle('');
+    setDirtyFields({});
   };
 
   const cancelImportPdf = (): void => {
     setImportCandidate(null);
     setImportBibtexState('');
     setImportBibtexDiagnostics([]);
+    setImportError('');
     setImportMetadata({});
     setImportTitle('');
+    setDirtyFields({});
     dispatch(setPapersError(''));
   };
 
@@ -117,13 +168,52 @@ export const usePaperImport = ({
     importCandidate,
     importBibtex,
     importBibtexDiagnostics,
+    importError,
     importMetadata,
     importTitle,
     setImportBibtex,
-    setImportMetadata,
-    setImportTitle,
+    setImportMetadataField,
+    setImportTitle: setDirtyImportTitle,
     importPdf,
     confirmImportPdf,
     cancelImportPdf
+  };
+};
+
+export const mergeBibtexMetadata = ({
+  currentMetadata,
+  currentTitle,
+  dirtyFields,
+  parsedMetadata
+}: {
+  currentMetadata: BibtexPaperMetadata;
+  currentTitle: string;
+  dirtyFields: PaperImportDirtyFields;
+  parsedMetadata: BibtexPaperMetadata;
+}): { metadata: BibtexPaperMetadata; title: string } => {
+  const nextMetadata: BibtexPaperMetadata = { ...currentMetadata };
+  const fields: PaperImportMetadataField[] = [
+    'authors',
+    'abstract',
+    'publishedYear',
+    'venue',
+    'doi',
+    'arxivId',
+    'url'
+  ];
+
+  for (const field of fields) {
+    if (!dirtyFields[field]) {
+      nextMetadata[field] = parsedMetadata[field] as never;
+    }
+  }
+
+  return {
+    metadata: Object.fromEntries(
+      Object.entries(nextMetadata).filter(([, value]) =>
+        Array.isArray(value) ? value.length > 0 : value !== undefined && value !== ''
+      )
+    ) as BibtexPaperMetadata,
+    title: dirtyFields.title ? currentTitle : (parsedMetadata.title ?? currentTitle)
   };
 };

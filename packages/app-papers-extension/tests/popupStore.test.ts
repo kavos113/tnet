@@ -187,4 +187,32 @@ describe('popupStore', () => {
       metadata: { title: 'Paper', authors: ['Alice'] }
     });
   });
+
+  it('formats import validation errors', async () => {
+    const client = {
+      createPaperFromPdfBytes: vi.fn(async () => {
+        throw new Error('[invalid_argument] title is required');
+      })
+    };
+
+    await expect(
+      importSelectedPaper(
+        client as never,
+        {
+          status: 'ready',
+          libraries: [],
+          selectedLibraryRoot: 'C:/papers',
+          selectedDirectoryPath: '',
+          bibtexInput: '',
+          bibtexDiagnostics: [],
+          metadata: {},
+          tagsInput: ''
+        },
+        { name: 'paper.pdf', bytes: new Uint8Array([1]) }
+      )
+    ).resolves.toMatchObject({
+      status: 'error',
+      errorMessage: 'Title is required.'
+    });
+  });
 });
