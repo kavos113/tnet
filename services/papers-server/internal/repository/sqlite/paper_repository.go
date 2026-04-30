@@ -7,32 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	paperlogic "github.com/kavos113/tnet/services/papers-server/internal/logic/paper"
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
 )
 
 type PaperRepository struct {
 	db *sql.DB
-}
-
-type ListPapersFilter struct {
-	DirectoryPath string
-	HasDirectory  bool
-	Query         string
-	TagIDs        []string
-}
-
-type CreatePaperInput struct {
-	Title         string
-	Authors       []string
-	Abstract      string
-	PublishedYear int32
-	Venue         string
-	DOI           string
-	ArxivID       string
-	URL           string
-	PDFPath       string
-	DirectoryPath string
-	NoteContent   string
 }
 
 func NewPaperRepository(db *sql.DB) *PaperRepository {
@@ -41,7 +21,7 @@ func NewPaperRepository(db *sql.DB) *PaperRepository {
 
 func (repository *PaperRepository) CreatePaper(
 	ctx context.Context,
-	input CreatePaperInput,
+	input paperlogic.CreatePaperInput,
 ) (model.Paper, error) {
 	title := strings.TrimSpace(input.Title)
 	if title == "" {
@@ -126,7 +106,7 @@ func (repository *PaperRepository) CreatePaper(
 
 func (repository *PaperRepository) ListPapers(
 	ctx context.Context,
-	filter ListPapersFilter,
+	filter paperlogic.ListFilter,
 ) ([]model.Paper, error) {
 	where := make([]string, 0)
 	args := make([]interface{}, 0)

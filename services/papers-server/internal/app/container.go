@@ -27,7 +27,7 @@ func NewContainer(options ContainerOptions) (*Container, error) {
 	configRepository := configrepository.NewJSONRepository()
 	directoryRepository := filesystem.NewDirectoryRepository()
 	libraryService := library.NewService(configRepository, directoryRepository, options.UserDataDir)
-	paperService := paper.NewService(dbManager)
+	paperService := paper.NewService(sqlite.NewPaperStore(dbManager))
 
 	mux := http.NewServeMux()
 	papersserver.RegisterHandlers(mux, healthService, libraryService, paperService)

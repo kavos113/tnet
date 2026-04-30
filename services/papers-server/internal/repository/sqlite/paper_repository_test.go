@@ -3,6 +3,8 @@ package sqlite
 import (
 	"context"
 	"testing"
+
+	paperlogic "github.com/kavos113/tnet/services/papers-server/internal/logic/paper"
 )
 
 func TestPaperRepositoryCreateListAndGetPaper(t *testing.T) {
@@ -17,7 +19,7 @@ func TestPaperRepositoryCreateListAndGetPaper(t *testing.T) {
 			ctx := context.Background()
 			repository := newTestPaperRepository(t, ctx)
 
-			created, err := repository.CreatePaper(ctx, CreatePaperInput{
+			created, err := repository.CreatePaper(ctx, paperlogic.CreatePaperInput{
 				Title:         "A paper",
 				Authors:       []string{"Alice", "Bob"},
 				Abstract:      "Abstract",
@@ -43,7 +45,7 @@ func TestPaperRepositoryCreateListAndGetPaper(t *testing.T) {
 				t.Fatalf("GetPaper() = %+v", got)
 			}
 
-			list, err := repository.ListPapers(ctx, ListPapersFilter{Query: "Alice"})
+			list, err := repository.ListPapers(ctx, paperlogic.ListFilter{Query: "Alice"})
 			if err != nil {
 				t.Fatalf("ListPapers() error = %v", err)
 			}
@@ -66,7 +68,7 @@ func TestPaperRepositorySearchesMetadataNoteAndTags(t *testing.T) {
 			query: "retrieval",
 			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
 				t.Helper()
-				created, err := repository.CreatePaper(ctx, CreatePaperInput{
+				created, err := repository.CreatePaper(ctx, paperlogic.CreatePaperInput{
 					Title:    "Paper",
 					Abstract: "Neural retrieval for papers",
 				})
@@ -82,7 +84,7 @@ func TestPaperRepositorySearchesMetadataNoteAndTags(t *testing.T) {
 			query: "importantnote",
 			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
 				t.Helper()
-				created, err := repository.CreatePaper(ctx, CreatePaperInput{Title: "Paper"})
+				created, err := repository.CreatePaper(ctx, paperlogic.CreatePaperInput{Title: "Paper"})
 				if err != nil {
 					t.Fatalf("CreatePaper() error = %v", err)
 				}
@@ -98,7 +100,7 @@ func TestPaperRepositorySearchesMetadataNoteAndTags(t *testing.T) {
 			query: "graph",
 			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
 				t.Helper()
-				created, err := repository.CreatePaper(ctx, CreatePaperInput{Title: "Paper"})
+				created, err := repository.CreatePaper(ctx, paperlogic.CreatePaperInput{Title: "Paper"})
 				if err != nil {
 					t.Fatalf("CreatePaper() error = %v", err)
 				}
@@ -118,7 +120,7 @@ func TestPaperRepositorySearchesMetadataNoteAndTags(t *testing.T) {
 			query: "removedtag",
 			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
 				t.Helper()
-				created, err := repository.CreatePaper(ctx, CreatePaperInput{Title: "Paper"})
+				created, err := repository.CreatePaper(ctx, paperlogic.CreatePaperInput{Title: "Paper"})
 				if err != nil {
 					t.Fatalf("CreatePaper() error = %v", err)
 				}
@@ -144,7 +146,7 @@ func TestPaperRepositorySearchesMetadataNoteAndTags(t *testing.T) {
 			repository := newTestPaperRepository(t, ctx)
 			paperID := testcase.setup(ctx, t, repository)
 
-			list, err := repository.ListPapers(ctx, ListPapersFilter{Query: testcase.query})
+			list, err := repository.ListPapers(ctx, paperlogic.ListFilter{Query: testcase.query})
 			if err != nil {
 				t.Fatalf("ListPapers() error = %v", err)
 			}
@@ -168,7 +170,7 @@ func TestPaperRepositoryDuplicateDetection(t *testing.T) {
 			ctx := context.Background()
 			repository := newTestPaperRepository(t, ctx)
 
-			created, err := repository.CreatePaper(ctx, CreatePaperInput{
+			created, err := repository.CreatePaper(ctx, paperlogic.CreatePaperInput{
 				Title:   "A paper",
 				DOI:     "10.1000/example",
 				ArxivID: "2401.12345",

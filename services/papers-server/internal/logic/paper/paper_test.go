@@ -1,4 +1,4 @@
-package paper
+package paper_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/kavos113/tnet/services/papers-server/internal/logic/paper"
 	"github.com/kavos113/tnet/services/papers-server/internal/repository/sqlite"
 )
 
@@ -27,7 +28,7 @@ func TestServiceCreatePaperFromLocalPDFCopiesExternalPDF(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			result, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
+			result, err := service.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
 				LibraryRoot:   libraryRoot,
 				SourcePath:    sourcePath,
 				Title:         "Paper",
@@ -68,7 +69,7 @@ func TestServiceCreatePaperFromLocalPDFReturnsExistingPaperForSameLibraryPath(t 
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			first, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
+			first, err := service.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
 				LibraryRoot: libraryRoot,
 				SourcePath:  pdfPath,
 				Title:       "First",
@@ -76,7 +77,7 @@ func TestServiceCreatePaperFromLocalPDFReturnsExistingPaperForSameLibraryPath(t 
 			if err != nil {
 				t.Fatalf("first CreatePaperFromLocalPDF() error = %v", err)
 			}
-			second, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
+			second, err := service.CreatePaperFromLocalPDF(ctx, paper.CreateFromLocalPDFInput{
 				LibraryRoot: libraryRoot,
 				SourcePath:  pdfPath,
 				Title:       "Second",
@@ -125,7 +126,7 @@ func TestServiceCreatePaperFromPDFBytes(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			result, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			result, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot:   libraryRoot,
 				FileName:      testcase.fileName,
 				Bytes:         []byte("pdf"),
@@ -164,7 +165,7 @@ func TestServiceCreatePaperFromPDFBytesAvoidsFileNameCollision(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			first, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			first, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot: libraryRoot,
 				FileName:    "paper.pdf",
 				Bytes:       []byte("first"),
@@ -174,7 +175,7 @@ func TestServiceCreatePaperFromPDFBytesAvoidsFileNameCollision(t *testing.T) {
 			if err != nil {
 				t.Fatalf("first CreatePaperFromPDFBytes() error = %v", err)
 			}
-			second, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			second, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot: libraryRoot,
 				FileName:    "paper.pdf",
 				Bytes:       []byte("second"),
@@ -225,7 +226,7 @@ func TestServiceCreatePaperFromPDFBytesReturnsExistingPaperForIdentifiers(t *tes
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			first, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			first, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot: libraryRoot,
 				FileName:    "first.pdf",
 				Bytes:       []byte("first"),
@@ -236,7 +237,7 @@ func TestServiceCreatePaperFromPDFBytesReturnsExistingPaperForIdentifiers(t *tes
 			if err != nil {
 				t.Fatalf("first CreatePaperFromPDFBytes() error = %v", err)
 			}
-			second, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			second, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot: libraryRoot,
 				FileName:    "second.pdf",
 				Bytes:       []byte("second"),
@@ -274,7 +275,7 @@ func TestServiceCreatePaperFromPDFBytesAttachesImportTags(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			result, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			result, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot: libraryRoot,
 				FileName:    "paper.pdf",
 				Bytes:       []byte("pdf"),
@@ -322,7 +323,7 @@ func TestServiceCreatePaperFromPDFBytesNormalizesDirectoryPath(t *testing.T) {
 			service, closeService := newTestService(t)
 			defer closeService()
 
-			result, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+			result, err := service.CreatePaperFromPDFBytes(ctx, paper.CreateFromPDFBytesInput{
 				LibraryRoot:   libraryRoot,
 				FileName:      "paper.pdf",
 				Bytes:         []byte("pdf"),
@@ -349,10 +350,10 @@ func TestServiceCreatePaperFromPDFBytesNormalizesDirectoryPath(t *testing.T) {
 	}
 }
 
-func newTestService(t *testing.T) (*Service, func()) {
+func newTestService(t *testing.T) (*paper.Service, func()) {
 	t.Helper()
 	manager := sqlite.NewLibraryDBManager()
-	return NewService(manager), func() {
+	return paper.NewService(sqlite.NewPaperStore(manager)), func() {
 		if err := manager.Close(); err != nil {
 			t.Fatalf("Close() error = %v", err)
 		}

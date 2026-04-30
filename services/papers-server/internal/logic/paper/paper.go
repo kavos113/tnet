@@ -8,17 +8,10 @@ import (
 	"strings"
 
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
-	"github.com/kavos113/tnet/services/papers-server/internal/repository/sqlite"
 )
 
-type DBManager interface {
-	OpenLibrary(context.Context, model.LibraryRoot) (sqliteDB, error)
-}
-
-type sqliteDB interface{}
-
 type Service struct {
-	dbManager *sqlite.LibraryDBManager
+	store Store
 }
 
 type ListFilter struct {
@@ -65,8 +58,39 @@ type ImportResult struct {
 	DuplicateField string
 }
 
-func NewService(dbManager *sqlite.LibraryDBManager) *Service {
-	return &Service{dbManager: dbManager}
+type Store interface {
+	OpenPaperRepository(context.Context, model.LibraryRoot) (Repository, error)
+}
+
+type Repository interface {
+	CreatePaper(context.Context, CreatePaperInput) (model.Paper, error)
+	ListPapers(context.Context, ListFilter) ([]model.Paper, error)
+	GetPaper(context.Context, string) (model.Paper, bool, error)
+	GetPaperByIdentifiers(context.Context, string, string) (model.Paper, bool, error)
+	GetPaperByPDFPath(context.Context, string) (model.Paper, bool, error)
+	ListTags(context.Context) ([]model.PaperTag, error)
+	UpsertTag(context.Context, string, string) (model.PaperTag, error)
+	AttachTag(context.Context, string, string) (model.Paper, bool, error)
+	DetachTag(context.Context, string, string) (model.Paper, bool, error)
+	SaveNote(context.Context, string, string) (model.Paper, bool, error)
+}
+
+type CreatePaperInput struct {
+	Title         string
+	Authors       []string
+	Abstract      string
+	PublishedYear int32
+	Venue         string
+	DOI           string
+	ArxivID       string
+	URL           string
+	PDFPath       string
+	DirectoryPath string
+	NoteContent   string
+}
+
+func NewService(store Store) *Service {
+	return &Service{store: store}
 }
 
 func (s *Service) ListPapers(
@@ -78,7 +102,7 @@ func (s *Service) ListPapers(
 	if err != nil {
 		return nil, err
 	}
-	return repository.ListPapers(ctx, sqlite.ListPapersFilter{
+	return repository.ListPapers(ctx, ListFilter{
 		DirectoryPath: filter.DirectoryPath,
 		HasDirectory:  filter.HasDirectory,
 		Query:         filter.Query,
@@ -202,7 +226,7 @@ func (s *Service) createPaperWithPDFPath(
 			return ImportResult{Paper: paper, AlreadyExists: true, DuplicateField: "pdf_path"}, nil
 		}
 	}
-	paper, err := repository.CreatePaper(ctx, sqlite.CreatePaperInput{
+	paper, err := repository.CreatePaper(ctx, CreatePaperInput{
 		Title:         metadata.Title,
 		Authors:       metadata.Authors,
 		Abstract:      metadata.Abstract,
@@ -239,7 +263,7 @@ func (s *Service) findIdentifierDuplicate(
 
 func findIdentifierDuplicate(
 	ctx context.Context,
-	repository *sqlite.PaperRepository,
+	repository Repository,
 	doi string,
 	arxivID string,
 ) (ImportResult, bool, error) {
@@ -258,7 +282,7 @@ func findIdentifierDuplicate(
 
 func attachImportTags(
 	ctx context.Context,
-	repository *sqlite.PaperRepository,
+	repository Repository,
 	paper model.Paper,
 	tags []string,
 ) (model.Paper, error) {
@@ -359,7 +383,7 @@ func (s *Service) LoadPDFBytes(
 	return os.ReadFile(filepath.Join(root.String(), filepath.FromSlash(pdfPath)))
 }
 
-func (s *Service) repository(ctx context.Context, libraryRoot string) (*sqlite.PaperRepository, error) {
+func (s *Service) repository(ctx context.Context, libraryRoot string) (Repository, error) {
 	root, err := model.NewLibraryRoot(libraryRoot)
 	if err != nil {
 		return nil, err
@@ -370,12 +394,8 @@ func (s *Service) repository(ctx context.Context, libraryRoot string) (*sqlite.P
 func (s *Service) repositoryForRoot(
 	ctx context.Context,
 	root model.LibraryRoot,
-) (*sqlite.PaperRepository, error) {
-	db, err := s.dbManager.OpenLibrary(ctx, root)
-	if err != nil {
-		return nil, err
-	}
-	return sqlite.NewPaperRepository(db), nil
+) (Repository, error) {
+	return s.store.OpenPaperRepository(ctx, root)
 }
 
 func (s *Service) copyPDFIfNeeded(
