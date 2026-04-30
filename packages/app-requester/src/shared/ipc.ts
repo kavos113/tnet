@@ -1,5 +1,11 @@
 import type { RequesterGlobalConfig, RequesterWorkspaceSettings } from './config';
-import type { RequesterRequestSummary, RequesterWorkspace } from './requesterTypes';
+import type {
+  RequesterRequestDetail,
+  RequesterRequestSummary,
+  RequesterVariableSet,
+  RequesterWorkspace,
+  SaveRequesterRequestInput
+} from './requesterTypes';
 
 export const requesterIpcChannels = {
   config: {
@@ -15,7 +21,19 @@ export const requesterIpcChannels = {
     saveSettings: 'requester:workspaces:saveSettings'
   },
   requests: {
-    list: 'requester:requests:list'
+    list: 'requester:requests:list',
+    get: 'requester:requests:get',
+    save: 'requester:requests:save',
+    duplicate: 'requester:requests:duplicate',
+    rename: 'requester:requests:rename',
+    reorder: 'requester:requests:reorder',
+    remove: 'requester:requests:remove'
+  },
+  variableSets: {
+    list: 'requester:variableSets:list',
+    save: 'requester:variableSets:save',
+    remove: 'requester:variableSets:remove',
+    setActive: 'requester:variableSets:setActive'
   }
 } as const;
 
@@ -38,6 +56,22 @@ export interface RequesterApi {
     };
     requests: {
       list: (request: { workspaceId: string }) => Promise<RequesterRequestSummary[]>;
+      get: (request: { requestId: string }) => Promise<RequesterRequestDetail | null>;
+      save: (request: SaveRequesterRequestInput) => Promise<RequesterRequestDetail>;
+      duplicate: (request: { requestId: string }) => Promise<RequesterRequestDetail>;
+      rename: (request: { requestId: string; name: string }) => Promise<RequesterRequestDetail>;
+      reorder: (request: { workspaceId: string; requestIds: string[] }) => Promise<void>;
+      remove: (request: { requestId: string }) => Promise<void>;
+    };
+    variableSets: {
+      list: (request: { workspaceId: string }) => Promise<RequesterVariableSet[]>;
+      save: (request: {
+        id?: string;
+        workspaceId: string;
+        name: string;
+      }) => Promise<RequesterVariableSet>;
+      remove: (request: { variableSetId: string }) => Promise<void>;
+      setActive: (request: { workspaceId: string; variableSetId?: string }) => Promise<void>;
     };
   };
 }

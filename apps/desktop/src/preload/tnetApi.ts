@@ -104,7 +104,20 @@ export const tnetApi: DesktopTnetApi = {
         ipcRenderer.invoke(requesterIpcChannels.workspaces.saveSettings, request)
     },
     requests: {
-      list: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.list, request)
+      list: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.list, request),
+      get: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.get, request),
+      save: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.save, request),
+      duplicate: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.duplicate, request),
+      rename: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.rename, request),
+      reorder: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.reorder, request),
+      remove: (request) => ipcRenderer.invoke(requesterIpcChannels.requests.remove, request)
+    },
+    variableSets: {
+      list: (request) => ipcRenderer.invoke(requesterIpcChannels.variableSets.list, request),
+      save: (request) => ipcRenderer.invoke(requesterIpcChannels.variableSets.save, request),
+      remove: (request) => ipcRenderer.invoke(requesterIpcChannels.variableSets.remove, request),
+      setActive: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.variableSets.setActive, request)
     }
   }
 };

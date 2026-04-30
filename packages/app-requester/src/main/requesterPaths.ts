@@ -5,3 +5,6 @@ export const requesterDataDir = (userDataDir: string): string =>
 
 export const requesterGlobalConfigPath = (userDataDir: string): string =>
   path.join(requesterDataDir(userDataDir), 'global.json');
+
+export const requesterDatabasePath = (userDataDir: string): string =>
+  path.join(requesterDataDir(userDataDir), 'requester.db');

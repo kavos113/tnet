@@ -99,7 +99,19 @@ describe('App', () => {
             saveSettings: vi.fn()
           },
           requests: {
-            list: vi.fn().mockResolvedValue([])
+            list: vi.fn().mockResolvedValue([]),
+            get: vi.fn(),
+            save: vi.fn(),
+            duplicate: vi.fn(),
+            rename: vi.fn(),
+            reorder: vi.fn(),
+            remove: vi.fn()
+          },
+          variableSets: {
+            list: vi.fn(),
+            save: vi.fn(),
+            remove: vi.fn(),
+            setActive: vi.fn()
           }
         }
       },
@@ -159,6 +171,8 @@ describe('App', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Requester' }));
 
     expect(screen.getByRole('main', { name: 'Requester' })).toBeInTheDocument();
-    expect(screen.getByText('Create a request workspace to begin.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Create a request workspace to begin.')).toBeInTheDocument();
+    });
   });
 });

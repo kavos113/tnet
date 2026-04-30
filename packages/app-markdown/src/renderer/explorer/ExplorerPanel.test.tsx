@@ -81,7 +81,19 @@ const installTnetApi = (): void => {
           saveSettings: vi.fn()
         },
         requests: {
-          list: vi.fn()
+          list: vi.fn(),
+          get: vi.fn(),
+          save: vi.fn(),
+          duplicate: vi.fn(),
+          rename: vi.fn(),
+          reorder: vi.fn(),
+          remove: vi.fn()
+        },
+        variableSets: {
+          list: vi.fn(),
+          save: vi.fn(),
+          remove: vi.fn(),
+          setActive: vi.fn()
         }
       }
     },
