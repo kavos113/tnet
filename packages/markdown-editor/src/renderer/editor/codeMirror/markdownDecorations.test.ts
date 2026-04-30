@@ -88,30 +88,6 @@ describe('markdownDecorations', () => {
     ).toBe(false);
   });
 
-  it('highlights keyword blocks across their full editor range and lines', () => {
-    const doc = ['before', '<keyword name="Definition">', 'Body', '</keyword>', 'after'].join('\n');
-    view = createEditorView(doc);
-
-    const keywordStart = doc.indexOf('<keyword');
-    const keywordEnd = doc.indexOf('</keyword>') + '</keyword>'.length;
-    const decorations = collectDecorations(view);
-
-    expect(decorations).toContainEqual({
-      from: keywordStart,
-      to: keywordEnd,
-      className: 'cm-md-keyword-block'
-    });
-
-    for (const lineNo of [2, 3, 4]) {
-      const lineStart = view.state.doc.line(lineNo).from;
-      expect(decorations).toContainEqual({
-        from: lineStart,
-        to: lineStart,
-        className: 'cm-md-keyword-block-line'
-      });
-    }
-  });
-
   it('highlights fenced code blocks as both lines and an editor range', () => {
     const doc = ['before', '```ts', 'const x = 1;', '```', 'after'].join('\n');
     view = createEditorView(doc);

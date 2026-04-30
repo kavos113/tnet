@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { getTooltipPosition } from '@tnet/markdown-editor/renderer';
 import { closestInternalLink, isInsideSameLink } from './internalLinkTarget';
 import { KeywordTooltipCache } from './keywordTooltipCache';
-import { getTooltipPosition } from './tooltipPosition';
 
 describe('tooltip helpers', () => {
   it('finds internal links from element and text targets', () => {

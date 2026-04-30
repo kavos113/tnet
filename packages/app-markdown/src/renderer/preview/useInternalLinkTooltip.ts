@@ -4,10 +4,10 @@ import {
   emptyInternalLinkTooltip,
   type InternalLinkTooltipState
 } from './internalLinkTooltipState';
-import { markdownService } from './markdown/markdownService';
+import { getTooltipPosition } from '@tnet/markdown-editor/renderer';
+import { markdownToHtml } from './markdown/markdownToHtml';
 import { closestInternalLink, isInsideSameLink } from './tooltip/internalLinkTarget';
 import { KeywordTooltipCache } from './tooltip/keywordTooltipCache';
-import { getTooltipPosition } from './tooltip/tooltipPosition';
 
 interface UseInternalLinkTooltipOptions {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -59,7 +59,7 @@ export const useInternalLinkTooltip = ({
       content: string,
       expectedKey: string
     ): Promise<void> => {
-      const tooltipHtml = await markdownService.parseTooltipMarkdown(content);
+      const tooltipHtml = await markdownToHtml(content);
       if (activeTooltipKeyRef.current !== expectedKey) return;
       const { x, y } = getTooltipPosition(event, container.getBoundingClientRect());
 

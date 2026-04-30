@@ -7,6 +7,8 @@ export {
 export { MarkdownPreviewPane, type MarkdownPreviewPaneHandle } from './preview/MarkdownPreviewPane';
 export { markdownToHtml, type MarkdownToHtmlOptions } from './preview/markdown/markdownToHtml';
 export { toggleMarkdownTask } from './preview/toggleMarkdownTask';
+export { renderMermaid } from './preview/markdown/renderMermaid';
+export { getTooltipPosition } from './preview/tooltip/tooltipPosition';
 export {
   createMarkdownEditor,
   type MarkdownEditorInstance

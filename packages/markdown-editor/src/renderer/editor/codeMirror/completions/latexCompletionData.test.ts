@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { latexCompletions } from './completionData';
+import { latexCompletions } from './latexCompletionData';
 
 describe('latexCompletions', () => {
   it('contains the legacy completion set including advanced operators and environments', () => {

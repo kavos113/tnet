@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { renderMermaid } from '@tnet/markdown-editor/renderer';
 import { markdownToHtml } from './markdownToHtml';
-import { renderMermaid } from './renderMermaid';
 
 vi.mock('mermaid', () => ({
   default: {
