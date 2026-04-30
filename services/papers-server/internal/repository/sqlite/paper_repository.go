@@ -323,12 +323,18 @@ func (repository *PaperRepository) AttachTag(
 	paperID string,
 	tagID string,
 ) (model.Paper, bool, error) {
-	_, err := repository.db.ExecContext(
-		ctx,
-		"INSERT OR IGNORE INTO paper_tags (paper_id, tag_id) VALUES (?, ?)",
-		paperID,
-		tagID,
-	)
+	err := withTx(ctx, repository.db, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(
+			ctx,
+			"INSERT OR IGNORE INTO paper_tags (paper_id, tag_id) VALUES (?, ?)",
+			paperID,
+			tagID,
+		)
+		if err != nil {
+			return err
+		}
+		return refreshSearchIndex(ctx, tx, paperID)
+	})
 	if err != nil {
 		return model.Paper{}, false, err
 	}
@@ -340,12 +346,18 @@ func (repository *PaperRepository) DetachTag(
 	paperID string,
 	tagID string,
 ) (model.Paper, bool, error) {
-	_, err := repository.db.ExecContext(
-		ctx,
-		"DELETE FROM paper_tags WHERE paper_id = ? AND tag_id = ?",
-		paperID,
-		tagID,
-	)
+	err := withTx(ctx, repository.db, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(
+			ctx,
+			"DELETE FROM paper_tags WHERE paper_id = ? AND tag_id = ?",
+			paperID,
+			tagID,
+		)
+		if err != nil {
+			return err
+		}
+		return refreshSearchIndex(ctx, tx, paperID)
+	})
 	if err != nil {
 		return model.Paper{}, false, err
 	}
@@ -535,18 +547,44 @@ func refreshSearchIndex(ctx context.Context, tx *sql.Tx, paperID string) error {
 		return err
 	}
 
+	tagRows, err := tx.QueryContext(
+		ctx,
+		`SELECT tags.name
+		FROM tags
+		JOIN paper_tags ON paper_tags.tag_id = tags.id
+		WHERE paper_tags.paper_id = ?
+		ORDER BY tags.name`,
+		paperID,
+	)
+	if err != nil {
+		return err
+	}
+	var tags []string
+	for tagRows.Next() {
+		var tag string
+		if err := tagRows.Scan(&tag); err != nil {
+			_ = tagRows.Close()
+			return err
+		}
+		tags = append(tags, tag)
+	}
+	if err := tagRows.Close(); err != nil {
+		return err
+	}
+
 	_, err = tx.ExecContext(ctx, "DELETE FROM paper_search WHERE paper_id = ?", paperID)
 	if err != nil {
 		return err
 	}
 	_, err = tx.ExecContext(
 		ctx,
-		"INSERT INTO paper_search (paper_id, title, authors, abstract, note) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO paper_search (paper_id, title, authors, abstract, note, tags) VALUES (?, ?, ?, ?, ?, ?)",
 		paperID,
 		title,
 		strings.Join(authors, ", "),
 		valueString(abstract),
 		valueString(note),
+		strings.Join(tags, ", "),
 	)
 	return err
 }

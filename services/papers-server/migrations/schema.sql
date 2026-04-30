@@ -61,23 +61,31 @@ CREATE VIRTUAL TABLE IF NOT EXISTS paper_search USING fts5(
   authors,
   abstract,
   note,
+  tags,
   tokenize='unicode61'
 );
 
-INSERT INTO paper_search (paper_id, title, authors, abstract, note)
+INSERT INTO paper_search (paper_id, title, authors, abstract, note, tags)
 SELECT
   papers.id,
   papers.title,
   COALESCE(paper_authors_agg.authors, ''),
   COALESCE(papers.abstract, ''),
-  COALESCE(notes.content, '')
+  COALESCE(notes.content, ''),
+  COALESCE(paper_tags_agg.tags, '')
 FROM papers
 LEFT JOIN (
   SELECT paper_id, group_concat(name, ', ') AS authors
   FROM paper_authors
   GROUP BY paper_id
 ) AS paper_authors_agg ON paper_authors_agg.paper_id = papers.id
-LEFT JOIN notes ON notes.paper_id = papers.id;
+LEFT JOIN notes ON notes.paper_id = papers.id
+LEFT JOIN (
+  SELECT paper_tags.paper_id, group_concat(tags.name, ', ') AS tags
+  FROM paper_tags
+  JOIN tags ON tags.id = paper_tags.tag_id
+  GROUP BY paper_tags.paper_id
+) AS paper_tags_agg ON paper_tags_agg.paper_id = papers.id;
 
 INSERT OR IGNORE INTO papers_schema_migrations (version, applied_at)
 VALUES (1, datetime('now'));

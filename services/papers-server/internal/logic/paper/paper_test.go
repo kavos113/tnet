@@ -47,6 +47,54 @@ func TestServiceCreatePaperFromLocalPDFCopiesExternalPDF(t *testing.T) {
 	}
 }
 
+func TestServiceCreatePaperFromLocalPDFReturnsExistingPaperForSameLibraryPath(t *testing.T) {
+	testcases := []struct {
+		name string
+	}{
+		{name: "returns existing paper when the same library pdf is imported again"},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			libraryRoot := t.TempDir()
+			pdfPath := filepath.Join(libraryRoot, "articles", "paper.pdf")
+			if err := os.MkdirAll(filepath.Dir(pdfPath), 0o755); err != nil {
+				t.Fatalf("MkdirAll() error = %v", err)
+			}
+			if err := os.WriteFile(pdfPath, []byte("pdf"), 0o644); err != nil {
+				t.Fatalf("WriteFile() error = %v", err)
+			}
+			service, closeService := newTestService(t)
+			defer closeService()
+
+			first, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
+				LibraryRoot: libraryRoot,
+				SourcePath:  pdfPath,
+				Title:       "First",
+			})
+			if err != nil {
+				t.Fatalf("first CreatePaperFromLocalPDF() error = %v", err)
+			}
+			second, err := service.CreatePaperFromLocalPDF(ctx, CreateFromLocalPDFInput{
+				LibraryRoot: libraryRoot,
+				SourcePath:  pdfPath,
+				Title:       "Second",
+			})
+			if err != nil {
+				t.Fatalf("second CreatePaperFromLocalPDF() error = %v", err)
+			}
+
+			if second.ID != first.ID {
+				t.Fatalf("second ID = %q, want existing %q", second.ID, first.ID)
+			}
+			if second.Title != "First" {
+				t.Fatalf("second Title = %q, want existing title First", second.Title)
+			}
+		})
+	}
+}
+
 func TestServiceCreatePaperFromPDFBytes(t *testing.T) {
 	testcases := []struct {
 		name        string
@@ -139,6 +187,59 @@ func TestServiceCreatePaperFromPDFBytesAvoidsFileNameCollision(t *testing.T) {
 			}
 			if second.PDFPath != "papers/paper 2.pdf" {
 				t.Fatalf("second PDFPath = %q, want papers/paper 2.pdf", second.PDFPath)
+			}
+		})
+	}
+}
+
+func TestServiceCreatePaperFromPDFBytesNormalizesDirectoryPath(t *testing.T) {
+	testcases := []struct {
+		name        string
+		directory   string
+		wantPDFPath string
+		wantErr     bool
+	}{
+		{
+			name:        "normalizes slash style and dot segments",
+			directory:   `articles\2026\..\accepted`,
+			wantPDFPath: "articles/accepted/paper.pdf",
+		},
+		{
+			name:      "rejects parent traversal",
+			directory: "../outside",
+			wantErr:   true,
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			libraryRoot := t.TempDir()
+			service, closeService := newTestService(t)
+			defer closeService()
+
+			paper, err := service.CreatePaperFromPDFBytes(ctx, CreateFromPDFBytesInput{
+				LibraryRoot:   libraryRoot,
+				FileName:      "paper.pdf",
+				Bytes:         []byte("pdf"),
+				Title:         "Paper",
+				DirectoryPath: testcase.directory,
+			})
+
+			if testcase.wantErr {
+				if err == nil {
+					t.Fatalf("CreatePaperFromPDFBytes() error = nil, want error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("CreatePaperFromPDFBytes() error = %v", err)
+			}
+			if paper.PDFPath != testcase.wantPDFPath {
+				t.Fatalf("PDFPath = %q, want %q", paper.PDFPath, testcase.wantPDFPath)
+			}
+			if paper.DirectoryPath != "articles/accepted" {
+				t.Fatalf("DirectoryPath = %q, want articles/accepted", paper.DirectoryPath)
 			}
 		})
 	}

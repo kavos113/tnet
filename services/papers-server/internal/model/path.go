@@ -14,11 +14,12 @@ func NewRelativePath(value string) (RelativePath, error) {
 	if normalized == "" {
 		return "", nil
 	}
-	if path.IsAbs(normalized) || strings.Contains(normalized, "../") || normalized == ".." {
+	cleaned := path.Clean(normalized)
+	if path.IsAbs(cleaned) || cleaned == ".." || strings.HasPrefix(cleaned, "../") {
 		return "", errors.New("relative path must stay inside the library")
 	}
 
-	return RelativePath(path.Clean(normalized)), nil
+	return RelativePath(cleaned), nil
 }
 
 func (relativePath RelativePath) String() string {

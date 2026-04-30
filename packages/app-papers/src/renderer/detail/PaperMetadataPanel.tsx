@@ -40,6 +40,12 @@ export const PaperMetadataPanel = ({
         <dt>PDF</dt>
         <dd>{detail.pdfPath ?? '-'}</dd>
       </dl>
+      {detail.abstract ? (
+        <section className="papers-metadata-abstract" aria-label="Paper abstract">
+          <h3>Abstract</h3>
+          <p>{detail.abstract}</p>
+        </section>
+      ) : null}
       <section className="papers-detail-tags" aria-label="Paper tags">
         <h3>Tags</h3>
         <div className="papers-detail-tag-list">

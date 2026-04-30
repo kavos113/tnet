@@ -54,6 +54,108 @@ func TestPaperRepositoryCreateListAndGetPaper(t *testing.T) {
 	}
 }
 
+func TestPaperRepositorySearchesMetadataNoteAndTags(t *testing.T) {
+	testcases := []struct {
+		name     string
+		query    string
+		setup    func(context.Context, *testing.T, *PaperRepository) string
+		wantFind bool
+	}{
+		{
+			name:  "searches abstract",
+			query: "retrieval",
+			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
+				t.Helper()
+				created, err := repository.CreatePaper(ctx, CreatePaperInput{
+					Title:    "Paper",
+					Abstract: "Neural retrieval for papers",
+				})
+				if err != nil {
+					t.Fatalf("CreatePaper() error = %v", err)
+				}
+				return created.ID
+			},
+			wantFind: true,
+		},
+		{
+			name:  "searches note after save",
+			query: "importantnote",
+			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
+				t.Helper()
+				created, err := repository.CreatePaper(ctx, CreatePaperInput{Title: "Paper"})
+				if err != nil {
+					t.Fatalf("CreatePaper() error = %v", err)
+				}
+				if _, _, err := repository.SaveNote(ctx, created.ID, "importantnote"); err != nil {
+					t.Fatalf("SaveNote() error = %v", err)
+				}
+				return created.ID
+			},
+			wantFind: true,
+		},
+		{
+			name:  "searches attached tags",
+			query: "graph",
+			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
+				t.Helper()
+				created, err := repository.CreatePaper(ctx, CreatePaperInput{Title: "Paper"})
+				if err != nil {
+					t.Fatalf("CreatePaper() error = %v", err)
+				}
+				tag, err := repository.UpsertTag(ctx, "graph", "")
+				if err != nil {
+					t.Fatalf("UpsertTag() error = %v", err)
+				}
+				if _, _, err := repository.AttachTag(ctx, created.ID, tag.ID); err != nil {
+					t.Fatalf("AttachTag() error = %v", err)
+				}
+				return created.ID
+			},
+			wantFind: true,
+		},
+		{
+			name:  "removes detached tags from search",
+			query: "removedtag",
+			setup: func(ctx context.Context, t *testing.T, repository *PaperRepository) string {
+				t.Helper()
+				created, err := repository.CreatePaper(ctx, CreatePaperInput{Title: "Paper"})
+				if err != nil {
+					t.Fatalf("CreatePaper() error = %v", err)
+				}
+				tag, err := repository.UpsertTag(ctx, "removedtag", "")
+				if err != nil {
+					t.Fatalf("UpsertTag() error = %v", err)
+				}
+				if _, _, err := repository.AttachTag(ctx, created.ID, tag.ID); err != nil {
+					t.Fatalf("AttachTag() error = %v", err)
+				}
+				if _, _, err := repository.DetachTag(ctx, created.ID, tag.ID); err != nil {
+					t.Fatalf("DetachTag() error = %v", err)
+				}
+				return created.ID
+			},
+			wantFind: false,
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			ctx := context.Background()
+			repository := newTestPaperRepository(t, ctx)
+			paperID := testcase.setup(ctx, t, repository)
+
+			list, err := repository.ListPapers(ctx, ListPapersFilter{Query: testcase.query})
+			if err != nil {
+				t.Fatalf("ListPapers() error = %v", err)
+			}
+			found := len(list) == 1 && list[0].ID == paperID
+			if found != testcase.wantFind {
+				t.Fatalf("found = %v, want %v; list = %+v", found, testcase.wantFind, list)
+			}
+		})
+	}
+}
+
 func TestPaperRepositoryDuplicateDetection(t *testing.T) {
 	testcases := []struct {
 		name string

@@ -119,7 +119,12 @@ const renderReady = (): void => {
   fileInput.accept = 'application/pdf,.pdf';
   fileInput.addEventListener('change', () => {
     selectedPdfFile = fileInput.files?.[0] ?? null;
-    state = { ...state, selectedPdfFileName: selectedPdfFile?.name, errorMessage: undefined };
+    state = {
+      ...state,
+      selectedPdfFileName: selectedPdfFile?.name,
+      selectedPdfFileSize: selectedPdfFile?.size,
+      errorMessage: undefined
+    };
     renderReady();
   });
 
@@ -139,10 +144,15 @@ const renderReady = (): void => {
     createField('Directory', directorySelect),
     createField('BibTeX', bibtexInput),
     pasteButton,
+    createBibtexDiagnostics(),
     metadata,
     createField('Downloaded PDF', fileInput),
     selectedPdfFile
-      ? createElement('p', 'paper-popup-progress', `Selected: ${selectedPdfFile.name}`)
+      ? createElement(
+          'p',
+          'paper-popup-progress',
+          `Selected: ${selectedPdfFile.name} (${formatBytes(selectedPdfFile.size)})`
+        )
       : createElement(
           'p',
           'paper-popup-progress',
@@ -191,6 +201,21 @@ const renderReady = (): void => {
 
   container.append(title, form);
   setRoot(container);
+};
+
+const createBibtexDiagnostics = (): HTMLElement => {
+  const container = createElement('div');
+  container.hidden = state.bibtexDiagnostics.length === 0;
+  for (const diagnostic of state.bibtexDiagnostics) {
+    container.append(
+      createElement(
+        'p',
+        diagnostic.severity === 'error' ? 'paper-popup-error' : 'paper-popup-warning',
+        diagnostic.message
+      )
+    );
+  }
+  return container;
 };
 
 const createMetadataFields = (
@@ -249,6 +274,12 @@ const readSelectedPdf = async (): Promise<{
   };
 };
 
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const createField = (labelText: string, control: HTMLElement): HTMLLabelElement => {
   const label = createElement('label', 'paper-popup-field');
   label.append(createElement('span', undefined, labelText), control);
@@ -257,11 +288,29 @@ const createField = (labelText: string, control: HTMLElement): HTMLLabelElement 
 
 const renderImported = (): void => {
   const container = createElement('main', 'paper-popup paper-popup-message');
+  const importedPaper = readImportedPaper(state.importResult);
   container.append(
     createElement('h1', undefined, 'Import Complete'),
-    createElement('p', undefined, 'The selected PDF and BibTeX metadata were imported.')
+    createElement('p', undefined, importedPaper.title || 'The selected PDF was imported.')
   );
+  if (importedPaper.destination) {
+    container.append(createElement('p', 'paper-popup-progress', importedPaper.destination));
+  }
   setRoot(container);
+};
+
+const readImportedPaper = (result: unknown): { title?: string; destination?: string } => {
+  if (!result || typeof result !== 'object') return {};
+  const paper = result as { title?: unknown; directoryPath?: unknown; pdfPath?: unknown };
+  return {
+    title: typeof paper.title === 'string' ? paper.title : undefined,
+    destination:
+      typeof paper.pdfPath === 'string'
+        ? paper.pdfPath
+        : typeof paper.directoryPath === 'string'
+          ? paper.directoryPath
+          : undefined
+  };
 };
 
 const renderState = (): void => {

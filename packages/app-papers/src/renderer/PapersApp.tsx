@@ -53,6 +53,7 @@ export const PapersApp = (): React.JSX.Element => {
   const {
     importCandidate,
     importBibtex,
+    importBibtexDiagnostics,
     importMetadata,
     importTitle,
     setImportBibtex,
@@ -285,6 +286,7 @@ export const PapersApp = (): React.JSX.Element => {
         <PaperImportDialog
           candidate={importCandidate}
           bibtex={importBibtex}
+          bibtexDiagnostics={importBibtexDiagnostics}
           metadata={importMetadata}
           title={importTitle}
           onBibtexChange={setImportBibtex}

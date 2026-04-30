@@ -60,6 +60,26 @@
   overflow-wrap: anywhere;
 }
 
+.papers-metadata-abstract {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.papers-metadata-abstract h3 {
+  margin: 0;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+}
+
+.papers-metadata-abstract p {
+  max-width: 72ch;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .papers-detail-tags {
   display: grid;
   gap: 8px;

@@ -1,4 +1,5 @@
 export interface BibtexPaperMetadata {
+  entryType?: string;
   title?: string;
   authors?: string[];
   abstract?: string;
@@ -9,36 +10,86 @@ export interface BibtexPaperMetadata {
   url?: string;
 }
 
-export const parseBibtexMetadata = (input: string): BibtexPaperMetadata => {
-  const body = bibtexBody(input);
-  if (!body) return {};
+export interface BibtexParseDiagnostic {
+  severity: 'error' | 'warning';
+  message: string;
+}
 
-  const fields = parseBibtexFields(body);
+export interface BibtexParseResult {
+  metadata: BibtexPaperMetadata;
+  diagnostics: BibtexParseDiagnostic[];
+}
+
+export const parseBibtexMetadata = (input: string): BibtexPaperMetadata => {
+  return parseBibtexMetadataResult(input).metadata;
+};
+
+export const parseBibtexMetadataResult = (input: string): BibtexParseResult => {
+  const entry = bibtexEntry(input);
+  if (!entry.body) {
+    return {
+      metadata: {},
+      diagnostics: input.trim()
+        ? [{ severity: 'error', message: entry.error ?? 'BibTeX entry could not be parsed.' }]
+        : []
+    };
+  }
+
+  const fields = parseBibtexFields(entry.body);
   const metadata: BibtexPaperMetadata = {
+    entryType: entry.entryType,
     title: cleanBibtexValue(fields.get('title')),
     authors: parseAuthors(fields.get('author')),
     abstract: cleanBibtexValue(fields.get('abstract')),
-    publishedYear: parseYear(fields.get('year')),
-    venue: cleanBibtexValue(fields.get('journal') ?? fields.get('booktitle')),
+    publishedYear: parseYear(fields.get('year')) ?? parseYear(fields.get('date')),
+    venue: cleanBibtexValue(
+      fields.get('journal') ??
+        fields.get('booktitle') ??
+        fields.get('conference') ??
+        fields.get('venue')
+    ),
     doi: cleanBibtexValue(fields.get('doi')),
     arxivId: parseArxivId(fields),
     url: cleanBibtexValue(fields.get('url'))
   };
 
-  return Object.fromEntries(
+  const parsedMetadata = Object.fromEntries(
     Object.entries(metadata).filter(([, value]) =>
       Array.isArray(value) ? value.length > 0 : value !== undefined && value !== ''
     )
   ) as BibtexPaperMetadata;
+
+  return {
+    metadata: parsedMetadata,
+    diagnostics: parsedMetadata.title
+      ? []
+      : [{ severity: 'warning', message: 'BibTeX entry does not include a title.' }]
+  };
 };
 
-const bibtexBody = (input: string): string => {
+const bibtexEntry = (input: string): { entryType?: string; body: string; error?: string } => {
+  const trimmed = input.trim();
+  if (!trimmed) return { body: '' };
+  if (!trimmed.startsWith('@')) {
+    return { body: '', error: 'BibTeX entry must start with @.' };
+  }
+
   const start = input.indexOf('{');
   const end = input.lastIndexOf('}');
-  if (!input.trim().startsWith('@') || start < 0 || end <= start) return '';
+  if (start < 0 || end <= start) {
+    return { body: '', error: 'BibTeX entry is missing braces.' };
+  }
+
+  const entryType =
+    input
+      .slice(input.indexOf('@') + 1, start)
+      .trim()
+      .toLowerCase() || undefined;
   const firstComma = input.indexOf(',', start);
-  if (firstComma < 0 || firstComma >= end) return '';
-  return input.slice(firstComma + 1, end);
+  if (firstComma < 0 || firstComma >= end) {
+    return { entryType, body: '', error: 'BibTeX entry is missing the citation key separator.' };
+  }
+  return { entryType, body: input.slice(firstComma + 1, end) };
 };
 
 const parseBibtexFields = (body: string): Map<string, string> => {
@@ -110,15 +161,20 @@ const readBalancedValue = (
 
 const cleanBibtexValue = (value?: string): string | undefined => {
   const cleaned = value
-    ?.replaceAll(/\{([^{}]*)\}/g, '$1')
+    ?.replaceAll(/[{}]/g, '')
+    .replaceAll(/\\([&%_$#{}])/g, '$1')
+    .replaceAll(/\\([`'"^~=.])\{?([A-Za-z])\}?/g, (_, accent: string, letter: string) =>
+      applyLatexAccent(accent, letter)
+    )
     .replaceAll(/\s+/g, ' ')
     .trim();
   return cleaned || undefined;
 };
 
 const parseAuthors = (value?: string): string[] | undefined => {
-  const authors = cleanBibtexValue(value)
-    ?.split(/\s+and\s+/i)
+  const authors = splitBibtexAuthors(value ?? '')
+    .map((author) => cleanBibtexValue(author))
+    .filter((author): author is string => Boolean(author))
     .map((author) => author.trim())
     .filter(Boolean);
   return authors && authors.length > 0 ? authors : undefined;
@@ -134,4 +190,43 @@ const parseArxivId = (fields: Map<string, string>): string | undefined => {
   const eprint = cleanBibtexValue(fields.get('eprint'));
   if (archivePrefix === 'arxiv') return eprint;
   return undefined;
+};
+
+const splitBibtexAuthors = (value: string): string[] => {
+  const authors: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (let index = 0; index < value.length; index++) {
+    const char = value[index];
+    if (char === '{') depth++;
+    if (char === '}') depth = Math.max(0, depth - 1);
+
+    const rest = value.slice(index);
+    const separator = rest.match(/^\s+and\s+/i);
+    if (depth === 0 && separator) {
+      authors.push(current);
+      current = '';
+      index += separator[0].length - 1;
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) authors.push(current);
+  return authors;
+};
+
+const applyLatexAccent = (accent: string, letter: string): string => {
+  const lower = letter.toLowerCase();
+  const table: Record<string, Record<string, string>> = {
+    "'": { a: 'á', e: 'é', i: 'í', o: 'ó', u: 'ú', y: 'ý' },
+    '`': { a: 'à', e: 'è', i: 'ì', o: 'ò', u: 'ù' },
+    '"': { a: 'ä', e: 'ë', i: 'ï', o: 'ö', u: 'ü', y: 'ÿ' },
+    '^': { a: 'â', e: 'ê', i: 'î', o: 'ô', u: 'û' },
+    '~': { a: 'ã', n: 'ñ', o: 'õ' },
+    '=': { a: 'ā', e: 'ē', i: 'ī', o: 'ō', u: 'ū' },
+    '.': { z: 'ż' }
+  };
+  const converted = table[accent]?.[lower];
+  if (!converted) return letter;
+  return letter === lower ? converted : converted.toUpperCase();
 };

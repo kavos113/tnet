@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import { PaperImportDialog } from './PaperImportDialog';
@@ -25,6 +25,7 @@ describe('PaperImportDialog', () => {
       <PaperImportDialog
         candidate={candidate}
         bibtex="@article{paper,title={Lambda Calculus Foundations}}"
+        bibtexDiagnostics={[]}
         metadata={{ title: 'Lambda Calculus Foundations' }}
         title="Lambda Calculus Foundations"
         onBibtexChange={vi.fn()}
@@ -54,6 +55,7 @@ describe('PaperImportDialog', () => {
       <PaperImportDialog
         candidate={candidate}
         bibtex=""
+        bibtexDiagnostics={[]}
         metadata={{}}
         title=" "
         onBibtexChange={vi.fn()}
@@ -65,5 +67,37 @@ describe('PaperImportDialog', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Import' })).toBeDisabled();
+  });
+
+  it('shows BibTeX diagnostics and can reload BibTeX from clipboard', async () => {
+    const onBibtexChange = vi.fn();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        readText: vi.fn().mockResolvedValue('@article{paper,title={Clipboard Paper}}')
+      }
+    });
+
+    render(
+      <PaperImportDialog
+        candidate={candidate}
+        bibtex="plain text"
+        bibtexDiagnostics={[{ severity: 'error', message: 'BibTeX entry must start with @.' }]}
+        metadata={{}}
+        title="Fallback"
+        onBibtexChange={onBibtexChange}
+        onMetadataChange={vi.fn()}
+        onTitleChange={vi.fn()}
+        onCancel={vi.fn()}
+        onConfirm={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('BibTeX entry must start with @.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Paste from clipboard' }));
+
+    await waitFor(() => {
+      expect(onBibtexChange).toHaveBeenCalledWith('@article{paper,title={Clipboard Paper}}');
+    });
   });
 });

@@ -1,9 +1,10 @@
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
-import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
+import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
 
 export interface PaperImportDialogProps {
   candidate: SelectedPdfImportCandidate;
   bibtex: string;
+  bibtexDiagnostics: BibtexParseDiagnostic[];
   metadata: BibtexPaperMetadata;
   title: string;
   onBibtexChange: (bibtex: string) => void;
@@ -23,6 +24,7 @@ const importTargetLabel = (candidate: SelectedPdfImportCandidate): string => {
 export const PaperImportDialog = ({
   candidate,
   bibtex,
+  bibtexDiagnostics,
   metadata,
   title,
   onBibtexChange,
@@ -59,6 +61,29 @@ export const PaperImportDialog = ({
           onChange={(event) => onBibtexChange(event.target.value)}
         />
       </label>
+      <button
+        type="button"
+        className="btn-secondary"
+        onClick={() => {
+          navigator.clipboard
+            .readText()
+            .then(onBibtexChange)
+            .catch((error: unknown) => {
+              console.error('Failed to read clipboard BibTeX', error);
+            });
+        }}
+      >
+        Paste from clipboard
+      </button>
+      {bibtexDiagnostics.length > 0 ? (
+        <div className="papers-import-diagnostics" role="status">
+          {bibtexDiagnostics.map((diagnostic) => (
+            <p key={`${diagnostic.severity}:${diagnostic.message}`} className={diagnostic.severity}>
+              {diagnostic.message}
+            </p>
+          ))}
+        </div>
+      ) : null}
       <label className="papers-form-field">
         <span>Title</span>
         <input

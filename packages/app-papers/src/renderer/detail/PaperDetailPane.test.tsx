@@ -15,6 +15,7 @@ const detail: PaperDetail = {
   venue: 'Annals of Mathematics',
   tags: ['logic'],
   hasPdf: true,
+  abstract: 'A concise account of lambda calculus foundations.',
   pdfPath: 'papers/lambda.pdf',
   directoryPath: 'logic',
   noteContent: '# Note'
@@ -88,6 +89,9 @@ describe('PaperDetailPane', () => {
 
     expect(screen.getByText('Lambda Calculus Foundations')).toBeInTheDocument();
     expect(screen.getByText('Annals of Mathematics')).toBeInTheDocument();
+    expect(
+      screen.getByText('A concise account of lambda calculus foundations.')
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'logic' }));
     expect(onDetachTag).toHaveBeenCalledWith('tag-1');
     fireEvent.change(screen.getByRole('textbox', { name: 'New paper tag' }), {

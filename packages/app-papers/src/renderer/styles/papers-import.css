@@ -84,6 +84,30 @@
   min-width: 0;
 }
 
+.papers-import-diagnostics {
+  display: grid;
+  gap: 6px;
+}
+
+.papers-import-diagnostics p {
+  padding: 7px 9px;
+  margin: 0;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.papers-import-diagnostics .error {
+  color: #ffd7d7;
+  background: rgb(128 32 32 / 35%);
+  border: 1px solid rgb(255 120 120 / 45%);
+}
+
+.papers-import-diagnostics .warning {
+  color: #ffe7bd;
+  background: rgb(128 88 24 / 35%);
+  border: 1px solid rgb(255 187 92 / 45%);
+}
+
 .papers-import-paths code {
   min-width: 0;
   overflow: hidden;

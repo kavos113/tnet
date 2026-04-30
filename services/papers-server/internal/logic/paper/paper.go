@@ -106,12 +106,7 @@ func (s *Service) CreatePaperFromLocalPDF(
 	if err != nil {
 		return model.Paper{}, err
 	}
-
-	repository, err := s.repositoryForRoot(ctx, root)
-	if err != nil {
-		return model.Paper{}, err
-	}
-	return repository.CreatePaper(ctx, sqlite.CreatePaperInput{
+	return s.createPaperWithPDFPath(ctx, root, createPaperMetadata{
 		Title:         input.Title,
 		Authors:       input.Authors,
 		Abstract:      input.Abstract,
@@ -121,7 +116,6 @@ func (s *Service) CreatePaperFromLocalPDF(
 		ArxivID:       input.ArxivID,
 		URL:           input.URL,
 		PDFPath:       pdfPath,
-		DirectoryPath: directoryPathForPDF(pdfPath),
 	})
 }
 
@@ -144,12 +138,7 @@ func (s *Service) CreatePaperFromPDFBytes(
 	if err != nil {
 		return model.Paper{}, err
 	}
-
-	repository, err := s.repositoryForRoot(ctx, root)
-	if err != nil {
-		return model.Paper{}, err
-	}
-	return repository.CreatePaper(ctx, sqlite.CreatePaperInput{
+	return s.createPaperWithPDFPath(ctx, root, createPaperMetadata{
 		Title:         input.Title,
 		Authors:       input.Authors,
 		Abstract:      input.Abstract,
@@ -159,7 +148,41 @@ func (s *Service) CreatePaperFromPDFBytes(
 		ArxivID:       input.ArxivID,
 		URL:           input.URL,
 		PDFPath:       pdfPath,
-		DirectoryPath: directoryPathForPDF(pdfPath),
+	})
+}
+
+type createPaperMetadata struct {
+	Title         string
+	Authors       []string
+	Abstract      string
+	PublishedYear int32
+	Venue         string
+	DOI           string
+	ArxivID       string
+	URL           string
+	PDFPath       string
+}
+
+func (s *Service) createPaperWithPDFPath(
+	ctx context.Context,
+	root model.LibraryRoot,
+	metadata createPaperMetadata,
+) (model.Paper, error) {
+	repository, err := s.repositoryForRoot(ctx, root)
+	if err != nil {
+		return model.Paper{}, err
+	}
+	return repository.CreatePaper(ctx, sqlite.CreatePaperInput{
+		Title:         metadata.Title,
+		Authors:       metadata.Authors,
+		Abstract:      metadata.Abstract,
+		PublishedYear: metadata.PublishedYear,
+		Venue:         metadata.Venue,
+		DOI:           metadata.DOI,
+		ArxivID:       metadata.ArxivID,
+		URL:           metadata.URL,
+		PDFPath:       metadata.PDFPath,
+		DirectoryPath: directoryPathForPDF(metadata.PDFPath),
 	})
 }
 
@@ -276,9 +299,13 @@ func (s *Service) copyPDFIfNeeded(
 		return toRelativeSlash(rootAbsolute, sourceAbsolute), nil
 	}
 
+	normalizedDirectoryPath, err := normalizeDirectoryPath(directoryPath)
+	if err != nil {
+		return "", err
+	}
 	targetDir := filepath.Join(rootAbsolute, "papers")
-	if directoryPath != "" {
-		targetDir = filepath.Join(rootAbsolute, filepath.FromSlash(directoryPath))
+	if normalizedDirectoryPath != "" {
+		targetDir = filepath.Join(rootAbsolute, filepath.FromSlash(normalizedDirectoryPath))
 	}
 	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		return "", err
@@ -300,9 +327,13 @@ func (s *Service) savePDFBytes(
 	directoryPath string,
 	pdf storedPDF,
 ) (string, error) {
+	normalizedDirectoryPath, err := normalizeDirectoryPath(directoryPath)
+	if err != nil {
+		return "", err
+	}
 	targetDir := filepath.Join(root.String(), "papers")
-	if directoryPath != "" {
-		targetDir = filepath.Join(root.String(), filepath.FromSlash(directoryPath))
+	if normalizedDirectoryPath != "" {
+		targetDir = filepath.Join(root.String(), filepath.FromSlash(normalizedDirectoryPath))
 	}
 	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		return "", err
@@ -364,6 +395,14 @@ func directoryPathForPDF(pdfPath string) string {
 		return ""
 	}
 	return dir
+}
+
+func normalizeDirectoryPath(value string) (string, error) {
+	relativePath, err := model.NewRelativePath(value)
+	if err != nil {
+		return "", err
+	}
+	return relativePath.String(), nil
 }
 
 func errRequired(field string) error {

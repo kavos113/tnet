@@ -1,5 +1,5 @@
-import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
-import { parseBibtexMetadata } from '@tnet/app-papers/shared/bibtex';
+import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
+import { parseBibtexMetadataResult } from '@tnet/app-papers/shared/bibtex';
 import type { DirectoryNode, LibraryInfo } from '../types';
 import type { PapersExtensionServerClient } from '../papersServerClient';
 
@@ -20,9 +20,11 @@ export interface PopupState {
   selectedDirectoryPath?: string;
   directoryTree?: DirectoryNode | null;
   bibtexInput: string;
+  bibtexDiagnostics: BibtexParseDiagnostic[];
   metadata: BibtexPaperMetadata;
   tagsInput: string;
   selectedPdfFileName?: string;
+  selectedPdfFileSize?: number;
   importResult?: unknown;
   importStatusMessage?: string;
 }
@@ -36,6 +38,7 @@ export const initialPopupState = (): PopupState => ({
   status: 'idle',
   libraries: [],
   bibtexInput: '',
+  bibtexDiagnostics: [],
   metadata: {},
   tagsInput: ''
 });
@@ -73,12 +76,16 @@ export const parseTagsInput = (value: string): string[] =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-export const updateBibtexInput = (state: PopupState, bibtexInput: string): PopupState => ({
-  ...state,
-  bibtexInput,
-  metadata: parseBibtexMetadata(bibtexInput),
-  errorMessage: undefined
-});
+export const updateBibtexInput = (state: PopupState, bibtexInput: string): PopupState => {
+  const { metadata, diagnostics } = parseBibtexMetadataResult(bibtexInput);
+  return {
+    ...state,
+    bibtexInput,
+    bibtexDiagnostics: diagnostics,
+    metadata,
+    errorMessage: undefined
+  };
+};
 
 export const updateMetadata = (state: PopupState, metadata: BibtexPaperMetadata): PopupState => ({
   ...state,

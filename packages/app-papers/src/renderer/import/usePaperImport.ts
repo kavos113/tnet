@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { BibtexPaperMetadata } from '@tnet/app-papers/shared/bibtex';
-import { parseBibtexMetadata } from '@tnet/app-papers/shared/bibtex';
+import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
+import { parseBibtexMetadataResult } from '@tnet/app-papers/shared/bibtex';
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import { usePapersDispatch } from '../storeHooks';
 import { papersTnetApi } from '../papersTnetApi';
@@ -15,6 +15,7 @@ import {
 export interface PaperImportState {
   importCandidate: SelectedPdfImportCandidate | null;
   importBibtex: string;
+  importBibtexDiagnostics: BibtexParseDiagnostic[];
   importMetadata: BibtexPaperMetadata;
   importTitle: string;
   setImportBibtex: (bibtex: string) => void;
@@ -35,12 +36,16 @@ export const usePaperImport = ({
   const dispatch = usePapersDispatch();
   const [importCandidate, setImportCandidate] = useState<SelectedPdfImportCandidate | null>(null);
   const [importBibtex, setImportBibtexState] = useState('');
+  const [importBibtexDiagnostics, setImportBibtexDiagnostics] = useState<BibtexParseDiagnostic[]>(
+    []
+  );
   const [importMetadata, setImportMetadata] = useState<BibtexPaperMetadata>({});
   const [importTitle, setImportTitle] = useState('');
 
   const setImportBibtex = (bibtex: string): void => {
     setImportBibtexState(bibtex);
-    const metadata = parseBibtexMetadata(bibtex);
+    const { metadata, diagnostics } = parseBibtexMetadataResult(bibtex);
+    setImportBibtexDiagnostics(diagnostics);
     setImportMetadata(metadata);
     if (metadata.title) {
       setImportTitle(metadata.title);
@@ -57,8 +62,9 @@ export const usePaperImport = ({
     if (!candidate) return;
 
     setImportCandidate(candidate);
-    const metadata = parseBibtexMetadata(candidate.clipboardBibtex ?? '');
+    const { metadata, diagnostics } = parseBibtexMetadataResult(candidate.clipboardBibtex ?? '');
     setImportBibtexState(candidate.clipboardBibtex ?? '');
+    setImportBibtexDiagnostics(diagnostics);
     setImportMetadata(metadata);
     setImportTitle(metadata.title ?? candidate.suggestedTitle);
   };
@@ -93,6 +99,7 @@ export const usePaperImport = ({
     dispatch(setActivePapersDetailTab('pdf'));
     setImportCandidate(null);
     setImportBibtexState('');
+    setImportBibtexDiagnostics([]);
     setImportMetadata({});
     setImportTitle('');
   };
@@ -100,6 +107,7 @@ export const usePaperImport = ({
   const cancelImportPdf = (): void => {
     setImportCandidate(null);
     setImportBibtexState('');
+    setImportBibtexDiagnostics([]);
     setImportMetadata({});
     setImportTitle('');
     dispatch(setPapersError(''));
@@ -108,6 +116,7 @@ export const usePaperImport = ({
   return {
     importCandidate,
     importBibtex,
+    importBibtexDiagnostics,
     importMetadata,
     importTitle,
     setImportBibtex,

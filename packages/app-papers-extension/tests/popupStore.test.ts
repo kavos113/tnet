@@ -100,6 +100,7 @@ describe('popupStore', () => {
           selectedDirectoryPath: 'articles',
           directoryTree: null,
           bibtexInput: '',
+          bibtexDiagnostics: [],
           metadata: {},
           tagsInput: ''
         },
@@ -119,17 +120,38 @@ describe('popupStore', () => {
           status: 'ready',
           libraries: [],
           bibtexInput: '',
+          bibtexDiagnostics: [],
           metadata: {},
           tagsInput: ''
         },
         '@article{paper,title={Paper},author={Alice and Bob},year={2025}}'
       )
     ).toMatchObject({
+      bibtexDiagnostics: [],
       metadata: {
         title: 'Paper',
         authors: ['Alice', 'Bob'],
         publishedYear: 2025
       }
+    });
+  });
+
+  it('stores BibTeX parse diagnostics', () => {
+    expect(
+      updateBibtexInput(
+        {
+          status: 'ready',
+          libraries: [],
+          bibtexInput: '',
+          metadata: {},
+          bibtexDiagnostics: [],
+          tagsInput: ''
+        },
+        'not bibtex'
+      )
+    ).toMatchObject({
+      metadata: {},
+      bibtexDiagnostics: [{ severity: 'error', message: 'BibTeX entry must start with @.' }]
     });
   });
 
@@ -147,6 +169,7 @@ describe('popupStore', () => {
           selectedLibraryRoot: 'C:/papers',
           selectedDirectoryPath: 'articles',
           bibtexInput: '',
+          bibtexDiagnostics: [],
           metadata: { title: 'Paper', authors: ['Alice'] },
           tagsInput: 'ai'
         },
