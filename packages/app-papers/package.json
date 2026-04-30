@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tnet/main-core": "workspace:*",
+    "@tnet/markdown-editor": "workspace:*",
     "@tnet/renderer-core": "workspace:*",
     "@tnet/shared": "workspace:*",
     "better-sqlite3": "^12.9.0",

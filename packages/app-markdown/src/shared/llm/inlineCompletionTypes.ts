@@ -1,22 +1,13 @@
-export type InlineCompletionTrigger = 'automatic' | 'manual';
+import type { InlineCompletionContext as BaseInlineCompletionContext } from '@tnet/markdown-editor/shared/inlineCompletion/inlineCompletionTypes';
 
-export interface InlineCompletionContext {
-  prefix: string;
-  suffix: string;
-  selectedText: string;
-  cursorOffset: number;
-  trigger: InlineCompletionTrigger;
-}
+export type {
+  InlineCompletionContext,
+  InlineCompletionTrigger,
+  InlineCompletionResult
+} from '@tnet/markdown-editor/shared/inlineCompletion/inlineCompletionTypes';
 
-export interface InlineCompletionRequest extends InlineCompletionContext {
+export interface InlineCompletionRequest extends BaseInlineCompletionContext {
   workspaceRoot: string;
   filePath: string;
   language: 'markdown';
-}
-
-export interface InlineCompletionResult {
-  id: string;
-  text: string;
-  provider: string;
-  model: string;
 }

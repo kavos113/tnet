@@ -11,6 +11,22 @@ vi.mock('./papers/PdfViewer', () => ({
   PdfViewer: () => <div data-testid="pdf-viewer" />
 }));
 
+vi.mock('@tnet/markdown-editor/renderer', () => ({
+  MarkdownEditorSurface: ({
+    content,
+    onChange
+  }: {
+    content: string;
+    onChange: (content: string) => void;
+  }) => (
+    <textarea
+      aria-label="Paper note"
+      value={content}
+      onChange={(event) => onChange(event.currentTarget.value)}
+    />
+  )
+}));
+
 const listPapers = vi.fn();
 const getPaper = vi.fn();
 const selectPdf = vi.fn();

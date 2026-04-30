@@ -151,13 +151,11 @@
 }
 
 .papers-note-editor {
-  width: 100%;
-  padding: 12px;
-  color: var(--foreground);
-  resize: none;
-  background: var(--background);
-  border: 0;
-  outline: 0;
+  min-height: 0;
+}
+
+.papers-note-editor .markdown-editor-surface-pane {
+  min-width: 120px;
 }
 
 .papers-note-status {

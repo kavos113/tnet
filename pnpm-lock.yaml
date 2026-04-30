@@ -209,6 +209,9 @@ importers:
       '@tnet/main-core':
         specifier: workspace:*
         version: link:../main-core
+      '@tnet/markdown-editor':
+        specifier: workspace:*
+        version: link:../markdown-editor
       '@tnet/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core
@@ -221,6 +224,9 @@ importers:
       '@tnet/main-core':
         specifier: workspace:*
         version: link:../main-core
+      '@tnet/markdown-editor':
+        specifier: workspace:*
+        version: link:../markdown-editor
       '@tnet/renderer-core':
         specifier: workspace:*
         version: link:../renderer-core
@@ -241,6 +247,12 @@ importers:
   packages/app-papers-extension: {}
 
   packages/main-core:
+    dependencies:
+      '@tnet/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/markdown-editor:
     dependencies:
       '@tnet/shared':
         specifier: workspace:*

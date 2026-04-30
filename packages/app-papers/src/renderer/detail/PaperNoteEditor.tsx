@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MarkdownEditorSurface, type MarkdownEditorMode } from '@tnet/markdown-editor/renderer';
 
 export interface PaperNoteEditorProps {
   paperId: string;
   content: string;
+  mode: MarkdownEditorMode;
   autoSaveDebounceMs: number;
   onSave: (content: string) => Promise<void>;
 }
@@ -10,12 +12,15 @@ export interface PaperNoteEditorProps {
 export const PaperNoteEditor = ({
   paperId,
   content,
+  mode,
   autoSaveDebounceMs,
   onSave
 }: PaperNoteEditorProps): React.JSX.Element => {
   const [draft, setDraft] = useState(content);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const initialContentRef = useRef(content);
+  const editorOptions = useMemo(() => ({ ariaLabel: 'Paper note' }), []);
+  const previewOptions = useMemo(() => ({ renderDebounceMs: 120 }), []);
 
   useEffect(() => {
     initialContentRef.current = content;
@@ -44,12 +49,13 @@ export const PaperNoteEditor = ({
 
   return (
     <section className="papers-note-panel" aria-label="Paper note editor">
-      <textarea
+      <MarkdownEditorSurface
         className="papers-note-editor"
-        value={draft}
-        aria-label="Paper note"
-        spellCheck={false}
-        onChange={(event) => setDraft(event.target.value)}
+        mode={mode}
+        content={draft}
+        onChange={setDraft}
+        editor={editorOptions}
+        preview={previewOptions}
       />
       <span className={`papers-note-status papers-note-status-${status}`} aria-live="polite">
         {status === 'saving'

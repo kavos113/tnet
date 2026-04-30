@@ -10,6 +10,7 @@
     "packages/app-papers-extension/tests/**/*",
     "packages/app-markdown/src/renderer/**/*",
     "packages/app-markdown/src/shared/**/*",
+    "packages/markdown-editor/src/**/*",
     "packages/renderer-core/src/**/*",
     "packages/shared/src/**/*",
     "packages/ui/src/**/*"
@@ -28,6 +29,9 @@
       "@tnet/app-markdown/renderer": ["./packages/app-markdown/src/renderer/index.ts"],
       "@tnet/app-markdown/renderer/*": ["./packages/app-markdown/src/renderer/*"],
       "@tnet/app-markdown/shared/*": ["./packages/app-markdown/src/shared/*"],
+      "@tnet/markdown-editor/renderer": ["./packages/markdown-editor/src/renderer/index.ts"],
+      "@tnet/markdown-editor/renderer/*": ["./packages/markdown-editor/src/renderer/*"],
+      "@tnet/markdown-editor/shared/*": ["./packages/markdown-editor/src/shared/*"],
       "@tnet/renderer-core/*": ["./packages/renderer-core/src/*"],
       "@tnet/shared/*": ["./packages/shared/src/*"],
       "@tnet/ui/*": ["./packages/ui/src/*"]

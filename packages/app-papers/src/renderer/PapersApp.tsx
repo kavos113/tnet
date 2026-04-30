@@ -266,6 +266,7 @@ export const PapersApp = (): React.JSX.Element => {
         activeDetailTab={activeDetailTab}
         isLoading={isLoadingDetail}
         widthPercent={detailWidthPercent}
+        noteEditorMode={paperSettings.noteEditorMode}
         noteAutoSaveDebounceMs={paperSettings.noteAutoSaveDebounceMs}
         onSelectTab={(tab) => dispatch(setActivePapersDetailTab(tab))}
         onCreateTag={(name) => {

@@ -1,12 +1,10 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
-import { EditorView } from '@codemirror/view';
-import {
-  createMarkdownEditor,
-  type MarkdownEditorInstance
-} from './codeMirror/createMarkdownEditor';
+import { forwardRef, useMemo } from 'react';
+import { MarkdownEditorPane, type MarkdownEditorPaneHandle } from '@tnet/markdown-editor/renderer';
 import type { KeywordIndexLoader } from './codeMirror/completions';
-import type { SavePastedImageRequester } from './codeMirror/imagePasteExtension';
-import type { InlineCompletionRequester } from './inlineCompletion/inlineCompletionExtension';
+import { keywordCompletion, tagCompletion } from './codeMirror/completions';
+import { keywordDecorationPlugin } from './codeMirror/keywordDecorations';
+import type { SavePastedImageRequester } from '@tnet/markdown-editor/renderer';
+import type { InlineCompletionRequester } from '@tnet/markdown-editor/renderer';
 
 interface EditorPaneProps {
   content: string;
@@ -20,11 +18,7 @@ interface EditorPaneProps {
   isLargeDocument?: boolean;
 }
 
-export interface EditorPaneHandle {
-  getScroller: () => HTMLElement | null;
-  getView: () => EditorView | null;
-  revealLine: (lineNumber: number) => boolean;
-}
+export type EditorPaneHandle = MarkdownEditorPaneHandle;
 
 export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
   (
@@ -41,66 +35,27 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
     },
     ref
   ): React.JSX.Element => {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const editorRef = useRef<MarkdownEditorInstance | null>(null);
-
-    useImperativeHandle(
-      ref,
-      () => ({
-        getScroller: () => containerRef.current?.querySelector<HTMLElement>('.cm-scroller') ?? null,
-        getView: () => editorRef.current?.view ?? null,
-        revealLine: (lineNumber: number) => {
-          const view = editorRef.current?.view;
-          if (!view) return false;
-
-          const clampedLine = Math.min(Math.max(1, lineNumber), view.state.doc.lines);
-          const line = view.state.doc.line(clampedLine);
-          view.dispatch({
-            selection: { anchor: line.from },
-            effects: EditorView.scrollIntoView(line.from, { y: 'center' })
-          });
-          view.focus();
-          return true;
-        }
-      }),
-      []
+    const completionSources = useMemo(
+      () => [keywordCompletion(loadKeywordIndex), tagCompletion],
+      [loadKeywordIndex]
     );
+    const editorExtensions = useMemo(() => [keywordDecorationPlugin()], []);
 
-    useEffect(() => {
-      if (!containerRef.current) return;
-
-      editorRef.current = createMarkdownEditor({
-        parent: containerRef.current,
-        content,
-        onChange,
-        loadKeywordIndex,
-        requestInlineCompletion,
-        savePastedImage,
-        inlineCompletionDebounceMs,
-        inlineCompletionMaxPrefixChars,
-        inlineCompletionMaxSuffixChars,
-        isLargeDocument
-      });
-
-      return () => {
-        editorRef.current?.destroy();
-        editorRef.current = null;
-      };
-    }, [
-      inlineCompletionDebounceMs,
-      inlineCompletionMaxPrefixChars,
-      inlineCompletionMaxSuffixChars,
-      isLargeDocument,
-      loadKeywordIndex,
-      requestInlineCompletion,
-      savePastedImage
-    ]);
-
-    useEffect(() => {
-      editorRef.current?.updateContent(content);
-    }, [content]);
-
-    return <div ref={containerRef} className="codemirror-container" />;
+    return (
+      <MarkdownEditorPane
+        ref={ref}
+        content={content}
+        onChange={onChange}
+        completionSources={completionSources}
+        editorExtensions={editorExtensions}
+        requestInlineCompletion={requestInlineCompletion}
+        savePastedImage={savePastedImage}
+        inlineCompletionDebounceMs={inlineCompletionDebounceMs}
+        inlineCompletionMaxPrefixChars={inlineCompletionMaxPrefixChars}
+        inlineCompletionMaxSuffixChars={inlineCompletionMaxSuffixChars}
+        isLargeDocument={isLargeDocument}
+      />
+    );
   }
 );
 

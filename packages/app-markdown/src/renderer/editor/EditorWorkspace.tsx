@@ -10,7 +10,7 @@ import {
   PreviewPane,
   type PreviewPaneHandle
 } from '@tnet/app-markdown/renderer/preview/PreviewPane';
-import { toggleMarkdownTask } from '@tnet/app-markdown/renderer/preview/toggleMarkdownTask';
+import { toggleMarkdownTask } from '@tnet/markdown-editor/renderer';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { useActiveMarkdownWorkspaceApi } from '@tnet/app-markdown/renderer/workspace/useActiveMarkdownWorkspaceApi';
 import {

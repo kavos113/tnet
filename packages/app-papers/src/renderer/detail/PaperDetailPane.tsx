@@ -13,6 +13,7 @@ export interface PaperDetailPaneProps {
   activeDetailTab: PapersDetailTab;
   isLoading: boolean;
   widthPercent: number;
+  noteEditorMode: 'editor' | 'preview' | 'split';
   noteAutoSaveDebounceMs: number;
   onSelectTab: (tab: PapersDetailTab) => void;
   onCreateTag: (name: string) => void;
@@ -29,6 +30,7 @@ export const PaperDetailPane = ({
   activeDetailTab,
   isLoading,
   widthPercent,
+  noteEditorMode,
   noteAutoSaveDebounceMs,
   onSelectTab,
   onCreateTag,
@@ -81,6 +83,7 @@ export const PaperDetailPane = ({
           <PaperNoteEditor
             paperId={detail.id}
             content={detail.noteContent}
+            mode={noteEditorMode}
             autoSaveDebounceMs={noteAutoSaveDebounceMs}
             onSave={onSaveNote}
           />

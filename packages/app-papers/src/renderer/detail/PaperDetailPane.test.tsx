@@ -1,10 +1,26 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+﻿import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PaperDetail } from '@tnet/app-papers/shared/paperTypes';
 import { PaperDetailPane } from './PaperDetailPane';
 
 vi.mock('../papers/PdfViewer', () => ({
   PdfViewer: () => <div data-testid="pdf-viewer" />
+}));
+
+vi.mock('@tnet/markdown-editor/renderer', () => ({
+  MarkdownEditorSurface: ({
+    content,
+    onChange
+  }: {
+    content: string;
+    onChange: (content: string) => void;
+  }) => (
+    <textarea
+      aria-label="Paper note"
+      value={content}
+      onChange={(event) => onChange(event.currentTarget.value)}
+    />
+  )
 }));
 
 const detail: PaperDetail = {
@@ -36,6 +52,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading={false}
         widthPercent={60}
+        noteEditorMode="editor"
         noteAutoSaveDebounceMs={500}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
@@ -56,6 +73,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading
         widthPercent={60}
+        noteEditorMode="editor"
         noteAutoSaveDebounceMs={500}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
@@ -81,6 +99,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="metadata"
         isLoading={false}
         widthPercent={60}
+        noteEditorMode="editor"
         noteAutoSaveDebounceMs={500}
         onSelectTab={onSelectTab}
         onCreateTag={onCreateTag}
@@ -115,6 +134,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading={false}
         widthPercent={60}
+        noteEditorMode="editor"
         noteAutoSaveDebounceMs={500}
         onSelectTab={onSelectTab}
         onCreateTag={vi.fn()}
@@ -140,6 +160,7 @@ describe('PaperDetailPane', () => {
         activeDetailTab="note"
         isLoading={false}
         widthPercent={60}
+        noteEditorMode="editor"
         noteAutoSaveDebounceMs={1000}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
