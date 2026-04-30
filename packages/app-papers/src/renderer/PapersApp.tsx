@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import { usePapersDispatch, usePapersSelector } from './storeHooks';
+import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
 import { PaperDetailPane } from './detail/PaperDetailPane';
 import { PaperImportDialog } from './import/PaperImportDialog';
 import { usePaperImport } from './import/usePaperImport';
@@ -21,6 +22,7 @@ import { usePaperDetailLoader } from './papers/usePaperDetailLoader';
 import { usePaperPaneResize } from './papers/usePaperPaneResize';
 import { usePaperTagsLoader } from './papers/usePaperTagsLoader';
 import { usePapersListLoader } from './papers/usePapersListLoader';
+import { setPapersLibrarySettings } from './library/librarySlice';
 
 export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
@@ -204,6 +206,15 @@ export const PapersApp = (): React.JSX.Element => {
     }
   };
 
+  const savePaperSettings = (settings: PapersLibraryConfig): void => {
+    if (!activeLibraryRoot) return;
+    dispatch(setPapersLibrarySettings(settings));
+    papersTnetApi.papers.config.saveLibrary(activeLibraryRoot, settings).catch((settingsError) => {
+      console.error('Failed to save paper settings', settingsError);
+      dispatch(setPapersError('Failed to save paper settings.'));
+    });
+  };
+
   if (!isRestored) {
     return (
       <main className="placeholder-app" aria-label="Papers">
@@ -266,8 +277,8 @@ export const PapersApp = (): React.JSX.Element => {
         activeDetailTab={activeDetailTab}
         isLoading={isLoadingDetail}
         widthPercent={detailWidthPercent}
-        noteEditorMode={paperSettings.noteEditorMode}
-        noteAutoSaveDebounceMs={paperSettings.noteAutoSaveDebounceMs}
+        noteSettings={paperSettings}
+        onNoteSettingsChange={savePaperSettings}
         onSelectTab={(tab) => dispatch(setActivePapersDetailTab(tab))}
         onCreateTag={(name) => {
           createAndAttachTag(name).catch((tagError: unknown) => {

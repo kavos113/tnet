@@ -1,5 +1,6 @@
-﻿import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { defaultPapersLibraryConfig } from '@tnet/app-papers/shared/config';
 import type { PaperDetail } from '@tnet/app-papers/shared/paperTypes';
 import { PaperDetailPane } from './PaperDetailPane';
 
@@ -37,6 +38,8 @@ const detail: PaperDetail = {
   noteContent: '# Note'
 };
 
+const noteSettings = defaultPapersLibraryConfig();
+
 describe('PaperDetailPane', () => {
   afterEach(() => {
     cleanup();
@@ -52,8 +55,8 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading={false}
         widthPercent={60}
-        noteEditorMode="editor"
-        noteAutoSaveDebounceMs={500}
+        noteSettings={{ ...noteSettings, noteEditorMode: 'editor' }}
+        onNoteSettingsChange={vi.fn()}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -73,8 +76,8 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading
         widthPercent={60}
-        noteEditorMode="editor"
-        noteAutoSaveDebounceMs={500}
+        noteSettings={{ ...noteSettings, noteEditorMode: 'editor' }}
+        onNoteSettingsChange={vi.fn()}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -99,8 +102,8 @@ describe('PaperDetailPane', () => {
         activeDetailTab="metadata"
         isLoading={false}
         widthPercent={60}
-        noteEditorMode="editor"
-        noteAutoSaveDebounceMs={500}
+        noteSettings={{ ...noteSettings, noteEditorMode: 'editor' }}
+        onNoteSettingsChange={vi.fn()}
         onSelectTab={onSelectTab}
         onCreateTag={onCreateTag}
         onAttachTag={vi.fn()}
@@ -134,8 +137,8 @@ describe('PaperDetailPane', () => {
         activeDetailTab="pdf"
         isLoading={false}
         widthPercent={60}
-        noteEditorMode="editor"
-        noteAutoSaveDebounceMs={500}
+        noteSettings={{ ...noteSettings, noteEditorMode: 'editor' }}
+        onNoteSettingsChange={vi.fn()}
         onSelectTab={onSelectTab}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -147,9 +150,10 @@ describe('PaperDetailPane', () => {
     expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument();
   });
 
-  it('renders an editable note tab and debounces save', () => {
+  it('renders an editable note tab, changes note mode, and debounces save', () => {
     vi.useFakeTimers();
     const onSaveNote = vi.fn().mockResolvedValue(undefined);
+    const onNoteSettingsChange = vi.fn();
 
     render(
       <PaperDetailPane
@@ -160,8 +164,8 @@ describe('PaperDetailPane', () => {
         activeDetailTab="note"
         isLoading={false}
         widthPercent={60}
-        noteEditorMode="editor"
-        noteAutoSaveDebounceMs={1000}
+        noteSettings={{ ...noteSettings, noteEditorMode: 'editor', noteAutoSaveDebounceMs: 1000 }}
+        onNoteSettingsChange={onNoteSettingsChange}
         onSelectTab={vi.fn()}
         onCreateTag={vi.fn()}
         onAttachTag={vi.fn()}
@@ -169,6 +173,13 @@ describe('PaperDetailPane', () => {
         onSaveNote={onSaveNote}
       />
     );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(onNoteSettingsChange).toHaveBeenCalledWith({
+      ...noteSettings,
+      noteEditorMode: 'preview',
+      noteAutoSaveDebounceMs: 1000
+    });
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Paper note' }), {
       target: { value: '# Updated note' }

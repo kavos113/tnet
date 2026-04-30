@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MarkdownEditorSurface, type MarkdownEditorMode } from '@tnet/markdown-editor/renderer';
+import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
 
 export interface PaperNoteEditorProps {
   paperId: string;
   content: string;
   mode: MarkdownEditorMode;
   autoSaveDebounceMs: number;
+  editorFontFamily: string;
+  editorFontSize: number;
+  previewFontFamily: string;
+  previewFontSize: number;
+  onModeChange: (mode: PapersLibraryConfig['noteEditorMode']) => void;
   onSave: (content: string) => Promise<void>;
 }
 
@@ -14,6 +20,11 @@ export const PaperNoteEditor = ({
   content,
   mode,
   autoSaveDebounceMs,
+  editorFontFamily,
+  editorFontSize,
+  previewFontFamily,
+  previewFontSize,
+  onModeChange,
   onSave
 }: PaperNoteEditorProps): React.JSX.Element => {
   const [draft, setDraft] = useState(content);
@@ -48,7 +59,31 @@ export const PaperNoteEditor = ({
   }, [autoSaveDebounceMs, draft, onSave]);
 
   return (
-    <section className="papers-note-panel" aria-label="Paper note editor">
+    <section
+      className="papers-note-panel"
+      aria-label="Paper note editor"
+      style={
+        {
+          '--editor-font-family': editorFontFamily,
+          '--editor-font-size': `${editorFontSize}px`,
+          '--preview-font-family': previewFontFamily,
+          '--preview-font-size': `${previewFontSize}px`
+        } as React.CSSProperties
+      }
+    >
+      <div className="papers-note-toolbar" aria-label="Paper note view mode">
+        {(['editor', 'split', 'preview'] as const).map((nextMode) => (
+          <button
+            key={nextMode}
+            type="button"
+            className={mode === nextMode ? 'active' : ''}
+            aria-pressed={mode === nextMode}
+            onClick={() => onModeChange(nextMode)}
+          >
+            {nextMode === 'editor' ? 'Editor' : nextMode === 'split' ? 'Split' : 'Preview'}
+          </button>
+        ))}
+      </div>
       <MarkdownEditorSurface
         className="papers-note-editor"
         mode={mode}

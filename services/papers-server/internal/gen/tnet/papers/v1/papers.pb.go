@@ -175,6 +175,10 @@ type PapersLibraryConfig struct {
 	PdfZoomMode            string                 `protobuf:"bytes,2,opt,name=pdf_zoom_mode,json=pdfZoomMode,proto3" json:"pdf_zoom_mode,omitempty"`
 	NoteEditorMode         string                 `protobuf:"bytes,3,opt,name=note_editor_mode,json=noteEditorMode,proto3" json:"note_editor_mode,omitempty"`
 	NoteAutoSaveDebounceMs int32                  `protobuf:"varint,4,opt,name=note_auto_save_debounce_ms,json=noteAutoSaveDebounceMs,proto3" json:"note_auto_save_debounce_ms,omitempty"`
+	NoteEditorFontFamily   string                 `protobuf:"bytes,5,opt,name=note_editor_font_family,json=noteEditorFontFamily,proto3" json:"note_editor_font_family,omitempty"`
+	NoteEditorFontSize     int32                  `protobuf:"varint,6,opt,name=note_editor_font_size,json=noteEditorFontSize,proto3" json:"note_editor_font_size,omitempty"`
+	NotePreviewFontFamily  string                 `protobuf:"bytes,7,opt,name=note_preview_font_family,json=notePreviewFontFamily,proto3" json:"note_preview_font_family,omitempty"`
+	NotePreviewFontSize    int32                  `protobuf:"varint,8,opt,name=note_preview_font_size,json=notePreviewFontSize,proto3" json:"note_preview_font_size,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -233,6 +237,34 @@ func (x *PapersLibraryConfig) GetNoteEditorMode() string {
 func (x *PapersLibraryConfig) GetNoteAutoSaveDebounceMs() int32 {
 	if x != nil {
 		return x.NoteAutoSaveDebounceMs
+	}
+	return 0
+}
+
+func (x *PapersLibraryConfig) GetNoteEditorFontFamily() string {
+	if x != nil {
+		return x.NoteEditorFontFamily
+	}
+	return ""
+}
+
+func (x *PapersLibraryConfig) GetNoteEditorFontSize() int32 {
+	if x != nil {
+		return x.NoteEditorFontSize
+	}
+	return 0
+}
+
+func (x *PapersLibraryConfig) GetNotePreviewFontFamily() string {
+	if x != nil {
+		return x.NotePreviewFontFamily
+	}
+	return ""
+}
+
+func (x *PapersLibraryConfig) GetNotePreviewFontSize() int32 {
+	if x != nil {
+		return x.NotePreviewFontSize
 	}
 	return 0
 }
@@ -2081,12 +2113,16 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\x12PapersGlobalConfig\x12#\n" +
 	"\rlibrary_roots\x18\x01 \x03(\tR\flibraryRoots\x12.\n" +
 	"\x13active_library_root\x18\x02 \x01(\tR\x11activeLibraryRoot\x122\n" +
-	"\x15last_opened_directory\x18\x03 \x01(\tR\x13lastOpenedDirectory\"\xc2\x01\n" +
+	"\x15last_opened_directory\x18\x03 \x01(\tR\x13lastOpenedDirectory\"\x9a\x03\n" +
 	"\x13PapersLibraryConfig\x12!\n" +
 	"\flist_density\x18\x01 \x01(\tR\vlistDensity\x12\"\n" +
 	"\rpdf_zoom_mode\x18\x02 \x01(\tR\vpdfZoomMode\x12(\n" +
 	"\x10note_editor_mode\x18\x03 \x01(\tR\x0enoteEditorMode\x12:\n" +
-	"\x1anote_auto_save_debounce_ms\x18\x04 \x01(\x05R\x16noteAutoSaveDebounceMs\"=\n" +
+	"\x1anote_auto_save_debounce_ms\x18\x04 \x01(\x05R\x16noteAutoSaveDebounceMs\x125\n" +
+	"\x17note_editor_font_family\x18\x05 \x01(\tR\x14noteEditorFontFamily\x121\n" +
+	"\x15note_editor_font_size\x18\x06 \x01(\x05R\x12noteEditorFontSize\x127\n" +
+	"\x18note_preview_font_family\x18\a \x01(\tR\x15notePreviewFontFamily\x123\n" +
+	"\x16note_preview_font_size\x18\b \x01(\x05R\x13notePreviewFontSize\"=\n" +
 	"\x17LoadGlobalConfigRequest\x12\"\n" +
 	"\ruser_data_dir\x18\x01 \x01(\tR\vuserDataDir\"y\n" +
 	"\x17SaveGlobalConfigRequest\x12\"\n" +

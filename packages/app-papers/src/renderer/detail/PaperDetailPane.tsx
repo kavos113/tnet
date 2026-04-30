@@ -1,4 +1,5 @@
 import type { PaperDetail, PaperTag } from '@tnet/app-papers/shared/paperTypes';
+import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
 import { PdfViewer } from '../papers/PdfViewer';
 import { formatAuthors } from '../papers/paperDisplay';
 import type { PapersDetailTab } from '../papers/papersSlice';
@@ -13,8 +14,8 @@ export interface PaperDetailPaneProps {
   activeDetailTab: PapersDetailTab;
   isLoading: boolean;
   widthPercent: number;
-  noteEditorMode: 'editor' | 'preview' | 'split';
-  noteAutoSaveDebounceMs: number;
+  noteSettings: PapersLibraryConfig;
+  onNoteSettingsChange: (settings: PapersLibraryConfig) => void;
   onSelectTab: (tab: PapersDetailTab) => void;
   onCreateTag: (name: string) => void;
   onAttachTag: (tagId: string) => void;
@@ -30,8 +31,8 @@ export const PaperDetailPane = ({
   activeDetailTab,
   isLoading,
   widthPercent,
-  noteEditorMode,
-  noteAutoSaveDebounceMs,
+  noteSettings,
+  onNoteSettingsChange,
   onSelectTab,
   onCreateTag,
   onAttachTag,
@@ -83,8 +84,13 @@ export const PaperDetailPane = ({
           <PaperNoteEditor
             paperId={detail.id}
             content={detail.noteContent}
-            mode={noteEditorMode}
-            autoSaveDebounceMs={noteAutoSaveDebounceMs}
+            mode={noteSettings.noteEditorMode}
+            autoSaveDebounceMs={noteSettings.noteAutoSaveDebounceMs}
+            editorFontFamily={noteSettings.noteEditorFontFamily}
+            editorFontSize={noteSettings.noteEditorFontSize}
+            previewFontFamily={noteSettings.notePreviewFontFamily}
+            previewFontSize={noteSettings.notePreviewFontSize}
+            onModeChange={(mode) => onNoteSettingsChange({ ...noteSettings, noteEditorMode: mode })}
             onSave={onSaveNote}
           />
         ) : null}

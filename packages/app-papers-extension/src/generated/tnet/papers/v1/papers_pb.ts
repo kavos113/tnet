@@ -171,6 +171,26 @@ export class PapersLibraryConfig extends Message<PapersLibraryConfig> {
    */
   noteAutoSaveDebounceMs = 0;
 
+  /**
+   * @generated from field: string note_editor_font_family = 5;
+   */
+  noteEditorFontFamily = '';
+
+  /**
+   * @generated from field: int32 note_editor_font_size = 6;
+   */
+  noteEditorFontSize = 0;
+
+  /**
+   * @generated from field: string note_preview_font_family = 7;
+   */
+  notePreviewFontFamily = '';
+
+  /**
+   * @generated from field: int32 note_preview_font_size = 8;
+   */
+  notePreviewFontSize = 0;
+
   constructor(data?: PartialMessage<PapersLibraryConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -182,7 +202,11 @@ export class PapersLibraryConfig extends Message<PapersLibraryConfig> {
     { no: 1, name: 'list_density', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 2, name: 'pdf_zoom_mode', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 3, name: 'note_editor_mode', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: 'note_auto_save_debounce_ms', kind: 'scalar', T: 5 /* ScalarType.INT32 */ }
+    { no: 4, name: 'note_auto_save_debounce_ms', kind: 'scalar', T: 5 /* ScalarType.INT32 */ },
+    { no: 5, name: 'note_editor_font_family', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: 'note_editor_font_size', kind: 'scalar', T: 5 /* ScalarType.INT32 */ },
+    { no: 7, name: 'note_preview_font_family', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: 'note_preview_font_size', kind: 'scalar', T: 5 /* ScalarType.INT32 */ }
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PapersLibraryConfig {

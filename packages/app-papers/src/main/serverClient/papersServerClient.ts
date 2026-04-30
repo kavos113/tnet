@@ -90,7 +90,11 @@ export class PapersServerClient {
       listDensity: (config.listDensity || 'comfortable') as PapersLibraryConfig['listDensity'],
       pdfZoomMode: (config.pdfZoomMode || 'page-width') as PapersLibraryConfig['pdfZoomMode'],
       noteEditorMode: (config.noteEditorMode || 'split') as PapersLibraryConfig['noteEditorMode'],
-      noteAutoSaveDebounceMs: config.noteAutoSaveDebounceMs || 500
+      noteAutoSaveDebounceMs: config.noteAutoSaveDebounceMs || 500,
+      noteEditorFontFamily: config.noteEditorFontFamily || 'monospace',
+      noteEditorFontSize: config.noteEditorFontSize || 16,
+      notePreviewFontFamily: config.notePreviewFontFamily || 'sans-serif',
+      notePreviewFontSize: config.notePreviewFontSize || 16
     };
   }
 
@@ -101,7 +105,9 @@ export class PapersServerClient {
       libraryRoot,
       config: {
         ...config,
-        noteAutoSaveDebounceMs: config.noteAutoSaveDebounceMs
+        noteAutoSaveDebounceMs: config.noteAutoSaveDebounceMs,
+        noteEditorFontSize: config.noteEditorFontSize,
+        notePreviewFontSize: config.notePreviewFontSize
       }
     });
   }

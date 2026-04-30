@@ -16,6 +16,10 @@ export interface PapersLibraryConfig {
   pdfZoomMode: PapersPdfZoomMode;
   noteEditorMode: PapersNoteEditorMode;
   noteAutoSaveDebounceMs: number;
+  noteEditorFontFamily: string;
+  noteEditorFontSize: number;
+  notePreviewFontFamily: string;
+  notePreviewFontSize: number;
 }
 
 export const defaultPapersGlobalConfig = (): PapersGlobalConfig => ({
@@ -26,7 +30,11 @@ export const defaultPapersLibraryConfig = (): PapersLibraryConfig => ({
   listDensity: 'comfortable',
   pdfZoomMode: 'page-width',
   noteEditorMode: 'split',
-  noteAutoSaveDebounceMs: 500
+  noteAutoSaveDebounceMs: 500,
+  noteEditorFontFamily: 'monospace',
+  noteEditorFontSize: 16,
+  notePreviewFontFamily: 'sans-serif',
+  notePreviewFontSize: 16
 });
 
 export const getPapersGlobalConfig = (config: GlobalConfig): PapersGlobalConfig => ({
@@ -51,11 +59,24 @@ export const withPapersGlobalConfig = (
 
 export const normalizePapersLibraryConfig = (
   config: Partial<PapersLibraryConfig> = {}
-): PapersLibraryConfig => ({
-  ...defaultPapersLibraryConfig(),
-  ...config,
-  noteAutoSaveDebounceMs:
-    config.noteAutoSaveDebounceMs && config.noteAutoSaveDebounceMs > 0
-      ? config.noteAutoSaveDebounceMs
-      : defaultPapersLibraryConfig().noteAutoSaveDebounceMs
-});
+): PapersLibraryConfig => {
+  const defaults = defaultPapersLibraryConfig();
+  return {
+    ...defaults,
+    ...config,
+    noteAutoSaveDebounceMs:
+      config.noteAutoSaveDebounceMs && config.noteAutoSaveDebounceMs > 0
+        ? config.noteAutoSaveDebounceMs
+        : defaults.noteAutoSaveDebounceMs,
+    noteEditorFontFamily: config.noteEditorFontFamily || defaults.noteEditorFontFamily,
+    noteEditorFontSize:
+      config.noteEditorFontSize && config.noteEditorFontSize > 0
+        ? config.noteEditorFontSize
+        : defaults.noteEditorFontSize,
+    notePreviewFontFamily: config.notePreviewFontFamily || defaults.notePreviewFontFamily,
+    notePreviewFontSize:
+      config.notePreviewFontSize && config.notePreviewFontSize > 0
+        ? config.notePreviewFontSize
+        : defaults.notePreviewFontSize
+  };
+};

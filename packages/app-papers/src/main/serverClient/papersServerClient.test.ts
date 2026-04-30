@@ -14,7 +14,11 @@ const createTestClient = (): PapersServerClient => {
         listDensity: 'comfortable',
         pdfZoomMode: 'page-width',
         noteEditorMode: 'split',
-        noteAutoSaveDebounceMs: 750
+        noteAutoSaveDebounceMs: 750,
+        noteEditorFontFamily: 'Code Font',
+        noteEditorFontSize: 17,
+        notePreviewFontFamily: 'Reading Font',
+        notePreviewFontSize: 18
       })),
       saveLibraryConfig: unaryStub(() => ({}))
     },

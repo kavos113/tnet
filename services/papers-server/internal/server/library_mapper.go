@@ -30,6 +30,10 @@ func toProtoLibraryConfig(config model.PapersLibraryConfig) *papersv1.PapersLibr
 		PdfZoomMode:            config.PDFZoomMode,
 		NoteEditorMode:         config.NoteEditorMode,
 		NoteAutoSaveDebounceMs: config.NoteAutoSaveDebounceMs,
+		NoteEditorFontFamily:   config.NoteEditorFontFamily,
+		NoteEditorFontSize:     config.NoteEditorFontSize,
+		NotePreviewFontFamily:  config.NotePreviewFontFamily,
+		NotePreviewFontSize:    config.NotePreviewFontSize,
 	}
 }
 
@@ -42,6 +46,10 @@ func fromProtoLibraryConfig(config *papersv1.PapersLibraryConfig) model.PapersLi
 		PDFZoomMode:            config.PdfZoomMode,
 		NoteEditorMode:         config.NoteEditorMode,
 		NoteAutoSaveDebounceMs: config.NoteAutoSaveDebounceMs,
+		NoteEditorFontFamily:   config.NoteEditorFontFamily,
+		NoteEditorFontSize:     config.NoteEditorFontSize,
+		NotePreviewFontFamily:  config.NotePreviewFontFamily,
+		NotePreviewFontSize:    config.NotePreviewFontSize,
 	}
 }
 

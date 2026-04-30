@@ -132,6 +132,10 @@ func TestJSONRepositoryLibraryConfig(t *testing.T) {
 				PDFZoomMode:            "page-width",
 				NoteEditorMode:         "split",
 				NoteAutoSaveDebounceMs: 500,
+				NoteEditorFontFamily:   "monospace",
+				NoteEditorFontSize:     16,
+				NotePreviewFontFamily:  "sans-serif",
+				NotePreviewFontSize:    16,
 			},
 		},
 		{
@@ -184,6 +188,10 @@ func TestJSONRepositorySaveAndLoadLibraryConfig(t *testing.T) {
 				PDFZoomMode:            "page-width",
 				NoteEditorMode:         "split",
 				NoteAutoSaveDebounceMs: 500,
+				NoteEditorFontFamily:   "monospace",
+				NoteEditorFontSize:     16,
+				NotePreviewFontFamily:  "sans-serif",
+				NotePreviewFontSize:    16,
 			},
 		},
 	}

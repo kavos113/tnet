@@ -54,6 +54,10 @@ message PapersLibraryConfig {
   string pdf_zoom_mode = 2;
   string note_editor_mode = 3;
   int32 note_auto_save_debounce_ms = 4;
+  string note_editor_font_family = 5;
+  int32 note_editor_font_size = 6;
+  string note_preview_font_family = 7;
+  int32 note_preview_font_size = 8;
 }
 
 message LoadGlobalConfigRequest {

@@ -65,6 +65,22 @@ export interface PapersLibraryConfig {
    * @generated from protobuf field: int32 note_auto_save_debounce_ms = 4
    */
   noteAutoSaveDebounceMs: number;
+  /**
+   * @generated from protobuf field: string note_editor_font_family = 5
+   */
+  noteEditorFontFamily: string;
+  /**
+   * @generated from protobuf field: int32 note_editor_font_size = 6
+   */
+  noteEditorFontSize: number;
+  /**
+   * @generated from protobuf field: string note_preview_font_family = 7
+   */
+  notePreviewFontFamily: string;
+  /**
+   * @generated from protobuf field: int32 note_preview_font_size = 8
+   */
+  notePreviewFontSize: number;
 }
 /**
  * @generated from protobuf message tnet.papers.v1.LoadGlobalConfigRequest
@@ -805,7 +821,11 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
       { no: 1, name: 'list_density', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'pdf_zoom_mode', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'note_editor_mode', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 4, name: 'note_auto_save_debounce_ms', kind: 'scalar', T: 5 /*ScalarType.INT32*/ }
+      { no: 4, name: 'note_auto_save_debounce_ms', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      { no: 5, name: 'note_editor_font_family', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 6, name: 'note_editor_font_size', kind: 'scalar', T: 5 /*ScalarType.INT32*/ },
+      { no: 7, name: 'note_preview_font_family', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 8, name: 'note_preview_font_size', kind: 'scalar', T: 5 /*ScalarType.INT32*/ }
     ]);
   }
   create(value?: PartialMessage<PapersLibraryConfig>): PapersLibraryConfig {
@@ -814,6 +834,10 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
     message.pdfZoomMode = '';
     message.noteEditorMode = '';
     message.noteAutoSaveDebounceMs = 0;
+    message.noteEditorFontFamily = '';
+    message.noteEditorFontSize = 0;
+    message.notePreviewFontFamily = '';
+    message.notePreviewFontSize = 0;
     if (value !== undefined) reflectionMergePartial<PapersLibraryConfig>(this, message, value);
     return message;
   }
@@ -839,6 +863,18 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
           break;
         case /* int32 note_auto_save_debounce_ms */ 4:
           message.noteAutoSaveDebounceMs = reader.int32();
+          break;
+        case /* string note_editor_font_family */ 5:
+          message.noteEditorFontFamily = reader.string();
+          break;
+        case /* int32 note_editor_font_size */ 6:
+          message.noteEditorFontSize = reader.int32();
+          break;
+        case /* string note_preview_font_family */ 7:
+          message.notePreviewFontFamily = reader.string();
+          break;
+        case /* int32 note_preview_font_size */ 8:
+          message.notePreviewFontSize = reader.int32();
           break;
         default:
           let u = options.readUnknownField;
@@ -876,6 +912,18 @@ class PapersLibraryConfig$Type extends MessageType<PapersLibraryConfig> {
     /* int32 note_auto_save_debounce_ms = 4; */
     if (message.noteAutoSaveDebounceMs !== 0)
       writer.tag(4, WireType.Varint).int32(message.noteAutoSaveDebounceMs);
+    /* string note_editor_font_family = 5; */
+    if (message.noteEditorFontFamily !== '')
+      writer.tag(5, WireType.LengthDelimited).string(message.noteEditorFontFamily);
+    /* int32 note_editor_font_size = 6; */
+    if (message.noteEditorFontSize !== 0)
+      writer.tag(6, WireType.Varint).int32(message.noteEditorFontSize);
+    /* string note_preview_font_family = 7; */
+    if (message.notePreviewFontFamily !== '')
+      writer.tag(7, WireType.LengthDelimited).string(message.notePreviewFontFamily);
+    /* int32 note_preview_font_size = 8; */
+    if (message.notePreviewFontSize !== 0)
+      writer.tag(8, WireType.Varint).int32(message.notePreviewFontSize);
     let u = options.writeUnknownFields;
     if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
     return writer;

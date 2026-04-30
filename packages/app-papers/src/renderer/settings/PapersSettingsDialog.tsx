@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
-import { defaultPapersLibraryConfig } from '@tnet/app-papers/shared/config';
+import {
+  defaultPapersLibraryConfig,
+  normalizePapersLibraryConfig
+} from '@tnet/app-papers/shared/config';
 import { setPapersLibrarySettings } from '../library/librarySlice';
 import { papersTnetApi } from '../papersTnetApi';
 import { usePapersDispatch, usePapersSelector } from '../storeHooks';
@@ -30,7 +33,7 @@ export const PapersSettingsDialog = ({
     papersTnetApi.papers.config
       .loadLibrary(activeLibraryRoot)
       .then((loadedSettings) => {
-        if (!canceled) setDraft(loadedSettings);
+        if (!canceled) setDraft(normalizePapersLibraryConfig(loadedSettings));
       })
       .catch((error: unknown) => {
         console.error('Failed to load paper settings', error);
@@ -140,6 +143,48 @@ export const PapersSettingsDialog = ({
                   value={draft.noteAutoSaveDebounceMs}
                   onChange={(event) =>
                     updateDraft('noteAutoSaveDebounceMs', Number(event.target.value))
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="papers-note-editor-font-family">
+                <span>Editor font family</span>
+                <input
+                  id="papers-note-editor-font-family"
+                  value={draft.noteEditorFontFamily}
+                  onChange={(event) => updateDraft('noteEditorFontFamily', event.target.value)}
+                />
+              </label>
+              <label className="form-item" htmlFor="papers-note-editor-font-size">
+                <span>Editor font size (px)</span>
+                <input
+                  id="papers-note-editor-font-size"
+                  type="number"
+                  min={10}
+                  max={32}
+                  value={draft.noteEditorFontSize}
+                  onChange={(event) =>
+                    updateDraft('noteEditorFontSize', Number(event.target.value))
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="papers-note-preview-font-family">
+                <span>Preview font family</span>
+                <input
+                  id="papers-note-preview-font-family"
+                  value={draft.notePreviewFontFamily}
+                  onChange={(event) => updateDraft('notePreviewFontFamily', event.target.value)}
+                />
+              </label>
+              <label className="form-item" htmlFor="papers-note-preview-font-size">
+                <span>Preview font size (px)</span>
+                <input
+                  id="papers-note-preview-font-size"
+                  type="number"
+                  min={10}
+                  max={32}
+                  value={draft.notePreviewFontSize}
+                  onChange={(event) =>
+                    updateDraft('notePreviewFontSize', Number(event.target.value))
                   }
                 />
               </label>

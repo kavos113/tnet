@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import papersLibraryReducer, { setPapersLibrary } from '../library/librarySlice';
 import papersContentReducer from '../papers/papersSlice';
 import { PapersSettingsDialog } from './PapersSettingsDialog';
+import { defaultPapersLibraryConfig } from '@tnet/app-papers/shared/config';
 
 const loadLibrary = vi.fn();
 const saveLibrary = vi.fn();
@@ -81,10 +82,11 @@ describe('PapersSettingsDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     loadLibrary.mockResolvedValue({
-      listDensity: 'comfortable',
-      pdfZoomMode: 'page-width',
-      noteEditorMode: 'split',
-      noteAutoSaveDebounceMs: 500
+      ...defaultPapersLibraryConfig(),
+      noteEditorFontFamily: 'Editor Font',
+      noteEditorFontSize: 17,
+      notePreviewFontFamily: 'Preview Font',
+      notePreviewFontSize: 18
     });
     saveLibrary.mockResolvedValue(undefined);
     installTnetApi();
@@ -126,6 +128,18 @@ describe('PapersSettingsDialog', () => {
     fireEvent.change(screen.getByLabelText('Auto save delay (ms)'), {
       target: { value: '1000' }
     });
+    fireEvent.change(screen.getByLabelText('Editor font family'), {
+      target: { value: 'Code Font' }
+    });
+    fireEvent.change(screen.getByLabelText('Editor font size (px)'), {
+      target: { value: '20' }
+    });
+    fireEvent.change(screen.getByLabelText('Preview font family'), {
+      target: { value: 'Reading Font' }
+    });
+    fireEvent.change(screen.getByLabelText('Preview font size (px)'), {
+      target: { value: '21' }
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
@@ -133,13 +147,21 @@ describe('PapersSettingsDialog', () => {
         listDensity: 'compact',
         pdfZoomMode: 'actual-size',
         noteEditorMode: 'editor',
-        noteAutoSaveDebounceMs: 1000
+        noteAutoSaveDebounceMs: 1000,
+        noteEditorFontFamily: 'Code Font',
+        noteEditorFontSize: 20,
+        notePreviewFontFamily: 'Reading Font',
+        notePreviewFontSize: 21
       });
       expect(store.getState().papersLibrary.settings).toEqual({
         listDensity: 'compact',
         pdfZoomMode: 'actual-size',
         noteEditorMode: 'editor',
-        noteAutoSaveDebounceMs: 1000
+        noteAutoSaveDebounceMs: 1000,
+        noteEditorFontFamily: 'Code Font',
+        noteEditorFontSize: 20,
+        notePreviewFontFamily: 'Reading Font',
+        notePreviewFontSize: 21
       });
       expect(onClose).toHaveBeenCalled();
     });

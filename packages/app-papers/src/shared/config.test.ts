@@ -27,7 +27,15 @@ describe('papers config', () => {
   });
 
   it('normalizes library config with defaults', () => {
-    expect(normalizePapersLibraryConfig({ listDensity: 'compact' })).toEqual({
+    expect(
+      normalizePapersLibraryConfig({
+        listDensity: 'compact',
+        noteEditorFontFamily: '',
+        noteEditorFontSize: 0,
+        notePreviewFontFamily: '',
+        notePreviewFontSize: -1
+      })
+    ).toEqual({
       ...defaultPapersLibraryConfig(),
       listDensity: 'compact'
     });
