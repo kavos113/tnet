@@ -35,12 +35,17 @@ export class RequestExecutionService {
     const started = performance.now();
     const serialized = await serializeRequesterRequest(request);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-    const response = await this.transport.fetch(serialized.url, {
-      ...serialized.init,
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
+    const timeout = setTimeout(() => controller.abort(), request.timeoutMs ?? this.timeoutMs);
+    let response: Response;
+    try {
+      response = await this.transport.fetch(serialized.url, {
+        ...serialized.init,
+        redirect: request.followRedirects === false ? 'manual' : 'follow',
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
     const snapshot = await parseRequesterResponse(
       response,
       Math.round(performance.now() - started)

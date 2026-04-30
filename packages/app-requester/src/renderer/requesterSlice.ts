@@ -87,6 +87,9 @@ const requesterSlice = createSlice({
     setRequesterResponse: (state, action: PayloadAction<RequesterResponseSnapshot | undefined>) => {
       state.activeResponse = action.payload;
     },
+    setRequesterSettings: (state, action: PayloadAction<RequesterWorkspaceSettings>) => {
+      state.settings = action.payload;
+    },
     setRequesterError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
     }
@@ -100,6 +103,7 @@ export const {
   setRequesterHistory,
   setRequesterRequests,
   setRequesterResponse,
+  setRequesterSettings,
   setRequesterWorkspace
 } = requesterSlice.actions;
 export default requesterSlice.reducer;

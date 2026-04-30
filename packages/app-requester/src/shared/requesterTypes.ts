@@ -67,6 +67,8 @@ export interface SaveRequesterRequestInput {
   authToken?: string;
   authApiKeyName?: string;
   authApiKeyValue?: string;
+  timeoutMs?: number;
+  followRedirects?: boolean;
 }
 
 export interface RequesterVariableSet {
