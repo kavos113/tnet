@@ -4,10 +4,6 @@ interface ChromeTab {
   title?: string;
 }
 
-interface ChromeContextMenuClickData {
-  linkUrl?: string;
-}
-
 interface ChromeApi {
   runtime?: {
     onInstalled?: {
@@ -21,17 +17,6 @@ interface ChromeApi {
           sendResponse: (response: unknown) => void
         ) => boolean
       ) => void;
-    };
-  };
-  contextMenus?: {
-    create: (properties: { id: string; title: string; contexts: string[] }) => void;
-    onClicked?: {
-      addListener: (listener: (info: ChromeContextMenuClickData, tab?: ChromeTab) => void) => void;
-    };
-  };
-  storage?: {
-    session?: {
-      set: (items: Record<string, unknown>) => Promise<void> | void;
     };
   };
   tabs?: {

@@ -12,7 +12,9 @@ import (
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
 )
 
-type fakePaperUsecase struct{}
+type fakePaperUsecase struct {
+	createdFromBytes paper.CreateFromPDFBytesInput
+}
 
 func (fakePaperUsecase) ListPapers(context.Context, string, paper.ListFilter) ([]model.Paper, error) {
 	return nil, nil
@@ -26,27 +28,16 @@ func (fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFro
 	return model.Paper{}, nil
 }
 
-func (fakePaperUsecase) CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (model.Paper, error) {
-	return model.Paper{}, nil
-}
-
-func (fakePaperUsecase) ImportBrowserPaper(context.Context, paper.BrowserImportInput) (paper.BrowserImportResult, error) {
-	return paper.BrowserImportResult{}, nil
-}
-
-func (fakePaperUsecase) ImportBrowserPaperWithProgress(
+func (usecase *fakePaperUsecase) CreatePaperFromPDFBytes(
 	_ context.Context,
-	_ paper.BrowserImportInput,
-	report paper.ImportProgressReporter,
-) (paper.BrowserImportResult, error) {
-	report(paper.ImportProgress{
-		Stage:           paper.ImportProgressStageDownloadingPDF,
-		DownloadedBytes: 5,
-		TotalBytes:      10,
-	})
-	return paper.BrowserImportResult{
-		Status: "created",
-		Paper:  model.Paper{ID: "paper-1", Title: "Paper"},
+	input paper.CreateFromPDFBytesInput,
+) (model.Paper, error) {
+	usecase.createdFromBytes = input
+	return model.Paper{
+		ID:            "paper-1",
+		Title:         input.Title,
+		PDFPath:       "papers/" + input.FileName,
+		DirectoryPath: input.DirectoryPath,
 	}, nil
 }
 
@@ -54,48 +45,50 @@ func (fakePaperUsecase) SaveNote(context.Context, string, string, string) (model
 	return model.Paper{}, false, nil
 }
 
-func TestPaperHandlerImportBrowserPaperWithProgress(t *testing.T) {
-	_, handler := NewPaperHandler(fakePaperUsecase{})
-	server := httptest.NewServer(handler)
-	defer server.Close()
-	client := papersv1connect.NewPaperServiceClient(server.Client(), server.URL)
-
-	stream, err := client.ImportBrowserPaperWithProgress(
-		context.Background(),
-		connect.NewRequest(&papersv1.ImportBrowserPaperRequest{LibraryRoot: "C:/papers"}),
-	)
-	if err != nil {
-		t.Fatalf("ImportBrowserPaperWithProgress() error = %v", err)
+func TestPaperHandlerCreatePaperFromPdfBytes(t *testing.T) {
+	testcases := []struct {
+		name string
+	}{
+		{name: "maps request to create from bytes usecase"},
 	}
 
-	var stages []string
-	var finalResponse *papersv1.ImportBrowserPaperResponse
-	for stream.Receive() {
-		message := stream.Msg()
-		stages = append(stages, message.Stage)
-		if message.Response != nil {
-			finalResponse = message.Response
-		}
-	}
-	if err := stream.Err(); err != nil {
-		t.Fatalf("stream error = %v", err)
-	}
-	if !equalServerStrings(stages, []string{paper.ImportProgressStageDownloadingPDF, paper.ImportProgressStageCompleted}) {
-		t.Fatalf("stages = %v, want downloading and completed", stages)
-	}
-	if finalResponse == nil || finalResponse.Status != "created" || finalResponse.Paper.GetId() != "paper-1" {
-		t.Fatalf("final response = %+v, want created paper-1", finalResponse)
-	}
-}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			usecase := &fakePaperUsecase{}
+			_, handler := NewPaperHandler(usecase)
+			server := httptest.NewServer(handler)
+			defer server.Close()
+			client := papersv1connect.NewPaperServiceClient(server.Client(), server.URL)
 
-func equalServerStrings(left []string, right []string) bool {
-	if len(left) != len(right) {
-		return false
+			response, err := client.CreatePaperFromPdfBytes(
+				context.Background(),
+				connect.NewRequest(&papersv1.CreatePaperFromPdfBytesRequest{
+					LibraryRoot:   "C:/papers",
+					DirectoryPath: "articles",
+					FileName:      "paper.pdf",
+					PdfBytes:      []byte("pdf"),
+					Title:         "Paper",
+					Authors:       []string{"Alice"},
+					PublishedYear: 2026,
+					Venue:         "Journal",
+					Doi:           "10.1000/paper",
+					ArxivId:       "2601.00001",
+					Url:           "https://example.test/paper",
+				}),
+			)
+			if err != nil {
+				t.Fatalf("CreatePaperFromPdfBytes() error = %v", err)
+			}
+
+			if response.Msg.GetId() != "paper-1" {
+				t.Fatalf("paper ID = %q, want paper-1", response.Msg.GetId())
+			}
+			if usecase.createdFromBytes.LibraryRoot != "C:/papers" ||
+				usecase.createdFromBytes.DirectoryPath != "articles" ||
+				usecase.createdFromBytes.FileName != "paper.pdf" ||
+				usecase.createdFromBytes.Title != "Paper" {
+				t.Fatalf("createdFromBytes = %+v", usecase.createdFromBytes)
+			}
+		})
 	}
-	for index := range left {
-		if left[index] != right[index] {
-			return false
-		}
-	}
-	return true
 }

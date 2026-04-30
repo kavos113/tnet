@@ -16,8 +16,6 @@ type PaperUsecase interface {
 	GetPaper(context.Context, string, string) (model.Paper, bool, error)
 	CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (model.Paper, error)
 	CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (model.Paper, error)
-	ImportBrowserPaper(context.Context, paper.BrowserImportInput) (paper.BrowserImportResult, error)
-	ImportBrowserPaperWithProgress(context.Context, paper.BrowserImportInput, paper.ImportProgressReporter) (paper.BrowserImportResult, error)
 	SaveNote(context.Context, string, string, string) (model.Paper, bool, error)
 }
 
@@ -110,46 +108,6 @@ func (h *PaperHandler) CreatePaperFromPdfBytes(
 	return connect.NewResponse(toProtoPaperDetail(paper)), nil
 }
 
-func (h *PaperHandler) ImportBrowserPaper(
-	ctx context.Context,
-	request *connect.Request[papersv1.ImportBrowserPaperRequest],
-) (*connect.Response[papersv1.ImportBrowserPaperResponse], error) {
-	result, err := h.u.ImportBrowserPaper(ctx, fromProtoBrowserImportInput(request.Msg))
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, err)
-	}
-	return connect.NewResponse(toProtoImportBrowserPaperResponse(result)), nil
-}
-
-func (h *PaperHandler) ImportBrowserPaperWithProgress(
-	ctx context.Context,
-	request *connect.Request[papersv1.ImportBrowserPaperRequest],
-	stream *connect.ServerStream[papersv1.ImportBrowserPaperProgress],
-) error {
-	var sendErr error
-	result, err := h.u.ImportBrowserPaperWithProgress(ctx, fromProtoBrowserImportInput(request.Msg), func(progress paper.ImportProgress) {
-		if sendErr != nil {
-			return
-		}
-		sendErr = stream.Send(&papersv1.ImportBrowserPaperProgress{
-			Stage:           progress.Stage,
-			Message:         progress.Message,
-			DownloadedBytes: progress.DownloadedBytes,
-			TotalBytes:      progress.TotalBytes,
-		})
-	})
-	if sendErr != nil {
-		return sendErr
-	}
-	if err != nil {
-		return connect.NewError(connect.CodeInvalidArgument, err)
-	}
-	return stream.Send(&papersv1.ImportBrowserPaperProgress{
-		Stage:    paper.ImportProgressStageCompleted,
-		Response: toProtoImportBrowserPaperResponse(result),
-	})
-}
-
 func (h *PaperHandler) SaveNote(
 	ctx context.Context,
 	request *connect.Request[papersv1.SaveNoteRequest],
@@ -162,44 +120,6 @@ func (h *PaperHandler) SaveNote(
 		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
 	}
 	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
-}
-
-func fromProtoBrowserCandidate(candidate *papersv1.BrowserPaperImportCandidate) model.BrowserImportCandidate {
-	if candidate == nil {
-		return model.BrowserImportCandidate{}
-	}
-	url := ""
-	if candidate.Source != nil {
-		url = candidate.Source.SourceUrl
-	}
-	return model.BrowserImportCandidate{
-		URL:           url,
-		Title:         candidate.Title,
-		Authors:       candidate.Authors,
-		Abstract:      candidate.Abstract,
-		PublishedYear: candidate.PublishedYear,
-		Venue:         candidate.Venue,
-		DOI:           candidate.Doi,
-		ArxivID:       candidate.ArxivId,
-		PDFURL:        candidate.PdfUrl,
-	}
-}
-
-func fromProtoBrowserImportInput(request *papersv1.ImportBrowserPaperRequest) paper.BrowserImportInput {
-	return paper.BrowserImportInput{
-		LibraryRoot:   request.LibraryRoot,
-		DirectoryPath: request.DirectoryPath,
-		Candidate:     fromProtoBrowserCandidate(request.Candidate),
-		ImportPDF:     request.ImportPdf,
-		Tags:          request.Tags,
-	}
-}
-
-func toProtoImportBrowserPaperResponse(result paper.BrowserImportResult) *papersv1.ImportBrowserPaperResponse {
-	return &papersv1.ImportBrowserPaperResponse{
-		Status: result.Status,
-		Paper:  toProtoPaperDetail(result.Paper),
-	}
 }
 
 func toProtoPaperSummary(paper model.Paper) *papersv1.PaperSummary {

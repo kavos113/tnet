@@ -47,25 +47,6 @@ await build({
   build: {
     emptyOutDir: false,
     outDir: distDir,
-    lib: {
-      entry: path.join(srcDir, 'contentScript.ts'),
-      name: 'TNetPaperConnectorContentScript',
-      formats: ['iife'],
-      fileName: () => 'contentScript.js'
-    },
-    rollupOptions: {
-      output: {
-        inlineDynamicImports: true
-      }
-    }
-  }
-});
-
-await build({
-  ...sharedBuild,
-  build: {
-    emptyOutDir: false,
-    outDir: distDir,
     rollupOptions: {
       input: path.join(srcDir, 'popup', 'index.html')
     }
@@ -80,10 +61,6 @@ manifest.action = {
   ...manifest.action,
   default_popup: 'src/popup/index.html'
 };
-manifest.content_scripts = (manifest.content_scripts ?? []).map((script) => ({
-  ...script,
-  js: ['contentScript.js']
-}));
 
 await mkdir(path.join(distDir, 'src', 'popup'), { recursive: true });
 const popupHtml = await readFile(path.join(distDir, 'src', 'popup', 'index.html'), 'utf8');

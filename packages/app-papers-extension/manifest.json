@@ -3,7 +3,7 @@
   "name": "TNet Paper Connector",
   "version": "0.1.0",
   "description": "Import papers into the local TNet Paper backend.",
-  "permissions": ["clipboardRead", "contextMenus", "storage"],
+  "permissions": ["clipboardRead"],
   "host_permissions": ["http://127.0.0.1:38911/*"],
   "background": {
     "service_worker": "src/background.ts",
@@ -11,6 +11,5 @@
   },
   "action": {
     "default_popup": "src/popup/index.html"
-  },
-  "content_scripts": []
+  }
 }

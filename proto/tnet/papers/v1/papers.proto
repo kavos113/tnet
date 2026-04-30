@@ -22,8 +22,6 @@ service PaperService {
   rpc GetPaper(GetPaperRequest) returns (GetPaperResponse);
   rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (PaperDetail);
   rpc CreatePaperFromPdfBytes(CreatePaperFromPdfBytesRequest) returns (PaperDetail);
-  rpc ImportBrowserPaper(ImportBrowserPaperRequest) returns (ImportBrowserPaperResponse);
-  rpc ImportBrowserPaperWithProgress(ImportBrowserPaperRequest) returns (stream ImportBrowserPaperProgress);
   rpc SaveNote(SaveNoteRequest) returns (GetPaperResponse);
 }
 
@@ -36,10 +34,6 @@ service TagService {
 
 service PdfService {
   rpc LoadPdfBytes(LoadPdfBytesRequest) returns (LoadPdfBytesResponse);
-}
-
-service BrowserImportService {
-  rpc ResolveMetadata(ResolveMetadataRequest) returns (BrowserPaperImportCandidate);
 }
 
 message CheckRequest {}
@@ -233,55 +227,4 @@ message LoadPdfBytesRequest {
 
 message LoadPdfBytesResponse {
   bytes bytes = 1;
-}
-
-message BrowserDetectedPaperSource {
-  string source_url = 1;
-  string page_title = 2;
-  string canonical_url = 3;
-  string doi = 4;
-  string arxiv_id = 5;
-  string pdf_url = 6;
-  string title = 7;
-  repeated string authors = 8;
-  int32 published_year = 9;
-  string venue = 10;
-}
-
-message BrowserPaperImportCandidate {
-  BrowserDetectedPaperSource source = 1;
-  string title = 2;
-  repeated string authors = 3;
-  string abstract = 4;
-  int32 published_year = 5;
-  string venue = 6;
-  string doi = 7;
-  string arxiv_id = 8;
-  string pdf_url = 9;
-  repeated string tags = 10;
-}
-
-message ResolveMetadataRequest {
-  BrowserDetectedPaperSource source = 1;
-}
-
-message ImportBrowserPaperRequest {
-  string library_root = 1;
-  string directory_path = 2;
-  BrowserPaperImportCandidate candidate = 3;
-  bool import_pdf = 4;
-  repeated string tags = 5;
-}
-
-message ImportBrowserPaperResponse {
-  string status = 1;
-  PaperDetail paper = 2;
-}
-
-message ImportBrowserPaperProgress {
-  string stage = 1;
-  string message = 2;
-  int64 downloaded_bytes = 3;
-  int64 total_bytes = 4;
-  ImportBrowserPaperResponse response = 5;
 }

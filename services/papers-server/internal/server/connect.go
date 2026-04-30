@@ -6,7 +6,6 @@ import (
 	"github.com/kavos113/tnet/services/papers-server/internal/logic/health"
 	"github.com/kavos113/tnet/services/papers-server/internal/logic/library"
 	"github.com/kavos113/tnet/services/papers-server/internal/logic/paper"
-	"github.com/kavos113/tnet/services/papers-server/internal/metadataresolver"
 )
 
 func RegisterHandlers(
@@ -14,7 +13,6 @@ func RegisterHandlers(
 	healthService *health.Service,
 	libraryService *library.Service,
 	paperService *paper.Service,
-	metadataResolver metadataresolver.Resolver,
 ) {
 	healthPath, healthHandler := NewHealthHandler(healthService)
 	mux.Handle(healthPath, healthHandler)
@@ -26,6 +24,4 @@ func RegisterHandlers(
 	mux.Handle(tagPath, tagHandler)
 	pdfPath, pdfHandler := NewPDFHandler(paperService)
 	mux.Handle(pdfPath, pdfHandler)
-	browserImportPath, browserImportHandler := NewBrowserImportHandler(metadataResolver)
-	mux.Handle(browserImportPath, browserImportHandler)
 }

@@ -5,7 +5,6 @@
 
 import {
   AttachTagRequest,
-  BrowserPaperImportCandidate,
   CheckRequest,
   CheckResponse,
   CreatePaperFromLocalPdfRequest,
@@ -13,9 +12,6 @@ import {
   DetachTagRequest,
   GetPaperRequest,
   GetPaperResponse,
-  ImportBrowserPaperProgress,
-  ImportBrowserPaperRequest,
-  ImportBrowserPaperResponse,
   ListDirectoriesRequest,
   ListDirectoriesResponse,
   ListLibrariesRequest,
@@ -32,7 +28,6 @@ import {
   PapersGlobalConfig,
   PapersLibraryConfig,
   PaperTag,
-  ResolveMetadataRequest,
   SaveGlobalConfigRequest,
   SaveGlobalConfigResponse,
   SaveLibraryConfigRequest,
@@ -166,24 +161,6 @@ export const PaperService = {
       kind: MethodKind.Unary
     },
     /**
-     * @generated from rpc tnet.papers.v1.PaperService.ImportBrowserPaper
-     */
-    importBrowserPaper: {
-      name: 'ImportBrowserPaper',
-      I: ImportBrowserPaperRequest,
-      O: ImportBrowserPaperResponse,
-      kind: MethodKind.Unary
-    },
-    /**
-     * @generated from rpc tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress
-     */
-    importBrowserPaperWithProgress: {
-      name: 'ImportBrowserPaperWithProgress',
-      I: ImportBrowserPaperRequest,
-      O: ImportBrowserPaperProgress,
-      kind: MethodKind.ServerStreaming
-    },
-    /**
      * @generated from rpc tnet.papers.v1.PaperService.SaveNote
      */
     saveNote: {
@@ -253,24 +230,6 @@ export const PdfService = {
       name: 'LoadPdfBytes',
       I: LoadPdfBytesRequest,
       O: LoadPdfBytesResponse,
-      kind: MethodKind.Unary
-    }
-  }
-} as const;
-
-/**
- * @generated from service tnet.papers.v1.BrowserImportService
- */
-export const BrowserImportService = {
-  typeName: 'tnet.papers.v1.BrowserImportService',
-  methods: {
-    /**
-     * @generated from rpc tnet.papers.v1.BrowserImportService.ResolveMetadata
-     */
-    resolveMetadata: {
-      name: 'ResolveMetadata',
-      I: ResolveMetadataRequest,
-      O: BrowserPaperImportCandidate,
       kind: MethodKind.Unary
     }
   }

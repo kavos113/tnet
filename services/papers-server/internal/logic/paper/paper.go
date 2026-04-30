@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/kavos113/tnet/services/papers-server/internal/model"
-	"github.com/kavos113/tnet/services/papers-server/internal/pdfdownload"
 	"github.com/kavos113/tnet/services/papers-server/internal/repository/sqlite"
 )
 
@@ -19,8 +18,7 @@ type DBManager interface {
 type sqliteDB interface{}
 
 type Service struct {
-	dbManager  *sqlite.LibraryDBManager
-	downloader PDFDownloader
+	dbManager *sqlite.LibraryDBManager
 }
 
 type ListFilter struct {
@@ -59,54 +57,8 @@ type CreateFromPDFBytesInput struct {
 	DirectoryPath string
 }
 
-type BrowserImportInput struct {
-	LibraryRoot   string
-	DirectoryPath string
-	Candidate     model.BrowserImportCandidate
-	ImportPDF     bool
-	Tags          []string
-}
-
-type BrowserImportResult struct {
-	Status string
-	Paper  model.Paper
-}
-
-type ImportProgress struct {
-	Stage           string
-	Message         string
-	DownloadedBytes int64
-	TotalBytes      int64
-}
-
-type ImportProgressReporter func(ImportProgress)
-
-const (
-	ImportProgressStageStarted        = "started"
-	ImportProgressStageDuplicate      = "duplicate"
-	ImportProgressStageDownloadingPDF = "downloading_pdf"
-	ImportProgressStageDownloadedPDF  = "downloaded_pdf"
-	ImportProgressStageSaving         = "saving"
-	ImportProgressStageMetadataOnly   = "metadata_only"
-	ImportProgressStageCompleted      = "completed"
-)
-
-type PDFDownloader interface {
-	DownloadWithProgress(context.Context, string, pdfdownload.RequestOptions, pdfdownload.ProgressReporter) (pdfdownload.DownloadedPDF, error)
-}
-
 func NewService(dbManager *sqlite.LibraryDBManager) *Service {
-	return &Service{
-		dbManager:  dbManager,
-		downloader: pdfdownload.NewHTTPDownloader(nil),
-	}
-}
-
-func NewServiceWithDownloader(dbManager *sqlite.LibraryDBManager, downloader PDFDownloader) *Service {
-	return &Service{
-		dbManager:  dbManager,
-		downloader: downloader,
-	}
+	return &Service{dbManager: dbManager}
 }
 
 func (s *Service) ListPapers(
@@ -185,7 +137,7 @@ func (s *Service) CreatePaperFromPDFBytes(
 		return model.Paper{}, errRequired("pdf bytes")
 	}
 
-	pdfPath, err := s.saveDownloadedPDF(root, input.DirectoryPath, pdfdownload.DownloadedPDF{
+	pdfPath, err := s.savePDFBytes(root, input.DirectoryPath, storedPDF{
 		FileName: safePDFFileName(input.FileName),
 		Bytes:    input.Bytes,
 	})
@@ -222,115 +174,6 @@ func (s *Service) SaveNote(
 		return model.Paper{}, false, err
 	}
 	return repository.SaveNote(ctx, paperID, content)
-}
-
-func (s *Service) ImportBrowserPaper(
-	ctx context.Context,
-	input BrowserImportInput,
-) (BrowserImportResult, error) {
-	return s.importBrowserPaper(ctx, input, nil)
-}
-
-func (s *Service) ImportBrowserPaperWithProgress(
-	ctx context.Context,
-	input BrowserImportInput,
-	report ImportProgressReporter,
-) (BrowserImportResult, error) {
-	return s.importBrowserPaper(ctx, input, report)
-}
-
-func (s *Service) importBrowserPaper(
-	ctx context.Context,
-	input BrowserImportInput,
-	report ImportProgressReporter,
-) (BrowserImportResult, error) {
-	reportImportProgress(report, ImportProgress{Stage: ImportProgressStageStarted})
-	root, err := model.NewLibraryRoot(input.LibraryRoot)
-	if err != nil {
-		return BrowserImportResult{}, err
-	}
-	repository, err := s.repositoryForRoot(ctx, root)
-	if err != nil {
-		return BrowserImportResult{}, err
-	}
-
-	existing, ok, err := repository.GetPaperByIdentifiers(ctx, input.Candidate.DOI, input.Candidate.ArxivID)
-	if err != nil {
-		return BrowserImportResult{}, err
-	}
-	if ok {
-		reportImportProgress(report, ImportProgress{Stage: ImportProgressStageDuplicate})
-		return BrowserImportResult{Status: string(model.BrowserImportStatusDuplicate), Paper: existing}, nil
-	}
-
-	pdfPath := ""
-	status := string(model.BrowserImportStatusMetadataOnly)
-	if input.ImportPDF && input.Candidate.PDFURL != "" {
-		downloaded, err := s.downloader.DownloadWithProgress(
-			ctx,
-			input.Candidate.PDFURL,
-			pdfdownload.RequestOptions{Referer: input.Candidate.URL},
-			func(progress pdfdownload.Progress) {
-				reportImportProgress(report, ImportProgress{
-					Stage:           ImportProgressStageDownloadingPDF,
-					DownloadedBytes: progress.DownloadedBytes,
-					TotalBytes:      progress.TotalBytes,
-				})
-			},
-		)
-		if err == nil {
-			reportImportProgress(report, ImportProgress{
-				Stage:           ImportProgressStageDownloadedPDF,
-				DownloadedBytes: int64(len(downloaded.Bytes)),
-				TotalBytes:      int64(len(downloaded.Bytes)),
-			})
-			pdfPath, err = s.saveDownloadedPDF(root, input.DirectoryPath, downloaded)
-			if err != nil {
-				return BrowserImportResult{}, err
-			}
-			status = string(model.BrowserImportStatusCreated)
-		} else {
-			reportImportProgress(report, ImportProgress{
-				Stage:   ImportProgressStageMetadataOnly,
-				Message: err.Error(),
-			})
-		}
-	}
-
-	reportImportProgress(report, ImportProgress{Stage: ImportProgressStageSaving})
-	paper, err := repository.CreatePaper(ctx, sqlite.CreatePaperInput{
-		Title:         input.Candidate.Title,
-		Authors:       input.Candidate.Authors,
-		Abstract:      input.Candidate.Abstract,
-		PublishedYear: input.Candidate.PublishedYear,
-		Venue:         input.Candidate.Venue,
-		DOI:           input.Candidate.DOI,
-		ArxivID:       input.Candidate.ArxivID,
-		URL:           input.Candidate.URL,
-		PDFPath:       pdfPath,
-		DirectoryPath: input.DirectoryPath,
-	})
-	if err != nil {
-		return BrowserImportResult{}, err
-	}
-	for _, tagName := range input.Tags {
-		tag, err := repository.UpsertTag(ctx, tagName, "")
-		if err != nil {
-			return BrowserImportResult{}, err
-		}
-		paper, _, err = repository.AttachTag(ctx, paper.ID, tag.ID)
-		if err != nil {
-			return BrowserImportResult{}, err
-		}
-	}
-
-	return BrowserImportResult{Status: status, Paper: paper}, nil
-}
-
-func reportImportProgress(report ImportProgressReporter, progress ImportProgress) {
-	if report != nil {
-		report(progress)
-	}
 }
 
 func (s *Service) ListTags(ctx context.Context, libraryRoot string) ([]model.PaperTag, error) {
@@ -447,10 +290,15 @@ func (s *Service) copyPDFIfNeeded(
 	return toRelativeSlash(rootAbsolute, targetPath), nil
 }
 
-func (s *Service) saveDownloadedPDF(
+type storedPDF struct {
+	FileName string
+	Bytes    []byte
+}
+
+func (s *Service) savePDFBytes(
 	root model.LibraryRoot,
 	directoryPath string,
-	downloaded pdfdownload.DownloadedPDF,
+	pdf storedPDF,
 ) (string, error) {
 	targetDir := filepath.Join(root.String(), "papers")
 	if directoryPath != "" {
@@ -459,8 +307,8 @@ func (s *Service) saveDownloadedPDF(
 	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		return "", err
 	}
-	targetPath := nextAvailablePath(targetDir, downloaded.FileName)
-	if err := os.WriteFile(targetPath, downloaded.Bytes, 0o644); err != nil {
+	targetPath := nextAvailablePath(targetDir, pdf.FileName)
+	if err := os.WriteFile(targetPath, pdf.Bytes, 0o644); err != nil {
 		return "", err
 	}
 	return toRelativeSlash(root.String(), targetPath), nil

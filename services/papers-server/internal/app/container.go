@@ -6,7 +6,6 @@ import (
 	"github.com/kavos113/tnet/services/papers-server/internal/logic/health"
 	"github.com/kavos113/tnet/services/papers-server/internal/logic/library"
 	"github.com/kavos113/tnet/services/papers-server/internal/logic/paper"
-	"github.com/kavos113/tnet/services/papers-server/internal/metadataresolver"
 	configrepository "github.com/kavos113/tnet/services/papers-server/internal/repository/config"
 	"github.com/kavos113/tnet/services/papers-server/internal/repository/filesystem"
 	"github.com/kavos113/tnet/services/papers-server/internal/repository/sqlite"
@@ -29,10 +28,9 @@ func NewContainer(options ContainerOptions) (*Container, error) {
 	directoryRepository := filesystem.NewDirectoryRepository()
 	libraryService := library.NewService(configRepository, directoryRepository, options.UserDataDir)
 	paperService := paper.NewService(dbManager)
-	metadataResolver := metadataresolver.NewDefaultResolver()
 
 	mux := http.NewServeMux()
-	papersserver.RegisterHandlers(mux, healthService, libraryService, paperService, metadataResolver)
+	papersserver.RegisterHandlers(mux, healthService, libraryService, paperService)
 
 	return &Container{
 		dbManager: dbManager,

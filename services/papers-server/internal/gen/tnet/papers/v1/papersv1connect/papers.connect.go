@@ -31,8 +31,6 @@ const (
 	TagServiceName = "tnet.papers.v1.TagService"
 	// PdfServiceName is the fully-qualified name of the PdfService service.
 	PdfServiceName = "tnet.papers.v1.PdfService"
-	// BrowserImportServiceName is the fully-qualified name of the BrowserImportService service.
-	BrowserImportServiceName = "tnet.papers.v1.BrowserImportService"
 )
 
 // These constants are the fully-qualified names of the RPCs defined in this package. They're
@@ -73,12 +71,6 @@ const (
 	// PaperServiceCreatePaperFromPdfBytesProcedure is the fully-qualified name of the PaperService's
 	// CreatePaperFromPdfBytes RPC.
 	PaperServiceCreatePaperFromPdfBytesProcedure = "/tnet.papers.v1.PaperService/CreatePaperFromPdfBytes"
-	// PaperServiceImportBrowserPaperProcedure is the fully-qualified name of the PaperService's
-	// ImportBrowserPaper RPC.
-	PaperServiceImportBrowserPaperProcedure = "/tnet.papers.v1.PaperService/ImportBrowserPaper"
-	// PaperServiceImportBrowserPaperWithProgressProcedure is the fully-qualified name of the
-	// PaperService's ImportBrowserPaperWithProgress RPC.
-	PaperServiceImportBrowserPaperWithProgressProcedure = "/tnet.papers.v1.PaperService/ImportBrowserPaperWithProgress"
 	// PaperServiceSaveNoteProcedure is the fully-qualified name of the PaperService's SaveNote RPC.
 	PaperServiceSaveNoteProcedure = "/tnet.papers.v1.PaperService/SaveNote"
 	// TagServiceListTagsProcedure is the fully-qualified name of the TagService's ListTags RPC.
@@ -91,9 +83,6 @@ const (
 	TagServiceDetachTagProcedure = "/tnet.papers.v1.TagService/DetachTag"
 	// PdfServiceLoadPdfBytesProcedure is the fully-qualified name of the PdfService's LoadPdfBytes RPC.
 	PdfServiceLoadPdfBytesProcedure = "/tnet.papers.v1.PdfService/LoadPdfBytes"
-	// BrowserImportServiceResolveMetadataProcedure is the fully-qualified name of the
-	// BrowserImportService's ResolveMetadata RPC.
-	BrowserImportServiceResolveMetadataProcedure = "/tnet.papers.v1.BrowserImportService/ResolveMetadata"
 )
 
 // HealthServiceClient is a client for the tnet.papers.v1.HealthService service.
@@ -372,8 +361,6 @@ type PaperServiceClient interface {
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
 	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error)
-	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
-	ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.ServerStreamForClient[v1.ImportBrowserPaperProgress], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
 }
 
@@ -412,18 +399,6 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromPdfBytes")),
 			connect.WithClientOptions(opts...),
 		),
-		importBrowserPaper: connect.NewClient[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse](
-			httpClient,
-			baseURL+PaperServiceImportBrowserPaperProcedure,
-			connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaper")),
-			connect.WithClientOptions(opts...),
-		),
-		importBrowserPaperWithProgress: connect.NewClient[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperProgress](
-			httpClient,
-			baseURL+PaperServiceImportBrowserPaperWithProgressProcedure,
-			connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaperWithProgress")),
-			connect.WithClientOptions(opts...),
-		),
 		saveNote: connect.NewClient[v1.SaveNoteRequest, v1.GetPaperResponse](
 			httpClient,
 			baseURL+PaperServiceSaveNoteProcedure,
@@ -435,13 +410,11 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // paperServiceClient implements PaperServiceClient.
 type paperServiceClient struct {
-	listPapers                     *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
-	getPaper                       *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
-	createPaperFromLocalPdf        *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
-	createPaperFromPdfBytes        *connect.Client[v1.CreatePaperFromPdfBytesRequest, v1.PaperDetail]
-	importBrowserPaper             *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperResponse]
-	importBrowserPaperWithProgress *connect.Client[v1.ImportBrowserPaperRequest, v1.ImportBrowserPaperProgress]
-	saveNote                       *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
+	listPapers              *connect.Client[v1.ListPapersRequest, v1.ListPapersResponse]
+	getPaper                *connect.Client[v1.GetPaperRequest, v1.GetPaperResponse]
+	createPaperFromLocalPdf *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.PaperDetail]
+	createPaperFromPdfBytes *connect.Client[v1.CreatePaperFromPdfBytesRequest, v1.PaperDetail]
+	saveNote                *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
 }
 
 // ListPapers calls tnet.papers.v1.PaperService.ListPapers.
@@ -464,16 +437,6 @@ func (c *paperServiceClient) CreatePaperFromPdfBytes(ctx context.Context, req *c
 	return c.createPaperFromPdfBytes.CallUnary(ctx, req)
 }
 
-// ImportBrowserPaper calls tnet.papers.v1.PaperService.ImportBrowserPaper.
-func (c *paperServiceClient) ImportBrowserPaper(ctx context.Context, req *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error) {
-	return c.importBrowserPaper.CallUnary(ctx, req)
-}
-
-// ImportBrowserPaperWithProgress calls tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress.
-func (c *paperServiceClient) ImportBrowserPaperWithProgress(ctx context.Context, req *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.ServerStreamForClient[v1.ImportBrowserPaperProgress], error) {
-	return c.importBrowserPaperWithProgress.CallServerStream(ctx, req)
-}
-
 // SaveNote calls tnet.papers.v1.PaperService.SaveNote.
 func (c *paperServiceClient) SaveNote(ctx context.Context, req *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {
 	return c.saveNote.CallUnary(ctx, req)
@@ -485,8 +448,6 @@ type PaperServiceHandler interface {
 	GetPaper(context.Context, *connect.Request[v1.GetPaperRequest]) (*connect.Response[v1.GetPaperResponse], error)
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.PaperDetail], error)
 	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error)
-	ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error)
-	ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest], *connect.ServerStream[v1.ImportBrowserPaperProgress]) error
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
 }
 
@@ -521,18 +482,6 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(paperServiceMethods.ByName("CreatePaperFromPdfBytes")),
 		connect.WithHandlerOptions(opts...),
 	)
-	paperServiceImportBrowserPaperHandler := connect.NewUnaryHandler(
-		PaperServiceImportBrowserPaperProcedure,
-		svc.ImportBrowserPaper,
-		connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaper")),
-		connect.WithHandlerOptions(opts...),
-	)
-	paperServiceImportBrowserPaperWithProgressHandler := connect.NewServerStreamHandler(
-		PaperServiceImportBrowserPaperWithProgressProcedure,
-		svc.ImportBrowserPaperWithProgress,
-		connect.WithSchema(paperServiceMethods.ByName("ImportBrowserPaperWithProgress")),
-		connect.WithHandlerOptions(opts...),
-	)
 	paperServiceSaveNoteHandler := connect.NewUnaryHandler(
 		PaperServiceSaveNoteProcedure,
 		svc.SaveNote,
@@ -549,10 +498,6 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 			paperServiceCreatePaperFromLocalPdfHandler.ServeHTTP(w, r)
 		case PaperServiceCreatePaperFromPdfBytesProcedure:
 			paperServiceCreatePaperFromPdfBytesHandler.ServeHTTP(w, r)
-		case PaperServiceImportBrowserPaperProcedure:
-			paperServiceImportBrowserPaperHandler.ServeHTTP(w, r)
-		case PaperServiceImportBrowserPaperWithProgressProcedure:
-			paperServiceImportBrowserPaperWithProgressHandler.ServeHTTP(w, r)
 		case PaperServiceSaveNoteProcedure:
 			paperServiceSaveNoteHandler.ServeHTTP(w, r)
 		default:
@@ -578,14 +523,6 @@ func (UnimplementedPaperServiceHandler) CreatePaperFromLocalPdf(context.Context,
 
 func (UnimplementedPaperServiceHandler) CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.PaperDetail], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.CreatePaperFromPdfBytes is not implemented"))
-}
-
-func (UnimplementedPaperServiceHandler) ImportBrowserPaper(context.Context, *connect.Request[v1.ImportBrowserPaperRequest]) (*connect.Response[v1.ImportBrowserPaperResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ImportBrowserPaper is not implemented"))
-}
-
-func (UnimplementedPaperServiceHandler) ImportBrowserPaperWithProgress(context.Context, *connect.Request[v1.ImportBrowserPaperRequest], *connect.ServerStream[v1.ImportBrowserPaperProgress]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress is not implemented"))
 }
 
 func (UnimplementedPaperServiceHandler) SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {
@@ -808,75 +745,4 @@ type UnimplementedPdfServiceHandler struct{}
 
 func (UnimplementedPdfServiceHandler) LoadPdfBytes(context.Context, *connect.Request[v1.LoadPdfBytesRequest]) (*connect.Response[v1.LoadPdfBytesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PdfService.LoadPdfBytes is not implemented"))
-}
-
-// BrowserImportServiceClient is a client for the tnet.papers.v1.BrowserImportService service.
-type BrowserImportServiceClient interface {
-	ResolveMetadata(context.Context, *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error)
-}
-
-// NewBrowserImportServiceClient constructs a client for the tnet.papers.v1.BrowserImportService
-// service. By default, it uses the Connect protocol with the binary Protobuf Codec, asks for
-// gzipped responses, and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply
-// the connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewBrowserImportServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) BrowserImportServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	browserImportServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("BrowserImportService").Methods()
-	return &browserImportServiceClient{
-		resolveMetadata: connect.NewClient[v1.ResolveMetadataRequest, v1.BrowserPaperImportCandidate](
-			httpClient,
-			baseURL+BrowserImportServiceResolveMetadataProcedure,
-			connect.WithSchema(browserImportServiceMethods.ByName("ResolveMetadata")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// browserImportServiceClient implements BrowserImportServiceClient.
-type browserImportServiceClient struct {
-	resolveMetadata *connect.Client[v1.ResolveMetadataRequest, v1.BrowserPaperImportCandidate]
-}
-
-// ResolveMetadata calls tnet.papers.v1.BrowserImportService.ResolveMetadata.
-func (c *browserImportServiceClient) ResolveMetadata(ctx context.Context, req *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error) {
-	return c.resolveMetadata.CallUnary(ctx, req)
-}
-
-// BrowserImportServiceHandler is an implementation of the tnet.papers.v1.BrowserImportService
-// service.
-type BrowserImportServiceHandler interface {
-	ResolveMetadata(context.Context, *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error)
-}
-
-// NewBrowserImportServiceHandler builds an HTTP handler from the service implementation. It returns
-// the path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewBrowserImportServiceHandler(svc BrowserImportServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	browserImportServiceMethods := v1.File_tnet_papers_v1_papers_proto.Services().ByName("BrowserImportService").Methods()
-	browserImportServiceResolveMetadataHandler := connect.NewUnaryHandler(
-		BrowserImportServiceResolveMetadataProcedure,
-		svc.ResolveMetadata,
-		connect.WithSchema(browserImportServiceMethods.ByName("ResolveMetadata")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/tnet.papers.v1.BrowserImportService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case BrowserImportServiceResolveMetadataProcedure:
-			browserImportServiceResolveMetadataHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
-}
-
-// UnimplementedBrowserImportServiceHandler returns CodeUnimplemented from all methods.
-type UnimplementedBrowserImportServiceHandler struct{}
-
-func (UnimplementedBrowserImportServiceHandler) ResolveMetadata(context.Context, *connect.Request[v1.ResolveMetadataRequest]) (*connect.Response[v1.BrowserPaperImportCandidate], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.BrowserImportService.ResolveMetadata is not implemented"))
 }

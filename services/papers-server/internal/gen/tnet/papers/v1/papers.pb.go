@@ -1985,486 +1985,6 @@ func (x *LoadPdfBytesResponse) GetBytes() []byte {
 	return nil
 }
 
-type BrowserDetectedPaperSource struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SourceUrl     string                 `protobuf:"bytes,1,opt,name=source_url,json=sourceUrl,proto3" json:"source_url,omitempty"`
-	PageTitle     string                 `protobuf:"bytes,2,opt,name=page_title,json=pageTitle,proto3" json:"page_title,omitempty"`
-	CanonicalUrl  string                 `protobuf:"bytes,3,opt,name=canonical_url,json=canonicalUrl,proto3" json:"canonical_url,omitempty"`
-	Doi           string                 `protobuf:"bytes,4,opt,name=doi,proto3" json:"doi,omitempty"`
-	ArxivId       string                 `protobuf:"bytes,5,opt,name=arxiv_id,json=arxivId,proto3" json:"arxiv_id,omitempty"`
-	PdfUrl        string                 `protobuf:"bytes,6,opt,name=pdf_url,json=pdfUrl,proto3" json:"pdf_url,omitempty"`
-	Title         string                 `protobuf:"bytes,7,opt,name=title,proto3" json:"title,omitempty"`
-	Authors       []string               `protobuf:"bytes,8,rep,name=authors,proto3" json:"authors,omitempty"`
-	PublishedYear int32                  `protobuf:"varint,9,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
-	Venue         string                 `protobuf:"bytes,10,opt,name=venue,proto3" json:"venue,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BrowserDetectedPaperSource) Reset() {
-	*x = BrowserDetectedPaperSource{}
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[33]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BrowserDetectedPaperSource) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BrowserDetectedPaperSource) ProtoMessage() {}
-
-func (x *BrowserDetectedPaperSource) ProtoReflect() protoreflect.Message {
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[33]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BrowserDetectedPaperSource.ProtoReflect.Descriptor instead.
-func (*BrowserDetectedPaperSource) Descriptor() ([]byte, []int) {
-	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{33}
-}
-
-func (x *BrowserDetectedPaperSource) GetSourceUrl() string {
-	if x != nil {
-		return x.SourceUrl
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetPageTitle() string {
-	if x != nil {
-		return x.PageTitle
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetCanonicalUrl() string {
-	if x != nil {
-		return x.CanonicalUrl
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetDoi() string {
-	if x != nil {
-		return x.Doi
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetArxivId() string {
-	if x != nil {
-		return x.ArxivId
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetPdfUrl() string {
-	if x != nil {
-		return x.PdfUrl
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *BrowserDetectedPaperSource) GetAuthors() []string {
-	if x != nil {
-		return x.Authors
-	}
-	return nil
-}
-
-func (x *BrowserDetectedPaperSource) GetPublishedYear() int32 {
-	if x != nil {
-		return x.PublishedYear
-	}
-	return 0
-}
-
-func (x *BrowserDetectedPaperSource) GetVenue() string {
-	if x != nil {
-		return x.Venue
-	}
-	return ""
-}
-
-type BrowserPaperImportCandidate struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	Source        *BrowserDetectedPaperSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
-	Title         string                      `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Authors       []string                    `protobuf:"bytes,3,rep,name=authors,proto3" json:"authors,omitempty"`
-	Abstract      string                      `protobuf:"bytes,4,opt,name=abstract,proto3" json:"abstract,omitempty"`
-	PublishedYear int32                       `protobuf:"varint,5,opt,name=published_year,json=publishedYear,proto3" json:"published_year,omitempty"`
-	Venue         string                      `protobuf:"bytes,6,opt,name=venue,proto3" json:"venue,omitempty"`
-	Doi           string                      `protobuf:"bytes,7,opt,name=doi,proto3" json:"doi,omitempty"`
-	ArxivId       string                      `protobuf:"bytes,8,opt,name=arxiv_id,json=arxivId,proto3" json:"arxiv_id,omitempty"`
-	PdfUrl        string                      `protobuf:"bytes,9,opt,name=pdf_url,json=pdfUrl,proto3" json:"pdf_url,omitempty"`
-	Tags          []string                    `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BrowserPaperImportCandidate) Reset() {
-	*x = BrowserPaperImportCandidate{}
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[34]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BrowserPaperImportCandidate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BrowserPaperImportCandidate) ProtoMessage() {}
-
-func (x *BrowserPaperImportCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[34]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BrowserPaperImportCandidate.ProtoReflect.Descriptor instead.
-func (*BrowserPaperImportCandidate) Descriptor() ([]byte, []int) {
-	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{34}
-}
-
-func (x *BrowserPaperImportCandidate) GetSource() *BrowserDetectedPaperSource {
-	if x != nil {
-		return x.Source
-	}
-	return nil
-}
-
-func (x *BrowserPaperImportCandidate) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *BrowserPaperImportCandidate) GetAuthors() []string {
-	if x != nil {
-		return x.Authors
-	}
-	return nil
-}
-
-func (x *BrowserPaperImportCandidate) GetAbstract() string {
-	if x != nil {
-		return x.Abstract
-	}
-	return ""
-}
-
-func (x *BrowserPaperImportCandidate) GetPublishedYear() int32 {
-	if x != nil {
-		return x.PublishedYear
-	}
-	return 0
-}
-
-func (x *BrowserPaperImportCandidate) GetVenue() string {
-	if x != nil {
-		return x.Venue
-	}
-	return ""
-}
-
-func (x *BrowserPaperImportCandidate) GetDoi() string {
-	if x != nil {
-		return x.Doi
-	}
-	return ""
-}
-
-func (x *BrowserPaperImportCandidate) GetArxivId() string {
-	if x != nil {
-		return x.ArxivId
-	}
-	return ""
-}
-
-func (x *BrowserPaperImportCandidate) GetPdfUrl() string {
-	if x != nil {
-		return x.PdfUrl
-	}
-	return ""
-}
-
-func (x *BrowserPaperImportCandidate) GetTags() []string {
-	if x != nil {
-		return x.Tags
-	}
-	return nil
-}
-
-type ResolveMetadataRequest struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	Source        *BrowserDetectedPaperSource `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ResolveMetadataRequest) Reset() {
-	*x = ResolveMetadataRequest{}
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[35]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ResolveMetadataRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ResolveMetadataRequest) ProtoMessage() {}
-
-func (x *ResolveMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[35]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ResolveMetadataRequest.ProtoReflect.Descriptor instead.
-func (*ResolveMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{35}
-}
-
-func (x *ResolveMetadataRequest) GetSource() *BrowserDetectedPaperSource {
-	if x != nil {
-		return x.Source
-	}
-	return nil
-}
-
-type ImportBrowserPaperRequest struct {
-	state         protoimpl.MessageState       `protogen:"open.v1"`
-	LibraryRoot   string                       `protobuf:"bytes,1,opt,name=library_root,json=libraryRoot,proto3" json:"library_root,omitempty"`
-	DirectoryPath string                       `protobuf:"bytes,2,opt,name=directory_path,json=directoryPath,proto3" json:"directory_path,omitempty"`
-	Candidate     *BrowserPaperImportCandidate `protobuf:"bytes,3,opt,name=candidate,proto3" json:"candidate,omitempty"`
-	ImportPdf     bool                         `protobuf:"varint,4,opt,name=import_pdf,json=importPdf,proto3" json:"import_pdf,omitempty"`
-	Tags          []string                     `protobuf:"bytes,5,rep,name=tags,proto3" json:"tags,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ImportBrowserPaperRequest) Reset() {
-	*x = ImportBrowserPaperRequest{}
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[36]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImportBrowserPaperRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImportBrowserPaperRequest) ProtoMessage() {}
-
-func (x *ImportBrowserPaperRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[36]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ImportBrowserPaperRequest.ProtoReflect.Descriptor instead.
-func (*ImportBrowserPaperRequest) Descriptor() ([]byte, []int) {
-	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{36}
-}
-
-func (x *ImportBrowserPaperRequest) GetLibraryRoot() string {
-	if x != nil {
-		return x.LibraryRoot
-	}
-	return ""
-}
-
-func (x *ImportBrowserPaperRequest) GetDirectoryPath() string {
-	if x != nil {
-		return x.DirectoryPath
-	}
-	return ""
-}
-
-func (x *ImportBrowserPaperRequest) GetCandidate() *BrowserPaperImportCandidate {
-	if x != nil {
-		return x.Candidate
-	}
-	return nil
-}
-
-func (x *ImportBrowserPaperRequest) GetImportPdf() bool {
-	if x != nil {
-		return x.ImportPdf
-	}
-	return false
-}
-
-func (x *ImportBrowserPaperRequest) GetTags() []string {
-	if x != nil {
-		return x.Tags
-	}
-	return nil
-}
-
-type ImportBrowserPaperResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
-	Paper         *PaperDetail           `protobuf:"bytes,2,opt,name=paper,proto3" json:"paper,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ImportBrowserPaperResponse) Reset() {
-	*x = ImportBrowserPaperResponse{}
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[37]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImportBrowserPaperResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImportBrowserPaperResponse) ProtoMessage() {}
-
-func (x *ImportBrowserPaperResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[37]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ImportBrowserPaperResponse.ProtoReflect.Descriptor instead.
-func (*ImportBrowserPaperResponse) Descriptor() ([]byte, []int) {
-	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{37}
-}
-
-func (x *ImportBrowserPaperResponse) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *ImportBrowserPaperResponse) GetPaper() *PaperDetail {
-	if x != nil {
-		return x.Paper
-	}
-	return nil
-}
-
-type ImportBrowserPaperProgress struct {
-	state           protoimpl.MessageState      `protogen:"open.v1"`
-	Stage           string                      `protobuf:"bytes,1,opt,name=stage,proto3" json:"stage,omitempty"`
-	Message         string                      `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	DownloadedBytes int64                       `protobuf:"varint,3,opt,name=downloaded_bytes,json=downloadedBytes,proto3" json:"downloaded_bytes,omitempty"`
-	TotalBytes      int64                       `protobuf:"varint,4,opt,name=total_bytes,json=totalBytes,proto3" json:"total_bytes,omitempty"`
-	Response        *ImportBrowserPaperResponse `protobuf:"bytes,5,opt,name=response,proto3" json:"response,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *ImportBrowserPaperProgress) Reset() {
-	*x = ImportBrowserPaperProgress{}
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[38]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ImportBrowserPaperProgress) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ImportBrowserPaperProgress) ProtoMessage() {}
-
-func (x *ImportBrowserPaperProgress) ProtoReflect() protoreflect.Message {
-	mi := &file_tnet_papers_v1_papers_proto_msgTypes[38]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ImportBrowserPaperProgress.ProtoReflect.Descriptor instead.
-func (*ImportBrowserPaperProgress) Descriptor() ([]byte, []int) {
-	return file_tnet_papers_v1_papers_proto_rawDescGZIP(), []int{38}
-}
-
-func (x *ImportBrowserPaperProgress) GetStage() string {
-	if x != nil {
-		return x.Stage
-	}
-	return ""
-}
-
-func (x *ImportBrowserPaperProgress) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *ImportBrowserPaperProgress) GetDownloadedBytes() int64 {
-	if x != nil {
-		return x.DownloadedBytes
-	}
-	return 0
-}
-
-func (x *ImportBrowserPaperProgress) GetTotalBytes() int64 {
-	if x != nil {
-		return x.TotalBytes
-	}
-	return 0
-}
-
-func (x *ImportBrowserPaperProgress) GetResponse() *ImportBrowserPaperResponse {
-	if x != nil {
-		return x.Response
-	}
-	return nil
-}
-
 var File_tnet_papers_v1_papers_proto protoreflect.FileDescriptor
 
 const file_tnet_papers_v1_papers_proto_rawDesc = "" +
@@ -2603,52 +2123,7 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12\x19\n" +
 	"\bpdf_path\x18\x02 \x01(\tR\apdfPath\",\n" +
 	"\x14LoadPdfBytesResponse\x12\x14\n" +
-	"\x05bytes\x18\x01 \x01(\fR\x05bytes\"\xb2\x02\n" +
-	"\x1aBrowserDetectedPaperSource\x12\x1d\n" +
-	"\n" +
-	"source_url\x18\x01 \x01(\tR\tsourceUrl\x12\x1d\n" +
-	"\n" +
-	"page_title\x18\x02 \x01(\tR\tpageTitle\x12#\n" +
-	"\rcanonical_url\x18\x03 \x01(\tR\fcanonicalUrl\x12\x10\n" +
-	"\x03doi\x18\x04 \x01(\tR\x03doi\x12\x19\n" +
-	"\barxiv_id\x18\x05 \x01(\tR\aarxivId\x12\x17\n" +
-	"\apdf_url\x18\x06 \x01(\tR\x06pdfUrl\x12\x14\n" +
-	"\x05title\x18\a \x01(\tR\x05title\x12\x18\n" +
-	"\aauthors\x18\b \x03(\tR\aauthors\x12%\n" +
-	"\x0epublished_year\x18\t \x01(\x05R\rpublishedYear\x12\x14\n" +
-	"\x05venue\x18\n" +
-	" \x01(\tR\x05venue\"\xc4\x02\n" +
-	"\x1bBrowserPaperImportCandidate\x12B\n" +
-	"\x06source\x18\x01 \x01(\v2*.tnet.papers.v1.BrowserDetectedPaperSourceR\x06source\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\aauthors\x18\x03 \x03(\tR\aauthors\x12\x1a\n" +
-	"\babstract\x18\x04 \x01(\tR\babstract\x12%\n" +
-	"\x0epublished_year\x18\x05 \x01(\x05R\rpublishedYear\x12\x14\n" +
-	"\x05venue\x18\x06 \x01(\tR\x05venue\x12\x10\n" +
-	"\x03doi\x18\a \x01(\tR\x03doi\x12\x19\n" +
-	"\barxiv_id\x18\b \x01(\tR\aarxivId\x12\x17\n" +
-	"\apdf_url\x18\t \x01(\tR\x06pdfUrl\x12\x12\n" +
-	"\x04tags\x18\n" +
-	" \x03(\tR\x04tags\"\\\n" +
-	"\x16ResolveMetadataRequest\x12B\n" +
-	"\x06source\x18\x01 \x01(\v2*.tnet.papers.v1.BrowserDetectedPaperSourceR\x06source\"\xe3\x01\n" +
-	"\x19ImportBrowserPaperRequest\x12!\n" +
-	"\flibrary_root\x18\x01 \x01(\tR\vlibraryRoot\x12%\n" +
-	"\x0edirectory_path\x18\x02 \x01(\tR\rdirectoryPath\x12I\n" +
-	"\tcandidate\x18\x03 \x01(\v2+.tnet.papers.v1.BrowserPaperImportCandidateR\tcandidate\x12\x1d\n" +
-	"\n" +
-	"import_pdf\x18\x04 \x01(\bR\timportPdf\x12\x12\n" +
-	"\x04tags\x18\x05 \x03(\tR\x04tags\"g\n" +
-	"\x1aImportBrowserPaperResponse\x12\x16\n" +
-	"\x06status\x18\x01 \x01(\tR\x06status\x121\n" +
-	"\x05paper\x18\x02 \x01(\v2\x1b.tnet.papers.v1.PaperDetailR\x05paper\"\xe0\x01\n" +
-	"\x1aImportBrowserPaperProgress\x12\x14\n" +
-	"\x05stage\x18\x01 \x01(\tR\x05stage\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12)\n" +
-	"\x10downloaded_bytes\x18\x03 \x01(\x03R\x0fdownloadedBytes\x12\x1f\n" +
-	"\vtotal_bytes\x18\x04 \x01(\x03R\n" +
-	"totalBytes\x12F\n" +
-	"\bresponse\x18\x05 \x01(\v2*.tnet.papers.v1.ImportBrowserPaperResponseR\bresponse2U\n" +
+	"\x05bytes\x18\x01 \x01(\fR\x05bytes2U\n" +
 	"\rHealthService\x12D\n" +
 	"\x05Check\x12\x1c.tnet.papers.v1.CheckRequest\x1a\x1d.tnet.papers.v1.CheckResponse2\xe8\x04\n" +
 	"\x0eLibraryService\x12_\n" +
@@ -2657,15 +2132,13 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\x11LoadLibraryConfig\x12(.tnet.papers.v1.LoadLibraryConfigRequest\x1a#.tnet.papers.v1.PapersLibraryConfig\x12h\n" +
 	"\x11SaveLibraryConfig\x12(.tnet.papers.v1.SaveLibraryConfigRequest\x1a).tnet.papers.v1.SaveLibraryConfigResponse\x12\\\n" +
 	"\rListLibraries\x12$.tnet.papers.v1.ListLibrariesRequest\x1a%.tnet.papers.v1.ListLibrariesResponse\x12b\n" +
-	"\x0fListDirectories\x12&.tnet.papers.v1.ListDirectoriesRequest\x1a'.tnet.papers.v1.ListDirectoriesResponse2\xb9\x05\n" +
+	"\x0fListDirectories\x12&.tnet.papers.v1.ListDirectoriesRequest\x1a'.tnet.papers.v1.ListDirectoriesResponse2\xd1\x03\n" +
 	"\fPaperService\x12S\n" +
 	"\n" +
 	"ListPapers\x12!.tnet.papers.v1.ListPapersRequest\x1a\".tnet.papers.v1.ListPapersResponse\x12M\n" +
 	"\bGetPaper\x12\x1f.tnet.papers.v1.GetPaperRequest\x1a .tnet.papers.v1.GetPaperResponse\x12f\n" +
 	"\x17CreatePaperFromLocalPdf\x12..tnet.papers.v1.CreatePaperFromLocalPdfRequest\x1a\x1b.tnet.papers.v1.PaperDetail\x12f\n" +
-	"\x17CreatePaperFromPdfBytes\x12..tnet.papers.v1.CreatePaperFromPdfBytesRequest\x1a\x1b.tnet.papers.v1.PaperDetail\x12k\n" +
-	"\x12ImportBrowserPaper\x12).tnet.papers.v1.ImportBrowserPaperRequest\x1a*.tnet.papers.v1.ImportBrowserPaperResponse\x12y\n" +
-	"\x1eImportBrowserPaperWithProgress\x12).tnet.papers.v1.ImportBrowserPaperRequest\x1a*.tnet.papers.v1.ImportBrowserPaperProgress0\x01\x12M\n" +
+	"\x17CreatePaperFromPdfBytes\x12..tnet.papers.v1.CreatePaperFromPdfBytesRequest\x1a\x1b.tnet.papers.v1.PaperDetail\x12M\n" +
 	"\bSaveNote\x12\x1f.tnet.papers.v1.SaveNoteRequest\x1a .tnet.papers.v1.GetPaperResponse2\xc6\x02\n" +
 	"\n" +
 	"TagService\x12M\n" +
@@ -2675,9 +2148,7 @@ const file_tnet_papers_v1_papers_proto_rawDesc = "" +
 	"\tDetachTag\x12 .tnet.papers.v1.DetachTagRequest\x1a .tnet.papers.v1.GetPaperResponse2g\n" +
 	"\n" +
 	"PdfService\x12Y\n" +
-	"\fLoadPdfBytes\x12#.tnet.papers.v1.LoadPdfBytesRequest\x1a$.tnet.papers.v1.LoadPdfBytesResponse2~\n" +
-	"\x14BrowserImportService\x12f\n" +
-	"\x0fResolveMetadata\x12&.tnet.papers.v1.ResolveMetadataRequest\x1a+.tnet.papers.v1.BrowserPaperImportCandidateBVZTgithub.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1;papersv1b\x06proto3"
+	"\fLoadPdfBytes\x12#.tnet.papers.v1.LoadPdfBytesRequest\x1a$.tnet.papers.v1.LoadPdfBytesResponseBVZTgithub.com/kavos113/tnet/services/papers-server/internal/gen/tnet/papers/v1;papersv1b\x06proto3"
 
 var (
 	file_tnet_papers_v1_papers_proto_rawDescOnce sync.Once
@@ -2691,7 +2162,7 @@ func file_tnet_papers_v1_papers_proto_rawDescGZIP() []byte {
 	return file_tnet_papers_v1_papers_proto_rawDescData
 }
 
-var file_tnet_papers_v1_papers_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_tnet_papers_v1_papers_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_tnet_papers_v1_papers_proto_goTypes = []any{
 	(*CheckRequest)(nil),                   // 0: tnet.papers.v1.CheckRequest
 	(*CheckResponse)(nil),                  // 1: tnet.papers.v1.CheckResponse
@@ -2726,12 +2197,6 @@ var file_tnet_papers_v1_papers_proto_goTypes = []any{
 	(*SaveNoteRequest)(nil),                // 30: tnet.papers.v1.SaveNoteRequest
 	(*LoadPdfBytesRequest)(nil),            // 31: tnet.papers.v1.LoadPdfBytesRequest
 	(*LoadPdfBytesResponse)(nil),           // 32: tnet.papers.v1.LoadPdfBytesResponse
-	(*BrowserDetectedPaperSource)(nil),     // 33: tnet.papers.v1.BrowserDetectedPaperSource
-	(*BrowserPaperImportCandidate)(nil),    // 34: tnet.papers.v1.BrowserPaperImportCandidate
-	(*ResolveMetadataRequest)(nil),         // 35: tnet.papers.v1.ResolveMetadataRequest
-	(*ImportBrowserPaperRequest)(nil),      // 36: tnet.papers.v1.ImportBrowserPaperRequest
-	(*ImportBrowserPaperResponse)(nil),     // 37: tnet.papers.v1.ImportBrowserPaperResponse
-	(*ImportBrowserPaperProgress)(nil),     // 38: tnet.papers.v1.ImportBrowserPaperProgress
 }
 var file_tnet_papers_v1_papers_proto_depIdxs = []int32{
 	2,  // 0: tnet.papers.v1.SaveGlobalConfigRequest.config:type_name -> tnet.papers.v1.PapersGlobalConfig
@@ -2742,56 +2207,45 @@ var file_tnet_papers_v1_papers_proto_depIdxs = []int32{
 	16, // 5: tnet.papers.v1.ListPapersResponse.papers:type_name -> tnet.papers.v1.PaperSummary
 	17, // 6: tnet.papers.v1.GetPaperResponse.paper:type_name -> tnet.papers.v1.PaperDetail
 	24, // 7: tnet.papers.v1.ListTagsResponse.tags:type_name -> tnet.papers.v1.PaperTag
-	33, // 8: tnet.papers.v1.BrowserPaperImportCandidate.source:type_name -> tnet.papers.v1.BrowserDetectedPaperSource
-	33, // 9: tnet.papers.v1.ResolveMetadataRequest.source:type_name -> tnet.papers.v1.BrowserDetectedPaperSource
-	34, // 10: tnet.papers.v1.ImportBrowserPaperRequest.candidate:type_name -> tnet.papers.v1.BrowserPaperImportCandidate
-	17, // 11: tnet.papers.v1.ImportBrowserPaperResponse.paper:type_name -> tnet.papers.v1.PaperDetail
-	37, // 12: tnet.papers.v1.ImportBrowserPaperProgress.response:type_name -> tnet.papers.v1.ImportBrowserPaperResponse
-	0,  // 13: tnet.papers.v1.HealthService.Check:input_type -> tnet.papers.v1.CheckRequest
-	4,  // 14: tnet.papers.v1.LibraryService.LoadGlobalConfig:input_type -> tnet.papers.v1.LoadGlobalConfigRequest
-	5,  // 15: tnet.papers.v1.LibraryService.SaveGlobalConfig:input_type -> tnet.papers.v1.SaveGlobalConfigRequest
-	7,  // 16: tnet.papers.v1.LibraryService.LoadLibraryConfig:input_type -> tnet.papers.v1.LoadLibraryConfigRequest
-	8,  // 17: tnet.papers.v1.LibraryService.SaveLibraryConfig:input_type -> tnet.papers.v1.SaveLibraryConfigRequest
-	10, // 18: tnet.papers.v1.LibraryService.ListLibraries:input_type -> tnet.papers.v1.ListLibrariesRequest
-	13, // 19: tnet.papers.v1.LibraryService.ListDirectories:input_type -> tnet.papers.v1.ListDirectoriesRequest
-	18, // 20: tnet.papers.v1.PaperService.ListPapers:input_type -> tnet.papers.v1.ListPapersRequest
-	20, // 21: tnet.papers.v1.PaperService.GetPaper:input_type -> tnet.papers.v1.GetPaperRequest
-	22, // 22: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:input_type -> tnet.papers.v1.CreatePaperFromLocalPdfRequest
-	23, // 23: tnet.papers.v1.PaperService.CreatePaperFromPdfBytes:input_type -> tnet.papers.v1.CreatePaperFromPdfBytesRequest
-	36, // 24: tnet.papers.v1.PaperService.ImportBrowserPaper:input_type -> tnet.papers.v1.ImportBrowserPaperRequest
-	36, // 25: tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress:input_type -> tnet.papers.v1.ImportBrowserPaperRequest
-	30, // 26: tnet.papers.v1.PaperService.SaveNote:input_type -> tnet.papers.v1.SaveNoteRequest
-	25, // 27: tnet.papers.v1.TagService.ListTags:input_type -> tnet.papers.v1.ListTagsRequest
-	27, // 28: tnet.papers.v1.TagService.UpsertTag:input_type -> tnet.papers.v1.UpsertTagRequest
-	28, // 29: tnet.papers.v1.TagService.AttachTag:input_type -> tnet.papers.v1.AttachTagRequest
-	29, // 30: tnet.papers.v1.TagService.DetachTag:input_type -> tnet.papers.v1.DetachTagRequest
-	31, // 31: tnet.papers.v1.PdfService.LoadPdfBytes:input_type -> tnet.papers.v1.LoadPdfBytesRequest
-	35, // 32: tnet.papers.v1.BrowserImportService.ResolveMetadata:input_type -> tnet.papers.v1.ResolveMetadataRequest
-	1,  // 33: tnet.papers.v1.HealthService.Check:output_type -> tnet.papers.v1.CheckResponse
-	2,  // 34: tnet.papers.v1.LibraryService.LoadGlobalConfig:output_type -> tnet.papers.v1.PapersGlobalConfig
-	6,  // 35: tnet.papers.v1.LibraryService.SaveGlobalConfig:output_type -> tnet.papers.v1.SaveGlobalConfigResponse
-	3,  // 36: tnet.papers.v1.LibraryService.LoadLibraryConfig:output_type -> tnet.papers.v1.PapersLibraryConfig
-	9,  // 37: tnet.papers.v1.LibraryService.SaveLibraryConfig:output_type -> tnet.papers.v1.SaveLibraryConfigResponse
-	12, // 38: tnet.papers.v1.LibraryService.ListLibraries:output_type -> tnet.papers.v1.ListLibrariesResponse
-	15, // 39: tnet.papers.v1.LibraryService.ListDirectories:output_type -> tnet.papers.v1.ListDirectoriesResponse
-	19, // 40: tnet.papers.v1.PaperService.ListPapers:output_type -> tnet.papers.v1.ListPapersResponse
-	21, // 41: tnet.papers.v1.PaperService.GetPaper:output_type -> tnet.papers.v1.GetPaperResponse
-	17, // 42: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:output_type -> tnet.papers.v1.PaperDetail
-	17, // 43: tnet.papers.v1.PaperService.CreatePaperFromPdfBytes:output_type -> tnet.papers.v1.PaperDetail
-	37, // 44: tnet.papers.v1.PaperService.ImportBrowserPaper:output_type -> tnet.papers.v1.ImportBrowserPaperResponse
-	38, // 45: tnet.papers.v1.PaperService.ImportBrowserPaperWithProgress:output_type -> tnet.papers.v1.ImportBrowserPaperProgress
-	21, // 46: tnet.papers.v1.PaperService.SaveNote:output_type -> tnet.papers.v1.GetPaperResponse
-	26, // 47: tnet.papers.v1.TagService.ListTags:output_type -> tnet.papers.v1.ListTagsResponse
-	24, // 48: tnet.papers.v1.TagService.UpsertTag:output_type -> tnet.papers.v1.PaperTag
-	21, // 49: tnet.papers.v1.TagService.AttachTag:output_type -> tnet.papers.v1.GetPaperResponse
-	21, // 50: tnet.papers.v1.TagService.DetachTag:output_type -> tnet.papers.v1.GetPaperResponse
-	32, // 51: tnet.papers.v1.PdfService.LoadPdfBytes:output_type -> tnet.papers.v1.LoadPdfBytesResponse
-	34, // 52: tnet.papers.v1.BrowserImportService.ResolveMetadata:output_type -> tnet.papers.v1.BrowserPaperImportCandidate
-	33, // [33:53] is the sub-list for method output_type
-	13, // [13:33] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	0,  // 8: tnet.papers.v1.HealthService.Check:input_type -> tnet.papers.v1.CheckRequest
+	4,  // 9: tnet.papers.v1.LibraryService.LoadGlobalConfig:input_type -> tnet.papers.v1.LoadGlobalConfigRequest
+	5,  // 10: tnet.papers.v1.LibraryService.SaveGlobalConfig:input_type -> tnet.papers.v1.SaveGlobalConfigRequest
+	7,  // 11: tnet.papers.v1.LibraryService.LoadLibraryConfig:input_type -> tnet.papers.v1.LoadLibraryConfigRequest
+	8,  // 12: tnet.papers.v1.LibraryService.SaveLibraryConfig:input_type -> tnet.papers.v1.SaveLibraryConfigRequest
+	10, // 13: tnet.papers.v1.LibraryService.ListLibraries:input_type -> tnet.papers.v1.ListLibrariesRequest
+	13, // 14: tnet.papers.v1.LibraryService.ListDirectories:input_type -> tnet.papers.v1.ListDirectoriesRequest
+	18, // 15: tnet.papers.v1.PaperService.ListPapers:input_type -> tnet.papers.v1.ListPapersRequest
+	20, // 16: tnet.papers.v1.PaperService.GetPaper:input_type -> tnet.papers.v1.GetPaperRequest
+	22, // 17: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:input_type -> tnet.papers.v1.CreatePaperFromLocalPdfRequest
+	23, // 18: tnet.papers.v1.PaperService.CreatePaperFromPdfBytes:input_type -> tnet.papers.v1.CreatePaperFromPdfBytesRequest
+	30, // 19: tnet.papers.v1.PaperService.SaveNote:input_type -> tnet.papers.v1.SaveNoteRequest
+	25, // 20: tnet.papers.v1.TagService.ListTags:input_type -> tnet.papers.v1.ListTagsRequest
+	27, // 21: tnet.papers.v1.TagService.UpsertTag:input_type -> tnet.papers.v1.UpsertTagRequest
+	28, // 22: tnet.papers.v1.TagService.AttachTag:input_type -> tnet.papers.v1.AttachTagRequest
+	29, // 23: tnet.papers.v1.TagService.DetachTag:input_type -> tnet.papers.v1.DetachTagRequest
+	31, // 24: tnet.papers.v1.PdfService.LoadPdfBytes:input_type -> tnet.papers.v1.LoadPdfBytesRequest
+	1,  // 25: tnet.papers.v1.HealthService.Check:output_type -> tnet.papers.v1.CheckResponse
+	2,  // 26: tnet.papers.v1.LibraryService.LoadGlobalConfig:output_type -> tnet.papers.v1.PapersGlobalConfig
+	6,  // 27: tnet.papers.v1.LibraryService.SaveGlobalConfig:output_type -> tnet.papers.v1.SaveGlobalConfigResponse
+	3,  // 28: tnet.papers.v1.LibraryService.LoadLibraryConfig:output_type -> tnet.papers.v1.PapersLibraryConfig
+	9,  // 29: tnet.papers.v1.LibraryService.SaveLibraryConfig:output_type -> tnet.papers.v1.SaveLibraryConfigResponse
+	12, // 30: tnet.papers.v1.LibraryService.ListLibraries:output_type -> tnet.papers.v1.ListLibrariesResponse
+	15, // 31: tnet.papers.v1.LibraryService.ListDirectories:output_type -> tnet.papers.v1.ListDirectoriesResponse
+	19, // 32: tnet.papers.v1.PaperService.ListPapers:output_type -> tnet.papers.v1.ListPapersResponse
+	21, // 33: tnet.papers.v1.PaperService.GetPaper:output_type -> tnet.papers.v1.GetPaperResponse
+	17, // 34: tnet.papers.v1.PaperService.CreatePaperFromLocalPdf:output_type -> tnet.papers.v1.PaperDetail
+	17, // 35: tnet.papers.v1.PaperService.CreatePaperFromPdfBytes:output_type -> tnet.papers.v1.PaperDetail
+	21, // 36: tnet.papers.v1.PaperService.SaveNote:output_type -> tnet.papers.v1.GetPaperResponse
+	26, // 37: tnet.papers.v1.TagService.ListTags:output_type -> tnet.papers.v1.ListTagsResponse
+	24, // 38: tnet.papers.v1.TagService.UpsertTag:output_type -> tnet.papers.v1.PaperTag
+	21, // 39: tnet.papers.v1.TagService.AttachTag:output_type -> tnet.papers.v1.GetPaperResponse
+	21, // 40: tnet.papers.v1.TagService.DetachTag:output_type -> tnet.papers.v1.GetPaperResponse
+	32, // 41: tnet.papers.v1.PdfService.LoadPdfBytes:output_type -> tnet.papers.v1.LoadPdfBytesResponse
+	25, // [25:42] is the sub-list for method output_type
+	8,  // [8:25] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_tnet_papers_v1_papers_proto_init() }
@@ -2805,9 +2259,9 @@ func file_tnet_papers_v1_papers_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tnet_papers_v1_papers_proto_rawDesc), len(file_tnet_papers_v1_papers_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   39,
+			NumMessages:   33,
 			NumExtensions: 0,
-			NumServices:   6,
+			NumServices:   5,
 		},
 		GoTypes:           file_tnet_papers_v1_papers_proto_goTypes,
 		DependencyIndexes: file_tnet_papers_v1_papers_proto_depIdxs,
