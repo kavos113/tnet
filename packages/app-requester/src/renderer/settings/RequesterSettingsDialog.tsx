@@ -166,7 +166,7 @@ export const RequesterSettingsDialog = ({
   };
 
   return (
-    <div className={sharedStyles.overlay} onMouseDown={onClose}>
+    <div className={sharedStyles.overlay} role="presentation" onMouseDown={onClose}>
       <section
         className={sharedStyles.modal}
         aria-label="Requester settings"

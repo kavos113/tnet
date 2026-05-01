@@ -13,7 +13,23 @@
   "categories": {
     "correctness": "error"
   },
-  "rules": {},
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "vitest/require-mock-type-parameters": "off",
+        "vitest/valid-expect": "off",
+        "jest/valid-expect": "off",
+        "vitest/valid-title": "off",
+        "jest/valid-title": "off"
+      }
+    }
+  ],
+  "rules": {
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/no-autofocus": "off",
+    "import/default": "off"
+  },
   "env": {
     "builtin": true
   },

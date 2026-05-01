@@ -61,7 +61,7 @@ export const defaultRequesterWorkspaceSettings = (): RequesterWorkspaceSettings 
 
 export const getRequesterGlobalConfig = (config: GlobalConfig): RequesterGlobalConfig => ({
   ...defaultRequesterGlobalConfig(),
-  ...((config.apps?.requester as Partial<RequesterGlobalConfig> | undefined) ?? {})
+  ...(config.apps?.requester as Partial<RequesterGlobalConfig> | undefined)
 });
 
 export const withRequesterGlobalConfig = (

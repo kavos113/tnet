@@ -308,7 +308,7 @@ export const RequesterEditor = ({
       )}
       <RequesterVariableSuggestions variables={variables} />
       {requestType === 'grpc' ? (
-        <label>Message JSON</label>
+        <span>Message JSON</span>
       ) : (
         <label>
           Body

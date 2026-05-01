@@ -67,15 +67,21 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
   const [largePreviewAllowedPaths, setLargePreviewAllowedPaths] = useState<Set<string>>(
     () => new Set()
   );
+  const getInlineCompletionRef = useRef(workspaceApi.getInlineCompletion);
   const isLargePreviewAllowed =
     activeFilePath !== null && largePreviewAllowedPaths.has(activeFilePath);
   const effectiveViewMode = isLargeActiveFile && !isLargePreviewAllowed ? 'editor' : group.viewMode;
+
+  useEffect(() => {
+    getInlineCompletionRef.current = workspaceApi.getInlineCompletion;
+  }, [workspaceApi.getInlineCompletion]);
+
   const requestInlineCompletion = useCallback(
     (context: InlineCompletionContext): Promise<InlineCompletionResult | null> => {
       if (!activeFilePath) return Promise.resolve(null);
-      return workspaceApi.getInlineCompletion(activeFilePath, context);
+      return getInlineCompletionRef.current(activeFilePath, context);
     },
-    [activeFilePath, workspaceApi.getInlineCompletion]
+    [activeFilePath]
   );
   const handlePreviewRendered = useCallback(() => {
     setPreviewRenderVersion((version) => version + 1);
@@ -145,6 +151,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
   return (
     <section
       className={`${styles.group} ${isActiveGroup ? styles.activeGroup : ''}`}
+      role="presentation"
       onMouseDown={() => dispatch(setActiveGroup(groupId))}
     >
       <TabBar groupId={groupId} />

@@ -64,7 +64,7 @@ export const PapersSettingsDialog = ({
   };
 
   return (
-    <div className={styles.overlay} onMouseDown={onClose}>
+    <div className={styles.overlay} role="presentation" onMouseDown={onClose}>
       <section
         className={styles.content}
         aria-label="Papers settings"

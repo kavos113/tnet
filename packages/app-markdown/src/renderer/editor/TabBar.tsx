@@ -14,7 +14,11 @@ export const TabBar = ({ groupId }: TabBarProps): React.JSX.Element | null => {
   if (group.tabs.length === 0) return null;
 
   return (
-    <div className={styles.tabBar} onMouseDown={() => dispatch(setActiveGroup(groupId))}>
+    <div
+      className={styles.tabBar}
+      role="presentation"
+      onMouseDown={() => dispatch(setActiveGroup(groupId))}
+    >
       {group.tabs.map((path, index) => {
         const file = filesByPath[path];
         if (!file) return null;

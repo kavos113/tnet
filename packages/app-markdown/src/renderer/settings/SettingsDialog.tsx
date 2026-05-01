@@ -18,7 +18,7 @@ export const SettingsDialog = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onMouseDown={onClose}>
+    <div className={styles.overlay} role="presentation" onMouseDown={onClose}>
       <section
         className={styles.content}
         aria-label="Settings"

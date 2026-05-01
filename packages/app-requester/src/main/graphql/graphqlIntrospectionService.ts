@@ -57,7 +57,7 @@ export class GraphqlIntrospectionService {
       headers: input.headers,
       bodyMode: 'graphql',
       bodyText: introspectionQuery,
-      ...(input.auth ?? {})
+      ...input.auth
     });
     const response = await this.transport.fetch(serialized.url, serialized.init);
     if (!response.ok) throw new Error(`GraphQL introspection failed: ${response.status}`);

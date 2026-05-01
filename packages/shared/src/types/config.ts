@@ -23,7 +23,7 @@ export const normalizeGlobalConfig = (config: GlobalConfig): GlobalConfig => {
     ...config,
     apps: {
       ...defaults.apps,
-      ...(config.apps ?? {})
+      ...config.apps
     }
   };
 };

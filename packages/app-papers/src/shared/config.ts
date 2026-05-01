@@ -39,7 +39,7 @@ export const defaultPapersLibraryConfig = (): PapersLibraryConfig => ({
 
 export const getPapersGlobalConfig = (config: GlobalConfig): PapersGlobalConfig => ({
   ...defaultPapersGlobalConfig(),
-  ...((config.apps?.papers as Partial<PapersGlobalConfig> | undefined) ?? {})
+  ...(config.apps?.papers as Partial<PapersGlobalConfig> | undefined)
 });
 
 export const withPapersGlobalConfig = (

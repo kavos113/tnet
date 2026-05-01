@@ -20,7 +20,7 @@ export const RequesterRenameDialog = ({
   onCancel,
   onSave
 }: RequesterRenameDialogProps): React.JSX.Element => (
-  <div className={sharedStyles.overlay} onMouseDown={onCancel}>
+  <div className={sharedStyles.overlay} role="presentation" onMouseDown={onCancel}>
     <section
       className={`${sharedStyles.modal} ${styles.dialog}`}
       aria-label="Rename or move request"

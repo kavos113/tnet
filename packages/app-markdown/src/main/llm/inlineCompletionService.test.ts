@@ -37,11 +37,11 @@ describe('getInlineCompletion', () => {
       ...config,
       markdown: {
         ...defaultMarkdownProjectConfig().markdown,
-        ...(config.markdown ?? {})
+        ...config.markdown
       },
       llm: {
         ...defaultMarkdownProjectConfig().llm,
-        ...(config.llm ?? {})
+        ...config.llm
       }
     });
     return root;

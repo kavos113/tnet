@@ -47,7 +47,7 @@ export const defaultMarkdownGlobalConfig = (): MarkdownGlobalConfig => ({
 
 export const getMarkdownGlobalConfig = (config: GlobalConfig): MarkdownGlobalConfig => ({
   ...defaultMarkdownGlobalConfig(),
-  ...((config.apps?.markdown as Partial<MarkdownGlobalConfig> | undefined) ?? {})
+  ...(config.apps?.markdown as Partial<MarkdownGlobalConfig> | undefined)
 });
 
 export const withMarkdownGlobalConfig = (
@@ -96,10 +96,10 @@ export const normalizeMarkdownProjectConfig = (
 ): MarkdownProjectConfig => ({
   markdown: {
     ...defaultMarkdownSettings(),
-    ...(config.markdown ?? {})
+    ...config.markdown
   },
   llm: {
     ...defaultLlmSettings(),
-    ...(config.llm ?? {})
+    ...config.llm
   }
 });

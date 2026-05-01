@@ -49,6 +49,7 @@ export const MarkdownEditorPane = forwardRef<MarkdownEditorPaneHandle, MarkdownE
   ): React.JSX.Element => {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const editorRef = useRef<MarkdownEditorInstance | null>(null);
+    const initialContentRef = useRef(content);
     const onChangeRef = useRef(onChange);
 
     useEffect(() => {
@@ -82,7 +83,7 @@ export const MarkdownEditorPane = forwardRef<MarkdownEditorPaneHandle, MarkdownE
 
       editorRef.current = createMarkdownEditor({
         parent: containerRef.current,
-        content,
+        content: initialContentRef.current,
         onChange: (nextContent) => onChangeRef.current(nextContent),
         completionSources,
         editorExtensions,
