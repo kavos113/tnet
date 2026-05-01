@@ -29,6 +29,18 @@ export default defineConfig({
       'packages/**/*.test.ts',
       'packages/**/*.test.tsx'
     ],
-    setupFiles: ['apps/desktop/src/renderer/src/test/setup.ts']
+    setupFiles: ['apps/desktop/src/renderer/src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        '**/node_modules/**',
+        '**/dist/**',
+        '**/build/**',
+        '**/src/**/*.d.ts',
+        '**/src/**/*.test.{ts,tsx}',
+        '**/src/test/**'
+      ]
+    }
   }
 });
