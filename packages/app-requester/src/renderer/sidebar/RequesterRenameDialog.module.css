@@ -1,0 +1,25 @@
+.dialog {
+  gap: 12px;
+}
+
+.pathPreview {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-md);
+  background: var(--background-dark);
+}
+
+.pathPreview span {
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pathPreview strong {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-family: var(--requester-code-font-family, monospace);
+  font-size: var(--requester-code-font-size, 13px);
+}

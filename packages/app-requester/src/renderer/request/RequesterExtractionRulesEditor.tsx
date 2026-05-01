@@ -1,4 +1,5 @@
 import type { RequesterExtractionRule } from '@tnet/app-requester/shared/requesterTypes';
+import styles from './RequesterExtractionRulesEditor.module.css';
 
 interface RequesterExtractionRulesEditorProps {
   rules: RequesterExtractionRule[];
@@ -14,9 +15,9 @@ export const RequesterExtractionRulesEditor = ({
   };
 
   return (
-    <section className="requester-extraction-section" aria-label="Extraction rules">
-      <header>
-        <h2>Extraction</h2>
+    <section className={styles.root} aria-label="Extraction rules">
+      <header className={styles.header}>
+        <h2 className={styles.title}>Extraction</h2>
         <button
           type="button"
           className="open-folder-button"
@@ -25,9 +26,9 @@ export const RequesterExtractionRulesEditor = ({
           Add
         </button>
       </header>
-      <div className="requester-extraction-table">
+      <div className={styles.table}>
         {rules.map((rule) => (
-          <div className="requester-extraction-row" key={rule.id}>
+          <div className={styles.row} key={rule.id}>
             <input
               type="checkbox"
               aria-label="Extraction enabled"
@@ -68,7 +69,7 @@ export const RequesterExtractionRulesEditor = ({
             </button>
           </div>
         ))}
-        {rules.length === 0 ? <p className="empty-list-message">No extraction rules.</p> : null}
+        {rules.length === 0 ? <p className={styles.empty}>No extraction rules.</p> : null}
       </div>
     </section>
   );

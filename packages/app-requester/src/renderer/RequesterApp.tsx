@@ -8,6 +8,7 @@ import { useRequesterRequestDraft } from './request/useRequesterRequestDraft';
 import { requesterTnetApi } from './requesterTnetApi';
 import { RequesterResponsePanel } from './response/RequesterResponsePanel';
 import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
+import styles from './RequesterApp.module.css';
 
 export const RequesterApp = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
@@ -140,7 +141,7 @@ export const RequesterApp = (): React.JSX.Element => {
   }
 
   return (
-    <main className="requester-app" aria-label="Requester" style={requesterStyle}>
+    <main className={styles.root} aria-label="Requester" style={requesterStyle}>
       <RequesterEditor
         name={draft.name}
         requestType={draft.requestType}

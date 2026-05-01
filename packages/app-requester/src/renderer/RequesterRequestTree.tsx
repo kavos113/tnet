@@ -1,4 +1,5 @@
 import type { RequesterExplorerNode } from '@tnet/app-requester/shared/requestPath';
+import styles from './RequesterRequestTree.module.css';
 
 interface RequesterRequestTreeProps {
   activeFolderPath?: string;
@@ -82,7 +83,7 @@ const RequesterRequestTreeItem = ({
             </span>
           </>
         ) : (
-          <span className="requester-method-label">{node.method ?? ''}</span>
+          <span className={styles.methodLabel}>{node.method ?? ''}</span>
         )}
         <p className={`file-item-name ${node.isDirectory ? '' : 'file-item-not-directory'}`}>
           {node.name}
@@ -90,7 +91,7 @@ const RequesterRequestTreeItem = ({
         {!node.isDirectory && node.requestId ? (
           <button
             type="button"
-            className="sidebar-icon-button material-icons-round requester-tree-action"
+            className={`sidebar-icon-button material-icons-round ${styles.treeAction}`}
             aria-label={`Rename ${node.name}`}
             title="Rename or move request"
             onClick={(event) => {

@@ -1,3 +1,5 @@
+import styles from './RequesterRenameDialog.module.css';
+
 interface RequesterRenameDialogProps {
   name: string;
   folderPath: string;
@@ -19,7 +21,7 @@ export const RequesterRenameDialog = ({
 }: RequesterRenameDialogProps): React.JSX.Element => (
   <div className="modal-overlay" onMouseDown={onCancel}>
     <section
-      className="modal-content requester-rename-dialog"
+      className={`modal-content ${styles.dialog}`}
       aria-label="Rename or move request"
       onMouseDown={(event) => event.stopPropagation()}
     >
@@ -41,7 +43,7 @@ export const RequesterRenameDialog = ({
           onChange={(event) => onFolderPathChange(event.target.value)}
         />
       </label>
-      <div className="requester-path-preview" aria-label="Request path preview">
+      <div className={styles.pathPreview} aria-label="Request path preview">
         <span>Request path</span>
         <strong>{pathPreview}</strong>
       </div>

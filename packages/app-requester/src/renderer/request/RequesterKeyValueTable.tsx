@@ -1,5 +1,6 @@
 import type { RequesterKeyValueRow } from '@tnet/app-requester/shared/requesterTypes';
 import { createEmptyRow, updateKeyValueRow } from './requesterAppHelpers';
+import styles from './RequesterKeyValueTable.module.css';
 
 interface RequesterKeyValueTableProps {
   label: string;
@@ -12,9 +13,9 @@ export const RequesterKeyValueTable = ({
   rows,
   onChange
 }: RequesterKeyValueTableProps): React.JSX.Element => (
-  <section className="requester-kv-section" aria-label={label}>
-    <header>
-      <h2>{label}</h2>
+  <section className={styles.root} aria-label={label}>
+    <header className={styles.header}>
+      <h2 className={styles.title}>{label}</h2>
       <button
         type="button"
         className="open-folder-button"
@@ -23,9 +24,9 @@ export const RequesterKeyValueTable = ({
         Add
       </button>
     </header>
-    <div className="requester-kv-table">
+    <div className={styles.table}>
       {rows.map((row) => (
-        <div className="requester-kv-row" key={row.id}>
+        <div className={styles.row} key={row.id}>
           <input
             type="checkbox"
             aria-label={`${label} enabled`}
@@ -60,7 +61,7 @@ export const RequesterKeyValueTable = ({
           </button>
         </div>
       ))}
-      {rows.length === 0 ? <p className="empty-list-message">No rows.</p> : null}
+      {rows.length === 0 ? <p className={styles.empty}>No rows.</p> : null}
     </div>
   </section>
 );

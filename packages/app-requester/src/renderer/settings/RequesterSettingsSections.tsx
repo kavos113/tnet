@@ -1,5 +1,6 @@
 import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import type { RequesterCookie } from '@tnet/app-requester/shared/requesterTypes';
+import styles from './RequesterSettingsSections.module.css';
 
 type SetDraft = (draft: RequesterWorkspaceSettings) => void;
 
@@ -67,7 +68,7 @@ export const RequesterExecutionSettings = ({
       />
     </label>
     {!draft.validateTlsCertificates ? (
-      <p className="requester-error">
+      <p className={styles.error}>
         TLS validation should stay enabled unless you are calling a trusted local service.
       </p>
     ) : null}
@@ -215,7 +216,7 @@ export const RequesterCookieSettings = ({
 }): React.JSX.Element => (
   <div className="settings-group">
     <h3>Cookies</h3>
-    <div className="requester-cookie-actions">
+    <div className={styles.actions}>
       <button type="button" className="settings-close-button" onClick={onReload}>
         Reload Cookies
       </button>
@@ -229,9 +230,9 @@ export const RequesterCookieSettings = ({
       </button>
     </div>
     {cookies.length > 0 ? (
-      <div className="requester-cookie-list" aria-label="Workspace cookies">
+      <div className={styles.cookieList} aria-label="Workspace cookies">
         {cookies.map((cookie) => (
-          <div className="requester-cookie-row" key={cookie.id}>
+          <div className={styles.cookieRow} key={cookie.id}>
             <strong>{cookie.name}</strong>
             <span>{cookie.domain}</span>
             <span>{cookie.path}</span>
@@ -262,7 +263,7 @@ export const RequesterBackupSettings = ({
 }): React.JSX.Element => (
   <div className="settings-group">
     <h3>Backup</h3>
-    <div className="requester-cookie-actions">
+    <div className={styles.actions}>
       <button type="button" className="settings-close-button" onClick={onExport}>
         Export Workspace
       </button>
@@ -299,7 +300,7 @@ const ProxySettings = ({
       </select>
     </label>
     {draft.proxyMode === 'http' || draft.proxyMode === 'socks' ? (
-      <div className="requester-auth-fields">
+      <div className={styles.authFields}>
         <input
           aria-label="Proxy host"
           placeholder="Proxy host"
