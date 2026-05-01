@@ -14,6 +14,18 @@ export const selectBinaryBodyFile = async (): Promise<{ path: string; name: stri
   };
 };
 
+export const selectGrpcProtoFile = async (): Promise<{ path: string; name: string } | null> => {
+  const result = await dialog.showOpenDialog({
+    filters: [{ name: 'Protocol Buffers', extensions: ['proto'] }],
+    properties: ['openFile']
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  return {
+    path: result.filePaths[0],
+    name: path.basename(result.filePaths[0])
+  };
+};
+
 export const saveResponseBody = async (request: {
   suggestedName: string;
   bodyText: string;

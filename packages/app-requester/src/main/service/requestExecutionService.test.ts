@@ -349,4 +349,74 @@ describe('RequestExecutionService', () => {
     expect((init.headers as Headers).get('Authorization')).toBe('Bearer abc');
     expect(init.body).toBe('abc');
   });
+
+  it('sends gRPC requests through the gRPC service and stores history', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-grpc')
+    };
+    const transport = {
+      fetch: vi.fn()
+    };
+    const grpcRequestService = {
+      unary: vi.fn().mockResolvedValue({
+        status: 0,
+        statusText: 'OK',
+        headers: [{ id: 'grpc-status', enabled: true, key: 'grpc-status', value: '0' }],
+        bodyText: '{\n  "ok": true\n}',
+        bodyBase64: 'ewogICJvayI6IHRydWUKfQ==',
+        contentType: 'application/grpc+json',
+        byteSize: 16,
+        durationMs: 8,
+        isBodyTruncated: false,
+        previewType: 'json'
+      })
+    };
+    const service = new RequestExecutionService(
+      historyStore,
+      transport,
+      30000,
+      undefined,
+      undefined,
+      undefined,
+      grpcRequestService
+    );
+
+    await expect(
+      service.send({
+        workspaceId: 'workspace-1',
+        name: 'Check',
+        requestType: 'grpc',
+        method: 'POST',
+        url: 'localhost:50051',
+        grpcProtoPath: 'C:\\proto\\health.proto',
+        grpcPackageName: 'health.v1',
+        grpcServiceName: 'HealthService',
+        grpcMethodName: 'Check',
+        bodyText: '{}'
+      })
+    ).resolves.toMatchObject({
+      historyId: 'history-grpc',
+      response: {
+        status: 0,
+        statusText: 'OK',
+        contentType: 'application/grpc+json'
+      }
+    });
+
+    expect(transport.fetch).not.toHaveBeenCalled();
+    expect(grpcRequestService.unary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestType: 'grpc',
+        grpcMethodName: 'Check'
+      })
+    );
+    expect(historyStore.saveExecution).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: expect.objectContaining({
+          requestType: 'grpc',
+          grpcProtoPath: 'C:\\proto\\health.proto'
+        })
+      })
+    );
+  });
 });

@@ -143,6 +143,7 @@ export const RequesterApp = (): React.JSX.Element => {
     <main className="requester-app" aria-label="Requester" style={requesterStyle}>
       <RequesterEditor
         name={draft.name}
+        requestType={draft.requestType}
         method={draft.method}
         url={draft.url}
         headers={draft.headers}
@@ -161,8 +162,14 @@ export const RequesterApp = (): React.JSX.Element => {
         graphqlSchemaTypes={draft.graphqlSchemaTypes}
         extractionRules={draft.extractionRules}
         variables={variables}
+        grpcProtoPath={draft.grpcProtoPath}
+        grpcPackageName={draft.grpcPackageName}
+        grpcServiceName={draft.grpcServiceName}
+        grpcMethodName={draft.grpcMethodName}
+        grpcMetadata={draft.grpcMetadata}
         error={error}
         onNameChange={scheduleNameAutosave}
+        onRequestTypeChange={draft.setRequestType}
         onMethodChange={draft.setMethod}
         onUrlChange={draft.setUrl}
         onHeadersChange={draft.setHeaders}
@@ -179,6 +186,12 @@ export const RequesterApp = (): React.JSX.Element => {
         onAuthApiKeyNameChange={draft.setAuthApiKeyName}
         onAuthApiKeyValueChange={draft.setAuthApiKeyValue}
         onExtractionRulesChange={draft.setExtractionRules}
+        onGrpcProtoPathChange={draft.setGrpcProtoPath}
+        onGrpcPackageNameChange={draft.setGrpcPackageName}
+        onGrpcServiceNameChange={draft.setGrpcServiceName}
+        onGrpcMethodNameChange={draft.setGrpcMethodName}
+        onGrpcMetadataChange={draft.setGrpcMetadata}
+        onGrpcProtoPathSelect={actions.selectGrpcProto}
         onSave={actions.runSave}
         onSend={actions.runSend}
         onIntrospectGraphql={actions.introspectGraphql}

@@ -4,6 +4,7 @@ import type {
   RequesterExtractionRule,
   RequesterHttpMethod,
   RequesterKeyValueRow,
+  RequesterRequestType,
   RequesterVariable
 } from '@tnet/app-requester/shared/requesterTypes';
 import { RequesterExtractionRulesEditor } from './RequesterExtractionRulesEditor';
@@ -32,6 +33,7 @@ const bodyModes: RequesterBodyMode[] = [
 
 export interface RequesterEditorProps {
   name: string;
+  requestType: RequesterRequestType;
   method: RequesterHttpMethod;
   url: string;
   headers: RequesterKeyValueRow[];
@@ -50,8 +52,14 @@ export interface RequesterEditorProps {
   graphqlSchemaTypes: GraphqlSchemaTypeSummary[];
   extractionRules: RequesterExtractionRule[];
   variables: RequesterVariable[];
+  grpcProtoPath: string;
+  grpcPackageName: string;
+  grpcServiceName: string;
+  grpcMethodName: string;
+  grpcMetadata: RequesterKeyValueRow[];
   error?: string;
   onNameChange: (value: string) => void;
+  onRequestTypeChange: (value: RequesterRequestType) => void;
   onMethodChange: (value: RequesterHttpMethod) => void;
   onUrlChange: (value: string) => void;
   onHeadersChange: (value: RequesterKeyValueRow[]) => void;
@@ -68,6 +76,12 @@ export interface RequesterEditorProps {
   onAuthApiKeyNameChange: (value: string) => void;
   onAuthApiKeyValueChange: (value: string) => void;
   onExtractionRulesChange: (value: RequesterExtractionRule[]) => void;
+  onGrpcProtoPathChange: (value: string) => void;
+  onGrpcPackageNameChange: (value: string) => void;
+  onGrpcServiceNameChange: (value: string) => void;
+  onGrpcMethodNameChange: (value: string) => void;
+  onGrpcMetadataChange: (value: RequesterKeyValueRow[]) => void;
+  onGrpcProtoPathSelect: () => void;
   onSave: () => void;
   onSend: () => void;
   onIntrospectGraphql: () => void;
@@ -75,6 +89,7 @@ export interface RequesterEditorProps {
 
 export const RequesterEditor = ({
   name,
+  requestType,
   method,
   url,
   headers,
@@ -93,8 +108,14 @@ export const RequesterEditor = ({
   graphqlSchemaTypes,
   extractionRules,
   variables,
+  grpcProtoPath,
+  grpcPackageName,
+  grpcServiceName,
+  grpcMethodName,
+  grpcMetadata,
   error,
   onNameChange,
+  onRequestTypeChange,
   onMethodChange,
   onUrlChange,
   onHeadersChange,
@@ -111,6 +132,12 @@ export const RequesterEditor = ({
   onAuthApiKeyNameChange,
   onAuthApiKeyValueChange,
   onExtractionRulesChange,
+  onGrpcProtoPathChange,
+  onGrpcPackageNameChange,
+  onGrpcServiceNameChange,
+  onGrpcMethodNameChange,
+  onGrpcMetadataChange,
+  onGrpcProtoPathSelect,
   onSave,
   onSend,
   onIntrospectGraphql
@@ -129,8 +156,18 @@ export const RequesterEditor = ({
     </header>
     <div className="requester-url-row">
       <select
+        aria-label="Request type"
+        value={requestType}
+        onChange={(event) => onRequestTypeChange(event.target.value as RequesterRequestType)}
+      >
+        <option value="http">HTTP</option>
+        <option value="grpc">gRPC</option>
+        <option value="websocket">WebSocket</option>
+      </select>
+      <select
         aria-label="HTTP method"
         value={method}
+        disabled={requestType !== 'http'}
         onChange={(event) => onMethodChange(event.target.value as RequesterHttpMethod)}
       >
         {httpMethods.map((method) => (
@@ -141,7 +178,7 @@ export const RequesterEditor = ({
       </select>
       <input
         aria-label="Request URL"
-        placeholder="https://api.example.test"
+        placeholder={requestType === 'grpc' ? 'localhost:50051' : 'https://api.example.test'}
         value={url}
         onChange={(event) => onUrlChange(event.target.value)}
       />
@@ -150,87 +187,134 @@ export const RequesterEditor = ({
       </button>
     </div>
     <section className="requester-body-editor">
-      <section className="requester-auth-section" aria-label="Auth">
+      {requestType === 'grpc' ? (
+        <section className="requester-grpc-section" aria-label="gRPC request settings">
+          <div className="requester-grpc-proto-row">
+            <input
+              aria-label="gRPC proto file"
+              placeholder="Path to .proto"
+              value={grpcProtoPath}
+              onChange={(event) => onGrpcProtoPathChange(event.target.value)}
+            />
+            <button type="button" className="open-folder-button" onClick={onGrpcProtoPathSelect}>
+              Select Proto
+            </button>
+          </div>
+          <div className="requester-grpc-method-grid">
+            <input
+              aria-label="gRPC package"
+              placeholder="package, e.g. tnet.papers.v1"
+              value={grpcPackageName}
+              onChange={(event) => onGrpcPackageNameChange(event.target.value)}
+            />
+            <input
+              aria-label="gRPC service"
+              placeholder="Service"
+              value={grpcServiceName}
+              onChange={(event) => onGrpcServiceNameChange(event.target.value)}
+            />
+            <input
+              aria-label="gRPC method"
+              placeholder="Method"
+              value={grpcMethodName}
+              onChange={(event) => onGrpcMethodNameChange(event.target.value)}
+            />
+          </div>
+          <RequesterKeyValueTable
+            label="gRPC Metadata"
+            rows={grpcMetadata}
+            onChange={onGrpcMetadataChange}
+          />
+        </section>
+      ) : (
+        <section className="requester-auth-section" aria-label="Auth">
+          <label>
+            Auth
+            <select
+              aria-label="Auth type"
+              value={authType}
+              onChange={(event) => onAuthTypeChange(event.target.value as RequesterAuthType)}
+            >
+              <option value="none">none</option>
+              <option value="basic">basic</option>
+              <option value="bearer">bearer</option>
+              <option value="api-key-header">api-key-header</option>
+              <option value="api-key-query">api-key-query</option>
+            </select>
+          </label>
+          {authType === 'basic' ? (
+            <div className="requester-auth-fields">
+              <input
+                aria-label="Auth username"
+                placeholder="Username"
+                value={authUsername}
+                onChange={(event) => onAuthUsernameChange(event.target.value)}
+              />
+              <input
+                aria-label="Auth password"
+                placeholder="Password"
+                type="password"
+                value={authPassword}
+                onChange={(event) => onAuthPasswordChange(event.target.value)}
+              />
+            </div>
+          ) : authType === 'bearer' ? (
+            <input
+              aria-label="Bearer token"
+              placeholder="Token"
+              type="password"
+              value={authToken}
+              onChange={(event) => onAuthTokenChange(event.target.value)}
+            />
+          ) : authType === 'api-key-header' || authType === 'api-key-query' ? (
+            <div className="requester-auth-fields">
+              <input
+                aria-label="API key name"
+                placeholder="Key"
+                value={authApiKeyName}
+                onChange={(event) => onAuthApiKeyNameChange(event.target.value)}
+              />
+              <input
+                aria-label="API key value"
+                placeholder="Value"
+                type="password"
+                value={authApiKeyValue}
+                onChange={(event) => onAuthApiKeyValueChange(event.target.value)}
+              />
+            </div>
+          ) : null}
+        </section>
+      )}
+      {requestType === 'grpc' ? null : (
+        <div className="requester-kv-grid">
+          <RequesterKeyValueTable
+            label="Query Params"
+            rows={queryParams}
+            onChange={onQueryParamsChange}
+          />
+          <RequesterKeyValueTable label="Headers" rows={headers} onChange={onHeadersChange} />
+        </div>
+      )}
+      <RequesterVariableSuggestions variables={variables} />
+      {requestType === 'grpc' ? (
+        <label>Message JSON</label>
+      ) : (
         <label>
-          Auth
+          Body
           <select
-            aria-label="Auth type"
-            value={authType}
-            onChange={(event) => onAuthTypeChange(event.target.value as RequesterAuthType)}
+            aria-label="Body mode"
+            value={bodyMode}
+            onChange={(event) => onBodyModeChange(event.target.value as RequesterBodyMode)}
           >
-            <option value="none">none</option>
-            <option value="basic">basic</option>
-            <option value="bearer">bearer</option>
-            <option value="api-key-header">api-key-header</option>
-            <option value="api-key-query">api-key-query</option>
+            {bodyModes.map((mode) => (
+              <option key={mode} value={mode}>
+                {mode}
+              </option>
+            ))}
           </select>
         </label>
-        {authType === 'basic' ? (
-          <div className="requester-auth-fields">
-            <input
-              aria-label="Auth username"
-              placeholder="Username"
-              value={authUsername}
-              onChange={(event) => onAuthUsernameChange(event.target.value)}
-            />
-            <input
-              aria-label="Auth password"
-              placeholder="Password"
-              type="password"
-              value={authPassword}
-              onChange={(event) => onAuthPasswordChange(event.target.value)}
-            />
-          </div>
-        ) : authType === 'bearer' ? (
-          <input
-            aria-label="Bearer token"
-            placeholder="Token"
-            type="password"
-            value={authToken}
-            onChange={(event) => onAuthTokenChange(event.target.value)}
-          />
-        ) : authType === 'api-key-header' || authType === 'api-key-query' ? (
-          <div className="requester-auth-fields">
-            <input
-              aria-label="API key name"
-              placeholder="Key"
-              value={authApiKeyName}
-              onChange={(event) => onAuthApiKeyNameChange(event.target.value)}
-            />
-            <input
-              aria-label="API key value"
-              placeholder="Value"
-              type="password"
-              value={authApiKeyValue}
-              onChange={(event) => onAuthApiKeyValueChange(event.target.value)}
-            />
-          </div>
-        ) : null}
-      </section>
-      <div className="requester-kv-grid">
-        <RequesterKeyValueTable
-          label="Query Params"
-          rows={queryParams}
-          onChange={onQueryParamsChange}
-        />
-        <RequesterKeyValueTable label="Headers" rows={headers} onChange={onHeadersChange} />
-      </div>
-      <RequesterVariableSuggestions variables={variables} />
-      <label>
-        Body
-        <select
-          aria-label="Body mode"
-          value={bodyMode}
-          onChange={(event) => onBodyModeChange(event.target.value as RequesterBodyMode)}
-        >
-          {bodyModes.map((mode) => (
-            <option key={mode} value={mode}>
-              {mode}
-            </option>
-          ))}
-        </select>
-      </label>
-      {bodyMode === 'graphql' ? (
+      )}
+      {requestType !== 'grpc' && bodyMode === 'graphql' ? (
         <div className="requester-graphql-fields">
           <input
             aria-label="GraphQL operation name"
@@ -263,7 +347,7 @@ export const RequesterEditor = ({
           ) : null}
         </div>
       ) : null}
-      {bodyMode === 'json' ? (
+      {requestType === 'grpc' || bodyMode === 'json' ? (
         <JsonTextEditor ariaLabel="Request body" value={bodyText} onChange={onBodyTextChange} />
       ) : (
         <textarea
@@ -273,7 +357,7 @@ export const RequesterEditor = ({
           onChange={(event) => onBodyTextChange(event.target.value)}
         />
       )}
-      {bodyMode === 'binary-file' ? (
+      {requestType !== 'grpc' && bodyMode === 'binary-file' ? (
         <div className="requester-binary-body-row">
           <input aria-label="Binary body file" value={binaryFilePath} readOnly />
           <button type="button" className="open-folder-button" onClick={onBinaryFilePathSelect}>

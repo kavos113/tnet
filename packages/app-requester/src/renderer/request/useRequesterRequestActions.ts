@@ -33,6 +33,7 @@ interface RequesterRequestActions {
   saveRequest: (nameOverride?: string) => Promise<RequesterRequestDetail | undefined>;
   saveResponse: () => void;
   selectBinaryBody: () => void;
+  selectGrpcProto: () => void;
   showHistoryResponse: (historyId: string) => void;
 }
 
@@ -121,6 +122,18 @@ export const useRequesterRequestActions = ({
       });
   };
 
+  const selectGrpcProto = (): void => {
+    requesterTnetApi.requester.files
+      .selectGrpcProto()
+      .then((file) => {
+        if (file) draft.setGrpcProtoPath(file.path);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to select gRPC proto file', error);
+        dispatch(setRequesterError('Failed to select gRPC proto file.'));
+      });
+  };
+
   const saveResponse = (): void => {
     if (!activeResponse) return;
     requesterTnetApi.requester.files
@@ -201,6 +214,7 @@ export const useRequesterRequestActions = ({
     saveRequest,
     saveResponse,
     selectBinaryBody,
+    selectGrpcProto,
     showHistoryResponse
   };
 };

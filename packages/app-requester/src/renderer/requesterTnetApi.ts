@@ -55,6 +55,7 @@ export const requesterTnetApi: RequesterApi = {
     },
     files: {
       selectBinaryBody: () => getApi().requester.files.selectBinaryBody(),
+      selectGrpcProto: () => getApi().requester.files.selectGrpcProto(),
       saveResponseBody: (request) => getApi().requester.files.saveResponseBody(request),
       openResponseExternally: (request) => getApi().requester.files.openResponseExternally(request)
     },

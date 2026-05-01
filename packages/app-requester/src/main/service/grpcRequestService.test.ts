@@ -4,8 +4,20 @@ import { GrpcRequestService } from './grpcRequestService';
 
 describe('GrpcRequestService', () => {
   it('builds proto-import unary call input', async () => {
+    const response = {
+      status: 0,
+      statusText: 'OK',
+      headers: [],
+      bodyText: '{"ok":true}',
+      bodyBase64: 'eyJvayI6dHJ1ZX0=',
+      contentType: 'application/grpc+json',
+      byteSize: 11,
+      durationMs: 12,
+      isBodyTruncated: false,
+      previewType: 'json' as const
+    };
     const client = {
-      call: vi.fn().mockResolvedValue('{"ok":true}')
+      call: vi.fn().mockResolvedValue(response)
     };
     const service = new GrpcRequestService(client);
 
@@ -22,7 +34,7 @@ describe('GrpcRequestService', () => {
         grpcMetadata: [{ id: 'auth', enabled: true, key: 'authorization', value: 'Bearer token' }],
         bodyText: '{"id":"1"}'
       })
-    ).resolves.toBe('{"ok":true}');
+    ).resolves.toBe(response);
 
     expect(client.call).toHaveBeenCalledWith({
       protoPath: 'C:\\proto\\user.proto',

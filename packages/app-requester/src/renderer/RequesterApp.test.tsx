@@ -13,6 +13,7 @@ const sendRequest = vi.fn();
 const listHistory = vi.fn();
 const getHistory = vi.fn();
 const listVariables = vi.fn();
+const selectGrpcProto = vi.fn();
 
 interface RequesterTestState {
   requester: ReturnType<typeof requesterReducer>;
@@ -72,6 +73,9 @@ const installTnetApi = (): void => {
         },
         variableSets: {
           listVariables
+        },
+        files: {
+          selectGrpcProto
         }
       }
     },
@@ -101,6 +105,7 @@ describe('RequesterApp', () => {
     listHistory.mockResolvedValue([]);
     getHistory.mockResolvedValue(null);
     listVariables.mockResolvedValue([]);
+    selectGrpcProto.mockResolvedValue({ path: 'C:\\proto\\health.proto', name: 'health.proto' });
   });
 
   afterEach(() => {
@@ -373,6 +378,55 @@ describe('RequesterApp', () => {
         id: 'request-1',
         name: 'Create User'
       })
+    );
+  });
+
+  it('edits and sends a gRPC request', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [activeRequest],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(activeRequest));
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByLabelText('Request type'), { target: { value: 'grpc' } });
+    fireEvent.change(screen.getByLabelText('Request URL'), {
+      target: { value: 'localhost:50051' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Select Proto' }));
+    await waitFor(() => expect(selectGrpcProto).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText('gRPC package'), {
+      target: { value: 'health.v1' }
+    });
+    fireEvent.change(screen.getByLabelText('gRPC service'), {
+      target: { value: 'HealthService' }
+    });
+    fireEvent.change(screen.getByLabelText('gRPC method'), {
+      target: { value: 'Check' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() =>
+      expect(sendRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestType: 'grpc',
+          url: 'localhost:50051',
+          grpcProtoPath: 'C:\\proto\\health.proto',
+          grpcPackageName: 'health.v1',
+          grpcServiceName: 'HealthService',
+          grpcMethodName: 'Check'
+        })
+      )
     );
   });
 });

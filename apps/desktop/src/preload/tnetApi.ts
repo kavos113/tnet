@@ -142,6 +142,7 @@ export const tnetApi: DesktopTnetApi = {
     },
     files: {
       selectBinaryBody: () => ipcRenderer.invoke(requesterIpcChannels.files.selectBinaryBody),
+      selectGrpcProto: () => ipcRenderer.invoke(requesterIpcChannels.files.selectGrpcProto),
       saveResponseBody: (request) =>
         ipcRenderer.invoke(requesterIpcChannels.files.saveResponseBody, request),
       openResponseExternally: (request) =>

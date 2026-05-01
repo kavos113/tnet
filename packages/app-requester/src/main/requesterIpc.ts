@@ -16,7 +16,8 @@ import { createElectronSecretStore } from './service/secretStore';
 import {
   openResponseExternally,
   saveResponseBody,
-  selectBinaryBodyFile
+  selectBinaryBodyFile,
+  selectGrpcProtoFile
 } from './requesterFileService';
 import { GraphqlIntrospectionService } from './graphql/graphqlIntrospectionService';
 import { RequesterBackupService } from './backup/requesterBackupService';
@@ -152,6 +153,7 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
     exists: secretStore.hasSecret(request.secretId)
   }));
   ipcMain.handle(requesterIpcChannels.files.selectBinaryBody, async () => selectBinaryBodyFile());
+  ipcMain.handle(requesterIpcChannels.files.selectGrpcProto, async () => selectGrpcProtoFile());
   ipcMain.handle(requesterIpcChannels.files.saveResponseBody, async (_event, request) =>
     saveResponseBody(request)
   );

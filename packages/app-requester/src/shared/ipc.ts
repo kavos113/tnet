@@ -62,6 +62,7 @@ export const requesterIpcChannels = {
   },
   files: {
     selectBinaryBody: 'requester:files:selectBinaryBody',
+    selectGrpcProto: 'requester:files:selectGrpcProto',
     saveResponseBody: 'requester:files:saveResponseBody',
     openResponseExternally: 'requester:files:openResponseExternally'
   },
@@ -135,6 +136,7 @@ export interface RequesterApi {
     };
     files: {
       selectBinaryBody: () => Promise<{ path: string; name: string } | null>;
+      selectGrpcProto: () => Promise<{ path: string; name: string } | null>;
       saveResponseBody: (request: {
         suggestedName: string;
         bodyText: string;

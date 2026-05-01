@@ -53,6 +53,24 @@
   gap: 8px;
 }
 
+.requester-grpc-section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.requester-grpc-proto-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.requester-grpc-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .requester-graphql-fields input {
   min-width: 0;
   border: 1px solid var(--gray);
@@ -61,9 +79,15 @@
   color: var(--foreground);
 }
 
-.requester-graphql-fields input {
+.requester-graphql-fields input,
+.requester-grpc-section input {
   height: 30px;
   padding: 0 8px;
+  min-width: 0;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 .requester-graphql-fields .requester-json-editor,

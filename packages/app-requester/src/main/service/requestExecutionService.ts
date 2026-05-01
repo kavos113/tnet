@@ -11,6 +11,7 @@ import { extractVariablesFromResponse } from '@tnet/app-requester/shared/respons
 import { interpolateRequesterRequest } from '@tnet/app-requester/shared/variableInterpolation';
 import { serializeRequesterRequest } from '../http/requestSerializer';
 import { parseRequesterStreamingResponse } from '../http/responseParser';
+import { GrpcRequestService } from './grpcRequestService';
 import { buildRequesterNetworkOptions } from './networkOptions';
 import { redactRequesterRequest } from './redaction';
 
@@ -46,6 +47,10 @@ export interface RequesterVariableStore {
   upsertVariables(variableSetId: string, variables: Array<{ key: string; value: string }>): void;
 }
 
+export interface RequesterGrpcService {
+  unary(request: SaveRequesterRequestInput): Promise<RequesterResponseSnapshot>;
+}
+
 const defaultTransport: RequesterTransport = {
   fetch: (url, init) => fetch(url, init)
 };
@@ -59,13 +64,18 @@ export class RequestExecutionService {
     private readonly timeoutMs = 30000,
     private readonly cookieStore?: RequesterCookieStore,
     private readonly variableStore?: RequesterVariableStore,
-    private readonly onProgress?: (progress: RequesterExecutionProgress) => void
+    private readonly onProgress?: (progress: RequesterExecutionProgress) => void,
+    private readonly grpcRequestService: RequesterGrpcService = new GrpcRequestService()
   ) {}
 
   async send(request: SaveRequesterRequestInput): Promise<RequesterExecutionResult> {
     const startedAt = new Date().toISOString();
     const started = performance.now();
     const interpolatedRequest = this.interpolateRequest(request);
+    if (interpolatedRequest.requestType === 'grpc') {
+      return this.sendGrpc(interpolatedRequest, startedAt);
+    }
+
     const requestWithCookies = await this.withCookieHeader(interpolatedRequest);
     const serialized = await serializeRequesterRequest(requestWithCookies);
     const controller = new AbortController();
@@ -103,6 +113,24 @@ export class RequestExecutionService {
     this.extractVariables(interpolatedRequest, snapshot);
     const historyId = this.historyStore.saveExecution({
       request: redactRequesterRequest(interpolatedRequest),
+      response: snapshot,
+      startedAt
+    });
+
+    return {
+      response: snapshot,
+      historyId
+    };
+  }
+
+  private async sendGrpc(
+    request: SaveRequesterRequestInput,
+    startedAt: string
+  ): Promise<RequesterExecutionResult> {
+    const snapshot = await this.grpcRequestService.unary(request);
+    this.extractVariables(request, snapshot);
+    const historyId = this.historyStore.saveExecution({
+      request: redactRequesterRequest(request),
       response: snapshot,
       startedAt
     });
