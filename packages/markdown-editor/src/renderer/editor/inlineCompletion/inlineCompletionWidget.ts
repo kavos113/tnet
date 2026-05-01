@@ -1,4 +1,5 @@
 import { WidgetType } from '@codemirror/view';
+import './inlineCompletion.css';
 
 export class InlineCompletionWidget extends WidgetType {
   constructor(private readonly text: string) {

@@ -12,6 +12,7 @@ import {
   RequesterBackupSettings,
   RequesterHistorySettings
 } from './RequesterSettingsSections';
+import sharedStyles from '../RequesterShared.module.css';
 
 interface RequesterSettingsDialogProps {
   isOpen: boolean;
@@ -165,15 +166,15 @@ export const RequesterSettingsDialog = ({
   };
 
   return (
-    <div className="modal-overlay" onMouseDown={onClose}>
+    <div className={sharedStyles.overlay} onMouseDown={onClose}>
       <section
-        className="modal-content"
+        className={sharedStyles.modal}
         aria-label="Requester settings"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <h2>Requester Settings</h2>
         {!activeWorkspaceId ? (
-          <div className="empty-list-message">
+          <div className={sharedStyles.emptyMessage}>
             Create a request workspace before editing settings.
           </div>
         ) : (
@@ -195,11 +196,11 @@ export const RequesterSettingsDialog = ({
             />
             <RequesterBackupSettings onExport={exportWorkspace} onImport={importWorkspace} />
             <RequesterFontSettings draft={draft} setDraft={setDraft} />
-            <footer className="modal-actions">
-              <button type="button" className="settings-close-button" onClick={onClose}>
+            <footer className={sharedStyles.modalActions}>
+              <button type="button" className={sharedStyles.secondaryButton} onClick={onClose}>
                 Cancel
               </button>
-              <button type="button" className="open-folder-button" onClick={save}>
+              <button type="button" className={sharedStyles.openButton} onClick={save}>
                 Save Settings
               </button>
             </footer>

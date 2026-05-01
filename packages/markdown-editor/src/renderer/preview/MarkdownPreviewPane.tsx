@@ -14,6 +14,7 @@ import { extractPreviewOutline, PreviewOutline, type PreviewOutlineItem } from '
 import type { ObsidianImageSrcResolver } from './markdown/obsidianImages';
 import 'highlight.js/styles/github.css';
 import 'katex/dist/katex.min.css';
+import './MarkdownPreviewContent.css';
 import styles from './MarkdownPreviewPane.module.css';
 
 export interface MarkdownPreviewPaneProps {

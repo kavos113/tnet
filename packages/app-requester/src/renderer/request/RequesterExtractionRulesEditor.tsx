@@ -1,4 +1,5 @@
 import type { RequesterExtractionRule } from '@tnet/app-requester/shared/requesterTypes';
+import sharedStyles from '../RequesterShared.module.css';
 import styles from './RequesterExtractionRulesEditor.module.css';
 
 interface RequesterExtractionRulesEditorProps {
@@ -20,7 +21,7 @@ export const RequesterExtractionRulesEditor = ({
         <h2 className={styles.title}>Extraction</h2>
         <button
           type="button"
-          className="open-folder-button"
+          className={sharedStyles.openButton}
           onClick={() => onChange([...rules, createExtractionRule()])}
         >
           Add
@@ -61,7 +62,7 @@ export const RequesterExtractionRulesEditor = ({
             />
             <button
               type="button"
-              className="sidebar-icon-button material-icons-round"
+              className={`${sharedStyles.iconButton} material-icons-round`}
               aria-label="Remove extraction rule"
               onClick={() => onChange(rules.filter((item) => item.id !== rule.id))}
             >

@@ -1,0 +1,30 @@
+.rail {
+  display: flex;
+  flex: 0 0 44px;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 4px;
+  background: var(--background-dark);
+  border-right: 1px solid var(--gray);
+}
+
+.item {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 20px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+
+.item:hover,
+.active {
+  color: var(--foreground);
+  background: var(--gray);
+}

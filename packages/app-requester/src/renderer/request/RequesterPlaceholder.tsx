@@ -1,3 +1,5 @@
+import styles from '../RequesterShared.module.css';
+
 interface RequesterPlaceholderProps {
   icon: string;
   title: string;
@@ -9,9 +11,9 @@ export const RequesterPlaceholder = ({
   title,
   message
 }: RequesterPlaceholderProps): React.JSX.Element => (
-  <main className="placeholder-app" aria-label="Requester">
-    <section className="placeholder-app-content">
-      <span className="material-icons-round placeholder-app-icon" aria-hidden="true">
+  <main className={styles.placeholder} aria-label="Requester">
+    <section className={styles.placeholderContent}>
+      <span className={`material-icons-round ${styles.placeholderIcon}`} aria-hidden="true">
         {icon}
       </span>
       <h1>{title}</h1>

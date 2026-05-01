@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { FileItem } from '@tnet/shared/types/file';
+import styles from './DirectoryTree.module.css';
 
 export interface DirectoryTreeNewEntry {
   isActive: boolean;
@@ -69,7 +70,7 @@ const DirectoryTreeItem = ({
   return (
     <li>
       <div
-        className={`file-tree-item ${isSelected ? 'file-item-is-selected' : ''}`}
+        className={`${styles.treeItem} ${isSelected ? styles.selected : ''}`}
         role="button"
         tabIndex={0}
         onClick={selectDirectory}
@@ -80,29 +81,31 @@ const DirectoryTreeItem = ({
         }}
       >
         <span
-          className={`material-icons-round file-item-chevron ${
-            isExpanded ? 'file-item-chevron-expand' : ''
-          } ${childDirectories.length === 0 ? 'file-item-icon-placeholder' : ''}`}
+          className={`material-icons-round ${styles.chevron} ${
+            isExpanded ? styles.chevronExpanded : ''
+          } ${childDirectories.length === 0 ? styles.iconPlaceholder : ''}`}
         >
           chevron_right
         </span>
-        <span className="material-icons file-item-folder">
+        <span className={`material-icons ${styles.folder}`}>
           {isExpanded ? 'folder_open' : 'folder'}
         </span>
-        <p className="file-item-name">{item.name}</p>
+        <p className={styles.name}>{item.name}</p>
       </div>
       {isExpanded && (childDirectories.length > 0 || shouldShowNewEntryHere) ? (
-        <ul className="file-item-children">
+        <ul className={styles.children}>
           {shouldShowNewEntryHere ? (
-            <li className="file-item-new">
-              <div className="file-tree-item">
-                <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+            <li className={styles.newItem}>
+              <div className={styles.treeItem}>
+                <span
+                  className={`material-icons-round ${styles.chevron} ${styles.iconPlaceholder}`}
+                >
                   chevron_right
                 </span>
-                <span className="material-icons file-item-folder">folder</span>
+                <span className={`material-icons ${styles.folder}`}>folder</span>
                 <input
                   ref={newEntryInputRef}
-                  className="file-item-new-input"
+                  className={styles.newInput}
                   value={newEntry?.name ?? ''}
                   onChange={(event) => onNewEntryNameChange?.(event.target.value)}
                   onKeyDown={onNewEntryKeyDown}

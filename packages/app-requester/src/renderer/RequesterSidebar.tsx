@@ -21,6 +21,7 @@ import { requesterTnetApi } from './requesterTnetApi';
 import { RequesterRequestTree } from './RequesterRequestTree';
 import { RequesterRenameDialog } from './sidebar/RequesterRenameDialog';
 import { RequesterWorkspaceSwitcher } from './sidebar/RequesterWorkspaceSwitcher';
+import sharedStyles from './RequesterShared.module.css';
 import { toExecutionErrorSnapshot } from './request/requesterAppHelpers';
 import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
 
@@ -357,19 +358,19 @@ export const RequesterSidebar = (): React.JSX.Element => {
   });
 
   return (
-    <aside className="explorer-panel" aria-label="Requester workspace">
+    <aside className={sharedStyles.panel} aria-label="Requester workspace">
       <RequesterWorkspaceSwitcher
         workspaces={workspaces}
         activeWorkspaceId={activeWorkspaceId}
         onActivateWorkspace={(workspaceId) => runAction(() => activateWorkspace(workspaceId))}
         onCreateWorkspace={() => runAction(createWorkspace)}
       />
-      <div className="explorer-content">
-        <header className="sidebar-header">
-          <span className="sidebar-title">Requests</span>
+      <div className={sharedStyles.content}>
+        <header className={sharedStyles.header}>
+          <span className={sharedStyles.title}>Requests</span>
           <button
             type="button"
-            className="sidebar-icon-button material-icons-round"
+            className={`${sharedStyles.iconButton} material-icons-round`}
             aria-label="Run sequence"
             title="Run sequence"
             disabled={!activeWorkspaceId || requests.length === 0}
@@ -379,7 +380,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
           </button>
           <button
             type="button"
-            className="sidebar-icon-button material-icons-round"
+            className={`${sharedStyles.iconButton} material-icons-round`}
             aria-label="Create request"
             title="Create request"
             disabled={!activeWorkspaceId}
@@ -388,16 +389,18 @@ export const RequesterSidebar = (): React.JSX.Element => {
             add
           </button>
         </header>
-        <ul className="file-explorer-list">
+        <ul className={sharedStyles.fileList}>
           {shouldShowNewFolderAtRoot ? (
-            <li className="file-item-new">
-              <div className="file-tree-item">
-                <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+            <li className={sharedStyles.newItem}>
+              <div className={sharedStyles.treeItem}>
+                <span
+                  className={`material-icons-round ${sharedStyles.chevron} ${sharedStyles.iconPlaceholder}`}
+                >
                   chevron_right
                 </span>
-                <span className="material-icons file-item-folder">folder</span>
+                <span className={`material-icons ${sharedStyles.folder}`}>folder</span>
                 <input
-                  className="file-item-new-input"
+                  className={sharedStyles.newInput}
                   value={newFolder.name}
                   onChange={(event) =>
                     setNewFolder((current) => ({
@@ -443,9 +446,9 @@ export const RequesterSidebar = (): React.JSX.Element => {
           />
         </ul>
         {!activeWorkspaceId ? (
-          <p className="empty-list-message">Create a workspace to begin.</p>
+          <p className={sharedStyles.emptyMessage}>Create a workspace to begin.</p>
         ) : requests.length === 0 ? (
-          <p className="empty-list-message">No requests yet.</p>
+          <p className={sharedStyles.emptyMessage}>No requests yet.</p>
         ) : null}
       </div>
       {renameRequest.isActive ? (

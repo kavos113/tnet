@@ -5,6 +5,7 @@ import type {
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
+import sharedStyles from '../RequesterShared.module.css';
 import styles from './RequesterResponsePanel.module.css';
 
 interface RequesterResponsePanelProps {
@@ -113,10 +114,10 @@ const RequesterResponseContent = ({
         </div>
       </dl>
       <div className={styles.actions}>
-        <button type="button" className="open-folder-button" onClick={onSaveResponse}>
+        <button type="button" className={sharedStyles.openButton} onClick={onSaveResponse}>
           Save Body
         </button>
-        <button type="button" className="open-folder-button" onClick={onOpenResponse}>
+        <button type="button" className={sharedStyles.openButton} onClick={onOpenResponse}>
           Open
         </button>
       </div>

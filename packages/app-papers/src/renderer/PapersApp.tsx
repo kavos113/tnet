@@ -24,6 +24,7 @@ import { usePaperTagsLoader } from './papers/usePaperTagsLoader';
 import { usePapersListLoader } from './papers/usePapersListLoader';
 import { setPapersLibrarySettings } from './library/librarySlice';
 import styles from './PapersApp.module.css';
+import placeholderStyles from './PlaceholderApp.module.css';
 
 export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
@@ -218,9 +219,9 @@ export const PapersApp = (): React.JSX.Element => {
 
   if (!isRestored) {
     return (
-      <main className="placeholder-app" aria-label="Papers">
-        <section className="placeholder-app-content">
-          <span className="material-icons-round placeholder-app-icon" aria-hidden="true">
+      <main className={placeholderStyles.placeholder} aria-label="Papers">
+        <section className={placeholderStyles.content}>
+          <span className={`material-icons-round ${placeholderStyles.icon}`} aria-hidden="true">
             article
           </span>
           <h1>Papers</h1>
@@ -232,9 +233,9 @@ export const PapersApp = (): React.JSX.Element => {
 
   if (!activeLibraryRoot) {
     return (
-      <main className="placeholder-app" aria-label="Papers">
-        <section className="placeholder-app-content">
-          <span className="material-icons-round placeholder-app-icon" aria-hidden="true">
+      <main className={placeholderStyles.placeholder} aria-label="Papers">
+        <section className={placeholderStyles.content}>
+          <span className={`material-icons-round ${placeholderStyles.icon}`} aria-hidden="true">
             article
           </span>
           <h1>Papers</h1>

@@ -1,3 +1,86 @@
+.panel {
+  display: flex;
+  flex: 0 0 250px;
+  width: 250px;
+  overflow: hidden;
+  background: var(--background-dark);
+  border-right: 1px solid var(--gray);
+}
+
+.workspaceSwitcher {
+  display: flex;
+  flex: 0 0 34px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  overflow: hidden auto;
+  background: var(--background);
+  border-right: 1px solid var(--gray);
+}
+
+.workspaceSwitcherItem,
+.workspaceSwitcherAdd {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.workspaceSwitcherItem {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.workspaceSwitcherAdd {
+  margin-top: auto;
+  font-size: 18px;
+}
+
+.workspaceSwitcherItem:hover,
+.workspaceSwitcherAdd:hover {
+  background: var(--gray);
+}
+
+.workspaceSwitcherItemActive {
+  color: var(--background);
+  background: var(--main-light);
+}
+
+.workspaceSwitcherItemActive:hover {
+  background: var(--main-light);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--foreground);
+  text-transform: uppercase;
+}
+
 .librarySummary {
   display: grid;
   gap: 8px;
@@ -33,6 +116,79 @@
   display: grid;
   gap: 6px;
   padding: 0 0 12px;
+}
+
+.treeItem {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+  min-height: 18px;
+  padding: 0;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.treeItem:hover {
+  background-color: var(--gray);
+}
+
+.selected {
+  background-color: var(--main-light);
+}
+
+.folder {
+  flex: 0 0 auto;
+  color: var(--folder);
+  font-size: 12px;
+}
+
+.itemName {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileList {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+.newItem {
+  list-style-type: none;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.iconPlaceholder {
+  visibility: hidden;
+}
+
+.newInput {
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
 }
 
 .allDirectories {

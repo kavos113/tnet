@@ -12,6 +12,7 @@ import { JsonTextEditor } from './JsonTextEditor';
 import { RequesterKeyValueTable } from './RequesterKeyValueTable';
 import { RequesterVariableSuggestions } from './RequesterVariableSuggestions';
 import type { GraphqlSchemaTypeSummary } from './requesterAppHelpers';
+import sharedStyles from '../RequesterShared.module.css';
 import styles from './RequesterEditor.module.css';
 
 const httpMethods: RequesterHttpMethod[] = [
@@ -151,7 +152,7 @@ export const RequesterEditor = ({
         value={name}
         onChange={(event) => onNameChange(event.target.value)}
       />
-      <button type="button" className="open-folder-button" onClick={onSave}>
+      <button type="button" className={sharedStyles.openButton} onClick={onSave}>
         Save
       </button>
     </header>
@@ -183,7 +184,12 @@ export const RequesterEditor = ({
         value={url}
         onChange={(event) => onUrlChange(event.target.value)}
       />
-      <button type="button" className="open-folder-button" disabled={!url.trim()} onClick={onSend}>
+      <button
+        type="button"
+        className={sharedStyles.openButton}
+        disabled={!url.trim()}
+        onClick={onSend}
+      >
         Send
       </button>
     </div>
@@ -197,7 +203,11 @@ export const RequesterEditor = ({
               value={grpcProtoPath}
               onChange={(event) => onGrpcProtoPathChange(event.target.value)}
             />
-            <button type="button" className="open-folder-button" onClick={onGrpcProtoPathSelect}>
+            <button
+              type="button"
+              className={sharedStyles.openButton}
+              onClick={onGrpcProtoPathSelect}
+            >
               Select Proto
             </button>
           </div>
@@ -323,7 +333,7 @@ export const RequesterEditor = ({
             value={graphqlOperationName}
             onChange={(event) => onGraphqlOperationNameChange(event.target.value)}
           />
-          <button type="button" className="open-folder-button" onClick={onIntrospectGraphql}>
+          <button type="button" className={sharedStyles.openButton} onClick={onIntrospectGraphql}>
             Introspect
           </button>
           <JsonTextEditor
@@ -367,7 +377,11 @@ export const RequesterEditor = ({
       {requestType !== 'grpc' && bodyMode === 'binary-file' ? (
         <div className={styles.binaryBodyRow}>
           <input aria-label="Binary body file" value={binaryFilePath} readOnly />
-          <button type="button" className="open-folder-button" onClick={onBinaryFilePathSelect}>
+          <button
+            type="button"
+            className={sharedStyles.openButton}
+            onClick={onBinaryFilePathSelect}
+          >
             Select File
           </button>
         </div>

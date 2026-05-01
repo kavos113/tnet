@@ -1,5 +1,6 @@
 import type { LlmProviderType } from '@tnet/app-markdown/shared/config';
 import { useProjectSettingsDraft } from './useProjectSettingsDraft';
+import styles from './SettingsDialog.module.css';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -17,17 +18,17 @@ export const SettingsDialog = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onMouseDown={onClose}>
+    <div className={styles.overlay} onMouseDown={onClose}>
       <section
-        className="modal-content"
+        className={styles.content}
         aria-label="Settings"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <h2>Settings</h2>
 
-        <div className="settings-group">
+        <div className={styles.group}>
           <h3>Editor Font</h3>
-          <label className="form-item" htmlFor="editor-font-family">
+          <label className={styles.formItem} htmlFor="editor-font-family">
             <span>Font family</span>
             <input
               id="editor-font-family"
@@ -35,7 +36,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateMarkdownDraft('editorFontFamily', event.target.value)}
             />
           </label>
-          <label className="form-item" htmlFor="editor-font-size">
+          <label className={styles.formItem} htmlFor="editor-font-size">
             <span>Font size (px)</span>
             <input
               id="editor-font-size"
@@ -50,9 +51,9 @@ export const SettingsDialog = ({
           </label>
         </div>
 
-        <div className="settings-group">
+        <div className={styles.group}>
           <h3>Preview Font</h3>
-          <label className="form-item" htmlFor="preview-font-family">
+          <label className={styles.formItem} htmlFor="preview-font-family">
             <span>Font family</span>
             <input
               id="preview-font-family"
@@ -60,7 +61,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateMarkdownDraft('previewFontFamily', event.target.value)}
             />
           </label>
-          <label className="form-item" htmlFor="preview-font-size">
+          <label className={styles.formItem} htmlFor="preview-font-size">
             <span>Font size (px)</span>
             <input
               id="preview-font-size"
@@ -75,9 +76,12 @@ export const SettingsDialog = ({
           </label>
         </div>
 
-        <div className="settings-group">
+        <div className={styles.group}>
           <h3>Auto Save</h3>
-          <label className="form-item form-item-inline" htmlFor="auto-save-enabled">
+          <label
+            className={`${styles.formItem} ${styles.formItemInline}`}
+            htmlFor="auto-save-enabled"
+          >
             <span>Enable auto save</span>
             <input
               id="auto-save-enabled"
@@ -86,7 +90,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateMarkdownDraft('autoSaveEnabled', event.target.checked)}
             />
           </label>
-          <label className="form-item" htmlFor="auto-save-debounce-ms">
+          <label className={styles.formItem} htmlFor="auto-save-debounce-ms">
             <span>Debounce (ms)</span>
             <input
               id="auto-save-debounce-ms"
@@ -101,9 +105,12 @@ export const SettingsDialog = ({
           </label>
         </div>
 
-        <div className="settings-group">
+        <div className={styles.group}>
           <h3>LLM Inline Completion</h3>
-          <label className="form-item form-item-inline" htmlFor="llm-inline-enabled">
+          <label
+            className={`${styles.formItem} ${styles.formItemInline}`}
+            htmlFor="llm-inline-enabled"
+          >
             <span>Enable inline completion</span>
             <input
               id="llm-inline-enabled"
@@ -114,7 +121,7 @@ export const SettingsDialog = ({
               }
             />
           </label>
-          <label className="form-item" htmlFor="llm-provider">
+          <label className={styles.formItem} htmlFor="llm-provider">
             <span>Provider</span>
             <select
               id="llm-provider"
@@ -131,7 +138,7 @@ export const SettingsDialog = ({
               <option value="openai-compatible">OpenAI Compatible</option>
             </select>
           </label>
-          <label className="form-item" htmlFor="llm-model">
+          <label className={styles.formItem} htmlFor="llm-model">
             <span>Model</span>
             <input
               id="llm-model"
@@ -139,7 +146,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateLlmDraft('llmModel', event.target.value)}
             />
           </label>
-          <label className="form-item" htmlFor="llm-endpoint">
+          <label className={styles.formItem} htmlFor="llm-endpoint">
             <span>Endpoint</span>
             <input
               id="llm-endpoint"
@@ -147,7 +154,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateLlmDraft('llmEndpoint', event.target.value)}
             />
           </label>
-          <label className="form-item" htmlFor="llm-api-key">
+          <label className={styles.formItem} htmlFor="llm-api-key">
             <span>API key</span>
             <input
               id="llm-api-key"
@@ -156,7 +163,10 @@ export const SettingsDialog = ({
               onChange={(event) => updateLlmDraft('llmApiKey', event.target.value)}
             />
           </label>
-          <label className="form-item form-item-inline" htmlFor="llm-automatic-trigger">
+          <label
+            className={`${styles.formItem} ${styles.formItemInline}`}
+            htmlFor="llm-automatic-trigger"
+          >
             <span>Automatic trigger</span>
             <input
               id="llm-automatic-trigger"
@@ -165,7 +175,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateLlmDraft('llmAutomaticTrigger', event.target.checked)}
             />
           </label>
-          <label className="form-item" htmlFor="llm-debounce-ms">
+          <label className={styles.formItem} htmlFor="llm-debounce-ms">
             <span>Debounce (ms)</span>
             <input
               id="llm-debounce-ms"
@@ -176,7 +186,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateLlmDraft('llmDebounceMs', Number(event.target.value))}
             />
           </label>
-          <label className="form-item" htmlFor="llm-max-prefix-chars">
+          <label className={styles.formItem} htmlFor="llm-max-prefix-chars">
             <span>Max prefix chars</span>
             <input
               id="llm-max-prefix-chars"
@@ -187,7 +197,7 @@ export const SettingsDialog = ({
               onChange={(event) => updateLlmDraft('llmMaxPrefixChars', Number(event.target.value))}
             />
           </label>
-          <label className="form-item" htmlFor="llm-max-suffix-chars">
+          <label className={styles.formItem} htmlFor="llm-max-suffix-chars">
             <span>Max suffix chars</span>
             <input
               id="llm-max-suffix-chars"
@@ -200,13 +210,13 @@ export const SettingsDialog = ({
           </label>
         </div>
 
-        <div className="modal-actions">
-          <button type="button" className="btn-secondary" onClick={onClose}>
+        <div className={styles.actions}>
+          <button type="button" className={styles.secondaryButton} onClick={onClose}>
             Cancel
           </button>
           <button
             type="button"
-            className="btn-primary"
+            className={styles.primaryButton}
             onClick={() => {
               saveSettings()
                 .then(onClose)

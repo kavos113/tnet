@@ -3,7 +3,10 @@ import path from 'path';
 import { describe, expect, it } from 'vitest';
 
 const previewCss = fs.readFileSync(
-  path.resolve(__dirname, '../../../../../apps/desktop/src/renderer/src/assets/styles/preview.css'),
+  path.resolve(
+    __dirname,
+    '../../../../../packages/markdown-editor/src/renderer/preview/MarkdownPreviewContent.css'
+  ),
   'utf-8'
 );
 

@@ -1,4 +1,4 @@
-.icon-button {
+.iconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11,17 +11,17 @@
   border-radius: 4px;
 }
 
-.icon-button:disabled {
+.iconButton:disabled {
   cursor: default;
   opacity: 0.35;
 }
 
-.icon-button:hover {
+.iconButton:hover {
   background: var(--sidebar-hover);
   border-color: var(--gray);
 }
 
-.primary-button {
+.primaryButton {
   padding: 8px 14px;
   color: white;
   cursor: pointer;
@@ -30,11 +30,11 @@
   border-radius: 4px;
 }
 
-.primary-button:hover {
+.primaryButton:hover {
   background: var(--color-primary-hover);
 }
 
-.open-folder-button {
+.openButton {
   padding: 8px 16px;
   color: var(--color-text-inverse);
   cursor: pointer;
@@ -43,25 +43,16 @@
   border-radius: var(--radius-sm);
 }
 
-.open-folder-button:disabled {
+.openButton:disabled {
   cursor: default;
   opacity: 0.45;
 }
 
-.btn-primary,
-.btn-secondary {
+.secondaryButton {
   padding: 8px 16px;
+  color: var(--foreground);
   cursor: pointer;
+  background: var(--gray);
   border: 0;
   border-radius: 4px;
-}
-
-.btn-primary {
-  color: white;
-  background: var(--main-dark);
-}
-
-.btn-secondary {
-  color: var(--foreground);
-  background: var(--gray);
 }

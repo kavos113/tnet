@@ -1,4 +1,5 @@
 import type { RequesterWorkspace } from '@tnet/app-requester/shared/requesterTypes';
+import styles from '../RequesterShared.module.css';
 
 interface RequesterWorkspaceSwitcherProps {
   workspaces: RequesterWorkspace[];
@@ -13,13 +14,13 @@ export const RequesterWorkspaceSwitcher = ({
   onActivateWorkspace,
   onCreateWorkspace
 }: RequesterWorkspaceSwitcherProps): React.JSX.Element => (
-  <nav className="workspace-switcher" aria-label="Requester workspaces">
+  <nav className={styles.workspaceSwitcher} aria-label="Requester workspaces">
     {workspaces.map((workspace) => (
       <button
         key={workspace.id}
         type="button"
-        className={`workspace-switcher-item ${
-          workspace.id === activeWorkspaceId ? 'workspace-switcher-item-active' : ''
+        className={`${styles.workspaceSwitcherItem} ${
+          workspace.id === activeWorkspaceId ? styles.workspaceSwitcherItemActive : ''
         }`}
         title={workspace.name}
         aria-label={`Switch to ${workspace.name}`}
@@ -31,7 +32,7 @@ export const RequesterWorkspaceSwitcher = ({
     ))}
     <button
       type="button"
-      className="workspace-switcher-add material-icons-round"
+      className={`${styles.workspaceSwitcherAdd} material-icons-round`}
       aria-label="Create requester workspace"
       title="Create requester workspace"
       onClick={onCreateWorkspace}

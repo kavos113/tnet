@@ -1,7 +1,9 @@
+import styles from './CodeApp.module.css';
+
 export const CodeApp = (): React.JSX.Element => (
-  <main className="placeholder-app" aria-label="Code">
-    <section className="placeholder-app-content">
-      <span className="material-icons-round placeholder-app-icon" aria-hidden="true">
+  <main className={styles.placeholder} aria-label="Code">
+    <section className={styles.content}>
+      <span className={`material-icons-round ${styles.icon}`} aria-hidden="true">
         code
       </span>
       <h1>Code</h1>

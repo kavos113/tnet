@@ -1,0 +1,320 @@
+.panel {
+  display: flex;
+  flex: 0 0 250px;
+  width: 250px;
+  overflow: hidden;
+  background: var(--background-dark);
+  border-right: 1px solid var(--gray);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.workspaceSwitcher {
+  display: flex;
+  flex: 0 0 34px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  overflow: hidden auto;
+  background: var(--background);
+  border-right: 1px solid var(--gray);
+}
+
+.workspaceSwitcherItem,
+.workspaceSwitcherAdd {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.workspaceSwitcherItem {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.workspaceSwitcherAdd {
+  margin-top: auto;
+  font-size: 18px;
+}
+
+.workspaceSwitcherItem:hover,
+.workspaceSwitcherAdd:hover {
+  background: var(--gray);
+}
+
+.workspaceSwitcherItemActive {
+  color: var(--background);
+  background: var(--main-light);
+}
+
+.workspaceSwitcherItemActive:hover {
+  background: var(--main-light);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--foreground);
+  text-transform: uppercase;
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.iconButton:hover,
+.iconButtonActive {
+  background: var(--gray);
+}
+
+.fileList,
+.children {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+.treeItem {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+  min-height: 18px;
+  padding: 0;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.treeItem:hover {
+  background-color: var(--gray);
+}
+
+.selected {
+  background-color: var(--main-light);
+}
+
+.chevron {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 0.12s ease;
+}
+
+.chevronExpanded {
+  transform: rotate(90deg);
+}
+
+.folder {
+  flex: 0 0 auto;
+  color: var(--folder);
+  font-size: 12px;
+}
+
+.name {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileName {
+  padding-left: 28px;
+}
+
+.children {
+  padding-left: 12px;
+}
+
+.newItem {
+  list-style-type: none;
+}
+
+.newInput {
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.iconPlaceholder {
+  visibility: hidden;
+}
+
+.openButton {
+  padding: 8px 16px;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  background-color: var(--main-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+.openButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 50%);
+}
+
+.modal {
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  padding: 20px;
+  overflow: auto;
+  background: var(--background);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.modal h2 {
+  padding-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.group {
+  margin-bottom: 20px;
+}
+
+.group h3 {
+  margin: 0 0 15px;
+  font-size: 1.1em;
+}
+
+.formItem {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.formItem span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.formItem input,
+.formItem select {
+  width: 100%;
+  padding: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.formItemInline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.formItemInline span {
+  margin-bottom: 0;
+}
+
+.formItemInline input {
+  width: auto;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.secondaryButton {
+  padding: 8px 16px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--gray);
+  border: 0;
+  border-radius: 4px;
+}
+
+.emptyMessage {
+  margin: 10px;
+  font-size: 12px;
+  color: var(--foreground-muted);
+}
+
+.placeholder {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  color: var(--foreground-muted);
+  background: var(--background);
+}
+
+.placeholderContent {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  max-width: 320px;
+  padding: 24px;
+  text-align: center;
+}
+
+.placeholderIcon {
+  font-size: 34px;
+  color: var(--foreground);
+}

@@ -1,5 +1,6 @@
 import type { RequesterExplorerNode } from '@tnet/app-requester/shared/requestPath';
 import styles from './RequesterRequestTree.module.css';
+import sharedStyles from './RequesterShared.module.css';
 
 interface RequesterRequestTreeProps {
   activeFolderPath?: string;
@@ -53,7 +54,7 @@ const RequesterRequestTreeItem = ({
   return (
     <li>
       <div
-        className={`file-tree-item ${isSelected ? 'file-item-is-selected' : ''}`}
+        className={`${sharedStyles.treeItem} ${isSelected ? sharedStyles.selected : ''}`}
         role="button"
         tabIndex={0}
         onClick={activate}
@@ -67,8 +68,8 @@ const RequesterRequestTreeItem = ({
           <>
             <button
               type="button"
-              className={`material-icons-round file-item-chevron ${
-                isExpanded ? 'file-item-chevron-expand' : ''
+              className={`material-icons-round ${sharedStyles.chevron} ${
+                isExpanded ? sharedStyles.chevronExpanded : ''
               }`}
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${node.name}`}
               onClick={(event) => {
@@ -78,20 +79,20 @@ const RequesterRequestTreeItem = ({
             >
               chevron_right
             </button>
-            <span className="material-icons file-item-folder">
+            <span className={`material-icons ${sharedStyles.folder}`}>
               {isExpanded ? 'folder_open' : 'folder'}
             </span>
           </>
         ) : (
           <span className={styles.methodLabel}>{node.method ?? ''}</span>
         )}
-        <p className={`file-item-name ${node.isDirectory ? '' : 'file-item-not-directory'}`}>
+        <p className={`${sharedStyles.name} ${node.isDirectory ? '' : sharedStyles.fileName}`}>
           {node.name}
         </p>
         {!node.isDirectory && node.requestId ? (
           <button
             type="button"
-            className={`sidebar-icon-button material-icons-round ${styles.treeAction}`}
+            className={`${sharedStyles.iconButton} material-icons-round ${styles.treeAction}`}
             aria-label={`Rename ${node.name}`}
             title="Rename or move request"
             onClick={(event) => {
@@ -104,16 +105,18 @@ const RequesterRequestTreeItem = ({
         ) : null}
       </div>
       {node.isDirectory && node.children && isExpanded ? (
-        <ul className="file-item-children">
+        <ul className={sharedStyles.children}>
           {shouldShowNewFolderHere ? (
-            <li className="file-item-new">
-              <div className="file-tree-item">
-                <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+            <li className={sharedStyles.newItem}>
+              <div className={sharedStyles.treeItem}>
+                <span
+                  className={`material-icons-round ${sharedStyles.chevron} ${sharedStyles.iconPlaceholder}`}
+                >
                   chevron_right
                 </span>
-                <span className="material-icons file-item-folder">folder</span>
+                <span className={`material-icons ${sharedStyles.folder}`}>folder</span>
                 <input
-                  className="file-item-new-input"
+                  className={sharedStyles.newInput}
                   value={itemProps.newFolder.name}
                   onChange={(event) => itemProps.onNewFolderNameChange(event.target.value)}
                   onKeyDown={(event) => {

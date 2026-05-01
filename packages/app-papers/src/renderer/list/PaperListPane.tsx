@@ -1,5 +1,6 @@
 import type { PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes';
 import sharedStyles from '../PapersShared.module.css';
+import buttonStyles from '../PapersButtons.module.css';
 import { formatPaperJournal, formatPaperYear } from '../papers/paperDisplay';
 import styles from './PaperListPane.module.css';
 
@@ -50,7 +51,7 @@ export const PaperListPane = ({
           </span>
         </div>
         <button
-          className="icon-button"
+          className={buttonStyles.iconButton}
           type="button"
           aria-label="Import PDF"
           onClick={() => {

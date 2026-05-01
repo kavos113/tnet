@@ -6,6 +6,7 @@ import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { tnetApi } from '@tnet/renderer-core/tnetApi';
 import { appRegistry, getAppModule } from './appRegistry';
 import { restoreActiveApp, setActiveApp } from './appSlice';
+import styles from './AppShell.module.css';
 
 export const AppShell = (): React.JSX.Element => {
   const dispatch = useAppDispatch();
@@ -65,7 +66,7 @@ export const AppShell = (): React.JSX.Element => {
   }, [activeAppId, isAppRestored]);
 
   return (
-    <div className="app-shell">
+    <div className={styles.root}>
       <AppRail
         apps={appRegistry}
         activeAppId={activeAppId}

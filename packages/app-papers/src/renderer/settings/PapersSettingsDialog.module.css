@@ -1,4 +1,4 @@
-.modal-overlay {
+.overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -8,7 +8,7 @@
   background: rgb(0 0 0 / 50%);
 }
 
-.modal-content {
+.content {
   width: 500px;
   max-width: 90%;
   max-height: 90vh;
@@ -19,35 +19,35 @@
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
-.modal-content h2 {
+.content h2 {
   padding-bottom: 10px;
   margin-top: 0;
   margin-bottom: 20px;
   border-bottom: 1px solid var(--background-dark);
 }
 
-.settings-group {
+.group {
   margin-bottom: 20px;
 }
 
-.settings-group h3 {
+.group h3 {
   margin: 0 0 15px;
   font-size: 1.1em;
 }
 
-.form-item {
+.formItem {
   display: block;
   margin-bottom: 10px;
 }
 
-.form-item span {
+.formItem span {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
 }
 
-.form-item input,
-.form-item select {
+.formItem input,
+.formItem select {
   width: 100%;
   padding: 8px;
   color: var(--foreground);
@@ -56,22 +56,7 @@
   border-radius: 4px;
 }
 
-.form-item-inline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.form-item-inline span {
-  margin-bottom: 0;
-}
-
-.form-item-inline input {
-  width: auto;
-}
-
-.modal-actions {
+.actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;

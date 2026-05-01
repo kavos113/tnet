@@ -8,6 +8,7 @@ import {
 } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import sharedStyles from '../PapersShared.module.css';
+import buttonStyles from '../PapersButtons.module.css';
 import { papersTnetApi } from '../papersTnetApi';
 import {
   getPdfRenderScale,
@@ -269,7 +270,12 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
           <option value="150">150%</option>
           <option value="200">200%</option>
         </select>
-        <button className="icon-button" type="button" aria-label="Open PDF" onClick={openExternal}>
+        <button
+          className={buttonStyles.iconButton}
+          type="button"
+          aria-label="Open PDF"
+          onClick={openExternal}
+        >
           <span className="material-icons-round" aria-hidden="true">
             open_in_new
           </span>

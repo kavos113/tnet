@@ -12,6 +12,7 @@ import {
   toggleExpandedPapersDirectory
 } from './library/librarySlice';
 import styles from './PapersSidebar.module.css';
+import buttonStyles from './PapersButtons.module.css';
 
 interface NewDirectoryState {
   isActive: boolean;
@@ -114,14 +115,14 @@ export const PapersSidebar = (): React.JSX.Element => {
   });
 
   return (
-    <aside className="explorer-panel" aria-label="Papers library">
-      <nav className="workspace-switcher" aria-label="Paper libraries">
+    <aside className={styles.panel} aria-label="Papers library">
+      <nav className={styles.workspaceSwitcher} aria-label="Paper libraries">
         {libraryRoots.map((libraryRoot) => (
           <button
             key={libraryRoot}
             type="button"
-            className={`workspace-switcher-item ${
-              libraryRoot === activeLibraryRoot ? 'workspace-switcher-item-active' : ''
+            className={`${styles.workspaceSwitcherItem} ${
+              libraryRoot === activeLibraryRoot ? styles.workspaceSwitcherItemActive : ''
             }`}
             title={libraryRoot}
             aria-label={`Switch to ${libraryLabel(libraryRoot)}`}
@@ -138,7 +139,7 @@ export const PapersSidebar = (): React.JSX.Element => {
         ))}
         <button
           type="button"
-          className="workspace-switcher-add material-icons-round"
+          className={`${styles.workspaceSwitcherAdd} material-icons-round`}
           aria-label="Open paper library"
           title="Open paper library"
           onClick={() => {
@@ -150,9 +151,9 @@ export const PapersSidebar = (): React.JSX.Element => {
           add
         </button>
       </nav>
-      <div className="explorer-content">
-        <header className="sidebar-header">
-          <span className="sidebar-title">Papers</span>
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <span className={styles.title}>Papers</span>
         </header>
         <section className={styles.librarySummary}>
           <span className={styles.libraryLabel}>Library</span>
@@ -162,7 +163,7 @@ export const PapersSidebar = (): React.JSX.Element => {
           {activeLibraryRoot ? (
             <small title={activeLibraryRoot}>{activeLibraryRoot}</small>
           ) : (
-            <button type="button" className="open-folder-button" onClick={openLibrary}>
+            <button type="button" className={buttonStyles.openButton} onClick={openLibrary}>
               Open Library
             </button>
           )}
@@ -171,25 +172,27 @@ export const PapersSidebar = (): React.JSX.Element => {
           <section className={styles.directorySection} aria-label="Paper directories">
             <button
               type="button"
-              className={`file-tree-item ${styles.allDirectories} ${
-                selectedDirectoryPath === null ? 'file-item-is-selected' : ''
+              className={`${styles.treeItem} ${styles.allDirectories} ${
+                selectedDirectoryPath === null ? styles.selected : ''
               }`}
               onClick={() => dispatch(setSelectedPapersDirectory(null))}
             >
-              <span className="material-icons file-item-folder">folder_special</span>
-              <p className="file-item-name">All papers</p>
+              <span className={`material-icons ${styles.folder}`}>folder_special</span>
+              <p className={styles.itemName}>All papers</p>
             </button>
-            <ul className="file-explorer-list">
+            <ul className={styles.fileList}>
               {shouldShowNewDirectoryAtRoot ? (
-                <li className="file-item-new">
-                  <div className="file-tree-item">
-                    <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+                <li className={styles.newItem}>
+                  <div className={styles.treeItem}>
+                    <span
+                      className={`material-icons-round ${styles.chevron} ${styles.iconPlaceholder}`}
+                    >
                       chevron_right
                     </span>
-                    <span className="material-icons file-item-folder">folder</span>
+                    <span className={`material-icons ${styles.folder}`}>folder</span>
                     <input
                       ref={rootInputRef}
-                      className="file-item-new-input"
+                      className={styles.newInput}
                       value={newDirectory.name}
                       onChange={(event) =>
                         setNewDirectory((current) => ({

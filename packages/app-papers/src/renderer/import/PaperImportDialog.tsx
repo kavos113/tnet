@@ -1,6 +1,7 @@
 import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
 import { PAPER_METADATA_FIELD_LABELS } from '@tnet/app-papers/shared/paperMetadataFields';
+import buttonStyles from '../PapersButtons.module.css';
 import type { PaperImportMetadataField } from './usePaperImport';
 import styles from './PaperImportDialog.module.css';
 
@@ -54,7 +55,12 @@ export const PaperImportDialog = ({
     >
       <header>
         <h2>Import PDF</h2>
-        <button type="button" className="icon-button" aria-label="Cancel import" onClick={onCancel}>
+        <button
+          type="button"
+          className={buttonStyles.iconButton}
+          aria-label="Cancel import"
+          onClick={onCancel}
+        >
           <span className="material-icons-round" aria-hidden="true">
             close
           </span>
@@ -71,7 +77,7 @@ export const PaperImportDialog = ({
       </label>
       <button
         type="button"
-        className="btn-secondary"
+        className={buttonStyles.secondaryButton}
         onClick={() => {
           navigator.clipboard
             .readText()
@@ -174,10 +180,10 @@ export const PaperImportDialog = ({
         <code>{importTargetLabel(candidate)}</code>
       </div>
       <footer>
-        <button type="button" className="btn-secondary" onClick={onCancel}>
+        <button type="button" className={buttonStyles.secondaryButton} onClick={onCancel}>
           Cancel
         </button>
-        <button type="submit" className="primary-button" disabled={!title.trim()}>
+        <button type="submit" className={buttonStyles.primaryButton} disabled={!title.trim()}>
           Import
         </button>
       </footer>

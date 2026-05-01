@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { App } from './App';
 import { store } from './app/store';
 import 'material-icons/iconfont/material-icons.css';
-import './assets/styles/globals.css';
+import './app/global.css';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

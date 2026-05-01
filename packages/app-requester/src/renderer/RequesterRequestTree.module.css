@@ -8,11 +8,12 @@
 }
 
 .treeAction {
+  flex: 0 0 auto;
   margin-left: auto;
   opacity: 0;
 }
 
-:global(.file-tree-item):hover .treeAction,
+.treeAction:hover,
 .treeAction:focus-visible {
   opacity: 1;
 }

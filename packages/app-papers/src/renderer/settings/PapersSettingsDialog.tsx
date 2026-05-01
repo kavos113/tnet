@@ -8,6 +8,8 @@ import { setPapersLibrarySettings } from '../library/librarySlice';
 import { papersTnetApi } from '../papersTnetApi';
 import sharedStyles from '../PapersShared.module.css';
 import { usePapersDispatch, usePapersSelector } from '../storeHooks';
+import buttonStyles from '../PapersButtons.module.css';
+import styles from './PapersSettingsDialog.module.css';
 
 interface PapersSettingsDialogProps {
   isOpen: boolean;
@@ -62,9 +64,9 @@ export const PapersSettingsDialog = ({
   };
 
   return (
-    <div className="modal-overlay" onMouseDown={onClose}>
+    <div className={styles.overlay} onMouseDown={onClose}>
       <section
-        className="modal-content"
+        className={styles.content}
         aria-label="Papers settings"
         onMouseDown={(event) => event.stopPropagation()}
       >
@@ -76,9 +78,9 @@ export const PapersSettingsDialog = ({
           </div>
         ) : (
           <>
-            <div className="settings-group">
+            <div className={styles.group}>
               <h3>List</h3>
-              <label className="form-item" htmlFor="papers-list-density">
+              <label className={styles.formItem} htmlFor="papers-list-density">
                 <span>Density</span>
                 <select
                   id="papers-list-density"
@@ -96,9 +98,9 @@ export const PapersSettingsDialog = ({
               </label>
             </div>
 
-            <div className="settings-group">
+            <div className={styles.group}>
               <h3>PDF</h3>
-              <label className="form-item" htmlFor="papers-pdf-zoom">
+              <label className={styles.formItem} htmlFor="papers-pdf-zoom">
                 <span>Default zoom</span>
                 <select
                   id="papers-pdf-zoom"
@@ -117,9 +119,9 @@ export const PapersSettingsDialog = ({
               </label>
             </div>
 
-            <div className="settings-group">
+            <div className={styles.group}>
               <h3>Notes</h3>
-              <label className="form-item" htmlFor="papers-note-mode">
+              <label className={styles.formItem} htmlFor="papers-note-mode">
                 <span>Mode</span>
                 <select
                   id="papers-note-mode"
@@ -136,7 +138,7 @@ export const PapersSettingsDialog = ({
                   <option value="split">Split</option>
                 </select>
               </label>
-              <label className="form-item" htmlFor="papers-note-debounce">
+              <label className={styles.formItem} htmlFor="papers-note-debounce">
                 <span>Auto save delay (ms)</span>
                 <input
                   id="papers-note-debounce"
@@ -149,7 +151,7 @@ export const PapersSettingsDialog = ({
                   }
                 />
               </label>
-              <label className="form-item" htmlFor="papers-note-editor-font-family">
+              <label className={styles.formItem} htmlFor="papers-note-editor-font-family">
                 <span>Editor font family</span>
                 <input
                   id="papers-note-editor-font-family"
@@ -157,7 +159,7 @@ export const PapersSettingsDialog = ({
                   onChange={(event) => updateDraft('noteEditorFontFamily', event.target.value)}
                 />
               </label>
-              <label className="form-item" htmlFor="papers-note-editor-font-size">
+              <label className={styles.formItem} htmlFor="papers-note-editor-font-size">
                 <span>Editor font size (px)</span>
                 <input
                   id="papers-note-editor-font-size"
@@ -170,7 +172,7 @@ export const PapersSettingsDialog = ({
                   }
                 />
               </label>
-              <label className="form-item" htmlFor="papers-note-preview-font-family">
+              <label className={styles.formItem} htmlFor="papers-note-preview-font-family">
                 <span>Preview font family</span>
                 <input
                   id="papers-note-preview-font-family"
@@ -178,7 +180,7 @@ export const PapersSettingsDialog = ({
                   onChange={(event) => updateDraft('notePreviewFontFamily', event.target.value)}
                 />
               </label>
-              <label className="form-item" htmlFor="papers-note-preview-font-size">
+              <label className={styles.formItem} htmlFor="papers-note-preview-font-size">
                 <span>Preview font size (px)</span>
                 <input
                   id="papers-note-preview-font-size"
@@ -195,13 +197,13 @@ export const PapersSettingsDialog = ({
           </>
         )}
 
-        <div className="modal-actions">
-          <button type="button" className="btn-secondary" onClick={onClose}>
+        <div className={styles.actions}>
+          <button type="button" className={buttonStyles.secondaryButton} onClick={onClose}>
             Cancel
           </button>
           <button
             type="button"
-            className="btn-primary"
+            className={buttonStyles.primaryButton}
             disabled={!activeLibraryRoot}
             onClick={() => {
               saveSettings()

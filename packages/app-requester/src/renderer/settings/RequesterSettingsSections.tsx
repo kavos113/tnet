@@ -1,5 +1,6 @@
 import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import type { RequesterCookie } from '@tnet/app-requester/shared/requesterTypes';
+import sharedStyles from '../RequesterShared.module.css';
 import styles from './RequesterSettingsSections.module.css';
 
 type SetDraft = (draft: RequesterWorkspaceSettings) => void;
@@ -21,9 +22,9 @@ export const RequesterExecutionSettings = ({
   onProxyPasswordDraftChange = () => undefined,
   onClientCertificatePassphraseDraftChange = () => undefined
 }: SettingsSectionProps): React.JSX.Element => (
-  <div className="settings-group">
+  <div className={sharedStyles.group}>
     <h3>Execution</h3>
-    <label className="form-item" htmlFor="requester-timeout-ms">
+    <label className={sharedStyles.formItem} htmlFor="requester-timeout-ms">
       <span>Request timeout (ms)</span>
       <input
         id="requester-timeout-ms"
@@ -39,7 +40,10 @@ export const RequesterExecutionSettings = ({
         }
       />
     </label>
-    <label className="form-item form-item-inline" htmlFor="requester-follow-redirects">
+    <label
+      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
+      htmlFor="requester-follow-redirects"
+    >
       <span>Follow redirects</span>
       <input
         id="requester-follow-redirects"
@@ -53,7 +57,10 @@ export const RequesterExecutionSettings = ({
         }
       />
     </label>
-    <label className="form-item form-item-inline" htmlFor="requester-validate-tls">
+    <label
+      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
+      htmlFor="requester-validate-tls"
+    >
       <span>Validate TLS certificates</span>
       <input
         id="requester-validate-tls"
@@ -72,7 +79,10 @@ export const RequesterExecutionSettings = ({
         TLS validation should stay enabled unless you are calling a trusted local service.
       </p>
     ) : null}
-    <label className="form-item form-item-inline" htmlFor="requester-cookie-jar-enabled">
+    <label
+      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
+      htmlFor="requester-cookie-jar-enabled"
+    >
       <span>Use workspace cookie jar</span>
       <input
         id="requester-cookie-jar-enabled"
@@ -105,9 +115,12 @@ export const RequesterHistorySettings = ({
   draft,
   setDraft
 }: SettingsSectionProps): React.JSX.Element => (
-  <div className="settings-group">
+  <div className={sharedStyles.group}>
     <h3>History</h3>
-    <label className="form-item form-item-inline" htmlFor="requester-history-enabled">
+    <label
+      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
+      htmlFor="requester-history-enabled"
+    >
       <span>Save request history</span>
       <input
         id="requester-history-enabled"
@@ -121,7 +134,10 @@ export const RequesterHistorySettings = ({
         }
       />
     </label>
-    <label className="form-item form-item-inline" htmlFor="requester-save-response-body">
+    <label
+      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
+      htmlFor="requester-save-response-body"
+    >
       <span>Save response body previews</span>
       <input
         id="requester-save-response-body"
@@ -142,9 +158,9 @@ export const RequesterFontSettings = ({
   draft,
   setDraft
 }: SettingsSectionProps): React.JSX.Element => (
-  <div className="settings-group">
+  <div className={sharedStyles.group}>
     <h3>Fonts</h3>
-    <label className="form-item" htmlFor="requester-code-font-family">
+    <label className={sharedStyles.formItem} htmlFor="requester-code-font-family">
       <span>Code font family</span>
       <input
         id="requester-code-font-family"
@@ -157,7 +173,7 @@ export const RequesterFontSettings = ({
         }
       />
     </label>
-    <label className="form-item" htmlFor="requester-code-font-size">
+    <label className={sharedStyles.formItem} htmlFor="requester-code-font-size">
       <span>Code font size (px)</span>
       <input
         id="requester-code-font-size"
@@ -172,7 +188,7 @@ export const RequesterFontSettings = ({
         }
       />
     </label>
-    <label className="form-item" htmlFor="requester-app-font-family">
+    <label className={sharedStyles.formItem} htmlFor="requester-app-font-family">
       <span>App font family</span>
       <input
         id="requester-app-font-family"
@@ -185,7 +201,7 @@ export const RequesterFontSettings = ({
         }
       />
     </label>
-    <label className="form-item" htmlFor="requester-app-font-size">
+    <label className={sharedStyles.formItem} htmlFor="requester-app-font-size">
       <span>App font size (px)</span>
       <input
         id="requester-app-font-size"
@@ -214,15 +230,15 @@ export const RequesterCookieSettings = ({
   onRemove: (cookieId: string) => void;
   onClear: () => void;
 }): React.JSX.Element => (
-  <div className="settings-group">
+  <div className={sharedStyles.group}>
     <h3>Cookies</h3>
     <div className={styles.actions}>
-      <button type="button" className="settings-close-button" onClick={onReload}>
+      <button type="button" className={sharedStyles.secondaryButton} onClick={onReload}>
         Reload Cookies
       </button>
       <button
         type="button"
-        className="settings-close-button"
+        className={sharedStyles.secondaryButton}
         disabled={cookies.length === 0}
         onClick={onClear}
       >
@@ -239,7 +255,7 @@ export const RequesterCookieSettings = ({
             <span>{cookie.expiresAt ?? 'session'}</span>
             <button
               type="button"
-              className="sidebar-icon-button material-icons-round"
+              className={`${sharedStyles.iconButton} material-icons-round`}
               aria-label={`Remove cookie ${cookie.name}`}
               onClick={() => onRemove(cookie.id)}
             >
@@ -249,7 +265,7 @@ export const RequesterCookieSettings = ({
         ))}
       </div>
     ) : (
-      <p className="empty-list-message">No cookies stored.</p>
+      <p className={sharedStyles.emptyMessage}>No cookies stored.</p>
     )}
   </div>
 );
@@ -261,13 +277,13 @@ export const RequesterBackupSettings = ({
   onExport: () => void;
   onImport: () => void;
 }): React.JSX.Element => (
-  <div className="settings-group">
+  <div className={sharedStyles.group}>
     <h3>Backup</h3>
     <div className={styles.actions}>
-      <button type="button" className="settings-close-button" onClick={onExport}>
+      <button type="button" className={sharedStyles.secondaryButton} onClick={onExport}>
         Export Workspace
       </button>
-      <button type="button" className="settings-close-button" onClick={onImport}>
+      <button type="button" className={sharedStyles.secondaryButton} onClick={onImport}>
         Import Workspace
       </button>
     </div>
@@ -281,7 +297,7 @@ const ProxySettings = ({
   onProxyPasswordDraftChange = () => undefined
 }: SettingsSectionProps): React.JSX.Element => (
   <>
-    <label className="form-item" htmlFor="requester-proxy-mode">
+    <label className={sharedStyles.formItem} htmlFor="requester-proxy-mode">
       <span>Proxy mode</span>
       <select
         id="requester-proxy-mode"
@@ -355,7 +371,7 @@ const CertificateSettings = ({
   onClientCertificatePassphraseDraftChange = () => undefined
 }: SettingsSectionProps): React.JSX.Element => (
   <>
-    <label className="form-item" htmlFor="requester-client-certificate">
+    <label className={sharedStyles.formItem} htmlFor="requester-client-certificate">
       <span>Client certificate path</span>
       <input
         id="requester-client-certificate"
@@ -368,7 +384,7 @@ const CertificateSettings = ({
         }
       />
     </label>
-    <label className="form-item" htmlFor="requester-client-certificate-key">
+    <label className={sharedStyles.formItem} htmlFor="requester-client-certificate-key">
       <span>Client certificate key path</span>
       <input
         id="requester-client-certificate-key"
@@ -381,7 +397,7 @@ const CertificateSettings = ({
         }
       />
     </label>
-    <label className="form-item" htmlFor="requester-custom-ca-certificate">
+    <label className={sharedStyles.formItem} htmlFor="requester-custom-ca-certificate">
       <span>Custom CA certificate path</span>
       <input
         id="requester-custom-ca-certificate"
@@ -394,7 +410,7 @@ const CertificateSettings = ({
         }
       />
     </label>
-    <label className="form-item" htmlFor="requester-client-certificate-passphrase">
+    <label className={sharedStyles.formItem} htmlFor="requester-client-certificate-passphrase">
       <span>Client certificate passphrase</span>
       <input
         id="requester-client-certificate-passphrase"
