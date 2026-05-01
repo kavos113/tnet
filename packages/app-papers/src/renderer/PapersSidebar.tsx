@@ -11,6 +11,7 @@ import {
   setSelectedPapersDirectory,
   toggleExpandedPapersDirectory
 } from './library/librarySlice';
+import styles from './PapersSidebar.module.css';
 
 interface NewDirectoryState {
   isActive: boolean;
@@ -153,8 +154,8 @@ export const PapersSidebar = (): React.JSX.Element => {
         <header className="sidebar-header">
           <span className="sidebar-title">Papers</span>
         </header>
-        <section className="papers-library-summary">
-          <span className="papers-library-label">Library</span>
+        <section className={styles.librarySummary}>
+          <span className={styles.libraryLabel}>Library</span>
           <strong>
             {activeLibraryRoot ? libraryLabel(activeLibraryRoot) : 'No library selected'}
           </strong>
@@ -167,10 +168,10 @@ export const PapersSidebar = (): React.JSX.Element => {
           )}
         </section>
         {activeLibraryRoot ? (
-          <section className="papers-directory-section" aria-label="Paper directories">
+          <section className={styles.directorySection} aria-label="Paper directories">
             <button
               type="button"
-              className={`file-tree-item papers-all-directories ${
+              className={`file-tree-item ${styles.allDirectories} ${
                 selectedDirectoryPath === null ? 'file-item-is-selected' : ''
               }`}
               onClick={() => dispatch(setSelectedPapersDirectory(null))}

@@ -1,23 +1,55 @@
-.papers-list-pane {
+.pane {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   min-width: 280px;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.papers-list-filter {
-  display: grid;
-  gap: 8px;
+.header {
+  display: flex;
   flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header span {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 8px;
   padding: 8px 10px;
   border-bottom: 1px solid var(--gray);
 }
 
-.papers-search-filter {
+.searchFilter {
   display: grid;
   gap: 4px;
 }
 
-.papers-search-filter span {
+.searchFilter span {
   overflow: hidden;
   font-size: 11px;
   font-weight: 700;
@@ -27,7 +59,7 @@
   white-space: nowrap;
 }
 
-.papers-search-filter input {
+.searchFilter input {
   width: 100%;
   height: 28px;
   padding: 0 8px;
@@ -38,18 +70,17 @@
   outline: 0;
 }
 
-.papers-search-filter input:focus {
+.searchFilter input:focus {
   border-color: var(--main-light);
 }
 
-.papers-tag-filter {
+.tagFilter {
   display: flex;
   gap: 4px;
   overflow-x: auto;
 }
 
-.papers-tag-chip,
-.papers-detail-tag-chip {
+.tagChip {
   flex: 0 0 auto;
   height: 24px;
   padding: 0 8px;
@@ -61,16 +92,25 @@
   border-radius: 999px;
 }
 
-.papers-tag-chip:hover,
-.papers-detail-tag-chip:hover,
-.papers-tag-chip.active,
-.papers-detail-tag-chip.active {
+.tagChip:hover,
+.tagChipActive {
   color: var(--foreground);
   background: var(--main-light);
   border-color: var(--main-dark);
 }
 
-.papers-list {
+.error {
+  display: grid;
+  place-items: center;
+  min-height: auto;
+  padding: 16px;
+  font-size: 13px;
+  color: #d86161;
+  text-align: center;
+  border-bottom: 1px solid var(--gray);
+}
+
+.list {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -78,8 +118,8 @@
   overflow: auto;
 }
 
-.papers-list-header,
-.papers-list-item {
+.listHeader,
+.listItem {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) 62px minmax(110px, 22%) minmax(90px, 18%);
   gap: 8px;
@@ -88,7 +128,7 @@
   min-width: 420px;
 }
 
-.papers-list-header {
+.listHeader {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -103,7 +143,7 @@
   border-bottom: 1px solid var(--gray);
 }
 
-.papers-list-item {
+.listItem {
   flex: 0 0 32px;
   height: 32px;
   padding: 0 10px;
@@ -117,32 +157,32 @@
   border-bottom: 1px solid var(--gray);
 }
 
-.papers-list-item:hover,
-.papers-list-item.active {
+.listItem:hover,
+.listItemActive {
   background: var(--background-light);
 }
 
-.papers-list-title,
-.papers-list-year,
-.papers-list-journal,
-.papers-list-tags {
+.title,
+.year,
+.journal,
+.tags {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.papers-list-title {
+.title {
   font-weight: 600;
 }
 
-.papers-list-year,
-.papers-list-journal,
-.papers-list-tags {
+.year,
+.journal,
+.tags {
   color: var(--foreground-muted);
 }
 
-.papers-list-highlight {
+.highlight {
   color: var(--foreground);
   background: rgb(255 221 87 / 28%);
   border-radius: 2px;

@@ -1,0 +1,23 @@
+.tooltip {
+  position: absolute;
+  z-index: 50;
+  max-width: 420px;
+  padding: 8px 10px;
+  color: var(--foreground);
+  pointer-events: none;
+  background: var(--background);
+  border: 2px solid var(--main-light);
+  border-radius: 5px;
+  box-shadow: 0 6px 14px rgb(0 0 0 / 18%);
+  font-family: var(--preview-font-family);
+  font-size: calc(var(--preview-font-size) * 0.92);
+  line-height: 1.55;
+}
+
+.tooltip > :first-child {
+  margin-top: 0;
+}
+
+.tooltip > :last-child {
+  margin-bottom: 0;
+}

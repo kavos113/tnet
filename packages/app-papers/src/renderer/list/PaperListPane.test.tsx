@@ -131,6 +131,6 @@ describe('PaperListPane', () => {
       />
     );
 
-    expect(screen.getByText('Lambda')).toHaveClass('papers-list-highlight');
+    expect(screen.getByText('Lambda').tagName).toBe('MARK');
   });
 });

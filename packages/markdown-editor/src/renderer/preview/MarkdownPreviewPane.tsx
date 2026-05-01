@@ -14,6 +14,7 @@ import { extractPreviewOutline, PreviewOutline, type PreviewOutlineItem } from '
 import type { ObsidianImageSrcResolver } from './markdown/obsidianImages';
 import 'highlight.js/styles/github.css';
 import 'katex/dist/katex.min.css';
+import styles from './MarkdownPreviewPane.module.css';
 
 export interface MarkdownPreviewPaneProps {
   markdown: string;
@@ -155,7 +156,7 @@ export const MarkdownPreviewPane = forwardRef<MarkdownPreviewPaneHandle, Markdow
     }, [html, onToggleTask]);
 
     return (
-      <div className="preview-pane-root">
+      <div className={styles.root}>
         <div
           ref={containerRef}
           className="markdown-preview"

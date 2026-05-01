@@ -8,6 +8,7 @@ import {
 } from './codeMirror/createMarkdownEditor';
 import type { SavePastedImageRequester } from './codeMirror/imagePasteExtension';
 import type { InlineCompletionRequester } from './inlineCompletion/inlineCompletionExtension';
+import styles from './MarkdownEditorPane.module.css';
 
 export interface MarkdownEditorPaneProps {
   content: string;
@@ -114,7 +115,7 @@ export const MarkdownEditorPane = forwardRef<MarkdownEditorPaneHandle, MarkdownE
       editorRef.current?.updateContent(content);
     }, [content]);
 
-    return <div ref={containerRef} className="codemirror-container" />;
+    return <div ref={containerRef} className={styles.container} />;
   }
 );
 

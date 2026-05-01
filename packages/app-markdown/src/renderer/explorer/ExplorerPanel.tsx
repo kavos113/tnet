@@ -5,6 +5,8 @@ import { FileTree } from './FileTree';
 import { SearchPanel, type SearchPanelHandle } from './SearchPanel';
 import { useExplorerActions } from './useExplorerActions';
 import { useExplorerShortcuts } from './useExplorerShortcuts';
+import styles from './ExplorerPanel.module.css';
+import treeStyles from './FileTreeItem.module.css';
 
 const workspaceLabel = (rootPath: string): string => basename(rootPath) || rootPath;
 
@@ -83,14 +85,14 @@ export const ExplorerPanel = (): React.JSX.Element => {
   };
 
   return (
-    <aside className="explorer-panel">
-      <nav className="workspace-switcher" aria-label="Workspaces">
+    <aside className={styles.panel}>
+      <nav className={styles.workspaceSwitcher} aria-label="Workspaces">
         {workspaceRoots.map((workspaceRoot) => (
           <button
             key={workspaceRoot}
             type="button"
-            className={`workspace-switcher-item ${
-              workspaceRoot === rootPath ? 'workspace-switcher-item-active' : ''
+            className={`${styles.workspaceSwitcherItem} ${
+              workspaceRoot === rootPath ? styles.workspaceSwitcherItemActive : ''
             }`}
             title={workspaceRoot}
             aria-label={`Switch to ${workspaceLabel(workspaceRoot)}`}
@@ -107,7 +109,7 @@ export const ExplorerPanel = (): React.JSX.Element => {
         ))}
         <button
           type="button"
-          className="workspace-switcher-add material-icons-round"
+          className={`${styles.workspaceSwitcherAdd} material-icons-round`}
           aria-label="Open workspace"
           title="Open workspace"
           onClick={() => {
@@ -119,14 +121,14 @@ export const ExplorerPanel = (): React.JSX.Element => {
           add
         </button>
       </nav>
-      <div className="explorer-content">
-        <header className="sidebar-header">
-          <span className="sidebar-title">{activeView === 'files' ? 'Files' : 'Search'}</span>
-          <div className="explorer-actions">
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <span className={styles.title}>{activeView === 'files' ? 'Files' : 'Search'}</span>
+          <div className={styles.actions}>
             <button
               type="button"
-              className={`sidebar-icon-button material-icons-round ${
-                activeView === 'files' ? 'active' : ''
+              className={`${styles.iconButton} material-icons-round ${
+                activeView === 'files' ? styles.iconButtonActive : ''
               }`}
               aria-label="Show files"
               title="Files"
@@ -136,8 +138,8 @@ export const ExplorerPanel = (): React.JSX.Element => {
             </button>
             <button
               type="button"
-              className={`sidebar-icon-button material-icons-round ${
-                activeView === 'search' ? 'active' : ''
+              className={`${styles.iconButton} material-icons-round ${
+                activeView === 'search' ? styles.iconButtonActive : ''
               }`}
               aria-label="Show search"
               title="Search"
@@ -152,23 +154,25 @@ export const ExplorerPanel = (): React.JSX.Element => {
         {activeView === 'search' ? (
           <SearchPanel ref={searchPanelRef} />
         ) : rootPath ? (
-          <ul className="file-explorer-list">
+          <ul className={styles.fileList}>
             {shouldShowNewEntryAtRoot ? (
-              <li className="file-item-new">
-                <div className="file-tree-item">
-                  <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+              <li className={styles.newItem}>
+                <div className={treeStyles.treeItem}>
+                  <span
+                    className={`material-icons-round ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
+                  >
                     chevron_right
                   </span>
                   <span
-                    className={`material-icons file-item-folder ${
-                      newEntry.mode !== 'directory' ? 'file-item-icon-placeholder' : ''
+                    className={`material-icons ${treeStyles.folder} ${
+                      newEntry.mode !== 'directory' ? treeStyles.iconPlaceholder : ''
                     }`}
                   >
                     folder
                   </span>
                   <input
                     ref={rootInputRef}
-                    className="file-item-new-input"
+                    className={treeStyles.newInput}
                     value={newEntry.name}
                     onChange={(event) => setNewEntryName(event.target.value)}
                     onKeyDown={onRootNewEntryKeyDown}
@@ -190,9 +194,9 @@ export const ExplorerPanel = (): React.JSX.Element => {
             />
           </ul>
         ) : (
-          <div className="file-explorer-empty">
+          <div className={styles.empty}>
             <p>No folder selected</p>
-            <button type="button" className="open-folder-button" onClick={openWorkspace}>
+            <button type="button" className={styles.openFolderButton} onClick={openWorkspace}>
               Open Folder
             </button>
           </div>

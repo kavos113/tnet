@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
 import { closeFile, setActiveGroup, switchFile, type EditorGroupId } from './editorSlice';
+import styles from './TabBar.module.css';
 
 interface TabBarProps {
   groupId: EditorGroupId;
@@ -13,7 +14,7 @@ export const TabBar = ({ groupId }: TabBarProps): React.JSX.Element | null => {
   if (group.tabs.length === 0) return null;
 
   return (
-    <div className="tab-bar" onMouseDown={() => dispatch(setActiveGroup(groupId))}>
+    <div className={styles.tabBar} onMouseDown={() => dispatch(setActiveGroup(groupId))}>
       {group.tabs.map((path, index) => {
         const file = filesByPath[path];
         if (!file) return null;
@@ -22,13 +23,13 @@ export const TabBar = ({ groupId }: TabBarProps): React.JSX.Element | null => {
           <button
             key={path}
             type="button"
-            className={`tab ${index === group.activeIndex ? 'active' : ''}`}
+            className={`${styles.tab} ${index === group.activeIndex ? styles.active : ''}`}
             onClick={() => dispatch(switchFile({ groupId, index }))}
           >
-            <span className="tab-name">{file.displayName}</span>
-            {file.isModified ? <span className="modified-indicator">*</span> : null}
+            <span className={styles.tabName}>{file.displayName}</span>
+            {file.isModified ? <span className={styles.modifiedIndicator}>*</span> : null}
             <span
-              className="tab-close"
+              className={styles.tabClose}
               role="button"
               tabIndex={0}
               aria-label={`Close ${file.displayName}`}

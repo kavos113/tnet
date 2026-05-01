@@ -1,5 +1,7 @@
 import type { PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes';
+import sharedStyles from '../PapersShared.module.css';
 import { formatPaperJournal, formatPaperYear } from '../papers/paperDisplay';
+import styles from './PaperListPane.module.css';
 
 export interface PaperListPaneProps {
   items: PaperSummary[];
@@ -39,12 +41,8 @@ export const PaperListPane = ({
   const normalizedSearchQuery = searchQuery.trim();
 
   return (
-    <section
-      className="papers-list-pane"
-      aria-label="Paper list"
-      style={{ width: `${widthPercent}%` }}
-    >
-      <header className="papers-pane-header">
+    <section className={styles.pane} aria-label="Paper list" style={{ width: `${widthPercent}%` }}>
+      <header className={styles.header}>
         <div>
           <h1>Papers</h1>
           <span>
@@ -64,8 +62,8 @@ export const PaperListPane = ({
           </span>
         </button>
       </header>
-      <div className="papers-list-filter">
-        <label className="papers-search-filter">
+      <div className={styles.filter}>
+        <label className={styles.searchFilter}>
           <span>Search</span>
           <input
             ref={searchInputRef}
@@ -76,12 +74,14 @@ export const PaperListPane = ({
           />
         </label>
         {tags.length > 0 ? (
-          <div className="papers-tag-filter" aria-label="Filter by tags">
+          <div className={styles.tagFilter} aria-label="Filter by tags">
             {tags.map((tag) => (
               <button
                 key={tag.id}
                 type="button"
-                className={`papers-tag-chip ${selectedTagIds.includes(tag.id) ? 'active' : ''}`}
+                className={`${styles.tagChip} ${
+                  selectedTagIds.includes(tag.id) ? styles.tagChipActive : ''
+                }`}
                 aria-pressed={selectedTagIds.includes(tag.id)}
                 onClick={() => onToggleTag(tag.id)}
               >
@@ -91,16 +91,16 @@ export const PaperListPane = ({
           </div>
         ) : null}
       </div>
-      {error ? <div className="papers-error">{error}</div> : null}
-      {isLoading ? <div className="papers-empty-state">Loading papers...</div> : null}
+      {error ? <div className={styles.error}>{error}</div> : null}
+      {isLoading ? <div className={sharedStyles.emptyState}>Loading papers...</div> : null}
       {!isLoading && items.length === 0 ? (
-        <div className="papers-empty-state">Import a PDF to register a paper.</div>
+        <div className={sharedStyles.emptyState}>Import a PDF to register a paper.</div>
       ) : null}
       {!isLoading && items.length === 0 && (searchQuery.trim() || selectedTagIds.length > 0) ? (
-        <div className="papers-empty-state">No papers match the current filters.</div>
+        <div className={sharedStyles.emptyState}>No papers match the current filters.</div>
       ) : null}
-      <div className="papers-list" role="table" aria-label="Papers table">
-        <div className="papers-list-header" role="row">
+      <div className={styles.list} role="table" aria-label="Papers table">
+        <div className={styles.listHeader} role="row">
           <span role="columnheader">Title</span>
           <span role="columnheader">Year</span>
           <span role="columnheader">Journal</span>
@@ -109,21 +109,23 @@ export const PaperListPane = ({
         {items.map((paper) => (
           <button
             key={paper.id}
-            className={`papers-list-item ${paper.id === selectedPaperId ? 'active' : ''}`}
+            className={`${styles.listItem} ${
+              paper.id === selectedPaperId ? styles.listItemActive : ''
+            }`}
             type="button"
             role="row"
             onClick={() => onSelectPaper(paper.id)}
           >
-            <span className="papers-list-title" role="cell" title={paper.title}>
+            <span className={styles.title} role="cell" title={paper.title}>
               {highlightSearchMatch(paper.title, normalizedSearchQuery)}
             </span>
-            <span className="papers-list-year" role="cell">
+            <span className={styles.year} role="cell">
               {formatPaperYear(paper)}
             </span>
-            <span className="papers-list-journal" role="cell" title={formatPaperJournal(paper)}>
+            <span className={styles.journal} role="cell" title={formatPaperJournal(paper)}>
               {highlightSearchMatch(formatPaperJournal(paper), normalizedSearchQuery)}
             </span>
-            <span className="papers-list-tags" role="cell" title={paper.tags.join(', ')}>
+            <span className={styles.tags} role="cell" title={paper.tags.join(', ')}>
               {highlightSearchMatch(
                 paper.tags.length > 0 ? paper.tags.join(', ') : '-',
                 normalizedSearchQuery
@@ -155,7 +157,7 @@ const highlightSearchMatch = (value: string, query: string): React.ReactNode => 
     }
     const matchEnd = matchIndex + query.length;
     parts.push(
-      <mark key={`${matchIndex}:${matchEnd}`} className="papers-list-highlight">
+      <mark key={`${matchIndex}:${matchEnd}`} className={styles.highlight}>
         {value.slice(matchIndex, matchEnd)}
       </mark>
     );

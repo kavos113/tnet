@@ -1,0 +1,106 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
+.inputIcon {
+  flex: 0 0 auto;
+  font-size: 16px;
+  color: var(--foreground);
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--foreground);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.empty,
+.hint,
+.error,
+.summary {
+  margin: 0;
+  font-size: 12px;
+  color: var(--foreground);
+}
+
+.error {
+  color: #b3261e;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.resultFile {
+  min-width: 0;
+}
+
+.resultFileTitle {
+  margin: 0 0 3px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultLine {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 4px;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+}
+
+.resultLine:hover {
+  background: var(--gray);
+}
+
+.resultLineNumber {
+  flex: 0 0 28px;
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--foreground);
+  text-align: right;
+}
+
+.resultLineText {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highlight {
+  padding: 0 1px;
+  color: var(--background);
+  background: var(--main-light);
+}

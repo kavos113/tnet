@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MarkdownEditorSurface, type MarkdownEditorMode } from '@tnet/markdown-editor/renderer';
 import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
+import styles from './PaperNoteEditor.module.css';
 
 export interface PaperNoteEditorProps {
   paperId: string;
@@ -60,7 +61,7 @@ export const PaperNoteEditor = ({
 
   return (
     <section
-      className="papers-note-panel"
+      className={styles.panel}
       aria-label="Paper note editor"
       style={
         {
@@ -71,12 +72,12 @@ export const PaperNoteEditor = ({
         } as React.CSSProperties
       }
     >
-      <div className="papers-note-toolbar" aria-label="Paper note view mode">
+      <div className={styles.toolbar} aria-label="Paper note view mode">
         {(['editor', 'split', 'preview'] as const).map((nextMode) => (
           <button
             key={nextMode}
             type="button"
-            className={mode === nextMode ? 'active' : ''}
+            className={mode === nextMode ? styles.activeMode : ''}
             aria-pressed={mode === nextMode}
             onClick={() => onModeChange(nextMode)}
           >
@@ -85,14 +86,17 @@ export const PaperNoteEditor = ({
         ))}
       </div>
       <MarkdownEditorSurface
-        className="papers-note-editor"
+        className={styles.editor}
         mode={mode}
         content={draft}
         onChange={setDraft}
         editor={editorOptions}
         preview={previewOptions}
       />
-      <span className={`papers-note-status papers-note-status-${status}`} aria-live="polite">
+      <span
+        className={`${styles.status} ${status === 'error' ? styles.statusError : ''}`}
+        aria-live="polite"
+      >
         {status === 'saving'
           ? 'Saving...'
           : status === 'saved'

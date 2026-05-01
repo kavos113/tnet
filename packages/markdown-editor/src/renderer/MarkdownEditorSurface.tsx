@@ -9,6 +9,7 @@ import type {
   MarkdownPreviewPaneProps
 } from './preview/MarkdownPreviewPane';
 import { MarkdownPreviewPane } from './preview/MarkdownPreviewPane';
+import styles from './MarkdownEditorSurface.module.css';
 
 export type MarkdownEditorMode = 'editor' | 'split' | 'preview';
 
@@ -59,10 +60,10 @@ export const MarkdownEditorSurface = ({
   }, []);
 
   return (
-    <div className={`markdown-editor-surface ${className ?? ''}`.trim()}>
+    <div className={`${styles.surface} ${className ?? ''}`.trim()}>
       {mode !== 'preview' ? (
         <div
-          className="markdown-editor-surface-pane markdown-editor-surface-editor"
+          className={styles.pane}
           style={
             {
               width: mode === 'split' ? `${editorWidthPercent}%` : '100%'
@@ -74,7 +75,7 @@ export const MarkdownEditorSurface = ({
       ) : null}
       {mode === 'split' ? (
         <div
-          className="markdown-editor-surface-resizer"
+          className={styles.resizer}
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize editor and preview"
@@ -83,7 +84,7 @@ export const MarkdownEditorSurface = ({
       ) : null}
       {mode !== 'editor' ? (
         <div
-          className="markdown-editor-surface-pane markdown-editor-surface-preview"
+          className={styles.pane}
           style={
             {
               width: mode === 'split' ? `${previewWidthPercent}%` : '100%'

@@ -23,6 +23,7 @@ import { usePaperPaneResize } from './papers/usePaperPaneResize';
 import { usePaperTagsLoader } from './papers/usePaperTagsLoader';
 import { usePapersListLoader } from './papers/usePapersListLoader';
 import { setPapersLibrarySettings } from './library/librarySlice';
+import styles from './PapersApp.module.css';
 
 export const PapersApp = (): React.JSX.Element => {
   const dispatch = usePapersDispatch();
@@ -244,7 +245,7 @@ export const PapersApp = (): React.JSX.Element => {
   }
 
   return (
-    <main className="papers-app" aria-label="Papers">
+    <main className={styles.root} aria-label="Papers">
       <PaperListPane
         items={items}
         tags={tags}
@@ -263,7 +264,7 @@ export const PapersApp = (): React.JSX.Element => {
         onImportPdf={triggerImportPdf}
       />
       <div
-        className="papers-pane-resizer"
+        className={styles.paneResizer}
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize paper list and preview"

@@ -1,5 +1,3 @@
-import './papers.css';
-
 export { PapersApp } from './PapersApp';
 export { PapersRuntime } from './PapersRuntime';
 export { PapersSettingsDialog } from './settings/PapersSettingsDialog';

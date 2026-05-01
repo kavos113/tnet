@@ -56,7 +56,7 @@ describe('PreviewPane', () => {
     fireEvent.mouseOver(link, { clientX: 20, clientY: 30 });
 
     expect(await screen.findByText('Loading...')).toBeInTheDocument();
-    const loadingTooltip = screen.getByText('Loading...').closest('.internal-link-tooltip');
+    const loadingTooltip = screen.getByTestId('internal-link-tooltip');
     expect(loadingTooltip).toHaveStyle({ left: '32px', top: '42px' });
 
     fireEvent.mouseOver(link, { clientX: 80, clientY: 90, relatedTarget: link });
@@ -165,8 +165,9 @@ describe('PreviewPane', () => {
     expect(outline).toHaveTextContent('Title');
     expect(outline).toHaveTextContent('Section');
     expect(outline).toHaveTextContent('Detail');
-    expect(screen.getByRole('button', { name: 'Section' }).closest('li')).toHaveClass(
-      'preview-outline-level-2'
+    expect(screen.getByRole('button', { name: 'Section' }).closest('li')).toHaveAttribute(
+      'data-outline-level',
+      '2'
     );
   });
 

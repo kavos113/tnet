@@ -1,0 +1,54 @@
+.outline {
+  flex: 0 0 180px;
+  width: 180px;
+  padding: 10px 8px;
+  overflow: hidden auto;
+  background: var(--background-dark);
+  border-left: 1px solid var(--gray);
+}
+
+.list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.item {
+  margin: 0;
+}
+
+.link {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 6px;
+  overflow: hidden;
+  color: var(--foreground);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.link:hover {
+  background: var(--gray);
+}
+
+.level2 .link {
+  padding-left: 14px;
+}
+
+.level3 .link {
+  padding-left: 22px;
+}
+
+.level4 .link,
+.level5 .link,
+.level6 .link {
+  padding-left: 30px;
+}

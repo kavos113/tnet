@@ -1,0 +1,121 @@
+.metadata {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 14px;
+  overflow: auto;
+}
+
+.metadata dl {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.metadata dt {
+  color: var(--foreground-muted);
+}
+
+.metadata dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.abstract {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.abstract h3,
+.tags h3 {
+  margin: 0;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+}
+
+.abstract p {
+  max-width: 72ch;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tags {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tagChip {
+  flex: 0 0 auto;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 999px;
+}
+
+.tagChip:hover,
+.tagChipActive {
+  color: var(--foreground);
+  background: var(--main-light);
+  border-color: var(--main-dark);
+}
+
+.noTags {
+  font-size: 12px;
+  color: var(--foreground-muted);
+}
+
+.newTag {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: end;
+}
+
+.newTag span {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+}
+
+.newTag input {
+  height: 28px;
+  min-width: 0;
+  padding: 0 8px;
+  color: var(--foreground);
+  background: var(--background-dark);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  outline: 0;
+}
+
+.newTag input:focus {
+  border-color: var(--main-light);
+}
+
+.newTag button {
+  height: 28px;
+  padding: 0 10px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}

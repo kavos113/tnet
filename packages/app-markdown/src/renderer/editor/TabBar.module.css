@@ -1,0 +1,69 @@
+.tabBar {
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  background: var(--tab-bg);
+  border-bottom: 1px solid var(--tab-border);
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-width: 120px;
+  max-width: 200px;
+  height: 31px;
+  padding: 4px 8px;
+  color: var(--foreground);
+  cursor: pointer;
+  user-select: none;
+  background: var(--tab-bg);
+  border: 0;
+  border-right: 1px solid var(--tab-border);
+}
+
+.tab:hover {
+  background: var(--tab-hover-bg);
+}
+
+.active {
+  background: var(--tab-active-bg);
+  border-bottom: 2px solid var(--main-dark);
+}
+
+.tabName {
+  flex: 1;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modifiedIndicator {
+  margin: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tab-modified);
+}
+
+.tabClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  font-size: 14px;
+  color: var(--foreground);
+  border-radius: 3px;
+  opacity: 0.65;
+}
+
+.tabClose:hover {
+  background: var(--gray);
+  opacity: 1;
+}

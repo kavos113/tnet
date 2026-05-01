@@ -7,6 +7,7 @@ import {
   type RenderTask
 } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import sharedStyles from '../PapersShared.module.css';
 import { papersTnetApi } from '../papersTnetApi';
 import {
   getPdfRenderScale,
@@ -15,6 +16,7 @@ import {
   type PdfViewMode,
   type PdfZoomMode
 } from './pdfViewerLayout';
+import styles from './PdfViewer.module.css';
 
 interface PdfViewerProps {
   libraryRoot: string;
@@ -117,14 +119,14 @@ const PdfPageCanvas = ({
   }, [pageNumber, pagesInRow, pdfDocument, viewportSize.height, viewportSize.width, zoom]);
 
   return (
-    <figure className="papers-pdf-page" aria-label={`PDF page ${pageNumber}`}>
+    <figure className={styles.page} aria-label={`PDF page ${pageNumber}`}>
       <canvas
         ref={canvasRef}
-        className="papers-pdf-canvas"
+        className={styles.canvas}
         aria-label={`PDF page ${pageNumber} canvas`}
       />
-      {isRendering ? <div className="papers-pdf-rendering-state">Rendering page...</div> : null}
-      {error ? <div className="papers-pdf-page-error">{error}</div> : null}
+      {isRendering ? <div className={styles.renderingState}>Rendering page...</div> : null}
+      {error ? <div className={styles.pageError}>{error}</div> : null}
     </figure>
   );
 };
@@ -221,21 +223,23 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
   };
 
   if (!pdfPath) {
-    return <div className="papers-empty-state">No PDF registered.</div>;
+    return <div className={sharedStyles.emptyState}>No PDF registered.</div>;
   }
 
   const spreads = pdfDocument ? groupPdfPages(pageCount, viewMode) : [];
 
   return (
-    <section className="papers-pdf-viewer" aria-label="PDF viewer">
-      <div className="papers-pdf-toolbar">
-        <span className="papers-pdf-name">{pdfPath}</span>
-        <span className="papers-pdf-page-status" aria-label="PDF page count">
+    <section className={styles.viewer} aria-label="PDF viewer">
+      <div className={styles.toolbar}>
+        <span className={styles.name}>{pdfPath}</span>
+        <span className={styles.pageStatus} aria-label="PDF page count">
           {pageCount > 0 ? `${pageCount} pages` : '- pages'}
         </span>
-        <div className="papers-pdf-view-mode" aria-label="PDF view mode">
+        <div className={styles.viewMode} aria-label="PDF view mode">
           <button
-            className={`papers-pdf-mode-button ${viewMode === 'single' ? 'active' : ''}`}
+            className={`${styles.modeButton} ${
+              viewMode === 'single' ? styles.modeButtonActive : ''
+            }`}
             type="button"
             aria-pressed={viewMode === 'single'}
             onClick={() => setViewMode('single')}
@@ -243,7 +247,9 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
             Single
           </button>
           <button
-            className={`papers-pdf-mode-button ${viewMode === 'spread' ? 'active' : ''}`}
+            className={`${styles.modeButton} ${
+              viewMode === 'spread' ? styles.modeButtonActive : ''
+            }`}
             type="button"
             aria-pressed={viewMode === 'spread'}
             onClick={() => setViewMode('spread')}
@@ -252,7 +258,7 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
           </button>
         </div>
         <select
-          className="papers-select"
+          className={styles.select}
           value={zoom}
           aria-label="PDF zoom"
           onChange={(event) => setZoom(event.target.value as PdfZoomMode)}
@@ -269,18 +275,14 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
           </span>
         </button>
       </div>
-      {error ? <div className="papers-empty-state">{error}</div> : null}
+      {error ? <div className={sharedStyles.emptyState}>{error}</div> : null}
       {!error ? (
-        <div ref={viewportRef} className="papers-pdf-canvas-viewport">
-          {isLoading ? <div className="papers-empty-state">Loading PDF...</div> : null}
+        <div ref={viewportRef} className={styles.canvasViewport}>
+          {isLoading ? <div className={sharedStyles.emptyState}>Loading PDF...</div> : null}
           {!isLoading && pdfDocument ? (
-            <div
-              className={`papers-pdf-pages ${
-                viewMode === 'spread' ? 'papers-pdf-pages-spread' : ''
-              }`}
-            >
+            <div className={styles.pages}>
               {spreads.map((spread) => (
-                <div className="papers-pdf-spread" data-testid="pdf-spread" key={spread[0]}>
+                <div className={styles.spread} data-testid="pdf-spread" key={spread[0]}>
                   {spread.map((spreadPageNumber) => (
                     <PdfPageCanvas
                       key={spreadPageNumber}

@@ -1,0 +1,148 @@
+.panel {
+  display: flex;
+  flex: 0 0 250px;
+  width: 250px;
+  overflow: hidden;
+  background: var(--background-dark);
+  border-right: 1px solid var(--gray);
+}
+
+.workspaceSwitcher {
+  display: flex;
+  flex: 0 0 34px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  overflow: hidden auto;
+  background: var(--background);
+  border-right: 1px solid var(--gray);
+}
+
+.workspaceSwitcherItem,
+.workspaceSwitcherAdd {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.workspaceSwitcherItem {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.workspaceSwitcherAdd {
+  margin-top: auto;
+  font-size: 18px;
+}
+
+.workspaceSwitcherItem:hover,
+.workspaceSwitcherAdd:hover {
+  background: var(--gray);
+}
+
+.workspaceSwitcherItemActive {
+  color: var(--background);
+  background: var(--main-light);
+}
+
+.workspaceSwitcherItemActive:hover {
+  background: var(--main-light);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.title {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.iconButton:hover,
+.iconButtonActive {
+  background: var(--sidebar-hover);
+  border-color: var(--gray);
+}
+
+.fileList {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+.newItem {
+  list-style-type: none;
+}
+
+.empty {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 12px;
+}
+
+.empty p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--foreground);
+}
+
+.openFolderButton {
+  padding: 8px 16px;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  background-color: var(--main-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+.openFolderButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}

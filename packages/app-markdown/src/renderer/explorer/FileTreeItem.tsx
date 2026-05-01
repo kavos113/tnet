@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/stor
 import { useActiveMarkdownWorkspaceApi } from '@tnet/app-markdown/renderer/workspace/useActiveMarkdownWorkspaceApi';
 import type { NewEntryState, RenameEntryState } from './FileTree';
 import { selectDirectory, selectFile } from './explorerSlice';
+import styles from './FileTreeItem.module.css';
 
 interface FileTreeItemProps {
   item: FileItem;
@@ -92,7 +93,7 @@ export const FileTreeItem = ({
   return (
     <li>
       <div
-        className={`file-tree-item ${isSelected ? 'file-item-is-selected' : ''}`}
+        className={`${styles.treeItem} ${isSelected ? styles.selected : ''}`}
         role="button"
         tabIndex={0}
         onClick={() => {
@@ -111,13 +112,13 @@ export const FileTreeItem = ({
         {item.isDirectory ? (
           <>
             <span
-              className={`material-icons-round file-item-chevron ${
-                isExpanded ? 'file-item-chevron-expand' : ''
+              className={`material-icons-round ${styles.chevron} ${
+                isExpanded ? styles.chevronExpanded : ''
               }`}
             >
               chevron_right
             </span>
-            <span className="material-icons file-item-folder">
+            <span className={`material-icons ${styles.folder}`}>
               {isExpanded ? 'folder_open' : 'folder'}
             </span>
           </>
@@ -125,7 +126,7 @@ export const FileTreeItem = ({
         {shouldShowRenameHere ? (
           <input
             ref={renameInputRef}
-            className="file-item-new-input"
+            className={styles.newInput}
             value={renameEntry.name}
             onClick={(event) => event.stopPropagation()}
             onChange={(event) => onRenameEntryNameChange(event.target.value)}
@@ -133,29 +134,29 @@ export const FileTreeItem = ({
             onBlur={onCancelRenameEntry}
           />
         ) : (
-          <p className={`file-item-name ${item.isDirectory ? '' : 'file-item-not-directory'}`}>
-            {item.name}
-          </p>
+          <p className={`${styles.name} ${item.isDirectory ? '' : styles.fileName}`}>{item.name}</p>
         )}
       </div>
       {item.isDirectory && item.children && isExpanded ? (
-        <ul className="file-item-children">
+        <ul className={styles.children}>
           {shouldShowNewEntryHere ? (
-            <li className="file-item-new">
-              <div className="file-tree-item">
-                <span className="file-item-chevron material-icons-round file-item-icon-placeholder">
+            <li className={styles.newItem}>
+              <div className={styles.treeItem}>
+                <span
+                  className={`${styles.chevron} material-icons-round ${styles.iconPlaceholder}`}
+                >
                   chevron_right
                 </span>
                 <span
-                  className={`file-item-folder material-icons ${
-                    newEntry.mode !== 'directory' ? 'file-item-icon-placeholder' : ''
+                  className={`${styles.folder} material-icons ${
+                    newEntry.mode !== 'directory' ? styles.iconPlaceholder : ''
                   }`}
                 >
                   folder
                 </span>
                 <input
                   ref={newEntryInputRef}
-                  className="file-item-new-input"
+                  className={styles.newInput}
                   value={newEntry.name}
                   onChange={(event) => onNewEntryNameChange(event.target.value)}
                   onKeyDown={onNewEntryKeyDown}

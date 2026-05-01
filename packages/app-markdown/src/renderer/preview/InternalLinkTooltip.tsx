@@ -1,6 +1,7 @@
 import { type RefObject } from 'react';
 import { type InternalLinkTooltipState } from './internalLinkTooltipState';
 import { useInternalLinkTooltip } from './useInternalLinkTooltip';
+import styles from './InternalLinkTooltip.module.css';
 
 interface InternalLinkTooltipProps {
   tooltip: InternalLinkTooltipState;
@@ -19,7 +20,8 @@ export const InternalLinkTooltip = ({
 
   return (
     <div
-      className="internal-link-tooltip"
+      className={styles.tooltip}
+      data-testid="internal-link-tooltip"
       style={{ left: tooltip.x, top: tooltip.y }}
       dangerouslySetInnerHTML={{ __html: tooltip.html }}
     />

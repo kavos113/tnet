@@ -231,12 +231,12 @@ describe('EditorWorkspace split resize', () => {
     expect(screen.getByTestId('editor-pane-content')).toBeInTheDocument();
     expect(screen.queryByTestId('preview-pane-content')).not.toBeInTheDocument();
     expect(editorPaneProps.at(-1)?.isLargeDocument).toBe(true);
-    expect(screen.getByRole('button', { name: 'Editor' })).toHaveClass('active');
+    expect(screen.getByRole('button', { name: 'Editor' })).toHaveAttribute('aria-pressed', 'true');
 
     fireEvent.click(screen.getByRole('button', { name: 'Split' }));
 
     expect(screen.getByTestId('preview-pane-content')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Split' })).toHaveClass('active');
+    expect(screen.getByRole('button', { name: 'Split' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('closes the active tab with Ctrl+W instead of leaving the shortcut to the window', () => {

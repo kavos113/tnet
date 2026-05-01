@@ -1,4 +1,4 @@
-.papers-import-backdrop {
+.backdrop {
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -7,7 +7,7 @@
   background: rgb(0 0 0 / 45%);
 }
 
-.papers-import-dialog {
+.dialog {
   display: grid;
   gap: 14px;
   width: min(620px, calc(100vw - 32px));
@@ -21,42 +21,42 @@
   box-shadow: 0 12px 40px rgb(0 0 0 / 35%);
 }
 
-.papers-import-dialog header,
-.papers-import-dialog footer {
+.dialog header,
+.dialog footer {
   display: flex;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
 }
 
-.papers-import-dialog h2 {
+.dialog h2 {
   margin: 0;
   font-size: 15px;
 }
 
-.papers-import-dialog footer {
+.dialog footer {
   justify-content: flex-end;
 }
 
-.papers-form-field {
+.formField {
   display: grid;
   gap: 6px;
 }
 
-.papers-form-field span,
-.papers-import-paths span {
+.formField span,
+.paths span {
   font-size: 12px;
   color: var(--foreground-muted);
 }
 
-.papers-import-grid {
+.grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
 }
 
-.papers-form-field input,
-.papers-form-field textarea {
+.formField input,
+.formField textarea {
   height: 30px;
   padding: 0 8px;
   color: var(--foreground);
@@ -66,53 +66,53 @@
   outline: 0;
 }
 
-.papers-form-field textarea {
+.formField textarea {
   height: auto;
   min-height: 120px;
   padding: 8px;
   resize: vertical;
 }
 
-.papers-form-field input:focus,
-.papers-form-field textarea:focus {
+.formField input:focus,
+.formField textarea:focus {
   border-color: var(--main-light);
 }
 
-.papers-import-paths {
+.paths {
   display: grid;
   gap: 4px;
   min-width: 0;
 }
 
-.papers-import-diagnostics {
-  display: grid;
-  gap: 6px;
-}
-
-.papers-import-diagnostics p {
-  padding: 7px 9px;
-  margin: 0;
-  font-size: 12px;
-  border-radius: 4px;
-}
-
-.papers-import-diagnostics .error {
-  color: #ffd7d7;
-  background: rgb(128 32 32 / 35%);
-  border: 1px solid rgb(255 120 120 / 45%);
-}
-
-.papers-import-diagnostics .warning {
-  color: #ffe7bd;
-  background: rgb(128 88 24 / 35%);
-  border: 1px solid rgb(255 187 92 / 45%);
-}
-
-.papers-import-paths code {
+.paths code {
   min-width: 0;
   overflow: hidden;
   font-size: 12px;
   color: var(--foreground);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.diagnostics {
+  display: grid;
+  gap: 6px;
+}
+
+.diagnostics p {
+  padding: 7px 9px;
+  margin: 0;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.error {
+  color: #ffd7d7;
+  background: rgb(128 32 32 / 35%);
+  border: 1px solid rgb(255 120 120 / 45%);
+}
+
+.warning {
+  color: #ffe7bd;
+  background: rgb(128 88 24 / 35%);
+  border: 1px solid rgb(255 187 92 / 45%);
 }

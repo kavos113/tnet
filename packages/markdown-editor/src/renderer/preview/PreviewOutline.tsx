@@ -1,3 +1,5 @@
+import styles from './PreviewOutline.module.css';
+
 export interface PreviewOutlineItem {
   id: string;
   level: number;
@@ -23,13 +25,17 @@ export const PreviewOutline = ({ items, onSelect }: PreviewOutlineProps): React.
   if (items.length === 0) return <></>;
 
   return (
-    <nav className="preview-outline" aria-label="Preview outline">
-      <ul className="preview-outline-list">
+    <nav className={styles.outline} aria-label="Preview outline">
+      <ul className={styles.list}>
         {items.map((item) => (
-          <li key={item.id} className={`preview-outline-item preview-outline-level-${item.level}`}>
+          <li
+            key={item.id}
+            className={`${styles.item} ${styles[`level${item.level}`] ?? ''}`}
+            data-outline-level={item.level}
+          >
             <button
               type="button"
-              className="preview-outline-link"
+              className={styles.link}
               title={item.text}
               onClick={() => onSelect(item.id)}
             >

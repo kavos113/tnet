@@ -31,6 +31,7 @@ import { useAutoSaveActiveFile } from './useAutoSaveActiveFile';
 import { useSaveActiveFile } from './useSaveActiveFile';
 import { useScrollSync } from './useScrollSync';
 import { useSplitPaneResize } from './useSplitPaneResize';
+import styles from './EditorWorkspace.module.css';
 
 interface EditorGroupViewProps {
   groupId: EditorGroupId;
@@ -143,32 +144,41 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
 
   return (
     <section
-      className={`editor-group ${isActiveGroup ? 'active' : ''}`}
+      className={`${styles.group} ${isActiveGroup ? styles.activeGroup : ''}`}
       onMouseDown={() => dispatch(setActiveGroup(groupId))}
     >
       <TabBar groupId={groupId} />
       {activeFile ? (
         <>
-          <div className="editor-title">
+          <div className={styles.title}>
             <span>{activeFile.path}</span>
-            <div className="editor-actions">
+            <div className={styles.actions}>
               <button
                 type="button"
-                className={`mode-button ${effectiveViewMode === 'editor' ? 'active' : ''}`}
+                className={`${styles.modeButton} ${
+                  effectiveViewMode === 'editor' ? styles.modeButtonActive : ''
+                }`}
+                aria-pressed={effectiveViewMode === 'editor'}
                 onClick={() => setEditorViewMode('editor')}
               >
                 Editor
               </button>
               <button
                 type="button"
-                className={`mode-button ${effectiveViewMode === 'split' ? 'active' : ''}`}
+                className={`${styles.modeButton} ${
+                  effectiveViewMode === 'split' ? styles.modeButtonActive : ''
+                }`}
+                aria-pressed={effectiveViewMode === 'split'}
                 onClick={() => setEditorViewMode('split')}
               >
                 Split
               </button>
               <button
                 type="button"
-                className={`mode-button ${effectiveViewMode === 'preview' ? 'active' : ''}`}
+                className={`${styles.modeButton} ${
+                  effectiveViewMode === 'preview' ? styles.modeButtonActive : ''
+                }`}
+                aria-pressed={effectiveViewMode === 'preview'}
                 onClick={() => setEditorViewMode('preview')}
               >
                 Preview
@@ -176,7 +186,9 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
               {effectiveViewMode !== 'editor' ? (
                 <button
                   type="button"
-                  className={`mode-button ${group.isPreviewOutlineVisible ? 'active' : ''}`}
+                  className={`${styles.modeButton} ${
+                    group.isPreviewOutlineVisible ? styles.modeButtonActive : ''
+                  }`}
                   aria-pressed={group.isPreviewOutlineVisible}
                   onClick={() => dispatch(togglePreviewOutline(groupId))}
                 >
@@ -186,7 +198,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
               {groupId === 'secondary' ? (
                 <button
                   type="button"
-                  className="mode-button"
+                  className={styles.modeButton}
                   onClick={() => dispatch(closeSecondaryGroup())}
                 >
                   Close Group
@@ -194,7 +206,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
               ) : (
                 <button
                   type="button"
-                  className="mode-button"
+                  className={styles.modeButton}
                   onClick={() => dispatch(splitActiveTabRight())}
                 >
                   Split Right
@@ -202,7 +214,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
               )}
               <button
                 type="button"
-                className="save-button"
+                className={styles.saveButton}
                 disabled={!canSave}
                 onClick={() => {
                   saveActiveFile().catch((error: unknown) => {
@@ -214,10 +226,10 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
               </button>
             </div>
           </div>
-          <div className="editor-content-split">
+          <div className={styles.contentSplit}>
             {effectiveViewMode !== 'preview' ? (
               <div
-                className="editor-pane"
+                className={styles.editorPane}
                 style={{ width: effectiveViewMode === 'split' ? `${editorWidthPercent}%` : '100%' }}
               >
                 <EditorPane
@@ -236,7 +248,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
             ) : null}
             {effectiveViewMode === 'split' ? (
               <div
-                className="resizer"
+                className={styles.resizer}
                 role="separator"
                 aria-orientation="vertical"
                 aria-label="Resize editor and preview"
@@ -245,7 +257,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
             ) : null}
             {effectiveViewMode !== 'editor' ? (
               <div
-                className="preview-pane"
+                className={styles.previewPane}
                 style={{
                   width: effectiveViewMode === 'split' ? `${previewWidthPercent}%` : '100%'
                 }}
@@ -268,7 +280,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
           </div>
         </>
       ) : (
-        <div className="empty-editor">No file selected</div>
+        <div className={styles.empty}>No file selected</div>
       )}
     </section>
   );
@@ -342,7 +354,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
 
   return (
     <main
-      className="editor-workspace"
+      className={styles.workspace}
       style={
         {
           '--editor-font-family': markdownSettings.editorFontFamily,
@@ -352,9 +364,9 @@ export const EditorWorkspace = (): React.JSX.Element => {
         } as CSSProperties
       }
     >
-      <div className="editor-groups">
+      <div className={styles.groups}>
         <div
-          className="editor-group-wrapper"
+          className={styles.groupWrapper}
           style={{ width: isSecondaryGroupVisible ? `${groupWidthPercent}%` : '100%' }}
         >
           <EditorGroupView groupId="primary" />
@@ -362,13 +374,13 @@ export const EditorWorkspace = (): React.JSX.Element => {
         {isSecondaryGroupVisible ? (
           <>
             <div
-              className="group-resizer"
+              className={styles.groupResizer}
               role="separator"
               aria-orientation="vertical"
               aria-label="Resize editor groups"
               onMouseDown={startGroupResize}
             />
-            <div className="editor-group-wrapper" style={{ width: `${100 - groupWidthPercent}%` }}>
+            <div className={styles.groupWrapper} style={{ width: `${100 - groupWidthPercent}%` }}>
               <EditorGroupView groupId="secondary" />
             </div>
           </>

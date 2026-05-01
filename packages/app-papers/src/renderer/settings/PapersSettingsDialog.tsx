@@ -6,6 +6,7 @@ import {
 } from '@tnet/app-papers/shared/config';
 import { setPapersLibrarySettings } from '../library/librarySlice';
 import { papersTnetApi } from '../papersTnetApi';
+import sharedStyles from '../PapersShared.module.css';
 import { usePapersDispatch, usePapersSelector } from '../storeHooks';
 
 interface PapersSettingsDialogProps {
@@ -70,7 +71,9 @@ export const PapersSettingsDialog = ({
         <h2>Papers Settings</h2>
 
         {!activeLibraryRoot ? (
-          <div className="papers-empty-state">Open a paper library before editing settings.</div>
+          <div className={sharedStyles.emptyState}>
+            Open a paper library before editing settings.
+          </div>
         ) : (
           <>
             <div className="settings-group">

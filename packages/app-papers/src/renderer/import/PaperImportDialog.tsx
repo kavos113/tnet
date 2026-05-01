@@ -2,6 +2,7 @@ import type { SelectedPdfImportCandidate } from '@tnet/app-papers/shared/ipc';
 import type { BibtexPaperMetadata, BibtexParseDiagnostic } from '@tnet/app-papers/shared/bibtex';
 import { PAPER_METADATA_FIELD_LABELS } from '@tnet/app-papers/shared/paperMetadataFields';
 import type { PaperImportMetadataField } from './usePaperImport';
+import styles from './PaperImportDialog.module.css';
 
 export interface PaperImportDialogProps {
   candidate: SelectedPdfImportCandidate;
@@ -40,9 +41,9 @@ export const PaperImportDialog = ({
   onCancel,
   onConfirm
 }: PaperImportDialogProps): React.JSX.Element => (
-  <div className="papers-import-backdrop" role="presentation">
+  <div className={styles.backdrop} role="presentation">
     <form
-      className="papers-import-dialog"
+      className={styles.dialog}
       aria-label="Import PDF metadata"
       onSubmit={(event) => {
         event.preventDefault();
@@ -59,7 +60,7 @@ export const PaperImportDialog = ({
           </span>
         </button>
       </header>
-      <label className="papers-form-field">
+      <label className={styles.formField}>
         <span>BibTeX</span>
         <textarea
           value={bibtex}
@@ -83,20 +84,23 @@ export const PaperImportDialog = ({
         Paste from clipboard
       </button>
       {bibtexDiagnostics.length > 0 ? (
-        <div className="papers-import-diagnostics" role="status">
+        <div className={styles.diagnostics} role="status">
           {bibtexDiagnostics.map((diagnostic) => (
-            <p key={`${diagnostic.severity}:${diagnostic.message}`} className={diagnostic.severity}>
+            <p
+              key={`${diagnostic.severity}:${diagnostic.message}`}
+              className={diagnostic.severity === 'error' ? styles.error : styles.warning}
+            >
               {diagnostic.message}
             </p>
           ))}
         </div>
       ) : null}
       {importError ? (
-        <div className="papers-import-diagnostics" role="alert">
-          <p className="error">{importError}</p>
+        <div className={styles.diagnostics} role="alert">
+          <p className={styles.error}>{importError}</p>
         </div>
       ) : null}
-      <label className="papers-form-field">
+      <label className={styles.formField}>
         <span>{PAPER_METADATA_FIELD_LABELS.title}</span>
         <input
           value={title}
@@ -105,7 +109,7 @@ export const PaperImportDialog = ({
           onChange={(event) => onTitleChange(event.target.value)}
         />
       </label>
-      <label className="papers-form-field">
+      <label className={styles.formField}>
         <span>{PAPER_METADATA_FIELD_LABELS.authors}</span>
         <input
           value={metadata.authors?.join(', ') ?? ''}
@@ -120,8 +124,8 @@ export const PaperImportDialog = ({
           }
         />
       </label>
-      <div className="papers-import-grid">
-        <label className="papers-form-field">
+      <div className={styles.grid}>
+        <label className={styles.formField}>
           <span>{PAPER_METADATA_FIELD_LABELS.publishedYear}</span>
           <input
             type="number"
@@ -134,7 +138,7 @@ export const PaperImportDialog = ({
             }
           />
         </label>
-        <label className="papers-form-field">
+        <label className={styles.formField}>
           <span>{PAPER_METADATA_FIELD_LABELS.venue}</span>
           <input
             value={metadata.venue ?? ''}
@@ -142,15 +146,15 @@ export const PaperImportDialog = ({
           />
         </label>
       </div>
-      <div className="papers-import-grid">
-        <label className="papers-form-field">
+      <div className={styles.grid}>
+        <label className={styles.formField}>
           <span>{PAPER_METADATA_FIELD_LABELS.doi}</span>
           <input
             value={metadata.doi ?? ''}
             onChange={(event) => onMetadataFieldChange('doi', event.target.value)}
           />
         </label>
-        <label className="papers-form-field">
+        <label className={styles.formField}>
           <span>{PAPER_METADATA_FIELD_LABELS.arxivId}</span>
           <input
             value={metadata.arxivId ?? ''}
@@ -158,14 +162,14 @@ export const PaperImportDialog = ({
           />
         </label>
       </div>
-      <label className="papers-form-field">
+      <label className={styles.formField}>
         <span>{PAPER_METADATA_FIELD_LABELS.url}</span>
         <input
           value={metadata.url ?? ''}
           onChange={(event) => onMetadataFieldChange('url', event.target.value)}
         />
       </label>
-      <div className="papers-import-paths">
+      <div className={styles.paths}>
         <span>{candidate.willCopy ? 'Copy to library' : 'Register existing file'}</span>
         <code>{importTargetLabel(candidate)}</code>
       </div>

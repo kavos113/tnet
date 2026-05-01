@@ -1,0 +1,9 @@
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--foreground-muted);
+  text-align: center;
+}
