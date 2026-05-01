@@ -10,6 +10,7 @@ import type {
   RequesterExtractionRule,
   RequesterHttpMethod,
   RequesterKeyValueRow,
+  RequesterRequestType,
   RequesterRequestDetail,
   RequesterRequestSummary,
   SaveRequesterRequestInput
@@ -41,6 +42,13 @@ interface RequestJson {
   authApiKeyName?: string;
   authApiKeyValue?: string;
   extractionRules?: RequesterExtractionRule[];
+  requestType?: RequesterRequestType;
+  websocketMessages?: string[];
+  grpcProtoPath?: string;
+  grpcPackageName?: string;
+  grpcServiceName?: string;
+  grpcMethodName?: string;
+  grpcMetadata?: RequesterKeyValueRow[];
 }
 
 const emptyRequestJson = (): Required<RequestJson> => ({
@@ -57,7 +65,14 @@ const emptyRequestJson = (): Required<RequestJson> => ({
   authToken: '',
   authApiKeyName: '',
   authApiKeyValue: '',
-  extractionRules: []
+  extractionRules: [],
+  requestType: 'http',
+  websocketMessages: [],
+  grpcProtoPath: '',
+  grpcPackageName: '',
+  grpcServiceName: '',
+  grpcMethodName: '',
+  grpcMetadata: []
 });
 
 const parseRequestJson = (json: string): Required<RequestJson> => ({
@@ -82,7 +97,14 @@ const requestJsonFromInput = (
   authToken: input.authToken ?? existing?.authToken ?? '',
   authApiKeyName: input.authApiKeyName ?? existing?.authApiKeyName ?? '',
   authApiKeyValue: input.authApiKeyValue ?? existing?.authApiKeyValue ?? '',
-  extractionRules: input.extractionRules ?? existing?.extractionRules ?? []
+  extractionRules: input.extractionRules ?? existing?.extractionRules ?? [],
+  requestType: input.requestType ?? existing?.requestType ?? 'http',
+  websocketMessages: input.websocketMessages ?? existing?.websocketMessages ?? [],
+  grpcProtoPath: input.grpcProtoPath ?? existing?.grpcProtoPath ?? '',
+  grpcPackageName: input.grpcPackageName ?? existing?.grpcPackageName ?? '',
+  grpcServiceName: input.grpcServiceName ?? existing?.grpcServiceName ?? '',
+  grpcMethodName: input.grpcMethodName ?? existing?.grpcMethodName ?? '',
+  grpcMetadata: input.grpcMetadata ?? existing?.grpcMetadata ?? []
 });
 
 const toSummary = (row: RequestRow): RequesterRequestSummary => ({
@@ -111,7 +133,14 @@ const toDetail = (row: RequestRow): RequesterRequestDetail => {
     authToken: requestJson.authToken,
     authApiKeyName: requestJson.authApiKeyName,
     authApiKeyValue: requestJson.authApiKeyValue,
-    extractionRules: requestJson.extractionRules
+    extractionRules: requestJson.extractionRules,
+    requestType: requestJson.requestType,
+    websocketMessages: requestJson.websocketMessages,
+    grpcProtoPath: requestJson.grpcProtoPath,
+    grpcPackageName: requestJson.grpcPackageName,
+    grpcServiceName: requestJson.grpcServiceName,
+    grpcMethodName: requestJson.grpcMethodName,
+    grpcMetadata: requestJson.grpcMetadata
   };
 };
 

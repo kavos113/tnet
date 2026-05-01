@@ -11,6 +11,7 @@ import { GraphqlSchemaRepository } from './graphqlSchemaRepository';
 import { RequestRepository } from './requestRepository';
 import { VariableSetRepository } from './variableSetRepository';
 import { WorkspaceRepository } from './workspaceRepository';
+import { RequesterBackupService } from '../backup/requesterBackupService';
 
 const tempDir = async (name: string): Promise<string> =>
   fs.mkdtemp(path.join(os.tmpdir(), `tnet-requester-${name}-`));
@@ -94,8 +95,11 @@ describe('Requester repositories', () => {
 
     expect(requestRepository.get(updated.id)).toMatchObject({
       name: 'Readiness',
+      requestType: 'http',
       bodyMode: 'json',
-      bodyText: '{"ok":true}'
+      bodyText: '{"ok":true}',
+      websocketMessages: [],
+      grpcProtoPath: ''
     });
     const moved = requestRepository.save({
       ...updated,
@@ -304,6 +308,72 @@ describe('Requester repositories', () => {
     );
     cookieRepository.clear(workspace.id);
     expect(cookieRepository.list(workspace.id)).toEqual([]);
+    database.close();
+  });
+
+  it('exports and imports requester workspace backups without secrets', async () => {
+    const repositories = await createRepositories('backup');
+    const {
+      cookieRepository,
+      database,
+      historyRepository,
+      requestRepository,
+      userDataDir,
+      variableSetRepository,
+      workspaceRepository
+    } = repositories;
+    const workspace = workspaceRepository.create('Local Dev');
+    workspaceRepository.saveSettings(workspace.id, {
+      ...workspaceRepository.getSettings(workspace.id),
+      proxyPasswordSecretId: 'secret-proxy',
+      clientCertificatePassphraseSecretId: 'secret-cert'
+    });
+    const request = requestRepository.save({
+      workspaceId: workspace.id,
+      name: 'Login',
+      method: 'POST',
+      url: 'https://example.test/login',
+      proxyPasswordSecretId: 'secret-proxy'
+    });
+    const variableSet = variableSetRepository.save({ workspaceId: workspace.id, name: 'Local' });
+    variableSetRepository.upsertVariables(variableSet.id, [{ key: 'token', value: 'abc' }]);
+    cookieRepository.saveFromResponse(
+      workspace.id,
+      'https://example.test/login',
+      new Headers({ 'set-cookie': 'session=abc; Path=/' })
+    );
+    historyRepository.saveExecution({
+      startedAt: '2026-05-01T00:00:00.000Z',
+      request,
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [],
+        bodyText: 'ok',
+        bodyBase64: '',
+        contentType: 'text/plain',
+        byteSize: 2,
+        durationMs: 10,
+        isBodyTruncated: false,
+        previewType: 'text'
+      }
+    });
+
+    const backupService = new RequesterBackupService(repositories);
+    const backupPath = path.join(userDataDir, 'backup.json');
+    await backupService.exportWorkspaceToFile(workspace.id, backupPath);
+    const backupText = await fs.readFile(backupPath, 'utf-8');
+    expect(backupText).not.toContain('secret-proxy');
+    expect(backupText).not.toContain('secret-cert');
+
+    const importedWorkspaceId = await backupService.importWorkspaceFromFile(backupPath);
+    expect(workspaceRepository.get(importedWorkspaceId)).toMatchObject({
+      name: 'Local Dev Import'
+    });
+    expect(requestRepository.list(importedWorkspaceId)).toHaveLength(1);
+    expect(variableSetRepository.list(importedWorkspaceId)).toHaveLength(1);
+    expect(cookieRepository.list(importedWorkspaceId)).toHaveLength(1);
+    expect(historyRepository.list(importedWorkspaceId)).toHaveLength(1);
     database.close();
   });
 });

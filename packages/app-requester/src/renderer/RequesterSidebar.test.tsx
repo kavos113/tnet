@@ -63,6 +63,13 @@ const requestDetail = (
   authApiKeyName: '',
   authApiKeyValue: '',
   extractionRules: [],
+  requestType: 'http',
+  websocketMessages: [],
+  grpcProtoPath: '',
+  grpcPackageName: '',
+  grpcServiceName: '',
+  grpcMethodName: '',
+  grpcMetadata: [],
   ...overrides
 });
 

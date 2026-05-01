@@ -22,6 +22,7 @@ export type RequesterBodyMode =
   | 'graphql'
   | 'binary-file';
 export type RequesterAuthType = 'none' | 'basic' | 'bearer' | 'api-key-header' | 'api-key-query';
+export type RequesterRequestType = 'http' | 'websocket' | 'grpc';
 
 export interface RequesterKeyValueRow {
   id: string;
@@ -73,6 +74,7 @@ export interface RequesterExtractionRule {
 }
 
 export interface RequesterRequestDetail extends RequesterRequestSummary {
+  requestType: RequesterRequestType;
   headers: RequesterKeyValueRow[];
   queryParams: RequesterKeyValueRow[];
   bodyMode: RequesterBodyMode;
@@ -87,15 +89,23 @@ export interface RequesterRequestDetail extends RequesterRequestSummary {
   authApiKeyName: string;
   authApiKeyValue: string;
   extractionRules: RequesterExtractionRule[];
+  websocketMessages: string[];
+  grpcProtoPath: string;
+  grpcPackageName: string;
+  grpcServiceName: string;
+  grpcMethodName: string;
+  grpcMetadata: RequesterKeyValueRow[];
 }
 
 export interface SaveRequesterRequestInput {
   id?: string;
+  executionId?: string;
   workspaceId: string;
   name: string;
   requestPath?: string;
   method: RequesterHttpMethod;
   url: string;
+  requestType?: RequesterRequestType;
   headers?: RequesterKeyValueRow[];
   queryParams?: RequesterKeyValueRow[];
   bodyMode?: RequesterBodyMode;
@@ -111,6 +121,12 @@ export interface SaveRequesterRequestInput {
   authApiKeyValue?: string;
   extractionRules?: RequesterExtractionRule[];
   variableSetId?: string;
+  websocketMessages?: string[];
+  grpcProtoPath?: string;
+  grpcPackageName?: string;
+  grpcServiceName?: string;
+  grpcMethodName?: string;
+  grpcMetadata?: RequesterKeyValueRow[];
   timeoutMs?: number;
   followRedirects?: boolean;
   cookieJarEnabled?: boolean;

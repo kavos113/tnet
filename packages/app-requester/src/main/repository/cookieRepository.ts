@@ -169,6 +169,20 @@ export class CookieRepository implements RequesterCookieStore {
     this.database.prepare('DELETE FROM cookies WHERE workspace_id = ?').run(workspaceId);
   }
 
+  importCookie(workspaceId: string, cookie: RequesterCookie): void {
+    this.save(workspaceId, {
+      name: cookie.name,
+      value: cookie.value,
+      domain: cookie.domain,
+      path: cookie.path,
+      expiresAt: cookie.expiresAt,
+      secure: cookie.secure,
+      httpOnly: cookie.httpOnly,
+      sameSite: cookie.sameSite,
+      hostOnly: cookie.hostOnly
+    });
+  }
+
   deleteExpired(workspaceId: string): void {
     this.database
       .prepare(

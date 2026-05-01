@@ -45,7 +45,14 @@ const activeRequest: RequesterRequestDetail = {
   authToken: '',
   authApiKeyName: '',
   authApiKeyValue: '',
-  extractionRules: []
+  extractionRules: [],
+  requestType: 'http',
+  websocketMessages: [],
+  grpcProtoPath: '',
+  grpcPackageName: '',
+  grpcServiceName: '',
+  grpcMethodName: '',
+  grpcMetadata: []
 };
 
 const installTnetApi = (): void => {

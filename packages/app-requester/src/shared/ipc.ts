@@ -56,6 +56,10 @@ export const requesterIpcChannels = {
     remove: 'requester:cookies:remove',
     clear: 'requester:cookies:clear'
   },
+  secrets: {
+    save: 'requester:secrets:save',
+    has: 'requester:secrets:has'
+  },
   files: {
     selectBinaryBody: 'requester:files:selectBinaryBody',
     saveResponseBody: 'requester:files:saveResponseBody',
@@ -63,6 +67,10 @@ export const requesterIpcChannels = {
   },
   graphql: {
     introspect: 'requester:graphql:introspect'
+  },
+  backup: {
+    exportWorkspace: 'requester:backup:exportWorkspace',
+    importWorkspace: 'requester:backup:importWorkspace'
   }
 } as const;
 
@@ -121,6 +129,10 @@ export interface RequesterApi {
       remove: (request: { cookieId: string }) => Promise<void>;
       clear: (request: { workspaceId: string }) => Promise<void>;
     };
+    secrets: {
+      save: (request: { value: string }) => Promise<{ secretId: string }>;
+      has: (request: { secretId: string }) => Promise<{ exists: boolean }>;
+    };
     files: {
       selectBinaryBody: () => Promise<{ path: string; name: string } | null>;
       saveResponseBody: (request: {
@@ -149,6 +161,10 @@ export interface RequesterApi {
           | 'authApiKeyValue'
         >;
       }) => Promise<{ schemaJson: string; fetchedAt: string }>;
+    };
+    backup: {
+      exportWorkspace: (request: { workspaceId: string }) => Promise<string | null>;
+      importWorkspace: () => Promise<{ workspaceId: string } | null>;
     };
   };
 }

@@ -6,11 +6,19 @@ type SetDraft = (draft: RequesterWorkspaceSettings) => void;
 interface SettingsSectionProps {
   draft: RequesterWorkspaceSettings;
   setDraft: SetDraft;
+  proxyPasswordDraft?: string;
+  clientCertificatePassphraseDraft?: string;
+  onProxyPasswordDraftChange?: (value: string) => void;
+  onClientCertificatePassphraseDraftChange?: (value: string) => void;
 }
 
 export const RequesterExecutionSettings = ({
   draft,
-  setDraft
+  setDraft,
+  proxyPasswordDraft = '',
+  clientCertificatePassphraseDraft = '',
+  onProxyPasswordDraftChange = () => undefined,
+  onClientCertificatePassphraseDraftChange = () => undefined
 }: SettingsSectionProps): React.JSX.Element => (
   <div className="settings-group">
     <h3>Execution</h3>
@@ -77,8 +85,18 @@ export const RequesterExecutionSettings = ({
         }
       />
     </label>
-    <ProxySettings draft={draft} setDraft={setDraft} />
-    <CertificateSettings draft={draft} setDraft={setDraft} />
+    <ProxySettings
+      draft={draft}
+      setDraft={setDraft}
+      proxyPasswordDraft={proxyPasswordDraft}
+      onProxyPasswordDraftChange={onProxyPasswordDraftChange}
+    />
+    <CertificateSettings
+      draft={draft}
+      setDraft={setDraft}
+      clientCertificatePassphraseDraft={clientCertificatePassphraseDraft}
+      onClientCertificatePassphraseDraftChange={onClientCertificatePassphraseDraftChange}
+    />
   </div>
 );
 
@@ -235,7 +253,32 @@ export const RequesterCookieSettings = ({
   </div>
 );
 
-const ProxySettings = ({ draft, setDraft }: SettingsSectionProps): React.JSX.Element => (
+export const RequesterBackupSettings = ({
+  onExport,
+  onImport
+}: {
+  onExport: () => void;
+  onImport: () => void;
+}): React.JSX.Element => (
+  <div className="settings-group">
+    <h3>Backup</h3>
+    <div className="requester-cookie-actions">
+      <button type="button" className="settings-close-button" onClick={onExport}>
+        Export Workspace
+      </button>
+      <button type="button" className="settings-close-button" onClick={onImport}>
+        Import Workspace
+      </button>
+    </div>
+  </div>
+);
+
+const ProxySettings = ({
+  draft,
+  setDraft,
+  proxyPasswordDraft = '',
+  onProxyPasswordDraftChange = () => undefined
+}: SettingsSectionProps): React.JSX.Element => (
   <>
     <label className="form-item" htmlFor="requester-proxy-mode">
       <span>Proxy mode</span>
@@ -292,12 +335,24 @@ const ProxySettings = ({ draft, setDraft }: SettingsSectionProps): React.JSX.Ele
             })
           }
         />
+        <input
+          aria-label="Proxy password"
+          placeholder={draft.proxyPasswordSecretId ? 'Saved proxy password' : 'Password'}
+          type="password"
+          value={proxyPasswordDraft}
+          onChange={(event) => onProxyPasswordDraftChange(event.target.value)}
+        />
       </div>
     ) : null}
   </>
 );
 
-const CertificateSettings = ({ draft, setDraft }: SettingsSectionProps): React.JSX.Element => (
+const CertificateSettings = ({
+  draft,
+  setDraft,
+  clientCertificatePassphraseDraft = '',
+  onClientCertificatePassphraseDraftChange = () => undefined
+}: SettingsSectionProps): React.JSX.Element => (
   <>
     <label className="form-item" htmlFor="requester-client-certificate">
       <span>Client certificate path</span>
@@ -336,6 +391,19 @@ const CertificateSettings = ({ draft, setDraft }: SettingsSectionProps): React.J
             customCaCertificatePath: event.target.value
           })
         }
+      />
+    </label>
+    <label className="form-item" htmlFor="requester-client-certificate-passphrase">
+      <span>Client certificate passphrase</span>
+      <input
+        id="requester-client-certificate-passphrase"
+        aria-label="Client certificate passphrase"
+        type="password"
+        placeholder={
+          draft.clientCertificatePassphraseSecretId ? 'Saved certificate passphrase' : 'Passphrase'
+        }
+        value={clientCertificatePassphraseDraft}
+        onChange={(event) => onClientCertificatePassphraseDraftChange(event.target.value)}
       />
     </label>
   </>

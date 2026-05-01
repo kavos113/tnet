@@ -7,10 +7,16 @@ import requesterReducer, { restoreRequester } from '../requesterSlice';
 import { RequesterSettingsDialog } from './RequesterSettingsDialog';
 
 const getSettings = vi.fn();
+const listWorkspaces = vi.fn();
+const listRequests = vi.fn();
+const listHistory = vi.fn();
 const saveSettings = vi.fn();
 const listCookies = vi.fn();
 const removeCookie = vi.fn();
 const clearCookies = vi.fn();
+const saveSecret = vi.fn();
+const exportWorkspace = vi.fn();
+const importWorkspace = vi.fn();
 
 interface RequesterTestState {
   requester: ReturnType<typeof requesterReducer>;
@@ -28,13 +34,27 @@ const installTnetApi = (): void => {
     value: {
       requester: {
         workspaces: {
+          list: listWorkspaces,
           getSettings,
           saveSettings
+        },
+        requests: {
+          list: listRequests
+        },
+        history: {
+          list: listHistory
         },
         cookies: {
           list: listCookies,
           remove: removeCookie,
           clear: clearCookies
+        },
+        secrets: {
+          save: saveSecret
+        },
+        backup: {
+          exportWorkspace,
+          importWorkspace
         }
       }
     },
@@ -46,10 +66,18 @@ describe('RequesterSettingsDialog', () => {
   beforeEach(() => {
     installTnetApi();
     getSettings.mockResolvedValue(defaultRequesterWorkspaceSettings());
+    listWorkspaces.mockResolvedValue([{ id: 'workspace-1', name: 'Local' }]);
+    listRequests.mockResolvedValue([]);
+    listHistory.mockResolvedValue([]);
     saveSettings.mockResolvedValue(undefined);
     listCookies.mockResolvedValue([]);
     removeCookie.mockResolvedValue(undefined);
     clearCookies.mockResolvedValue(undefined);
+    saveSecret.mockImplementation(async ({ value }: { value: string }) => ({
+      secretId: value.includes('cert') ? 'secret-cert' : 'secret-proxy'
+    }));
+    exportWorkspace.mockResolvedValue('backup.json');
+    importWorkspace.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -87,6 +115,9 @@ describe('RequesterSettingsDialog', () => {
     fireEvent.change(screen.getByLabelText('Proxy host'), { target: { value: 'proxy.test' } });
     fireEvent.change(screen.getByLabelText('Proxy port'), { target: { value: '8080' } });
     fireEvent.change(screen.getByLabelText('Proxy username'), { target: { value: 'testuser' } });
+    fireEvent.change(screen.getByLabelText('Proxy password'), {
+      target: { value: 'proxy-password' }
+    });
     fireEvent.change(screen.getByLabelText('Client certificate path'), {
       target: { value: 'C:\\certs\\client.crt' }
     });
@@ -95,6 +126,9 @@ describe('RequesterSettingsDialog', () => {
     });
     fireEvent.change(screen.getByLabelText('Custom CA certificate path'), {
       target: { value: 'C:\\certs\\ca.crt' }
+    });
+    fireEvent.change(screen.getByLabelText('Client certificate passphrase'), {
+      target: { value: 'cert-passphrase' }
     });
     fireEvent.change(screen.getByLabelText('Code font family'), {
       target: { value: 'Code Font' }
@@ -122,8 +156,10 @@ describe('RequesterSettingsDialog', () => {
           proxyHost: 'proxy.test',
           proxyPort: 8080,
           proxyUsername: 'testuser',
+          proxyPasswordSecretId: 'secret-proxy',
           clientCertificatePath: 'C:\\certs\\client.crt',
           clientCertificateKeyPath: 'C:\\certs\\client.key',
+          clientCertificatePassphraseSecretId: 'secret-cert',
           customCaCertificatePath: 'C:\\certs\\ca.crt',
           codeFontFamily: 'Code Font',
           codeFontSize: 15,
@@ -142,8 +178,10 @@ describe('RequesterSettingsDialog', () => {
         proxyHost: 'proxy.test',
         proxyPort: 8080,
         proxyUsername: 'testuser',
+        proxyPasswordSecretId: 'secret-proxy',
         clientCertificatePath: 'C:\\certs\\client.crt',
         clientCertificateKeyPath: 'C:\\certs\\client.key',
+        clientCertificatePassphraseSecretId: 'secret-cert',
         customCaCertificatePath: 'C:\\certs\\ca.crt',
         codeFontFamily: 'Code Font',
         codeFontSize: 15,

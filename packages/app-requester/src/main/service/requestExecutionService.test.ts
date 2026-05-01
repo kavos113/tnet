@@ -111,6 +111,33 @@ describe('RequestExecutionService', () => {
     );
   });
 
+  it('aborts an in-flight request by execution id', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-1')
+    };
+    const transport = {
+      fetch: vi.fn((_url: string, init: RequestInit) => {
+        return new Promise<Response>((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        });
+      })
+    };
+    const service = new RequestExecutionService(historyStore, transport);
+
+    const result = service.send({
+      executionId: 'execution-1',
+      workspaceId: 'workspace-1',
+      name: 'Abort',
+      method: 'GET',
+      url: 'https://example.test/abort'
+    });
+    await vi.waitFor(() => expect(transport.fetch).toHaveBeenCalled());
+    service.abort('execution-1');
+
+    await expect(result).rejects.toThrow('aborted');
+    expect(historyStore.saveExecution).not.toHaveBeenCalled();
+  });
+
   it('passes proxy and TLS settings to the transport boundary', async () => {
     const historyStore: RequesterHistoryStore = {
       saveExecution: vi.fn().mockReturnValue('history-1')

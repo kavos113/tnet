@@ -12,12 +12,14 @@ import {
   WorkspaceRepository
 } from './repository';
 import { RequestExecutionService } from './service/requestExecutionService';
+import { createElectronSecretStore } from './service/secretStore';
 import {
   openResponseExternally,
   saveResponseBody,
   selectBinaryBodyFile
 } from './requesterFileService';
 import { GraphqlIntrospectionService } from './graphql/graphqlIntrospectionService';
+import { RequesterBackupService } from './backup/requesterBackupService';
 
 export interface RegisterRequesterIpcOptions {
   userDataDir: string;
@@ -31,6 +33,14 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   const historyRepository = new HistoryRepository(database);
   const cookieRepository = new CookieRepository(database);
   const graphqlSchemaRepository = new GraphqlSchemaRepository(database);
+  const secretStore = createElectronSecretStore(userDataDir);
+  const backupService = new RequesterBackupService({
+    cookieRepository,
+    historyRepository,
+    requestRepository,
+    variableSetRepository,
+    workspaceRepository
+  });
   const requestExecutionService = new RequestExecutionService(
     historyRepository,
     undefined,
@@ -111,7 +121,9 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   ipcMain.handle(requesterIpcChannels.execution.send, async (_event, request) =>
     requestExecutionService.send(request)
   );
-  ipcMain.handle(requesterIpcChannels.execution.abort, async () => undefined);
+  ipcMain.handle(requesterIpcChannels.execution.abort, async (_event, request) => {
+    requestExecutionService.abort(request.executionId);
+  });
   ipcMain.handle(requesterIpcChannels.history.list, async (_event, request) =>
     historyRepository.list(request.workspaceId, request.requestId)
   );
@@ -133,6 +145,12 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   ipcMain.handle(requesterIpcChannels.cookies.clear, async (_event, request) => {
     cookieRepository.clear(request.workspaceId);
   });
+  ipcMain.handle(requesterIpcChannels.secrets.save, async (_event, request) => ({
+    secretId: secretStore.saveSecret(request.value)
+  }));
+  ipcMain.handle(requesterIpcChannels.secrets.has, async (_event, request) => ({
+    exists: secretStore.hasSecret(request.secretId)
+  }));
   ipcMain.handle(requesterIpcChannels.files.selectBinaryBody, async () => selectBinaryBodyFile());
   ipcMain.handle(requesterIpcChannels.files.saveResponseBody, async (_event, request) =>
     saveResponseBody(request)
@@ -143,4 +161,11 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   ipcMain.handle(requesterIpcChannels.graphql.introspect, async (_event, request) =>
     graphqlIntrospectionService.introspect(request)
   );
+  ipcMain.handle(requesterIpcChannels.backup.exportWorkspace, async (_event, request) =>
+    backupService.exportWorkspace(request.workspaceId)
+  );
+  ipcMain.handle(requesterIpcChannels.backup.importWorkspace, async () => {
+    const workspaceId = await backupService.importWorkspace();
+    return workspaceId ? { workspaceId } : null;
+  });
 };

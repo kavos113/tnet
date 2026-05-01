@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type {
   RequesterExtractionRule,
   RequesterExecutionResult,
@@ -9,7 +10,7 @@ import type {
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
 import { interpolateRequesterRequest } from '@tnet/app-requester/shared/variableInterpolation';
 import { serializeRequesterRequest } from '../http/requestSerializer';
-import { parseRequesterResponse } from '../http/responseParser';
+import { parseRequesterStreamingResponse } from '../http/responseParser';
 import { buildRequesterNetworkOptions } from './networkOptions';
 import { redactRequesterRequest } from './redaction';
 
@@ -19,6 +20,12 @@ export interface RequesterTransport {
     init: RequestInit,
     networkOptions?: RequesterNetworkOptions
   ): Promise<Response>;
+}
+
+export interface RequesterExecutionProgress {
+  status: number;
+  byteSize: number;
+  durationMs: number;
 }
 
 export interface RequesterHistoryStore {
@@ -44,12 +51,15 @@ const defaultTransport: RequesterTransport = {
 };
 
 export class RequestExecutionService {
+  private readonly controllers = new Map<string, AbortController>();
+
   constructor(
     private readonly historyStore: RequesterHistoryStore,
     private readonly transport: RequesterTransport = defaultTransport,
     private readonly timeoutMs = 30000,
     private readonly cookieStore?: RequesterCookieStore,
-    private readonly variableStore?: RequesterVariableStore
+    private readonly variableStore?: RequesterVariableStore,
+    private readonly onProgress?: (progress: RequesterExecutionProgress) => void
   ) {}
 
   async send(request: SaveRequesterRequestInput): Promise<RequesterExecutionResult> {
@@ -59,6 +69,8 @@ export class RequestExecutionService {
     const requestWithCookies = await this.withCookieHeader(interpolatedRequest);
     const serialized = await serializeRequesterRequest(requestWithCookies);
     const controller = new AbortController();
+    const executionId = request.executionId ?? randomUUID();
+    this.controllers.set(executionId, controller);
     const timeout = setTimeout(() => controller.abort(), request.timeoutMs ?? this.timeoutMs);
     let response: Response;
     const networkOptions = buildRequesterNetworkOptions(request);
@@ -74,6 +86,7 @@ export class RequestExecutionService {
       );
     } finally {
       clearTimeout(timeout);
+      this.controllers.delete(executionId);
     }
     if (interpolatedRequest.cookieJarEnabled) {
       this.cookieStore?.saveFromResponse(
@@ -82,9 +95,10 @@ export class RequestExecutionService {
         response.headers
       );
     }
-    const snapshot = await parseRequesterResponse(
+    const snapshot = await parseRequesterStreamingResponse(
       response,
-      Math.round(performance.now() - started)
+      () => Math.round(performance.now() - started),
+      (progress) => this.onProgress?.(progress)
     );
     this.extractVariables(interpolatedRequest, snapshot);
     const historyId = this.historyStore.saveExecution({
@@ -97,6 +111,11 @@ export class RequestExecutionService {
       response: snapshot,
       historyId
     };
+  }
+
+  abort(executionId: string): void {
+    this.controllers.get(executionId)?.abort();
+    this.controllers.delete(executionId);
   }
 
   private interpolateRequest(request: SaveRequesterRequestInput): SaveRequesterRequestInput {

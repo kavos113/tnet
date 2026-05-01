@@ -49,6 +49,10 @@ export const requesterTnetApi: RequesterApi = {
       remove: (request) => getApi().requester.cookies.remove(request),
       clear: (request) => getApi().requester.cookies.clear(request)
     },
+    secrets: {
+      save: (request) => getApi().requester.secrets.save(request),
+      has: (request) => getApi().requester.secrets.has(request)
+    },
     files: {
       selectBinaryBody: () => getApi().requester.files.selectBinaryBody(),
       saveResponseBody: (request) => getApi().requester.files.saveResponseBody(request),
@@ -56,6 +60,10 @@ export const requesterTnetApi: RequesterApi = {
     },
     graphql: {
       introspect: (request) => getApi().requester.graphql.introspect(request)
+    },
+    backup: {
+      exportWorkspace: (request) => getApi().requester.backup.exportWorkspace(request),
+      importWorkspace: () => getApi().requester.backup.importWorkspace()
     }
   }
 };

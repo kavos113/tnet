@@ -136,6 +136,10 @@ export const tnetApi: DesktopTnetApi = {
       remove: (request) => ipcRenderer.invoke(requesterIpcChannels.cookies.remove, request),
       clear: (request) => ipcRenderer.invoke(requesterIpcChannels.cookies.clear, request)
     },
+    secrets: {
+      save: (request) => ipcRenderer.invoke(requesterIpcChannels.secrets.save, request),
+      has: (request) => ipcRenderer.invoke(requesterIpcChannels.secrets.has, request)
+    },
     files: {
       selectBinaryBody: () => ipcRenderer.invoke(requesterIpcChannels.files.selectBinaryBody),
       saveResponseBody: (request) =>
@@ -145,6 +149,11 @@ export const tnetApi: DesktopTnetApi = {
     },
     graphql: {
       introspect: (request) => ipcRenderer.invoke(requesterIpcChannels.graphql.introspect, request)
+    },
+    backup: {
+      exportWorkspace: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.backup.exportWorkspace, request),
+      importWorkspace: () => ipcRenderer.invoke(requesterIpcChannels.backup.importWorkspace)
     }
   }
 };
