@@ -129,6 +129,11 @@ export const tnetApi: DesktopTnetApi = {
       remove: (request) => ipcRenderer.invoke(requesterIpcChannels.history.remove, request),
       clear: (request) => ipcRenderer.invoke(requesterIpcChannels.history.clear, request)
     },
+    cookies: {
+      list: (request) => ipcRenderer.invoke(requesterIpcChannels.cookies.list, request),
+      remove: (request) => ipcRenderer.invoke(requesterIpcChannels.cookies.remove, request),
+      clear: (request) => ipcRenderer.invoke(requesterIpcChannels.cookies.clear, request)
+    },
     files: {
       selectBinaryBody: () => ipcRenderer.invoke(requesterIpcChannels.files.selectBinaryBody),
       saveResponseBody: (request) =>

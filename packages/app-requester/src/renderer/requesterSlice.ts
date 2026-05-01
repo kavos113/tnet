@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type {
+  RequesterExecutionErrorSnapshot,
   RequesterRequestDetail,
   RequesterRequestSummary,
   RequesterResponseSnapshot,
@@ -15,6 +16,7 @@ interface RequesterState {
   activeRequest?: RequesterRequestDetail;
   activeRequestFolderPath?: string;
   activeResponse?: RequesterResponseSnapshot;
+  activeResponseError?: RequesterExecutionErrorSnapshot;
   workspaces: RequesterWorkspace[];
   requests: RequesterRequestSummary[];
   history: RequesterHistoryEntry[];
@@ -86,9 +88,18 @@ const requesterSlice = createSlice({
       state.activeRequest = action.payload;
       state.activeRequestId = action.payload?.id;
       state.activeResponse = undefined;
+      state.activeResponseError = undefined;
     },
     setRequesterResponse: (state, action: PayloadAction<RequesterResponseSnapshot | undefined>) => {
       state.activeResponse = action.payload;
+      if (action.payload) state.activeResponseError = undefined;
+    },
+    setRequesterResponseError: (
+      state,
+      action: PayloadAction<RequesterExecutionErrorSnapshot | undefined>
+    ) => {
+      state.activeResponseError = action.payload;
+      if (action.payload) state.activeResponse = undefined;
     },
     setRequesterSettings: (state, action: PayloadAction<RequesterWorkspaceSettings>) => {
       state.settings = action.payload;
@@ -110,6 +121,7 @@ export const {
   setRequesterHistory,
   setRequesterRequests,
   setRequesterResponse,
+  setRequesterResponseError,
   setRequesterSettings,
   setRequesterWorkspace
 } = requesterSlice.actions;

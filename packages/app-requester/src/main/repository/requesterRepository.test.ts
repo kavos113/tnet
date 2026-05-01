@@ -131,6 +131,24 @@ describe('Requester repositories', () => {
     });
 
     expect(variableSetRepository.list(workspace.id)).toEqual([variableSet]);
+    expect(variableSetRepository.listVariables(variableSet.id)).toEqual([]);
+
+    variableSetRepository.upsertVariables(variableSet.id, [
+      { key: 'accessToken', value: 'abc' },
+      { key: 'requestId', value: 'req-1' }
+    ]);
+    expect(variableSetRepository.listVariables(variableSet.id)).toEqual([
+      expect.objectContaining({ key: 'accessToken', value: 'abc' }),
+      expect.objectContaining({ key: 'requestId', value: 'req-1' })
+    ]);
+
+    variableSetRepository.upsertVariables(variableSet.id, [
+      { key: 'accessToken', value: 'updated' }
+    ]);
+    expect(variableSetRepository.listVariables(variableSet.id)).toEqual([
+      expect.objectContaining({ key: 'accessToken', value: 'updated' }),
+      expect.objectContaining({ key: 'requestId', value: 'req-1' })
+    ]);
 
     variableSetRepository.remove(variableSet.id);
     expect(variableSetRepository.list(workspace.id)).toEqual([]);
@@ -258,6 +276,34 @@ describe('Requester repositories', () => {
     expect(
       cookieRepository.getCookieHeader(workspace.id, 'http://example.test/api/users')
     ).toBeUndefined();
+    cookieRepository.saveFromResponse(
+      workspace.id,
+      'https://example.test/api/login',
+      new Headers({
+        'set-cookie': 'expired=gone; Path=/api; Max-Age=-1'
+      })
+    );
+    expect(cookieRepository.list(workspace.id).map((cookie) => cookie.name)).toContain('expired');
+    expect(cookieRepository.getCookieHeader(workspace.id, 'https://example.test/api/users')).toBe(
+      'session=abc'
+    );
+    expect(cookieRepository.list(workspace.id).map((cookie) => cookie.name)).not.toContain(
+      'expired'
+    );
+
+    const [cookie] = cookieRepository.list(workspace.id);
+    cookieRepository.remove(cookie.id);
+    expect(cookieRepository.list(workspace.id)).toEqual([]);
+
+    cookieRepository.saveFromResponse(
+      workspace.id,
+      'https://example.test/api/login',
+      new Headers({
+        'set-cookie': 'session=abc; Path=/api'
+      })
+    );
+    cookieRepository.clear(workspace.id);
+    expect(cookieRepository.list(workspace.id)).toEqual([]);
     database.close();
   });
 });

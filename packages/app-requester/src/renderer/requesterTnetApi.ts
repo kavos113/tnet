@@ -43,6 +43,11 @@ export const requesterTnetApi: RequesterApi = {
       remove: (request) => getApi().requester.history.remove(request),
       clear: (request) => getApi().requester.history.clear(request)
     },
+    cookies: {
+      list: (request) => getApi().requester.cookies.list(request),
+      remove: (request) => getApi().requester.cookies.remove(request),
+      clear: (request) => getApi().requester.cookies.clear(request)
+    },
     files: {
       selectBinaryBody: () => getApi().requester.files.selectBinaryBody(),
       saveResponseBody: (request) => getApi().requester.files.saveResponseBody(request),

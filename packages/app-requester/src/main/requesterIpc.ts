@@ -35,7 +35,8 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
     historyRepository,
     undefined,
     undefined,
-    cookieRepository
+    cookieRepository,
+    variableSetRepository
   );
   const graphqlIntrospectionService = new GraphqlIntrospectionService(graphqlSchemaRepository);
 
@@ -119,6 +120,15 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   });
   ipcMain.handle(requesterIpcChannels.history.clear, async (_event, request) => {
     historyRepository.clear(request.workspaceId);
+  });
+  ipcMain.handle(requesterIpcChannels.cookies.list, async (_event, request) =>
+    cookieRepository.list(request.workspaceId)
+  );
+  ipcMain.handle(requesterIpcChannels.cookies.remove, async (_event, request) => {
+    cookieRepository.remove(request.cookieId);
+  });
+  ipcMain.handle(requesterIpcChannels.cookies.clear, async (_event, request) => {
+    cookieRepository.clear(request.workspaceId);
   });
   ipcMain.handle(requesterIpcChannels.files.selectBinaryBody, async () => selectBinaryBodyFile());
   ipcMain.handle(requesterIpcChannels.files.saveResponseBody, async (_event, request) =>

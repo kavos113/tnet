@@ -47,6 +47,31 @@ export interface RequesterCookie {
   updatedAt: string;
 }
 
+export interface RequesterNetworkOptions {
+  validateTlsCertificates: boolean;
+  proxy: {
+    mode: 'system' | 'none' | 'http' | 'socks';
+    host?: string;
+    port?: number;
+    username?: string;
+    passwordSecretId?: string;
+  };
+  tls: {
+    clientCertificatePath?: string;
+    clientCertificateKeyPath?: string;
+    clientCertificatePassphraseSecretId?: string;
+    customCaCertificatePath?: string;
+  };
+}
+
+export interface RequesterExtractionRule {
+  id: string;
+  enabled: boolean;
+  source: 'json-body' | 'header';
+  expression: string;
+  targetVariable: string;
+}
+
 export interface RequesterRequestDetail extends RequesterRequestSummary {
   headers: RequesterKeyValueRow[];
   queryParams: RequesterKeyValueRow[];
@@ -61,6 +86,7 @@ export interface RequesterRequestDetail extends RequesterRequestSummary {
   authToken: string;
   authApiKeyName: string;
   authApiKeyValue: string;
+  extractionRules: RequesterExtractionRule[];
 }
 
 export interface SaveRequesterRequestInput {
@@ -83,15 +109,33 @@ export interface SaveRequesterRequestInput {
   authToken?: string;
   authApiKeyName?: string;
   authApiKeyValue?: string;
+  extractionRules?: RequesterExtractionRule[];
+  variableSetId?: string;
   timeoutMs?: number;
   followRedirects?: boolean;
   cookieJarEnabled?: boolean;
+  validateTlsCertificates?: boolean;
+  proxyMode?: RequesterNetworkOptions['proxy']['mode'];
+  proxyHost?: string;
+  proxyPort?: number;
+  proxyUsername?: string;
+  proxyPasswordSecretId?: string;
+  clientCertificatePath?: string;
+  clientCertificateKeyPath?: string;
+  clientCertificatePassphraseSecretId?: string;
+  customCaCertificatePath?: string;
 }
 
 export interface RequesterVariableSet {
   id: string;
   workspaceId: string;
   name: string;
+}
+
+export interface RequesterVariable {
+  key: string;
+  value: string;
+  updatedAt: string;
 }
 
 export interface RequesterResponseSnapshot {
@@ -105,6 +149,13 @@ export interface RequesterResponseSnapshot {
   durationMs: number;
   isBodyTruncated: boolean;
   previewType: 'json' | 'text' | 'image' | 'pdf' | 'binary';
+}
+
+export interface RequesterExecutionErrorSnapshot {
+  name: string;
+  message: string;
+  stack?: string;
+  cause?: string;
 }
 
 export interface RequesterExecutionResult {

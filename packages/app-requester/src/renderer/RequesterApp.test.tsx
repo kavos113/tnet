@@ -43,7 +43,8 @@ const activeRequest: RequesterRequestDetail = {
   authPassword: '',
   authToken: '',
   authApiKeyName: '',
-  authApiKeyValue: ''
+  authApiKeyValue: '',
+  extractionRules: []
 };
 
 const installTnetApi = (): void => {
@@ -224,6 +225,32 @@ describe('RequesterApp', () => {
     expect(screen.getByText('201 Created')).toBeInTheDocument();
     expect(screen.getByText('{"created":true}')).toBeInTheDocument();
     expect(screen.getByText('content-type')).toBeInTheDocument();
+  });
+
+  it('shows execution errors in the response panel', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [activeRequest],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(activeRequest));
+    sendRequest.mockRejectedValue(new Error('self signed certificate'));
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByRole('heading', { name: 'Request failed' })).toBeInTheDocument();
+    expect(screen.getByText('self signed certificate')).toBeInTheDocument();
+    expect(screen.getByLabelText('Response error details')).toBeInTheDocument();
   });
 
   it('debounces request name autosave and applies requester font settings', async () => {

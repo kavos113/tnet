@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type {
   RequesterBodyMode,
+  RequesterExecutionErrorSnapshot,
   RequesterHttpMethod,
   RequesterKeyValueRow,
   RequesterRequestDetail,
@@ -11,7 +12,8 @@ import {
   setRequesterError,
   setRequesterHistory,
   setRequesterRequests,
-  setRequesterResponse
+  setRequesterResponse,
+  setRequesterResponseError
 } from './requesterSlice';
 import { JsonTextEditor } from './request/JsonTextEditor';
 import { requesterTnetApi } from './requesterTnetApi';
@@ -50,6 +52,34 @@ interface GraphqlSchemaTypeSummary {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
+
+const stringifyErrorValue = (value: unknown): string | undefined => {
+  if (value === undefined || value === null) return undefined;
+  if (value instanceof Error) return value.message;
+  if (typeof value === 'string') return value;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
+const toExecutionErrorSnapshot = (error: unknown): RequesterExecutionErrorSnapshot => {
+  if (error instanceof Error) {
+    return {
+      name: error.name || 'Error',
+      message: error.message || 'Request execution failed.',
+      stack: error.stack,
+      cause: stringifyErrorValue(error.cause)
+    };
+  }
+
+  return {
+    name: 'Error',
+    message: stringifyErrorValue(error) ?? 'Request execution failed.'
+  };
+};
 
 const buildGraphqlSchemaSummary = (schemaJson: string): GraphqlSchemaTypeSummary[] => {
   const parsed: unknown = JSON.parse(schemaJson);
@@ -91,6 +121,7 @@ export const RequesterApp = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
   const activeRequest = useRequesterSelector((state) => state.requester.activeRequest);
   const activeResponse = useRequesterSelector((state) => state.requester.activeResponse);
+  const activeResponseError = useRequesterSelector((state) => state.requester.activeResponseError);
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const error = useRequesterSelector((state) => state.requester.error);
   const history = useRequesterSelector((state) => state.requester.history);
@@ -192,7 +223,8 @@ export const RequesterApp = (): React.JSX.Element => {
       authPassword,
       authToken,
       authApiKeyName,
-      authApiKeyValue
+      authApiKeyValue,
+      extractionRules: activeRequest?.extractionRules ?? []
     };
   };
 
@@ -240,13 +272,25 @@ export const RequesterApp = (): React.JSX.Element => {
       id: saved?.id ?? requestInput.id,
       timeoutMs: settings.requestTimeoutMs,
       followRedirects: settings.followRedirects,
-      cookieJarEnabled: settings.cookieJarEnabled
+      cookieJarEnabled: settings.cookieJarEnabled,
+      validateTlsCertificates: settings.validateTlsCertificates,
+      proxyMode: settings.proxyMode,
+      proxyHost: settings.proxyHost,
+      proxyPort: settings.proxyPort,
+      proxyUsername: settings.proxyUsername,
+      proxyPasswordSecretId: settings.proxyPasswordSecretId,
+      clientCertificatePath: settings.clientCertificatePath,
+      clientCertificateKeyPath: settings.clientCertificateKeyPath,
+      clientCertificatePassphraseSecretId: settings.clientCertificatePassphraseSecretId,
+      customCaCertificatePath: settings.customCaCertificatePath,
+      variableSetId: settings.defaultVariableSetId
     });
     const history = await requesterTnetApi.requester.history.list({
       workspaceId: requestInput.workspaceId,
       requestId: saved?.id ?? requestInput.id
     });
     dispatch(setRequesterResponse(result.response));
+    dispatch(setRequesterResponseError(undefined));
     dispatch(setRequesterHistory(history));
     setSelectedHistoryId(result.historyId);
   };
@@ -254,6 +298,7 @@ export const RequesterApp = (): React.JSX.Element => {
   const runSend = (): void => {
     sendRequest().catch((error: unknown) => {
       console.error('Failed to send request', error);
+      dispatch(setRequesterResponseError(toExecutionErrorSnapshot(error)));
       dispatch(setRequesterError('Failed to send request.'));
     });
   };
@@ -627,7 +672,28 @@ export const RequesterApp = (): React.JSX.Element => {
       </section>
       <section className="requester-response-placeholder" aria-label="API response">
         <h2>Response</h2>
-        {activeResponse ? (
+        {activeResponseError ? (
+          <section className="requester-response-error" aria-label="Response error details">
+            <h3>Request failed</h3>
+            <dl className="requester-response-summary">
+              <div>
+                <dt>Name</dt>
+                <dd>{activeResponseError.name}</dd>
+              </div>
+              <div>
+                <dt>Message</dt>
+                <dd>{activeResponseError.message}</dd>
+              </div>
+              <div>
+                <dt>Cause</dt>
+                <dd>{activeResponseError.cause ?? '-'}</dd>
+              </div>
+            </dl>
+            {activeResponseError.stack ? (
+              <pre className="requester-response-body">{activeResponseError.stack}</pre>
+            ) : null}
+          </section>
+        ) : activeResponse ? (
           <>
             <dl className="requester-response-summary">
               <div>

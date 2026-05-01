@@ -15,6 +15,15 @@ export interface RequesterWorkspaceSettings {
   followRedirects: boolean;
   validateTlsCertificates: boolean;
   cookieJarEnabled: boolean;
+  proxyMode: 'system' | 'none' | 'http' | 'socks';
+  proxyHost: string;
+  proxyPort: number;
+  proxyUsername: string;
+  proxyPasswordSecretId?: string;
+  clientCertificatePath: string;
+  clientCertificateKeyPath: string;
+  clientCertificatePassphraseSecretId?: string;
+  customCaCertificatePath: string;
   codeFontFamily: string;
   codeFontSize: number;
   appFontFamily: string;
@@ -35,6 +44,13 @@ export const defaultRequesterWorkspaceSettings = (): RequesterWorkspaceSettings 
   followRedirects: true,
   validateTlsCertificates: true,
   cookieJarEnabled: false,
+  proxyMode: 'system',
+  proxyHost: '',
+  proxyPort: 0,
+  proxyUsername: '',
+  clientCertificatePath: '',
+  clientCertificateKeyPath: '',
+  customCaCertificatePath: '',
   codeFontFamily: 'monospace',
   codeFontSize: 13,
   appFontFamily: 'sans-serif',
@@ -93,6 +109,25 @@ export const normalizeRequesterWorkspaceSettings = (
       settings.appFontSize && settings.appFontSize > 0
         ? settings.appFontSize
         : defaults.appFontSize,
+    proxyMode:
+      settings.proxyMode === 'none' ||
+      settings.proxyMode === 'http' ||
+      settings.proxyMode === 'socks'
+        ? settings.proxyMode
+        : defaults.proxyMode,
+    proxyHost: settings.proxyHost?.trim() ?? defaults.proxyHost,
+    proxyPort:
+      settings.proxyPort && settings.proxyPort > 0
+        ? Math.floor(settings.proxyPort)
+        : defaults.proxyPort,
+    proxyUsername: settings.proxyUsername ?? defaults.proxyUsername,
+    proxyPasswordSecretId: settings.proxyPasswordSecretId || undefined,
+    clientCertificatePath: settings.clientCertificatePath?.trim() ?? defaults.clientCertificatePath,
+    clientCertificateKeyPath:
+      settings.clientCertificateKeyPath?.trim() ?? defaults.clientCertificateKeyPath,
+    clientCertificatePassphraseSecretId: settings.clientCertificatePassphraseSecretId || undefined,
+    customCaCertificatePath:
+      settings.customCaCertificatePath?.trim() ?? defaults.customCaCertificatePath,
     expandedRequestPaths: Array.isArray(settings.expandedRequestPaths)
       ? [...new Set(settings.expandedRequestPaths.filter((path) => typeof path === 'string'))]
       : defaults.expandedRequestPaths,

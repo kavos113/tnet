@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import { normalizeRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
+import type { RequesterCookie } from '@tnet/app-requester/shared/requesterTypes';
 import { setRequesterError, setRequesterSettings } from '../requesterSlice';
 import { requesterTnetApi } from '../requesterTnetApi';
 import { useRequesterDispatch, useRequesterSelector } from '../storeHooks';
@@ -18,6 +19,7 @@ export const RequesterSettingsDialog = ({
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const settings = useRequesterSelector((state) => state.requester.settings);
   const [draft, setDraft] = useState<RequesterWorkspaceSettings>(settings);
+  const [cookies, setCookies] = useState<RequesterCookie[]>([]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -27,10 +29,13 @@ export const RequesterSettingsDialog = ({
     }
 
     let canceled = false;
-    requesterTnetApi.requester.workspaces
-      .getSettings({ workspaceId: activeWorkspaceId })
-      .then((loadedSettings) => {
+    Promise.all([
+      requesterTnetApi.requester.workspaces.getSettings({ workspaceId: activeWorkspaceId }),
+      requesterTnetApi.requester.cookies.list({ workspaceId: activeWorkspaceId })
+    ])
+      .then(([loadedSettings, loadedCookies]) => {
         if (!canceled) setDraft(loadedSettings);
+        if (!canceled) setCookies(loadedCookies);
       })
       .catch((error: unknown) => {
         console.error('Failed to load requester settings', error);
@@ -43,6 +48,38 @@ export const RequesterSettingsDialog = ({
   }, [activeWorkspaceId, isOpen, settings]);
 
   if (!isOpen) return null;
+
+  const reloadCookies = (): void => {
+    if (!activeWorkspaceId) return;
+    requesterTnetApi.requester.cookies
+      .list({ workspaceId: activeWorkspaceId })
+      .then(setCookies)
+      .catch((error: unknown) => {
+        console.error('Failed to load requester cookies', error);
+        dispatch(setRequesterError('Failed to load requester cookies.'));
+      });
+  };
+
+  const removeCookie = (cookieId: string): void => {
+    requesterTnetApi.requester.cookies
+      .remove({ cookieId })
+      .then(reloadCookies)
+      .catch((error: unknown) => {
+        console.error('Failed to remove requester cookie', error);
+        dispatch(setRequesterError('Failed to remove requester cookie.'));
+      });
+  };
+
+  const clearCookies = (): void => {
+    if (!activeWorkspaceId) return;
+    requesterTnetApi.requester.cookies
+      .clear({ workspaceId: activeWorkspaceId })
+      .then(() => setCookies([]))
+      .catch((error: unknown) => {
+        console.error('Failed to clear requester cookies', error);
+        dispatch(setRequesterError('Failed to clear requester cookies.'));
+      });
+  };
 
   const save = (): void => {
     if (!activeWorkspaceId) return;
@@ -141,6 +178,102 @@ export const RequesterSettingsDialog = ({
                   }
                 />
               </label>
+              <label className="form-item" htmlFor="requester-proxy-mode">
+                <span>Proxy mode</span>
+                <select
+                  id="requester-proxy-mode"
+                  value={draft.proxyMode}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      proxyMode: event.target.value as RequesterWorkspaceSettings['proxyMode']
+                    })
+                  }
+                >
+                  <option value="system">system</option>
+                  <option value="none">none</option>
+                  <option value="http">http</option>
+                  <option value="socks">socks</option>
+                </select>
+              </label>
+              {draft.proxyMode === 'http' || draft.proxyMode === 'socks' ? (
+                <div className="requester-auth-fields">
+                  <input
+                    aria-label="Proxy host"
+                    placeholder="Proxy host"
+                    value={draft.proxyHost}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        proxyHost: event.target.value
+                      })
+                    }
+                  />
+                  <input
+                    aria-label="Proxy port"
+                    placeholder="Port"
+                    type="number"
+                    min={1}
+                    value={draft.proxyPort || ''}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        proxyPort: Number(event.target.value)
+                      })
+                    }
+                  />
+                  <input
+                    aria-label="Proxy username"
+                    placeholder="Username"
+                    value={draft.proxyUsername}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        proxyUsername: event.target.value
+                      })
+                    }
+                  />
+                </div>
+              ) : null}
+              <label className="form-item" htmlFor="requester-client-certificate">
+                <span>Client certificate path</span>
+                <input
+                  id="requester-client-certificate"
+                  value={draft.clientCertificatePath}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      clientCertificatePath: event.target.value
+                    })
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="requester-client-certificate-key">
+                <span>Client certificate key path</span>
+                <input
+                  id="requester-client-certificate-key"
+                  value={draft.clientCertificateKeyPath}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      clientCertificateKeyPath: event.target.value
+                    })
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="requester-custom-ca-certificate">
+                <span>Custom CA certificate path</span>
+                <input
+                  id="requester-custom-ca-certificate"
+                  value={draft.customCaCertificatePath}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      customCaCertificatePath: event.target.value
+                    })
+                  }
+                />
+              </label>
             </div>
             <div className="settings-group">
               <h3>History</h3>
@@ -172,6 +305,44 @@ export const RequesterSettingsDialog = ({
                   }
                 />
               </label>
+            </div>
+            <div className="settings-group">
+              <h3>Cookies</h3>
+              <div className="requester-cookie-actions">
+                <button type="button" className="settings-close-button" onClick={reloadCookies}>
+                  Reload Cookies
+                </button>
+                <button
+                  type="button"
+                  className="settings-close-button"
+                  disabled={cookies.length === 0}
+                  onClick={clearCookies}
+                >
+                  Clear Cookies
+                </button>
+              </div>
+              {cookies.length > 0 ? (
+                <div className="requester-cookie-list" aria-label="Workspace cookies">
+                  {cookies.map((cookie) => (
+                    <div className="requester-cookie-row" key={cookie.id}>
+                      <strong>{cookie.name}</strong>
+                      <span>{cookie.domain}</span>
+                      <span>{cookie.path}</span>
+                      <span>{cookie.expiresAt ?? 'session'}</span>
+                      <button
+                        type="button"
+                        className="sidebar-icon-button material-icons-round"
+                        aria-label={`Remove cookie ${cookie.name}`}
+                        onClick={() => removeCookie(cookie.id)}
+                      >
+                        close
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-list-message">No cookies stored.</p>
+              )}
             </div>
             <div className="settings-group">
               <h3>Fonts</h3>

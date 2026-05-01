@@ -61,6 +61,7 @@ const requestDetail = (
   authToken: '',
   authApiKeyName: '',
   authApiKeyValue: '',
+  extractionRules: [],
   ...overrides
 });
 

@@ -103,8 +103,56 @@ describe('RequestExecutionService', () => {
       expect.objectContaining({
         redirect: 'manual',
         signal: expect.any(AbortSignal)
+      }),
+      expect.objectContaining({
+        validateTlsCertificates: true,
+        proxy: expect.objectContaining({ mode: 'system' })
       })
     );
+  });
+
+  it('passes proxy and TLS settings to the transport boundary', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-1')
+    };
+    const transport = {
+      fetch: vi.fn().mockResolvedValue(createResponse('ok', { status: 200 }))
+    };
+    const service = new RequestExecutionService(historyStore, transport);
+
+    await service.send({
+      workspaceId: 'workspace-1',
+      name: 'Network',
+      method: 'GET',
+      url: 'https://example.test/api',
+      validateTlsCertificates: false,
+      proxyMode: 'http',
+      proxyHost: 'proxy.test',
+      proxyPort: 8080,
+      proxyUsername: 'testuser',
+      proxyPasswordSecretId: 'secret-proxy',
+      clientCertificatePath: 'C:\\certs\\client.crt',
+      clientCertificateKeyPath: 'C:\\certs\\client.key',
+      clientCertificatePassphraseSecretId: 'secret-cert',
+      customCaCertificatePath: 'C:\\certs\\ca.crt'
+    });
+
+    expect(transport.fetch).toHaveBeenCalledWith('https://example.test/api', expect.any(Object), {
+      validateTlsCertificates: false,
+      proxy: {
+        mode: 'http',
+        host: 'proxy.test',
+        port: 8080,
+        username: 'testuser',
+        passwordSecretId: 'secret-proxy'
+      },
+      tls: {
+        clientCertificatePath: 'C:\\certs\\client.crt',
+        clientCertificateKeyPath: 'C:\\certs\\client.key',
+        clientCertificatePassphraseSecretId: 'secret-cert',
+        customCaCertificatePath: 'C:\\certs\\ca.crt'
+      }
+    });
   });
 
   it('uses the workspace cookie jar when enabled and stores response cookies', async () => {
@@ -170,5 +218,60 @@ describe('RequestExecutionService', () => {
     const [, init] = transport.fetch.mock.calls[0] as [string, RequestInit];
     expect((init.headers as Headers).get('Cookie')).toBe('manual=yes');
     expect(cookieStore.getCookieHeader).not.toHaveBeenCalled();
+  });
+
+  it('extracts variables from the response into the selected variable set', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-1')
+    };
+    const variableStore = {
+      upsertVariables: vi.fn()
+    };
+    const transport = {
+      fetch: vi.fn().mockResolvedValue(
+        createResponse('{"token":"abc"}', {
+          status: 200,
+          headers: {
+            'x-request-id': 'req-1'
+          }
+        })
+      )
+    };
+    const service = new RequestExecutionService(
+      historyStore,
+      transport,
+      30000,
+      undefined,
+      variableStore
+    );
+
+    await service.send({
+      workspaceId: 'workspace-1',
+      name: 'Login',
+      method: 'POST',
+      url: 'https://example.test/login',
+      variableSetId: 'variables-1',
+      extractionRules: [
+        {
+          id: 'token',
+          enabled: true,
+          source: 'json-body',
+          expression: '$.token',
+          targetVariable: 'accessToken'
+        },
+        {
+          id: 'request-id',
+          enabled: true,
+          source: 'header',
+          expression: 'x-request-id',
+          targetVariable: 'requestId'
+        }
+      ]
+    });
+
+    expect(variableStore.upsertVariables).toHaveBeenCalledWith('variables-1', [
+      { key: 'accessToken', value: 'abc' },
+      { key: 'requestId', value: 'req-1' }
+    ]);
   });
 });

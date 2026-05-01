@@ -8,6 +8,9 @@ import { RequesterSettingsDialog } from './RequesterSettingsDialog';
 
 const getSettings = vi.fn();
 const saveSettings = vi.fn();
+const listCookies = vi.fn();
+const removeCookie = vi.fn();
+const clearCookies = vi.fn();
 
 interface RequesterTestState {
   requester: ReturnType<typeof requesterReducer>;
@@ -27,6 +30,11 @@ const installTnetApi = (): void => {
         workspaces: {
           getSettings,
           saveSettings
+        },
+        cookies: {
+          list: listCookies,
+          remove: removeCookie,
+          clear: clearCookies
         }
       }
     },
@@ -39,6 +47,9 @@ describe('RequesterSettingsDialog', () => {
     installTnetApi();
     getSettings.mockResolvedValue(defaultRequesterWorkspaceSettings());
     saveSettings.mockResolvedValue(undefined);
+    listCookies.mockResolvedValue([]);
+    removeCookie.mockResolvedValue(undefined);
+    clearCookies.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -64,6 +75,7 @@ describe('RequesterSettingsDialog', () => {
     );
 
     await waitFor(() => expect(getSettings).toHaveBeenCalledWith({ workspaceId: 'workspace-1' }));
+    expect(listCookies).toHaveBeenCalledWith({ workspaceId: 'workspace-1' });
 
     fireEvent.change(screen.getByLabelText('Request timeout (ms)'), {
       target: { value: '12000' }
@@ -71,6 +83,19 @@ describe('RequesterSettingsDialog', () => {
     fireEvent.click(screen.getByLabelText('Follow redirects'));
     fireEvent.click(screen.getByLabelText('Validate TLS certificates'));
     fireEvent.click(screen.getByLabelText('Use workspace cookie jar'));
+    fireEvent.change(screen.getByLabelText('Proxy mode'), { target: { value: 'http' } });
+    fireEvent.change(screen.getByLabelText('Proxy host'), { target: { value: 'proxy.test' } });
+    fireEvent.change(screen.getByLabelText('Proxy port'), { target: { value: '8080' } });
+    fireEvent.change(screen.getByLabelText('Proxy username'), { target: { value: 'testuser' } });
+    fireEvent.change(screen.getByLabelText('Client certificate path'), {
+      target: { value: 'C:\\certs\\client.crt' }
+    });
+    fireEvent.change(screen.getByLabelText('Client certificate key path'), {
+      target: { value: 'C:\\certs\\client.key' }
+    });
+    fireEvent.change(screen.getByLabelText('Custom CA certificate path'), {
+      target: { value: 'C:\\certs\\ca.crt' }
+    });
     fireEvent.change(screen.getByLabelText('Code font family'), {
       target: { value: 'Code Font' }
     });
@@ -93,6 +118,13 @@ describe('RequesterSettingsDialog', () => {
           followRedirects: false,
           validateTlsCertificates: false,
           cookieJarEnabled: true,
+          proxyMode: 'http',
+          proxyHost: 'proxy.test',
+          proxyPort: 8080,
+          proxyUsername: 'testuser',
+          clientCertificatePath: 'C:\\certs\\client.crt',
+          clientCertificateKeyPath: 'C:\\certs\\client.key',
+          customCaCertificatePath: 'C:\\certs\\ca.crt',
           codeFontFamily: 'Code Font',
           codeFontSize: 15,
           appFontFamily: 'UI Font',
@@ -106,6 +138,13 @@ describe('RequesterSettingsDialog', () => {
         followRedirects: false,
         validateTlsCertificates: false,
         cookieJarEnabled: true,
+        proxyMode: 'http',
+        proxyHost: 'proxy.test',
+        proxyPort: 8080,
+        proxyUsername: 'testuser',
+        clientCertificatePath: 'C:\\certs\\client.crt',
+        clientCertificateKeyPath: 'C:\\certs\\client.key',
+        customCaCertificatePath: 'C:\\certs\\ca.crt',
         codeFontFamily: 'Code Font',
         codeFontSize: 15,
         appFontFamily: 'UI Font',
@@ -113,5 +152,67 @@ describe('RequesterSettingsDialog', () => {
       })
     );
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('lists, removes, and clears workspace cookies', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    listCookies.mockResolvedValueOnce([
+      {
+        id: 'cookie-1',
+        workspaceId: 'workspace-1',
+        name: 'session',
+        value: 'abc',
+        domain: 'example.test',
+        path: '/',
+        secure: true,
+        httpOnly: true,
+        hostOnly: true,
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ]);
+    listCookies.mockResolvedValueOnce([]);
+    const onClose = vi.fn();
+
+    render(
+      <Provider store={store}>
+        <RequesterSettingsDialog isOpen={true} onClose={onClose} />
+      </Provider>
+    );
+
+    expect((await screen.findAllByText('session'))[0]).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Remove cookie session'));
+
+    await waitFor(() => expect(removeCookie).toHaveBeenCalledWith({ cookieId: 'cookie-1' }));
+    await waitFor(() => expect(screen.getByText('No cookies stored.')).toBeInTheDocument());
+
+    listCookies.mockResolvedValueOnce([
+      {
+        id: 'cookie-2',
+        workspaceId: 'workspace-1',
+        name: 'theme',
+        value: 'dark',
+        domain: 'example.test',
+        path: '/',
+        secure: false,
+        httpOnly: false,
+        hostOnly: true,
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ]);
+    fireEvent.click(screen.getByRole('button', { name: 'Reload Cookies' }));
+    expect(await screen.findByText('theme')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Cookies' }));
+
+    await waitFor(() => expect(clearCookies).toHaveBeenCalledWith({ workspaceId: 'workspace-1' }));
+    expect(screen.getByText('No cookies stored.')).toBeInTheDocument();
   });
 });

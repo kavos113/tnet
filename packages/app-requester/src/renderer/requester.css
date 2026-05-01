@@ -373,6 +373,12 @@
   font-size: 13px;
 }
 
+.requester-response-error h3 {
+  margin: 0 0 10px;
+  color: var(--foreground);
+  font-size: 13px;
+}
+
 .requester-response-header-grid {
   display: grid;
   max-height: 120px;
@@ -484,6 +490,45 @@
   color: var(--foreground);
   font-family: var(--requester-code-font-family, monospace);
   font-size: var(--requester-code-font-size, 13px);
+}
+
+.requester-cookie-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.requester-cookie-list {
+  display: grid;
+  gap: 4px;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
+.requester-cookie-row {
+  display: grid;
+  grid-template-columns:
+    minmax(72px, 0.5fr) minmax(96px, 1fr) minmax(56px, 0.5fr) minmax(96px, 1fr)
+    28px;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--gray);
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.requester-cookie-row:last-child {
+  border-bottom: 0;
+}
+
+.requester-cookie-row strong,
+.requester-cookie-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .requester-error {

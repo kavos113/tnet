@@ -139,6 +139,7 @@ export class CookieRepository implements RequesterCookieStore {
   }
 
   getCookieHeader(workspaceId: string, requestUrl: string): string | undefined {
+    this.deleteExpired(workspaceId);
     const url = new URL(requestUrl);
     const now = new Date().toISOString();
     const cookies = this.list(workspaceId)
@@ -158,6 +159,22 @@ export class CookieRepository implements RequesterCookieStore {
       if (!cookie) continue;
       this.save(workspaceId, cookie);
     }
+  }
+
+  remove(cookieId: string): void {
+    this.database.prepare('DELETE FROM cookies WHERE id = ?').run(cookieId);
+  }
+
+  clear(workspaceId: string): void {
+    this.database.prepare('DELETE FROM cookies WHERE workspace_id = ?').run(workspaceId);
+  }
+
+  deleteExpired(workspaceId: string): void {
+    this.database
+      .prepare(
+        'DELETE FROM cookies WHERE workspace_id = ? AND expires_at IS NOT NULL AND expires_at <= ?'
+      )
+      .run(workspaceId, new Date().toISOString());
   }
 
   private save(workspaceId: string, cookie: ParsedCookie): void {

@@ -1,14 +1,21 @@
 import type {
+  RequesterExtractionRule,
   RequesterExecutionResult,
+  RequesterNetworkOptions,
   RequesterResponseSnapshot,
   SaveRequesterRequestInput
 } from '@tnet/app-requester/shared/requesterTypes';
+import { extractVariablesFromResponse } from '../extraction/responseExtraction';
 import { serializeRequesterRequest } from '../http/requestSerializer';
 import { parseRequesterResponse } from '../http/responseParser';
 import { redactRequesterRequest } from './redaction';
 
 export interface RequesterTransport {
-  fetch(url: string, init: RequestInit): Promise<Response>;
+  fetch(
+    url: string,
+    init: RequestInit,
+    networkOptions?: RequesterNetworkOptions
+  ): Promise<Response>;
 }
 
 export interface RequesterHistoryStore {
@@ -24,6 +31,10 @@ export interface RequesterCookieStore {
   saveFromResponse(workspaceId: string, requestUrl: string, headers: Headers): void;
 }
 
+export interface RequesterVariableStore {
+  upsertVariables(variableSetId: string, variables: Array<{ key: string; value: string }>): void;
+}
+
 const defaultTransport: RequesterTransport = {
   fetch: (url, init) => fetch(url, init)
 };
@@ -33,7 +44,8 @@ export class RequestExecutionService {
     private readonly historyStore: RequesterHistoryStore,
     private readonly transport: RequesterTransport = defaultTransport,
     private readonly timeoutMs = 30000,
-    private readonly cookieStore?: RequesterCookieStore
+    private readonly cookieStore?: RequesterCookieStore,
+    private readonly variableStore?: RequesterVariableStore
   ) {}
 
   async send(request: SaveRequesterRequestInput): Promise<RequesterExecutionResult> {
@@ -44,12 +56,17 @@ export class RequestExecutionService {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), request.timeoutMs ?? this.timeoutMs);
     let response: Response;
+    const networkOptions = this.buildNetworkOptions(request);
     try {
-      response = await this.transport.fetch(serialized.url, {
-        ...serialized.init,
-        redirect: request.followRedirects === false ? 'manual' : 'follow',
-        signal: controller.signal
-      });
+      response = await this.transport.fetch(
+        serialized.url,
+        {
+          ...serialized.init,
+          redirect: request.followRedirects === false ? 'manual' : 'follow',
+          signal: controller.signal
+        },
+        networkOptions
+      );
     } finally {
       clearTimeout(timeout);
     }
@@ -60,6 +77,7 @@ export class RequestExecutionService {
       response,
       Math.round(performance.now() - started)
     );
+    this.extractVariables(request, snapshot);
     const historyId = this.historyStore.saveExecution({
       request: redactRequesterRequest(request),
       response: snapshot,
@@ -69,6 +87,39 @@ export class RequestExecutionService {
     return {
       response: snapshot,
       historyId
+    };
+  }
+
+  private extractVariables(
+    request: SaveRequesterRequestInput,
+    response: RequesterResponseSnapshot
+  ): void {
+    if (!request.variableSetId || !request.extractionRules?.length || !this.variableStore) return;
+    const extracted = extractVariablesFromResponse(
+      request.extractionRules as RequesterExtractionRule[],
+      response
+    );
+    if (extracted.length === 0) return;
+    this.variableStore.upsertVariables(request.variableSetId, extracted);
+  }
+
+  private buildNetworkOptions(request: SaveRequesterRequestInput): RequesterNetworkOptions {
+    return {
+      validateTlsCertificates: request.validateTlsCertificates !== false,
+      proxy: {
+        mode: request.proxyMode ?? 'system',
+        host: request.proxyHost || undefined,
+        port: request.proxyPort && request.proxyPort > 0 ? request.proxyPort : undefined,
+        username: request.proxyUsername || undefined,
+        passwordSecretId: request.proxyPasswordSecretId || undefined
+      },
+      tls: {
+        clientCertificatePath: request.clientCertificatePath || undefined,
+        clientCertificateKeyPath: request.clientCertificateKeyPath || undefined,
+        clientCertificatePassphraseSecretId:
+          request.clientCertificatePassphraseSecretId || undefined,
+        customCaCertificatePath: request.customCaCertificatePath || undefined
+      }
     };
   }
 

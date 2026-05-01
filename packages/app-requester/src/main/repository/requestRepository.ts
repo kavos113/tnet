@@ -7,6 +7,7 @@ import {
 import type {
   RequesterBodyMode,
   RequesterAuthType,
+  RequesterExtractionRule,
   RequesterHttpMethod,
   RequesterKeyValueRow,
   RequesterRequestDetail,
@@ -39,6 +40,7 @@ interface RequestJson {
   authToken?: string;
   authApiKeyName?: string;
   authApiKeyValue?: string;
+  extractionRules?: RequesterExtractionRule[];
 }
 
 const emptyRequestJson = (): Required<RequestJson> => ({
@@ -54,7 +56,8 @@ const emptyRequestJson = (): Required<RequestJson> => ({
   authPassword: '',
   authToken: '',
   authApiKeyName: '',
-  authApiKeyValue: ''
+  authApiKeyValue: '',
+  extractionRules: []
 });
 
 const parseRequestJson = (json: string): Required<RequestJson> => ({
@@ -87,7 +90,8 @@ const toDetail = (row: RequestRow): RequesterRequestDetail => {
     authPassword: requestJson.authPassword,
     authToken: requestJson.authToken,
     authApiKeyName: requestJson.authApiKeyName,
-    authApiKeyValue: requestJson.authApiKeyValue
+    authApiKeyValue: requestJson.authApiKeyValue,
+    extractionRules: requestJson.extractionRules
   };
 };
 
@@ -192,7 +196,8 @@ export class RequestRepository {
           authPassword: input.authPassword ?? '',
           authToken: input.authToken ?? '',
           authApiKeyName: input.authApiKeyName ?? '',
-          authApiKeyValue: input.authApiKeyValue ?? ''
+          authApiKeyValue: input.authApiKeyValue ?? '',
+          extractionRules: input.extractionRules ?? []
         }),
         createdAt: now,
         updatedAt: now
@@ -239,7 +244,8 @@ export class RequestRepository {
           authPassword: input.authPassword ?? existing.authPassword,
           authToken: input.authToken ?? existing.authToken,
           authApiKeyName: input.authApiKeyName ?? existing.authApiKeyName,
-          authApiKeyValue: input.authApiKeyValue ?? existing.authApiKeyValue
+          authApiKeyValue: input.authApiKeyValue ?? existing.authApiKeyValue,
+          extractionRules: input.extractionRules ?? existing.extractionRules
         }),
         updatedAt: new Date().toISOString()
       });

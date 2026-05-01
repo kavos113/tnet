@@ -4,6 +4,7 @@ import type {
   RequesterExecutionResult,
   RequesterHistoryDetail,
   RequesterHistoryEntry,
+  RequesterCookie,
   RequesterRequestSummary,
   RequesterVariableSet,
   RequesterWorkspace,
@@ -47,6 +48,11 @@ export const requesterIpcChannels = {
     get: 'requester:history:get',
     remove: 'requester:history:remove',
     clear: 'requester:history:clear'
+  },
+  cookies: {
+    list: 'requester:cookies:list',
+    remove: 'requester:cookies:remove',
+    clear: 'requester:cookies:clear'
   },
   files: {
     selectBinaryBody: 'requester:files:selectBinaryBody',
@@ -105,6 +111,11 @@ export interface RequesterApi {
       }) => Promise<RequesterHistoryEntry[]>;
       get: (request: { historyId: string }) => Promise<RequesterHistoryDetail | null>;
       remove: (request: { historyId: string }) => Promise<void>;
+      clear: (request: { workspaceId: string }) => Promise<void>;
+    };
+    cookies: {
+      list: (request: { workspaceId: string }) => Promise<RequesterCookie[]>;
+      remove: (request: { cookieId: string }) => Promise<void>;
       clear: (request: { workspaceId: string }) => Promise<void>;
     };
     files: {
