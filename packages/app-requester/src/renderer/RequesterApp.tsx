@@ -20,6 +20,7 @@ export const RequesterApp = (): React.JSX.Element => {
   const history = useRequesterSelector((state) => state.requester.history);
   const isRestored = useRequesterSelector((state) => state.requester.isRestored);
   const settings = useRequesterSelector((state) => state.requester.settings);
+  const globalSettings = useRequesterSelector((state) => state.requester.globalSettings);
   const draft = useRequesterRequestDraft(activeRequest, activeWorkspaceId);
   const [variables, setVariables] = useState<RequesterVariable[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>();
@@ -104,10 +105,10 @@ export const RequesterApp = (): React.JSX.Element => {
   };
 
   const requesterStyle = {
-    '--requester-code-font-family': settings.codeFontFamily,
-    '--requester-code-font-size': `${settings.codeFontSize}px`,
-    '--requester-app-font-family': settings.appFontFamily,
-    '--requester-app-font-size': `${settings.appFontSize}px`
+    '--requester-code-font-family': globalSettings.codeFontFamily || settings.codeFontFamily,
+    '--requester-code-font-size': `${globalSettings.codeFontSize || settings.codeFontSize}px`,
+    '--requester-app-font-family': globalSettings.appFontFamily || settings.appFontFamily,
+    '--requester-app-font-size': `${globalSettings.appFontSize || settings.appFontSize}px`
   } as CSSProperties;
 
   if (!isRestored) {

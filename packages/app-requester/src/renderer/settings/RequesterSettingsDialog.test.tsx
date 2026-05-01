@@ -130,18 +130,6 @@ describe('RequesterSettingsDialog', () => {
     fireEvent.change(screen.getByLabelText('Client certificate passphrase'), {
       target: { value: 'cert-passphrase' }
     });
-    fireEvent.change(screen.getByLabelText('Code font family'), {
-      target: { value: 'Code Font' }
-    });
-    fireEvent.change(screen.getByLabelText('Code font size (px)'), {
-      target: { value: '15' }
-    });
-    fireEvent.change(screen.getByLabelText('App font family'), {
-      target: { value: 'UI Font' }
-    });
-    fireEvent.change(screen.getByLabelText('App font size (px)'), {
-      target: { value: '14' }
-    });
     fireEvent.click(screen.getByRole('button', { name: 'Save Settings' }));
 
     await waitFor(() =>
@@ -160,11 +148,7 @@ describe('RequesterSettingsDialog', () => {
           clientCertificatePath: 'C:\\certs\\client.crt',
           clientCertificateKeyPath: 'C:\\certs\\client.key',
           clientCertificatePassphraseSecretId: 'secret-cert',
-          customCaCertificatePath: 'C:\\certs\\ca.crt',
-          codeFontFamily: 'Code Font',
-          codeFontSize: 15,
-          appFontFamily: 'UI Font',
-          appFontSize: 14
+          customCaCertificatePath: 'C:\\certs\\ca.crt'
         })
       })
     );
@@ -182,11 +166,7 @@ describe('RequesterSettingsDialog', () => {
         clientCertificatePath: 'C:\\certs\\client.crt',
         clientCertificateKeyPath: 'C:\\certs\\client.key',
         clientCertificatePassphraseSecretId: 'secret-cert',
-        customCaCertificatePath: 'C:\\certs\\ca.crt',
-        codeFontFamily: 'Code Font',
-        codeFontSize: 15,
-        appFontFamily: 'UI Font',
-        appFontSize: 14
+        customCaCertificatePath: 'C:\\certs\\ca.crt'
       })
     );
     expect(onClose).toHaveBeenCalledOnce();

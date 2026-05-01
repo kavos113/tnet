@@ -128,41 +128,26 @@ describe('PapersSettingsDialog', () => {
     fireEvent.change(screen.getByLabelText('Auto save delay (ms)'), {
       target: { value: '1000' }
     });
-    fireEvent.change(screen.getByLabelText('Editor font family'), {
-      target: { value: 'Code Font' }
-    });
-    fireEvent.change(screen.getByLabelText('Editor font size (px)'), {
-      target: { value: '20' }
-    });
-    fireEvent.change(screen.getByLabelText('Preview font family'), {
-      target: { value: 'Reading Font' }
-    });
-    fireEvent.change(screen.getByLabelText('Preview font size (px)'), {
-      target: { value: '21' }
-    });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(saveLibrary).toHaveBeenCalledWith('/papers/library', {
-        listDensity: 'compact',
-        pdfZoomMode: 'actual-size',
-        noteEditorMode: 'editor',
-        noteAutoSaveDebounceMs: 1000,
-        noteEditorFontFamily: 'Code Font',
-        noteEditorFontSize: 20,
-        notePreviewFontFamily: 'Reading Font',
-        notePreviewFontSize: 21
-      });
-      expect(store.getState().papersLibrary.settings).toEqual({
-        listDensity: 'compact',
-        pdfZoomMode: 'actual-size',
-        noteEditorMode: 'editor',
-        noteAutoSaveDebounceMs: 1000,
-        noteEditorFontFamily: 'Code Font',
-        noteEditorFontSize: 20,
-        notePreviewFontFamily: 'Reading Font',
-        notePreviewFontSize: 21
-      });
+      expect(saveLibrary).toHaveBeenCalledWith(
+        '/papers/library',
+        expect.objectContaining({
+          listDensity: 'compact',
+          pdfZoomMode: 'actual-size',
+          noteEditorMode: 'editor',
+          noteAutoSaveDebounceMs: 1000
+        })
+      );
+      expect(store.getState().papersLibrary.settings).toEqual(
+        expect.objectContaining({
+          listDensity: 'compact',
+          pdfZoomMode: 'actual-size',
+          noteEditorMode: 'editor',
+          noteAutoSaveDebounceMs: 1000
+        })
+      );
       expect(onClose).toHaveBeenCalled();
     });
   });

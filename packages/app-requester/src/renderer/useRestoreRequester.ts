@@ -1,4 +1,7 @@
 import { useEffect } from 'react';
+import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import { getRequesterGlobalSettings } from '@tnet/app-requester/shared/config';
+import { tnetApi } from '@tnet/renderer-core/tnetApi';
 import { restoreRequester } from './requesterSlice';
 import { requesterTnetApi } from './requesterTnetApi';
 import { useRequesterDispatch } from './storeHooks';
@@ -10,10 +13,12 @@ export const useRestoreRequester = (): void => {
     let canceled = false;
 
     const restore = async (): Promise<void> => {
-      const [config, workspaces] = await Promise.all([
+      const [shellConfig, config, workspaces] = await Promise.all([
+        tnetApi.config.loadGlobal(),
         requesterTnetApi.requester.config.loadGlobal(),
         requesterTnetApi.requester.workspaces.list()
       ]);
+      const globalSettings = getRequesterGlobalSettings(normalizeGlobalConfig(shellConfig));
       const activeWorkspaceId =
         config.activeWorkspaceId ?? config.lastOpenedWorkspaceId ?? workspaces[0]?.id;
       const [requests, settings, history] = activeWorkspaceId
@@ -31,7 +36,8 @@ export const useRestoreRequester = (): void => {
           workspaces,
           requests,
           history,
-          settings
+          settings,
+          globalSettings
         })
       );
     };
@@ -41,7 +47,8 @@ export const useRestoreRequester = (): void => {
       if (!canceled) {
         dispatch(
           restoreRequester({
-            workspaces: []
+            workspaces: [],
+            globalSettings: getRequesterGlobalSettings(normalizeGlobalConfig({}))
           })
         );
       }

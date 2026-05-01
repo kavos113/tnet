@@ -5,6 +5,7 @@ export interface MarkdownGlobalConfig {
   lastOpenedDirectory?: string;
   workspaceRoots: string[];
   activeWorkspaceRoot?: string;
+  settings?: MarkdownGlobalSettings;
 }
 
 export type LlmProviderType =
@@ -22,6 +23,13 @@ export interface MarkdownSettings {
   previewFontSize: number;
   autoSaveEnabled: boolean;
   autoSaveDebounceMs: number;
+}
+
+export interface MarkdownGlobalSettings {
+  editorFontFamily: string;
+  editorFontSize: number;
+  previewFontFamily: string;
+  previewFontSize: number;
 }
 
 export interface LlmSettings {
@@ -45,10 +53,25 @@ export const defaultMarkdownGlobalConfig = (): MarkdownGlobalConfig => ({
   workspaceRoots: []
 });
 
+export const defaultMarkdownGlobalSettings = (): MarkdownGlobalSettings => ({
+  editorFontFamily: '',
+  editorFontSize: 0,
+  previewFontFamily: '',
+  previewFontSize: 0
+});
+
 export const getMarkdownGlobalConfig = (config: GlobalConfig): MarkdownGlobalConfig => ({
   ...defaultMarkdownGlobalConfig(),
   ...(config.apps?.markdown as Partial<MarkdownGlobalConfig> | undefined)
 });
+
+export const getMarkdownGlobalSettings = (config: GlobalConfig): MarkdownGlobalSettings => {
+  const markdownConfig = config.apps?.markdown as Partial<MarkdownGlobalConfig> | undefined;
+  return {
+    ...defaultMarkdownGlobalSettings(),
+    ...markdownConfig?.settings
+  };
+};
 
 export const withMarkdownGlobalConfig = (
   config: GlobalConfig,
@@ -63,6 +86,17 @@ export const withMarkdownGlobalConfig = (
       markdown: markdownConfig
     }
   };
+};
+
+export const withMarkdownGlobalSettings = (
+  config: GlobalConfig,
+  settings: MarkdownGlobalSettings
+): GlobalConfig => {
+  const markdownConfig = getMarkdownGlobalConfig(config);
+  return withMarkdownGlobalConfig(config, {
+    ...markdownConfig,
+    settings
+  });
 };
 
 export const defaultMarkdownSettings = (): MarkdownSettings => ({

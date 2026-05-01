@@ -2,6 +2,10 @@ export { MarkdownApp } from './MarkdownApp';
 export { MarkdownRuntime } from './MarkdownRuntime';
 export { MarkdownSidebar } from './MarkdownSidebar';
 export { SettingsDialog as MarkdownSettingsDialog } from './settings/SettingsDialog';
+export {
+  MarkdownGlobalSettingsPage,
+  MarkdownWorkspaceSettingsPage
+} from './settings/SettingsDialog';
 export { default as editorReducer } from './editor/editorSlice';
 export { default as explorerReducer } from './explorer/explorerSlice';
 export { default as workspaceReducer } from './workspace/workspaceSlice';

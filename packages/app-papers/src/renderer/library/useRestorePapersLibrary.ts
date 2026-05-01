@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
+import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import { getPapersGlobalSettings } from '@tnet/app-papers/shared/config';
 import { usePapersDispatch } from '@tnet/app-papers/renderer/storeHooks';
-import { markPapersLibraryRestored, restorePapersLibrary } from './librarySlice';
+import {
+  markPapersLibraryRestored,
+  restorePapersLibrary,
+  setPapersGlobalSettings
+} from './librarySlice';
 import { papersTnetApi } from '../papersTnetApi';
 
 export const useRestorePapersLibrary = (): boolean => {
@@ -11,7 +17,12 @@ export const useRestorePapersLibrary = (): boolean => {
     let canceled = false;
 
     const restoreLibrary = async (): Promise<void> => {
-      const config = await papersTnetApi.papers.config.loadGlobal();
+      const [shellConfig, config] = await Promise.all([
+        papersTnetApi.config.loadGlobal(),
+        papersTnetApi.papers.config.loadGlobal()
+      ]);
+      const globalSettings = getPapersGlobalSettings(normalizeGlobalConfig(shellConfig));
+      dispatch(setPapersGlobalSettings(globalSettings));
       const libraryRoot = config.activeLibraryRoot ?? config.lastOpenedDirectory ?? '';
       const [settings, directoryTree] = libraryRoot
         ? await Promise.all([
@@ -31,7 +42,8 @@ export const useRestorePapersLibrary = (): boolean => {
           libraryRoots: config.libraryRoots,
           activeLibraryRoot: libraryRoot,
           directoryTree,
-          settings
+          settings,
+          globalSettings
         })
       );
     };

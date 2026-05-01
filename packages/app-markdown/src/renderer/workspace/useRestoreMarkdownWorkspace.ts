@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
-import { getMarkdownGlobalConfig } from '@tnet/app-markdown/shared/config';
+import {
+  getMarkdownGlobalConfig,
+  getMarkdownGlobalSettings
+} from '@tnet/app-markdown/shared/config';
 import { useAppDispatch } from '@tnet/app-markdown/renderer/storeHooks';
-import { setWorkspaceRoots } from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
+import {
+  setMarkdownGlobalSettings,
+  setWorkspaceRoots
+} from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
 import { markdownTnetApi } from '../markdownTnetApi';
 import { useMarkdownWorkspaceSwitcher } from './useMarkdownWorkspaceSwitcher';
 
@@ -17,6 +23,7 @@ export const useRestoreMarkdownWorkspace = (): boolean => {
     const restoreWorkspace = async (): Promise<void> => {
       const config = normalizeGlobalConfig(await markdownTnetApi.config.loadGlobal());
       const markdownConfig = getMarkdownGlobalConfig(config);
+      dispatch(setMarkdownGlobalSettings(getMarkdownGlobalSettings(config)));
       const workspaceRoots = markdownConfig.workspaceRoots;
       const rootPath = markdownConfig.activeWorkspaceRoot ?? markdownConfig.lastOpenedDirectory;
       dispatch(setWorkspaceRoots(workspaceRoots));

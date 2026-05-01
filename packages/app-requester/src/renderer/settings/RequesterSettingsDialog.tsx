@@ -1,15 +1,36 @@
 import { useEffect, useState } from 'react';
-import { SettingsDialogShell } from '@tnet/ui/settings';
-import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
-import { normalizeRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
+import type { SettingsFieldConfig } from '@tnet/ui/settings';
+import {
+  SettingsActions,
+  SettingsDialogShell,
+  SettingsFieldsSection,
+  SettingsPrimaryButton,
+  SettingsSecondaryButton
+} from '@tnet/ui/settings';
+import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import { tnetApi } from '@tnet/renderer-core/tnetApi';
+import type {
+  RequesterGlobalSettings,
+  RequesterWorkspaceSettings
+} from '@tnet/app-requester/shared/config';
+import {
+  defaultRequesterGlobalSettings,
+  getRequesterGlobalSettings,
+  normalizeRequesterWorkspaceSettings,
+  withRequesterGlobalSettings
+} from '@tnet/app-requester/shared/config';
 import type { RequesterCookie } from '@tnet/app-requester/shared/requesterTypes';
-import { setRequesterError, setRequesterSettings, setRequesterWorkspace } from '../requesterSlice';
+import {
+  setRequesterError,
+  setRequesterGlobalSettings,
+  setRequesterSettings,
+  setRequesterWorkspace
+} from '../requesterSlice';
 import { requesterTnetApi } from '../requesterTnetApi';
 import { useRequesterDispatch, useRequesterSelector } from '../storeHooks';
 import {
   RequesterCookieSettings,
   RequesterExecutionSettings,
-  RequesterFontSettings,
   RequesterBackupSettings,
   RequesterHistorySettings
 } from './RequesterSettingsSections';
@@ -19,10 +40,88 @@ interface RequesterSettingsDialogProps {
   onClose: () => void;
 }
 
+interface SettingsPageProps {
+  onClose: () => void;
+}
+
 export const RequesterSettingsDialog = ({
   isOpen,
   onClose
-}: RequesterSettingsDialogProps): React.JSX.Element | null => {
+}: RequesterSettingsDialogProps): React.JSX.Element | null => (
+  <SettingsDialogShell
+    isOpen={isOpen}
+    onClose={onClose}
+    title="Requester Settings"
+    ariaLabel="Requester settings"
+  >
+    <RequesterWorkspaceSettingsPage onClose={onClose} />
+  </SettingsDialogShell>
+);
+
+export const RequesterGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.JSX.Element => {
+  const dispatch = useRequesterDispatch();
+  const currentSettings = useRequesterSelector((state) => state.requester.globalSettings);
+  const [draft, setDraft] = useState<RequesterGlobalSettings>(currentSettings);
+
+  useEffect(() => {
+    let canceled = false;
+    tnetApi.config
+      .loadGlobal()
+      .then((config) => {
+        if (!canceled) setDraft(getRequesterGlobalSettings(normalizeGlobalConfig(config)));
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load requester global settings', error);
+        if (!canceled) setDraft(defaultRequesterGlobalSettings());
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, []);
+
+  const updateDraft = <Key extends keyof RequesterGlobalSettings>(
+    key: Key,
+    value: RequesterGlobalSettings[Key]
+  ): void => {
+    setDraft((current) => ({ ...current, [key]: value }));
+  };
+
+  const saveSettings = async (): Promise<void> => {
+    const config = normalizeGlobalConfig(await tnetApi.config.loadGlobal());
+    await tnetApi.config.saveGlobal(withRequesterGlobalSettings(config, draft));
+    dispatch(setRequesterGlobalSettings(draft));
+    onClose();
+  };
+
+  return (
+    <>
+      <SettingsFieldsSection
+        title="Fonts"
+        draft={draft}
+        fields={globalFontFields}
+        onFieldChange={updateDraft}
+      />
+      <SettingsActions>
+        <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
+        <SettingsPrimaryButton
+          onClick={() => {
+            saveSettings().catch((error: unknown) => {
+              console.error('Failed to save requester global settings', error);
+              dispatch(setRequesterError('Failed to save requester global settings.'));
+            });
+          }}
+        >
+          Save
+        </SettingsPrimaryButton>
+      </SettingsActions>
+    </>
+  );
+};
+
+export const RequesterWorkspaceSettingsPage = ({
+  onClose
+}: SettingsPageProps): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const settings = useRequesterSelector((state) => state.requester.settings);
@@ -32,7 +131,6 @@ export const RequesterSettingsDialog = ({
   const [cookies, setCookies] = useState<RequesterCookie[]>([]);
 
   useEffect(() => {
-    if (!isOpen) return;
     if (!activeWorkspaceId) {
       setDraft(settings);
       return;
@@ -59,7 +157,7 @@ export const RequesterSettingsDialog = ({
     return () => {
       canceled = true;
     };
-  }, [activeWorkspaceId, isOpen, settings]);
+  }, [activeWorkspaceId, settings]);
 
   const reloadCookies = (): void => {
     if (!activeWorkspaceId) return;
@@ -157,25 +255,15 @@ export const RequesterSettingsDialog = ({
       settings: normalizedDraft
     });
     dispatch(setRequesterSettings(normalizedDraft));
+    onClose();
   };
 
+  if (!activeWorkspaceId) {
+    return <p>Create a request workspace before editing settings.</p>;
+  }
+
   return (
-    <SettingsDialogShell
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Requester Settings"
-      ariaLabel="Requester settings"
-      saveLabel="Save Settings"
-      unavailableMessage={
-        !activeWorkspaceId ? 'Create a request workspace before editing settings.' : undefined
-      }
-      isSaveDisabled={!activeWorkspaceId}
-      onSave={save}
-      onSaveError={(error) => {
-        console.error('Failed to save requester settings', error);
-        dispatch(setRequesterError('Failed to save requester settings.'));
-      }}
-    >
+    <>
       <RequesterExecutionSettings
         draft={draft}
         setDraft={setDraft}
@@ -192,7 +280,48 @@ export const RequesterSettingsDialog = ({
         onClear={clearCookies}
       />
       <RequesterBackupSettings onExport={exportWorkspace} onImport={importWorkspace} />
-      <RequesterFontSettings draft={draft} setDraft={setDraft} />
-    </SettingsDialogShell>
+      <SettingsActions>
+        <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
+        <SettingsPrimaryButton
+          onClick={() => {
+            save().catch((error: unknown) => {
+              console.error('Failed to save requester settings', error);
+              dispatch(setRequesterError('Failed to save requester settings.'));
+            });
+          }}
+        >
+          Save Settings
+        </SettingsPrimaryButton>
+      </SettingsActions>
+    </>
   );
 };
+
+const globalFontFields: ReadonlyArray<SettingsFieldConfig<RequesterGlobalSettings>> = [
+  {
+    id: 'requester-global-code-font-family',
+    label: 'Code font family',
+    key: 'codeFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'requester-global-code-font-size',
+    label: 'Code font size (px)',
+    key: 'codeFontSize',
+    type: 'number',
+    min: 1
+  },
+  {
+    id: 'requester-global-app-font-family',
+    label: 'App font family',
+    key: 'appFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'requester-global-app-font-size',
+    label: 'App font size (px)',
+    key: 'appFontSize',
+    type: 'number',
+    min: 1
+  }
+];

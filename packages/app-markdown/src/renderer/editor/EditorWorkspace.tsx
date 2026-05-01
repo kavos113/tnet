@@ -296,6 +296,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
 export const EditorWorkspace = (): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const markdownSettings = useAppSelector((state) => state.workspace.settings.markdown);
+  const globalSettings = useAppSelector((state) => state.workspace.globalSettings);
   const { activeIndex, groupWidthPercent, isSecondaryGroupVisible } = useAppSelector(
     (state) => state.editor
   );
@@ -364,10 +365,12 @@ export const EditorWorkspace = (): React.JSX.Element => {
       className={styles.workspace}
       style={
         {
-          '--editor-font-family': markdownSettings.editorFontFamily,
-          '--editor-font-size': `${markdownSettings.editorFontSize}px`,
-          '--preview-font-family': markdownSettings.previewFontFamily,
-          '--preview-font-size': `${markdownSettings.previewFontSize}px`
+          '--editor-font-family':
+            globalSettings.editorFontFamily || markdownSettings.editorFontFamily,
+          '--editor-font-size': `${globalSettings.editorFontSize || markdownSettings.editorFontSize}px`,
+          '--preview-font-family':
+            globalSettings.previewFontFamily || markdownSettings.previewFontFamily,
+          '--preview-font-size': `${globalSettings.previewFontSize || markdownSettings.previewFontSize}px`
         } as CSSProperties
       }
     >

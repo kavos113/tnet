@@ -7,8 +7,14 @@ import type {
   RequesterHistoryEntry,
   RequesterWorkspace
 } from '@tnet/app-requester/shared/requesterTypes';
-import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
-import { defaultRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
+import type {
+  RequesterGlobalSettings,
+  RequesterWorkspaceSettings
+} from '@tnet/app-requester/shared/config';
+import {
+  defaultRequesterGlobalSettings,
+  defaultRequesterWorkspaceSettings
+} from '@tnet/app-requester/shared/config';
 
 interface RequesterState {
   activeWorkspaceId?: string;
@@ -21,6 +27,7 @@ interface RequesterState {
   requests: RequesterRequestSummary[];
   history: RequesterHistoryEntry[];
   settings: RequesterWorkspaceSettings;
+  globalSettings: RequesterGlobalSettings;
   isRestored: boolean;
   error?: string;
 }
@@ -30,6 +37,7 @@ const initialState: RequesterState = {
   requests: [],
   history: [],
   settings: defaultRequesterWorkspaceSettings(),
+  globalSettings: defaultRequesterGlobalSettings(),
   isRestored: false
 };
 
@@ -45,6 +53,7 @@ const requesterSlice = createSlice({
         requests?: RequesterRequestSummary[];
         history?: RequesterHistoryEntry[];
         settings?: RequesterWorkspaceSettings;
+        globalSettings?: RequesterGlobalSettings;
       }>
     ) => {
       state.activeWorkspaceId = action.payload.activeWorkspaceId;
@@ -52,6 +61,7 @@ const requesterSlice = createSlice({
       state.requests = action.payload.requests ?? [];
       state.history = action.payload.history ?? [];
       state.settings = action.payload.settings ?? defaultRequesterWorkspaceSettings();
+      state.globalSettings = action.payload.globalSettings ?? defaultRequesterGlobalSettings();
       state.activeRequestFolderPath = undefined;
       state.isRestored = true;
     },
@@ -63,6 +73,7 @@ const requesterSlice = createSlice({
         requests?: RequesterRequestSummary[];
         history?: RequesterHistoryEntry[];
         settings?: RequesterWorkspaceSettings;
+        globalSettings?: RequesterGlobalSettings;
       }>
     ) => {
       state.activeWorkspaceId = action.payload.activeWorkspaceId;
@@ -73,6 +84,7 @@ const requesterSlice = createSlice({
       state.requests = action.payload.requests ?? [];
       state.history = action.payload.history ?? [];
       state.settings = action.payload.settings ?? defaultRequesterWorkspaceSettings();
+      state.globalSettings = action.payload.globalSettings ?? state.globalSettings;
       state.isRestored = true;
     },
     setRequesterRequests: (state, action: PayloadAction<RequesterRequestSummary[]>) => {
@@ -104,6 +116,12 @@ const requesterSlice = createSlice({
     setRequesterSettings: (state, action: PayloadAction<RequesterWorkspaceSettings>) => {
       state.settings = action.payload;
     },
+    setRequesterGlobalSettings: (state, action: PayloadAction<RequesterGlobalSettings>) => {
+      state.globalSettings = {
+        ...defaultRequesterGlobalSettings(),
+        ...action.payload
+      };
+    },
     setActiveRequesterFolder: (state, action: PayloadAction<string | undefined>) => {
       state.activeRequestFolderPath = action.payload;
     },
@@ -118,6 +136,7 @@ export const {
   setActiveRequesterFolder,
   setActiveRequesterRequest,
   setRequesterError,
+  setRequesterGlobalSettings,
   setRequesterHistory,
   setRequesterRequests,
   setRequesterResponse,

@@ -19,6 +19,103 @@
   box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
 }
 
+.centerContent {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(1120px, calc(100vw - 48px));
+  height: min(760px, calc(100vh - 48px));
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  overflow: hidden;
+  background: var(--background);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+}
+
+.centerHeader {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.centerHeader h2 {
+  padding: 0;
+  margin: 0;
+  border-bottom: 0;
+}
+
+.centerBody {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.centerSidebar {
+  min-height: 0;
+  padding: 14px 10px;
+  overflow: auto;
+  background: var(--background-dark);
+  border-right: 1px solid var(--gray);
+}
+
+.centerAppGroup {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.centerAppLabel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 8px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.centerAppIcon:global(.material-icons-round) {
+  font-size: 16px;
+}
+
+.centerNavButton {
+  width: 100%;
+  padding: 7px 8px 7px 30px;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.centerNavButton:hover {
+  background: var(--gray);
+}
+
+.centerNavButtonActive,
+.centerNavButtonActive:hover {
+  color: var(--color-text-inverse);
+  background: var(--main-dark);
+}
+
+.centerMain {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.centerPage {
+  max-width: 760px;
+  padding: 22px 28px 28px;
+}
+
+.centerPage h3 {
+  margin: 0 0 18px;
+  font-size: 20px;
+}
+
 .content h2 {
   padding-bottom: 10px;
   margin-top: 0;

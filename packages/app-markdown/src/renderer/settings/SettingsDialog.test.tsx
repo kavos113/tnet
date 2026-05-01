@@ -1,13 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { setWorkspace } from '../workspace/workspaceSlice';
 import { createAppStore } from '../test/createMarkdownTestStore';
-import { SettingsDialog } from './SettingsDialog';
+import { MarkdownGlobalSettingsPage, SettingsDialog } from './SettingsDialog';
 
 const loadProject = vi.fn();
 const saveProject = vi.fn();
+const loadGlobal = vi.fn();
+const saveGlobal = vi.fn();
 
 const installTnetApi = (): void => {
   Object.defineProperty(window, 'tnet', {
@@ -26,8 +28,8 @@ const installTnetApi = (): void => {
         save: vi.fn()
       },
       config: {
-        loadGlobal: vi.fn(),
-        saveGlobal: vi.fn()
+        loadGlobal,
+        saveGlobal
       },
       markdown: {
         config: {
@@ -72,8 +74,14 @@ describe('SettingsDialog', () => {
       },
       llm: defaultMarkdownProjectConfig().llm
     });
+    loadGlobal.mockResolvedValue({});
+    saveGlobal.mockResolvedValue(undefined);
     saveProject.mockResolvedValue(undefined);
     installTnetApi();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it('loads markdown project settings into a draft and saves the edited draft', async () => {
@@ -88,12 +96,13 @@ describe('SettingsDialog', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByLabelText('Font family')[0]).toHaveValue('Editor Font');
+      expect(screen.getByLabelText('Enable auto save')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getAllByLabelText('Font size (px)')[0], { target: { value: '20' } });
     fireEvent.click(screen.getByLabelText('Enable auto save'));
-    fireEvent.change(screen.getAllByLabelText('Debounce (ms)')[0], { target: { value: '1500' } });
+    fireEvent.change(screen.getAllByLabelText('Debounce (ms)')[0], {
+      target: { value: '1500' }
+    });
     fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'local-http' } });
     fireEvent.change(screen.getByLabelText('Endpoint'), {
       target: { value: 'http://localhost:11434/inline' }
@@ -106,7 +115,6 @@ describe('SettingsDialog', () => {
         '/workspace',
         expect.objectContaining({
           markdown: expect.objectContaining({
-            editorFontSize: 20,
             autoSaveEnabled: false,
             autoSaveDebounceMs: 1500
           }),
@@ -117,6 +125,46 @@ describe('SettingsDialog', () => {
           })
         })
       );
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  it('saves markdown font settings to the app global settings slot', async () => {
+    const store = createAppStore();
+    const onClose = vi.fn();
+
+    render(
+      <Provider store={store}>
+        <MarkdownGlobalSettingsPage onClose={onClose} />
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(loadGlobal).toHaveBeenCalled();
+    });
+
+    fireEvent.change(screen.getAllByLabelText('Font family')[0], {
+      target: { value: 'Code Font' }
+    });
+    fireEvent.change(screen.getAllByLabelText('Font size (px)')[0], {
+      target: { value: '18' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(saveGlobal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          apps: expect.objectContaining({
+            markdown: expect.objectContaining({
+              settings: expect.objectContaining({
+                editorFontFamily: 'Code Font',
+                editorFontSize: 18
+              })
+            })
+          })
+        })
+      );
+      expect(store.getState().workspace.globalSettings.editorFontFamily).toBe('Code Font');
       expect(onClose).toHaveBeenCalled();
     });
   });

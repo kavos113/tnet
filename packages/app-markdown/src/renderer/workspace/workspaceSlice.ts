@@ -1,6 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { MarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
+import type {
+  MarkdownGlobalSettings,
+  MarkdownProjectConfig
+} from '@tnet/app-markdown/shared/config';
 import {
+  defaultMarkdownGlobalSettings,
   defaultMarkdownProjectConfig,
   normalizeMarkdownProjectConfig
 } from '@tnet/app-markdown/shared/config';
@@ -11,13 +15,15 @@ export interface WorkspaceState {
   workspaceRoots: string[];
   fileTree: FileItem[];
   settings: MarkdownProjectConfig;
+  globalSettings: MarkdownGlobalSettings;
 }
 
 const initialState: WorkspaceState = {
   rootPath: '',
   workspaceRoots: [],
   fileTree: [],
-  settings: defaultMarkdownProjectConfig()
+  settings: defaultMarkdownProjectConfig(),
+  globalSettings: defaultMarkdownGlobalSettings()
 };
 
 const addUniqueRoot = (roots: string[], rootPath: string): string[] => {
@@ -54,9 +60,21 @@ const workspaceSlice = createSlice({
     },
     setSettings: (state, action: PayloadAction<MarkdownProjectConfig>) => {
       state.settings = normalizeMarkdownProjectConfig(action.payload);
+    },
+    setMarkdownGlobalSettings: (state, action: PayloadAction<MarkdownGlobalSettings>) => {
+      state.globalSettings = {
+        ...defaultMarkdownGlobalSettings(),
+        ...action.payload
+      };
     }
   }
 });
 
-export const { setWorkspace, setWorkspaceRoots, setFileTree, setSettings } = workspaceSlice.actions;
+export const {
+  setWorkspace,
+  setWorkspaceRoots,
+  setFileTree,
+  setSettings,
+  setMarkdownGlobalSettings
+} = workspaceSlice.actions;
 export default workspaceSlice.reducer;

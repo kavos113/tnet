@@ -4,6 +4,14 @@ import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 export interface RequesterGlobalConfig {
   activeWorkspaceId?: string;
   lastOpenedWorkspaceId?: string;
+  settings?: RequesterGlobalSettings;
+}
+
+export interface RequesterGlobalSettings {
+  codeFontFamily: string;
+  codeFontSize: number;
+  appFontFamily: string;
+  appFontSize: number;
 }
 
 export interface RequesterWorkspaceSettings {
@@ -35,6 +43,13 @@ export interface RequesterWorkspaceSettings {
 
 export const defaultRequesterGlobalConfig = (): RequesterGlobalConfig => ({});
 
+export const defaultRequesterGlobalSettings = (): RequesterGlobalSettings => ({
+  codeFontFamily: '',
+  codeFontSize: 0,
+  appFontFamily: '',
+  appFontSize: 0
+});
+
 export const defaultRequesterWorkspaceSettings = (): RequesterWorkspaceSettings => ({
   historyEnabled: true,
   saveResponseBody: true,
@@ -64,6 +79,14 @@ export const getRequesterGlobalConfig = (config: GlobalConfig): RequesterGlobalC
   ...(config.apps?.requester as Partial<RequesterGlobalConfig> | undefined)
 });
 
+export const getRequesterGlobalSettings = (config: GlobalConfig): RequesterGlobalSettings => {
+  const requesterConfig = config.apps?.requester as Partial<RequesterGlobalConfig> | undefined;
+  return {
+    ...defaultRequesterGlobalSettings(),
+    ...requesterConfig?.settings
+  };
+};
+
 export const withRequesterGlobalConfig = (
   config: GlobalConfig,
   requesterConfig: RequesterGlobalConfig
@@ -77,6 +100,17 @@ export const withRequesterGlobalConfig = (
       requester: requesterConfig
     }
   };
+};
+
+export const withRequesterGlobalSettings = (
+  config: GlobalConfig,
+  settings: RequesterGlobalSettings
+): GlobalConfig => {
+  const requesterConfig = getRequesterGlobalConfig(config);
+  return withRequesterGlobalConfig(config, {
+    ...requesterConfig,
+    settings
+  });
 };
 
 export const normalizeRequesterWorkspaceSettings = (

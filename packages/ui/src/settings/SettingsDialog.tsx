@@ -56,6 +56,115 @@ export interface SettingsDialogShellProps {
   children: ReactNode;
 }
 
+export interface SettingsCenterPage {
+  id: string;
+  appId: string;
+  appLabel: string;
+  appIcon: string;
+  scopeLabel: string;
+  title: string;
+  content: ReactNode;
+}
+
+export interface SettingsCenterDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  ariaLabel: string;
+  pages: ReadonlyArray<SettingsCenterPage>;
+  activePageId: string;
+  onActivePageChange: (pageId: string) => void;
+}
+
+export const SettingsCenterDialog = ({
+  isOpen,
+  onClose,
+  title,
+  ariaLabel,
+  pages,
+  activePageId,
+  onActivePageChange
+}: SettingsCenterDialogProps): React.JSX.Element | null => {
+  if (!isOpen) return null;
+
+  const activePage = pages.find((page) => page.id === activePageId) ?? pages[0];
+  const appGroups = pages.reduce<
+    Array<{
+      appId: string;
+      appLabel: string;
+      appIcon: string;
+      pages: SettingsCenterPage[];
+    }>
+  >((groups, page) => {
+    const group = groups.find((current) => current.appId === page.appId);
+    if (group) {
+      group.pages.push(page);
+      return groups;
+    }
+    return [
+      ...groups,
+      {
+        appId: page.appId,
+        appLabel: page.appLabel,
+        appIcon: page.appIcon,
+        pages: [page]
+      }
+    ];
+  }, []);
+
+  return (
+    <div className={styles.overlay} role="presentation" onMouseDown={onClose}>
+      <section
+        className={styles.centerContent}
+        aria-label={ariaLabel}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header className={styles.centerHeader}>
+          <h2>{title}</h2>
+        </header>
+        <div className={styles.centerBody}>
+          <nav className={styles.centerSidebar} aria-label="Settings categories">
+            {appGroups.map((group) => (
+              <div className={styles.centerAppGroup} key={group.appId}>
+                <div className={styles.centerAppLabel}>
+                  <span
+                    className={`material-icons-round ${styles.centerAppIcon}`}
+                    aria-hidden="true"
+                  >
+                    {group.appIcon}
+                  </span>
+                  <span>{group.appLabel}</span>
+                </div>
+                {group.pages.map((page) => (
+                  <button
+                    type="button"
+                    key={page.id}
+                    className={`${styles.centerNavButton} ${
+                      page.id === activePage?.id ? styles.centerNavButtonActive : ''
+                    }`}
+                    aria-current={page.id === activePage?.id ? 'page' : undefined}
+                    onClick={() => onActivePageChange(page.id)}
+                  >
+                    {page.scopeLabel}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </nav>
+          <main className={styles.centerMain}>
+            {activePage ? (
+              <section className={styles.centerPage} aria-label={activePage.title}>
+                <h3>{activePage.title}</h3>
+                {activePage.content}
+              </section>
+            ) : null}
+          </main>
+        </div>
+      </section>
+    </div>
+  );
+};
+
 export const SettingsDialogShell = ({
   isOpen,
   onClose,
@@ -156,6 +265,15 @@ export const SettingsSecondaryButton = ({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>): React.JSX.Element => (
   <button type="button" className={styles.secondaryButton} {...props}>
+    {children}
+  </button>
+);
+
+export const SettingsPrimaryButton = ({
+  children,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>): React.JSX.Element => (
+  <button type="button" className={styles.primaryButton} {...props}>
     {children}
   </button>
 );

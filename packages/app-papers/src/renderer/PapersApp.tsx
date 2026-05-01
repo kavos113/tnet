@@ -45,6 +45,17 @@ export const PapersApp = (): React.JSX.Element => {
   const selectedTagIds = usePapersSelector((state) => state.papersContent.selectedTagIds);
   const tags = usePapersSelector((state) => state.papersContent.tags);
   const paperSettings = usePapersSelector((state) => state.papersLibrary.settings);
+  const globalPaperSettings = usePapersSelector((state) => state.papersLibrary.globalSettings);
+  const noteSettings = {
+    ...paperSettings,
+    noteEditorFontFamily:
+      globalPaperSettings.noteEditorFontFamily || paperSettings.noteEditorFontFamily,
+    noteEditorFontSize: globalPaperSettings.noteEditorFontSize || paperSettings.noteEditorFontSize,
+    notePreviewFontFamily:
+      globalPaperSettings.notePreviewFontFamily || paperSettings.notePreviewFontFamily,
+    notePreviewFontSize:
+      globalPaperSettings.notePreviewFontSize || paperSettings.notePreviewFontSize
+  };
   const selectedDirectoryRelativePath = useMemo(() => {
     if (!activeLibraryRoot || selectedDirectoryPath === null) return undefined;
     return toWorkspaceRelativePath(activeLibraryRoot, selectedDirectoryPath);
@@ -279,7 +290,7 @@ export const PapersApp = (): React.JSX.Element => {
         activeDetailTab={activeDetailTab}
         isLoading={isLoadingDetail}
         widthPercent={detailWidthPercent}
-        noteSettings={paperSettings}
+        noteSettings={noteSettings}
         onNoteSettingsChange={savePaperSettings}
         onSelectTab={(tab) => dispatch(setActivePapersDetailTab(tab))}
         onCreateTag={(name) => {

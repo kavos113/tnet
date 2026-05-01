@@ -1,6 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
-import { defaultPapersLibraryConfig } from '@tnet/app-papers/shared/config';
+import type { PapersGlobalSettings, PapersLibraryConfig } from '@tnet/app-papers/shared/config';
+import {
+  defaultPapersGlobalSettings,
+  defaultPapersLibraryConfig
+} from '@tnet/app-papers/shared/config';
 import type { FileItem } from '@tnet/shared/types/file';
 
 export interface PapersLibraryState {
@@ -10,6 +13,7 @@ export interface PapersLibraryState {
   selectedDirectoryPath: string | null;
   expandedDirectoryPaths: string[];
   settings: PapersLibraryConfig;
+  globalSettings: PapersGlobalSettings;
   isRestored: boolean;
 }
 
@@ -20,6 +24,7 @@ const initialState: PapersLibraryState = {
   selectedDirectoryPath: null,
   expandedDirectoryPaths: [],
   settings: defaultPapersLibraryConfig(),
+  globalSettings: defaultPapersGlobalSettings(),
   isRestored: false
 };
 
@@ -34,6 +39,7 @@ const librarySlice = createSlice({
         activeLibraryRoot: string;
         directoryTree?: FileItem[];
         settings?: PapersLibraryConfig;
+        globalSettings?: PapersGlobalSettings;
       }>
     ) => {
       state.libraryRoots = action.payload.libraryRoots;
@@ -42,6 +48,7 @@ const librarySlice = createSlice({
       state.selectedDirectoryPath = null;
       state.expandedDirectoryPaths = [];
       state.settings = action.payload.settings ?? defaultPapersLibraryConfig();
+      state.globalSettings = action.payload.globalSettings ?? defaultPapersGlobalSettings();
       state.isRestored = true;
     },
     setPapersLibrary: (
@@ -51,6 +58,7 @@ const librarySlice = createSlice({
         activeLibraryRoot: string;
         directoryTree?: FileItem[];
         settings?: PapersLibraryConfig;
+        globalSettings?: PapersGlobalSettings;
       }>
     ) => {
       state.libraryRoots = action.payload.libraryRoots;
@@ -59,10 +67,17 @@ const librarySlice = createSlice({
       state.selectedDirectoryPath = null;
       state.expandedDirectoryPaths = [];
       state.settings = action.payload.settings ?? defaultPapersLibraryConfig();
+      state.globalSettings = action.payload.globalSettings ?? state.globalSettings;
       state.isRestored = true;
     },
     setPapersLibrarySettings: (state, action: PayloadAction<PapersLibraryConfig>) => {
       state.settings = action.payload;
+    },
+    setPapersGlobalSettings: (state, action: PayloadAction<PapersGlobalSettings>) => {
+      state.globalSettings = {
+        ...defaultPapersGlobalSettings(),
+        ...action.payload
+      };
     },
     setSelectedPapersDirectory: (state, action: PayloadAction<string | null>) => {
       state.selectedDirectoryPath = action.payload;
@@ -90,6 +105,7 @@ export const {
   markPapersLibraryRestored,
   restorePapersLibrary,
   setPapersDirectoryTree,
+  setPapersGlobalSettings,
   setPapersLibrary,
   setPapersLibrarySettings,
   setSelectedPapersDirectory,

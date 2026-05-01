@@ -5,6 +5,7 @@ export interface PapersGlobalConfig {
   libraryRoots: string[];
   activeLibraryRoot?: string;
   lastOpenedDirectory?: string;
+  settings?: PapersGlobalSettings;
 }
 
 export type PapersListDensity = 'comfortable' | 'compact';
@@ -22,8 +23,22 @@ export interface PapersLibraryConfig {
   notePreviewFontSize: number;
 }
 
+export interface PapersGlobalSettings {
+  noteEditorFontFamily: string;
+  noteEditorFontSize: number;
+  notePreviewFontFamily: string;
+  notePreviewFontSize: number;
+}
+
 export const defaultPapersGlobalConfig = (): PapersGlobalConfig => ({
   libraryRoots: []
+});
+
+export const defaultPapersGlobalSettings = (): PapersGlobalSettings => ({
+  noteEditorFontFamily: '',
+  noteEditorFontSize: 0,
+  notePreviewFontFamily: '',
+  notePreviewFontSize: 0
 });
 
 export const defaultPapersLibraryConfig = (): PapersLibraryConfig => ({
@@ -42,6 +57,14 @@ export const getPapersGlobalConfig = (config: GlobalConfig): PapersGlobalConfig 
   ...(config.apps?.papers as Partial<PapersGlobalConfig> | undefined)
 });
 
+export const getPapersGlobalSettings = (config: GlobalConfig): PapersGlobalSettings => {
+  const papersConfig = config.apps?.papers as Partial<PapersGlobalConfig> | undefined;
+  return {
+    ...defaultPapersGlobalSettings(),
+    ...papersConfig?.settings
+  };
+};
+
 export const withPapersGlobalConfig = (
   config: GlobalConfig,
   papersConfig: PapersGlobalConfig
@@ -55,6 +78,17 @@ export const withPapersGlobalConfig = (
       papers: papersConfig
     }
   };
+};
+
+export const withPapersGlobalSettings = (
+  config: GlobalConfig,
+  settings: PapersGlobalSettings
+): GlobalConfig => {
+  const papersConfig = getPapersGlobalConfig(config);
+  return withPapersGlobalConfig(config, {
+    ...papersConfig,
+    settings
+  });
 };
 
 export const normalizePapersLibraryConfig = (

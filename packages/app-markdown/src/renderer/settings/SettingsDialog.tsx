@@ -1,6 +1,26 @@
+import { useEffect, useState } from 'react';
 import type { SettingsFieldConfig } from '@tnet/ui/settings';
-import { SettingsDialogShell, SettingsFieldsSection } from '@tnet/ui/settings';
-import type { LlmSettings, MarkdownSettings } from '@tnet/app-markdown/shared/config';
+import {
+  SettingsActions,
+  SettingsDialogShell,
+  SettingsFieldsSection,
+  SettingsPrimaryButton,
+  SettingsSecondaryButton
+} from '@tnet/ui/settings';
+import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import type {
+  LlmSettings,
+  MarkdownGlobalSettings,
+  MarkdownSettings
+} from '@tnet/app-markdown/shared/config';
+import {
+  defaultMarkdownGlobalSettings,
+  getMarkdownGlobalSettings,
+  withMarkdownGlobalSettings
+} from '@tnet/app-markdown/shared/config';
+import { setMarkdownGlobalSettings } from '../workspace/workspaceSlice';
+import { markdownTnetApi } from '../markdownTnetApi';
+import { useAppDispatch, useAppSelector } from '../storeHooks';
 import { useProjectSettingsDraft } from './useProjectSettingsDraft';
 
 interface SettingsDialogProps {
@@ -8,37 +28,99 @@ interface SettingsDialogProps {
   onClose: () => void;
 }
 
+interface SettingsPageProps {
+  onClose: () => void;
+}
+
 export const SettingsDialog = ({
   isOpen,
   onClose
-}: SettingsDialogProps): React.JSX.Element | null => {
-  const { draft, updateMarkdownDraft, updateLlmDraft, saveSettings } =
-    useProjectSettingsDraft(isOpen);
-  const { markdown, llm } = draft;
+}: SettingsDialogProps): React.JSX.Element | null => (
+  <SettingsDialogShell
+    isOpen={isOpen}
+    onClose={onClose}
+    title="Markdown Settings"
+    ariaLabel="Markdown settings"
+  >
+    <MarkdownWorkspaceSettingsPage onClose={onClose} />
+  </SettingsDialogShell>
+);
+
+export const MarkdownGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.JSX.Element => {
+  const dispatch = useAppDispatch();
+  const currentSettings = useAppSelector((state) => state.workspace.globalSettings);
+  const [draft, setDraft] = useState<MarkdownGlobalSettings>(currentSettings);
+
+  useEffect(() => {
+    let canceled = false;
+    markdownTnetApi.config
+      .loadGlobal()
+      .then((config) => {
+        if (!canceled) setDraft(getMarkdownGlobalSettings(normalizeGlobalConfig(config)));
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load markdown global settings', error);
+        if (!canceled) setDraft(defaultMarkdownGlobalSettings());
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, []);
+
+  const updateDraft = <Key extends keyof MarkdownGlobalSettings>(
+    key: Key,
+    value: MarkdownGlobalSettings[Key]
+  ): void => {
+    setDraft((current) => ({ ...current, [key]: value }));
+  };
+
+  const saveSettings = async (): Promise<void> => {
+    const config = normalizeGlobalConfig(await markdownTnetApi.config.loadGlobal());
+    await markdownTnetApi.config.saveGlobal(withMarkdownGlobalSettings(config, draft));
+    dispatch(setMarkdownGlobalSettings(draft));
+    onClose();
+  };
 
   return (
-    <SettingsDialogShell
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Settings"
-      ariaLabel="Settings"
-      onSave={saveSettings}
-      onSaveError={(error) => {
-        console.error('Failed to save settings', error);
-      }}
-    >
+    <>
       <SettingsFieldsSection
         title="Editor Font"
-        draft={markdown}
-        fields={editorFontFields}
-        onFieldChange={updateMarkdownDraft}
+        draft={draft}
+        fields={globalEditorFontFields}
+        onFieldChange={updateDraft}
       />
       <SettingsFieldsSection
         title="Preview Font"
-        draft={markdown}
-        fields={previewFontFields}
-        onFieldChange={updateMarkdownDraft}
+        draft={draft}
+        fields={globalPreviewFontFields}
+        onFieldChange={updateDraft}
       />
+      <SettingsActions>
+        <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
+        <SettingsPrimaryButton
+          onClick={() => {
+            saveSettings().catch((error: unknown) => {
+              console.error('Failed to save markdown global settings', error);
+            });
+          }}
+        >
+          Save
+        </SettingsPrimaryButton>
+      </SettingsActions>
+    </>
+  );
+};
+
+export const MarkdownWorkspaceSettingsPage = ({
+  onClose
+}: SettingsPageProps): React.JSX.Element => {
+  const { draft, updateMarkdownDraft, updateLlmDraft, saveSettings } =
+    useProjectSettingsDraft(true);
+  const { markdown, llm } = draft;
+
+  return (
+    <>
       <SettingsFieldsSection
         title="Auto Save"
         draft={markdown}
@@ -51,14 +133,33 @@ export const SettingsDialog = ({
         fields={llmFields}
         onFieldChange={updateLlmDraft}
       />
-    </SettingsDialogShell>
+      <SettingsActions>
+        <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
+        <SettingsPrimaryButton
+          onClick={() => {
+            saveSettings()
+              .then(onClose)
+              .catch((error: unknown) => {
+                console.error('Failed to save markdown workspace settings', error);
+              });
+          }}
+        >
+          Save
+        </SettingsPrimaryButton>
+      </SettingsActions>
+    </>
   );
 };
 
-const editorFontFields: ReadonlyArray<SettingsFieldConfig<MarkdownSettings>> = [
-  { id: 'editor-font-family', label: 'Font family', key: 'editorFontFamily', type: 'text' },
+const globalEditorFontFields: ReadonlyArray<SettingsFieldConfig<MarkdownGlobalSettings>> = [
   {
-    id: 'editor-font-size',
+    id: 'markdown-global-editor-font-family',
+    label: 'Font family',
+    key: 'editorFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'markdown-global-editor-font-size',
     label: 'Font size (px)',
     key: 'editorFontSize',
     type: 'number',
@@ -67,10 +168,15 @@ const editorFontFields: ReadonlyArray<SettingsFieldConfig<MarkdownSettings>> = [
   }
 ];
 
-const previewFontFields: ReadonlyArray<SettingsFieldConfig<MarkdownSettings>> = [
-  { id: 'preview-font-family', label: 'Font family', key: 'previewFontFamily', type: 'text' },
+const globalPreviewFontFields: ReadonlyArray<SettingsFieldConfig<MarkdownGlobalSettings>> = [
   {
-    id: 'preview-font-size',
+    id: 'markdown-global-preview-font-family',
+    label: 'Font family',
+    key: 'previewFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'markdown-global-preview-font-size',
     label: 'Font size (px)',
     key: 'previewFontSize',
     type: 'number',

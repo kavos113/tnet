@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { SettingsFieldConfig } from './SettingsDialog';
-import { SettingsDialogShell, SettingsFieldsSection } from './SettingsDialog';
+import { SettingsCenterDialog, SettingsDialogShell, SettingsFieldsSection } from './SettingsDialog';
 
 interface TestDraft {
   name: string;
@@ -106,5 +106,45 @@ describe('settings UI', () => {
     expect(screen.getByText('Open a workspace first.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     expect(screen.queryByText('Body')).not.toBeInTheDocument();
+  });
+
+  it('switches settings center pages from the sidebar', () => {
+    const onActivePageChange = vi.fn();
+
+    render(
+      <SettingsCenterDialog
+        isOpen={true}
+        onClose={vi.fn()}
+        title="Settings"
+        ariaLabel="Settings"
+        activePageId="markdown-global"
+        onActivePageChange={onActivePageChange}
+        pages={[
+          {
+            id: 'markdown-global',
+            appId: 'markdown',
+            appLabel: 'Markdown',
+            appIcon: 'edit_note',
+            scopeLabel: 'Global',
+            title: 'Markdown Global',
+            content: <span>Markdown global body</span>
+          },
+          {
+            id: 'requester-workspace',
+            appId: 'requester',
+            appLabel: 'Requester',
+            appIcon: 'api',
+            scopeLabel: 'Workspace',
+            title: 'Requester Workspace',
+            content: <span>Requester workspace body</span>
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByText('Markdown global body')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Global' })).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(screen.getByRole('button', { name: 'Workspace' }));
+    expect(onActivePageChange).toHaveBeenCalledWith('requester-workspace');
   });
 });
