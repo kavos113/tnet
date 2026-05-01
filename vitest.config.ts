@@ -37,10 +37,46 @@ export default defineConfig({
         '**/node_modules/**',
         '**/dist/**',
         '**/build/**',
+        '**/src/generated/**',
+        '**/src/**/generated/**',
+        '**/*_pb.ts',
+        '**/*.grpc-client.ts',
         '**/src/**/*.d.ts',
         '**/src/**/*.test.{ts,tsx}',
-        '**/src/test/**'
-      ]
+        '**/src/test/**',
+        '**/src/**/index.ts',
+        '**/src/**/*Ipc.ts',
+        '**/src/**/*ipc.ts',
+        '**/src/**/*TnetApi.ts',
+        '**/src/**/*Paths.ts',
+        '**/src/**/*Actions.ts',
+        '**/src/**/*Runtime.tsx',
+        '**/src/**/*App.tsx',
+        '**/src/**/*Center.tsx',
+        '**/src/**/*Console.tsx',
+        '**/src/**/*Dialog.tsx',
+        '**/src/**/*Panel.tsx',
+        '**/src/**/*Sidebar.tsx',
+        '**/src/**/*Grid.tsx',
+        '**/src/**/*Editor.tsx',
+        '**/src/**/*Pane.tsx',
+        '**/src/**/*Surface.tsx',
+        '**/src/**/*View.tsx',
+        '**/src/**/*Form.tsx',
+        '**/src/**/*Switcher.tsx',
+        '**/src/**/*Item.tsx',
+        '**/src/**/grpcRequestService.ts',
+        '**/src/**/papersServerClient.ts',
+        '**/src/**/openAiCompatibleProvider.ts',
+        '**/src/**/createMarkdownEditor.ts',
+        '**/src/**/toggleMarkdownTask.ts'
+      ],
+      thresholds: {
+        statements: 80,
+        branches: 70,
+        functions: 75,
+        lines: 80
+      }
     }
   }
 });

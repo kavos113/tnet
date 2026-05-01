@@ -92,12 +92,13 @@ export default defineConfig({
     },
     plugins: [
       react(),
-      analyze && visualizer({
-        open: true,
-        filename: 'bundle-analysis.html',
-        gzipSize: true,
-        brotliSize: true
-      })
+      analyze &&
+        visualizer({
+          open: true,
+          filename: 'bundle-analysis.html',
+          gzipSize: true,
+          brotliSize: true
+        })
     ]
   }
 });
