@@ -1,4 +1,10 @@
-import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import {
+  autocompletion,
+  closeBrackets,
+  closeBracketsKeymap,
+  completionKeymap,
+  type CompletionSource
+} from '@codemirror/autocomplete';
 import { EditorState } from '@codemirror/state';
 import { EditorView, keymap } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
@@ -9,10 +15,12 @@ interface SqlEditorProps {
   queryFontFamily?: string;
   queryFontSize?: number;
   minHeight: number;
+  completionSource?: CompletionSource;
   onChange: (value: string) => void;
 }
 
 export const SqlEditor = ({
+  completionSource,
   onChange,
   queryFontFamily,
   queryFontSize,
@@ -22,11 +30,16 @@ export const SqlEditor = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
+  const completionSourceRef = useRef(completionSource);
   const initialValueRef = useRef(value);
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
+
+  useEffect(() => {
+    completionSourceRef.current = completionSource;
+  }, [completionSource]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -38,7 +51,14 @@ export const SqlEditor = ({
         extensions: [
           basicSetup,
           closeBrackets(),
-          keymap.of(closeBracketsKeymap),
+          autocompletion({
+            override: [
+              (context) => {
+                return completionSourceRef.current?.(context) ?? null;
+              }
+            ]
+          }),
+          keymap.of([...closeBracketsKeymap, ...completionKeymap]),
           EditorView.lineWrapping,
           EditorView.updateListener.of((update) => {
             if (update.docChanged) onChangeRef.current(update.state.doc.toString());

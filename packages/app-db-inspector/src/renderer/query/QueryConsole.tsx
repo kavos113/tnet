@@ -16,6 +16,7 @@ import {
 } from '../exportDbInspectorData';
 import { useDbInspectorDispatch, useDbInspectorSelector } from '../storeHooks';
 import { SqlEditor } from './SqlEditor';
+import { createSqlCompletionSource } from './sqlCompletion';
 import appStyles from '../DbInspectorApp.module.css';
 import styles from './QueryConsole.module.css';
 
@@ -30,6 +31,7 @@ export const QueryConsole = (): React.JSX.Element => {
     queryError,
     queryHistory,
     queryResult,
+    schema,
     queryTabs,
     workspaces,
     settings
@@ -44,6 +46,14 @@ export const QueryConsole = (): React.JSX.Element => {
   const activeWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === activeWorkspaceId),
     [activeWorkspaceId, workspaces]
+  );
+  const sqlCompletionSource = useMemo(
+    () =>
+      createSqlCompletionSource({
+        dialect: activeWorkspace?.driver ?? 'sqlite',
+        schema
+      }),
+    [activeWorkspace?.driver, schema]
   );
 
   useEffect(() => {
@@ -140,6 +150,7 @@ export const QueryConsole = (): React.JSX.Element => {
               queryFontFamily={globalSettings.queryFontFamily}
               queryFontSize={globalSettings.queryFontSize}
               minHeight={150}
+              completionSource={sqlCompletionSource}
             />
           </div>
           <div className={styles.queryResultPane}>
@@ -184,6 +195,7 @@ export const QueryConsole = (): React.JSX.Element => {
             queryFontFamily={globalSettings.queryFontFamily}
             queryFontSize={globalSettings.queryFontSize}
             minHeight={28}
+            completionSource={sqlCompletionSource}
           />
         </div>
       )}
