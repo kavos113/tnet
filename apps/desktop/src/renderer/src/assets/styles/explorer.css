@@ -96,7 +96,15 @@
 
 .file-item-chevron {
   flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
   font-size: 12px;
+  line-height: 1;
   transition: transform 0.12s ease;
 }
 

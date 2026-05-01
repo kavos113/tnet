@@ -75,8 +75,8 @@ describe('Requester repositories', () => {
       url: 'https://example.test/health'
     });
 
-    expect(first.requestPath).toBe('Health.req');
-    expect(second.requestPath).toBe('Health 2.req');
+    expect(first.requestPath).toBe('Health.http');
+    expect(second.requestPath).toBe('Health 2.http');
 
     const updated = requestRepository.save({
       ...first,
@@ -93,6 +93,16 @@ describe('Requester repositories', () => {
       name: 'Readiness',
       bodyMode: 'json',
       bodyText: '{"ok":true}'
+    });
+    const moved = requestRepository.save({
+      ...updated,
+      requestPath: 'admin/readiness'
+    });
+    expect(moved.requestPath).toBe('admin/readiness.http');
+    const renamed = requestRepository.rename(second.id, 'Renamed Health');
+    expect(renamed).toMatchObject({
+      name: 'Renamed Health',
+      requestPath: 'Renamed Health.http'
     });
     expect(requestRepository.list(workspace.id).map((request) => request.id)).toEqual([
       duplicated.id,

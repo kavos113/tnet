@@ -28,7 +28,7 @@ const activeRequest: RequesterRequestDetail = {
   id: 'request-1',
   workspaceId: 'workspace-1',
   name: 'Health',
-  requestPath: 'Health.req',
+  requestPath: 'Health.http',
   method: 'GET',
   url: 'https://example.test/health',
   headers: [],

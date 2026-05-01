@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { normalizeRequestPath, requestNameFromPath } from '@tnet/app-requester/shared/requestPath';
+import {
+  normalizeRequestPath,
+  requesterRequestExtension,
+  requestNameFromPath
+} from '@tnet/app-requester/shared/requestPath';
 import type {
   RequesterBodyMode,
   RequesterAuthType,
@@ -255,12 +259,14 @@ export class RequestRepository {
 
   private nextAvailablePath(workspaceId: string, nameOrPath: string, currentId?: string): string {
     const basePath = normalizeRequestPath(nameOrPath);
-    const extensionless = basePath.endsWith('.req') ? basePath.slice(0, -4) : basePath;
+    const extensionless = basePath.endsWith(requesterRequestExtension)
+      ? basePath.slice(0, -requesterRequestExtension.length)
+      : basePath;
     let candidate = basePath;
     let index = 2;
 
     while (this.pathExists(workspaceId, candidate, currentId)) {
-      candidate = `${extensionless} ${index}.req`;
+      candidate = `${extensionless} ${index}${requesterRequestExtension}`;
       index += 1;
     }
 

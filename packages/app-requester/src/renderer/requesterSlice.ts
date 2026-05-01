@@ -13,6 +13,7 @@ interface RequesterState {
   activeWorkspaceId?: string;
   activeRequestId?: string;
   activeRequest?: RequesterRequestDetail;
+  activeRequestFolderPath?: string;
   activeResponse?: RequesterResponseSnapshot;
   workspaces: RequesterWorkspace[];
   requests: RequesterRequestSummary[];
@@ -49,6 +50,7 @@ const requesterSlice = createSlice({
       state.requests = action.payload.requests ?? [];
       state.history = action.payload.history ?? [];
       state.settings = action.payload.settings ?? defaultRequesterWorkspaceSettings();
+      state.activeRequestFolderPath = undefined;
       state.isRestored = true;
     },
     setRequesterWorkspace: (
@@ -64,6 +66,7 @@ const requesterSlice = createSlice({
       state.activeWorkspaceId = action.payload.activeWorkspaceId;
       state.activeRequestId = undefined;
       state.activeRequest = undefined;
+      state.activeRequestFolderPath = undefined;
       state.workspaces = action.payload.workspaces;
       state.requests = action.payload.requests ?? [];
       state.history = action.payload.history ?? [];
@@ -90,6 +93,9 @@ const requesterSlice = createSlice({
     setRequesterSettings: (state, action: PayloadAction<RequesterWorkspaceSettings>) => {
       state.settings = action.payload;
     },
+    setActiveRequesterFolder: (state, action: PayloadAction<string | undefined>) => {
+      state.activeRequestFolderPath = action.payload;
+    },
     setRequesterError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
     }
@@ -98,6 +104,7 @@ const requesterSlice = createSlice({
 
 export const {
   restoreRequester,
+  setActiveRequesterFolder,
   setActiveRequesterRequest,
   setRequesterError,
   setRequesterHistory,

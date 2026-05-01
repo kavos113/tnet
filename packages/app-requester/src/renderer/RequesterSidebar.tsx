@@ -1,19 +1,30 @@
 import {
+  setActiveRequesterFolder,
   setActiveRequesterRequest,
   setRequesterError,
+  setRequesterSettings,
   setRequesterWorkspace
 } from './requesterSlice';
+import {
+  buildRequesterExplorerTree,
+  normalizeRequestPath,
+  requestFolderFromPath
+} from '@tnet/app-requester/shared/requestPath';
 import { requesterTnetApi } from './requesterTnetApi';
+import { RequesterRequestTree } from './RequesterRequestTree';
 import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
 
 const workspaceInitial = (name: string): string => (name.trim()[0] ?? '?').toUpperCase();
 
 export const RequesterSidebar = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
+  const activeFolderPath = useRequesterSelector((state) => state.requester.activeRequestFolderPath);
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const activeRequestId = useRequesterSelector((state) => state.requester.activeRequestId);
   const requests = useRequesterSelector((state) => state.requester.requests);
+  const settings = useRequesterSelector((state) => state.requester.settings);
   const workspaces = useRequesterSelector((state) => state.requester.workspaces);
+  const requestTree = buildRequesterExplorerTree(requests);
 
   const activateWorkspace = async (workspaceId: string): Promise<void> => {
     const [latestWorkspaces, latestRequests, settings, history] = await Promise.all([
@@ -46,9 +57,14 @@ export const RequesterSidebar = (): React.JSX.Element => {
 
   const createRequest = async (): Promise<void> => {
     if (!activeWorkspaceId) return;
+    const requestName = `Request ${requests.length + 1}`;
+    const requestPath = normalizeRequestPath(
+      activeFolderPath ? `${activeFolderPath}/${requestName}` : requestName
+    );
     const request = await requesterTnetApi.requester.requests.save({
       workspaceId: activeWorkspaceId,
-      name: `Request ${requests.length + 1}`,
+      name: requestName,
+      requestPath,
       method: 'GET',
       url: ''
     });
@@ -59,15 +75,41 @@ export const RequesterSidebar = (): React.JSX.Element => {
       setRequesterWorkspace({
         activeWorkspaceId,
         workspaces,
-        requests: latestRequests
+        requests: latestRequests,
+        settings
       })
     );
     dispatch(setActiveRequesterRequest(request));
+    dispatch(setActiveRequesterFolder(requestFolderFromPath(request.requestPath)));
   };
 
   const selectRequest = async (requestId: string): Promise<void> => {
     const request = await requesterTnetApi.requester.requests.get({ requestId });
     dispatch(setActiveRequesterRequest(request ?? undefined));
+    dispatch(
+      setActiveRequesterFolder(request ? requestFolderFromPath(request.requestPath) : undefined)
+    );
+  };
+
+  const selectFolder = (folderPath: string): void => {
+    dispatch(setActiveRequesterRequest(undefined));
+    dispatch(setActiveRequesterFolder(folderPath));
+  };
+
+  const toggleFolder = async (folderPath: string): Promise<void> => {
+    if (!activeWorkspaceId) return;
+    const expandedRequestPaths = settings.expandedRequestPaths.includes(folderPath)
+      ? settings.expandedRequestPaths.filter((path) => path !== folderPath)
+      : [...settings.expandedRequestPaths, folderPath];
+    const nextSettings = {
+      ...settings,
+      expandedRequestPaths
+    };
+    dispatch(setRequesterSettings(nextSettings));
+    await requesterTnetApi.requester.workspaces.saveSettings({
+      workspaceId: activeWorkspaceId,
+      settings: nextSettings
+    });
   };
 
   const runAction = (action: () => Promise<void>): void => {
@@ -120,20 +162,15 @@ export const RequesterSidebar = (): React.JSX.Element => {
           </button>
         </header>
         <ul className="file-explorer-list">
-          {requests.map((request) => (
-            <li key={request.id}>
-              <button
-                type="button"
-                className={`file-tree-item ${
-                  request.id === activeRequestId ? 'file-item-is-selected' : ''
-                }`}
-                onClick={() => runAction(() => selectRequest(request.id))}
-              >
-                <span className="requester-method-label">{request.method}</span>
-                <p className="file-item-name file-item-not-directory">{request.name}</p>
-              </button>
-            </li>
-          ))}
+          <RequesterRequestTree
+            activeFolderPath={activeFolderPath}
+            activeRequestId={activeRequestId}
+            expandedPaths={settings.expandedRequestPaths}
+            nodes={requestTree}
+            onSelectFolder={selectFolder}
+            onSelectRequest={(requestId) => runAction(() => selectRequest(requestId))}
+            onToggleFolder={(folderPath) => runAction(() => toggleFolder(folderPath))}
+          />
         </ul>
         {!activeWorkspaceId ? (
           <p className="empty-list-message">Create a workspace to begin.</p>
