@@ -1,0 +1,128 @@
+.column {
+  min-width: 0;
+  overflow: auto;
+  border-right: 1px solid var(--background-dark);
+}
+
+.section {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.count,
+.emptyMessage {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.emptyMessage {
+  margin: 0;
+}
+
+.taskList {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.taskItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: start;
+  min-height: 42px;
+  padding: 8px;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 6px;
+}
+
+.taskCheckbox {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+
+.taskBody {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.taskTitle {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskTitleDone {
+  color: var(--foreground-muted);
+  text-decoration: line-through;
+}
+
+.taskMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--foreground-muted);
+  font-size: 11px;
+}
+
+.categoryPill {
+  padding: 1px 6px;
+  color: var(--foreground);
+  background: var(--background-light);
+  border-radius: 4px;
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.iconButton:global(.material-icons-round) {
+  font-size: 18px;
+}
+
+.iconButton:hover {
+  background: var(--gray);
+}
+
+@media (max-width: 1040px) {
+  .column {
+    max-height: 320px;
+    border-right: 0;
+    border-bottom: 1px solid var(--background-dark);
+  }
+}

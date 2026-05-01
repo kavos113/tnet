@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import { tnetApi } from '@tnet/renderer-core/tnetApi';
 import { getTasksGlobalSettings } from '@tnet/app-tasks/shared/config';
-import { restoreTasks, setTasksError } from './tasksSlice';
+import { restoreTasks, setTasksCalendarSources, setTasksError } from './tasksSlice';
 import { tasksTnetApi } from './tasksTnetApi';
 import { useTasksDispatch } from './storeHooks';
 
@@ -11,6 +11,7 @@ export const TasksRuntime = (): null => {
 
   useEffect(() => {
     let canceled = false;
+    let intervalId: number | undefined;
 
     const restore = async (): Promise<void> => {
       const [shellConfig, tasks, categories, calendarSources] = await Promise.all([
@@ -19,6 +20,7 @@ export const TasksRuntime = (): null => {
         tasksTnetApi.tasks.categories.list(),
         tasksTnetApi.tasks.calendarSources.list()
       ]);
+      const settings = getTasksGlobalSettings(normalizeGlobalConfig(shellConfig));
 
       if (canceled) return;
       dispatch(
@@ -26,8 +28,19 @@ export const TasksRuntime = (): null => {
           tasks,
           categories,
           calendarSources,
-          settings: getTasksGlobalSettings(normalizeGlobalConfig(shellConfig))
+          settings
         })
+      );
+      intervalId = window.setInterval(
+        () => {
+          tasksTnetApi.tasks.sync
+            .manual()
+            .then((result) => dispatch(setTasksCalendarSources(result.sources)))
+            .catch((error: unknown) => {
+              console.error('Periodic calendar sync failed', error);
+            });
+        },
+        settings.syncIntervalMinutes * 60 * 1000
       );
     };
 
@@ -45,6 +58,7 @@ export const TasksRuntime = (): null => {
 
     return () => {
       canceled = true;
+      if (intervalId) window.clearInterval(intervalId);
     };
   }, [dispatch]);
 

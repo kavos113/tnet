@@ -18,6 +18,7 @@ import {
 } from '@tnet/app-tasks/shared/config';
 import { setTasksError, setTasksSettings } from '../tasksSlice';
 import { useTasksDispatch, useTasksSelector } from '../storeHooks';
+import { TasksSourceSettings } from './TasksSourceSettings';
 
 interface TasksSettingsDialogProps {
   isOpen: boolean;
@@ -93,6 +94,7 @@ export const TasksGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.J
         fields={syncFields}
         onFieldChange={updateDraft}
       />
+      <TasksSourceSettings />
       <SettingsActions>
         <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
         <SettingsPrimaryButton

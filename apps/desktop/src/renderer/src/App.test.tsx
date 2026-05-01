@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { App } from './App';
@@ -50,6 +50,13 @@ describe('App', () => {
           },
           calendarOccurrences: {
             list: vi.fn().mockResolvedValue([])
+          },
+          sync: {
+            manual: vi.fn(),
+            writeTask: vi.fn()
+          },
+          secrets: {
+            has: vi.fn()
           }
         },
         markdown: {
@@ -203,6 +210,35 @@ describe('App', () => {
     expect(await screen.findByRole('main', { name: 'Tasks' })).toBeInTheDocument();
     expect(await screen.findByLabelText('Task title')).toBeInTheDocument();
     expect(screen.getByText('Open Tasks')).toBeInTheDocument();
+  });
+
+  it('falls back to Tasks when the stored active app is invalid', async () => {
+    vi.mocked(window.tnet.config.loadGlobal).mockResolvedValueOnce({
+      activeAppId: 'missing-app' as never
+    });
+
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
+
+    expect(await screen.findByRole('main', { name: 'Tasks' })).toBeInTheDocument();
+  });
+
+  it('switches apps from the Tasks portal shortcuts', async () => {
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
+
+    const shortcuts = await screen.findByLabelText('App shortcuts');
+    fireEvent.click(within(shortcuts).getByRole('button', { name: 'Markdown' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('No file selected')).toBeInTheDocument();
+    });
   });
 
   it('switches between app modules from the app rail', async () => {

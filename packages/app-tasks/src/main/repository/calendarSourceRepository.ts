@@ -13,6 +13,9 @@ interface CalendarSourceRow {
   uri: string;
   color: string | null;
   enabled: number;
+  auth_type: 'none' | 'basic';
+  username: string | null;
+  password_secret_id: string | null;
   last_synced_at: string | null;
   last_sync_error: string | null;
   created_at: string;
@@ -26,6 +29,9 @@ const toCalendarSource = (row: CalendarSourceRow): CalendarSource => ({
   uri: row.uri,
   color: row.color ?? undefined,
   enabled: row.enabled === 1,
+  authType: row.auth_type,
+  username: row.username ?? undefined,
+  passwordSecretId: row.password_secret_id ?? undefined,
   lastSyncedAt: row.last_synced_at ?? undefined,
   lastSyncError: row.last_sync_error ?? undefined,
   createdAt: row.created_at,
@@ -38,7 +44,8 @@ export class CalendarSourceRepository {
   list(): CalendarSource[] {
     const rows = this.database
       .prepare(
-        `SELECT id, name, type, uri, color, enabled, last_synced_at, last_sync_error, created_at, updated_at
+        `SELECT id, name, type, uri, color, enabled, auth_type, username, password_secret_id,
+                last_synced_at, last_sync_error, created_at, updated_at
          FROM calendar_sources
          ORDER BY lower(name) ASC`
       )
@@ -49,7 +56,8 @@ export class CalendarSourceRepository {
   get(sourceId: string): CalendarSource | null {
     const row = this.database
       .prepare(
-        `SELECT id, name, type, uri, color, enabled, last_synced_at, last_sync_error, created_at, updated_at
+        `SELECT id, name, type, uri, color, enabled, auth_type, username, password_secret_id,
+                last_synced_at, last_sync_error, created_at, updated_at
          FROM calendar_sources
          WHERE id = ?`
       )
@@ -65,6 +73,10 @@ export class CalendarSourceRepository {
     const uri = input.uri.trim();
     const color = input.color?.trim() || undefined;
     const enabled = input.enabled ?? true;
+    const authType = input.authType === 'basic' ? 'basic' : 'none';
+    const username = authType === 'basic' ? input.username?.trim() || undefined : undefined;
+    const passwordSecretId =
+      authType === 'basic' ? input.passwordSecretId || existing?.passwordSecretId : undefined;
 
     if (existing) {
       this.database
@@ -75,6 +87,9 @@ export class CalendarSourceRepository {
                uri = @uri,
                color = @color,
                enabled = @enabled,
+               auth_type = @authType,
+               username = @username,
+               password_secret_id = @passwordSecretId,
                updated_at = @updatedAt
            WHERE id = @id`
         )
@@ -85,16 +100,21 @@ export class CalendarSourceRepository {
           uri,
           color: color ?? null,
           enabled: enabled ? 1 : 0,
+          authType,
+          username: username ?? null,
+          passwordSecretId: passwordSecretId ?? null,
           updatedAt: now
         });
     } else {
       this.database
         .prepare(
           `INSERT INTO calendar_sources (
-             id, name, type, uri, color, enabled, created_at, updated_at
+             id, name, type, uri, color, enabled, auth_type, username, password_secret_id,
+             created_at, updated_at
            )
            VALUES (
-             @id, @name, @type, @uri, @color, @enabled, @createdAt, @updatedAt
+             @id, @name, @type, @uri, @color, @enabled, @authType, @username, @passwordSecretId,
+             @createdAt, @updatedAt
            )`
         )
         .run({
@@ -104,6 +124,9 @@ export class CalendarSourceRepository {
           uri,
           color: color ?? null,
           enabled: enabled ? 1 : 0,
+          authType,
+          username: username ?? null,
+          passwordSecretId: passwordSecretId ?? null,
           createdAt: now,
           updatedAt: now
         });
@@ -116,5 +139,26 @@ export class CalendarSourceRepository {
 
   remove(sourceId: string): void {
     this.database.prepare('DELETE FROM calendar_sources WHERE id = ?').run(sourceId);
+  }
+
+  saveSyncResult(sourceId: string, error?: string): CalendarSource {
+    const now = new Date().toISOString();
+    this.database
+      .prepare(
+        `UPDATE calendar_sources
+         SET last_synced_at = @lastSyncedAt,
+             last_sync_error = @lastSyncError,
+             updated_at = @updatedAt
+         WHERE id = @id`
+      )
+      .run({
+        id: sourceId,
+        lastSyncedAt: now,
+        lastSyncError: error ?? null,
+        updatedAt: now
+      });
+    const source = this.get(sourceId);
+    if (!source) throw new Error(`Calendar source not found: ${sourceId}`);
+    return source;
   }
 }

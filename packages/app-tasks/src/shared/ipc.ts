@@ -30,6 +30,13 @@ export const tasksIpcChannels = {
   },
   calendarOccurrences: {
     list: 'tasks:calendarOccurrences:list'
+  },
+  sync: {
+    manual: 'tasks:sync:manual',
+    writeTask: 'tasks:sync:writeTask'
+  },
+  secrets: {
+    has: 'tasks:secrets:has'
   }
 } as const;
 
@@ -55,6 +62,17 @@ export interface TasksApi {
     };
     calendarOccurrences: {
       list: (request: ListCalendarOccurrencesRequest) => Promise<CalendarEventOccurrence[]>;
+    };
+    sync: {
+      manual: (request?: { sourceId?: string }) => Promise<{
+        sources: CalendarSource[];
+        syncedSourceIds: string[];
+        failedSourceIds: string[];
+      }>;
+      writeTask: (request: { sourceId: string; task: TaskItem }) => Promise<CalendarSource>;
+    };
+    secrets: {
+      has: (request: { secretId?: string }) => Promise<{ exists: boolean }>;
     };
   };
 }

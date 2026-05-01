@@ -1,4 +1,5 @@
-export type CalendarSourceType = 'ics-file' | 'ics-url';
+export type CalendarSourceType = 'ics-file' | 'ics-url' | 'caldav';
+export type CalendarSourceAuthType = 'none' | 'basic';
 
 export interface TaskItem {
   id: string;
@@ -7,6 +8,10 @@ export interface TaskItem {
   deadlineDate?: string;
   deadlineTime?: string;
   category?: string;
+  reminderMinutesBefore?: number;
+  recurrenceRule?: string;
+  linkedEntityId?: string;
+  sourceUrl?: string;
   completedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +24,10 @@ export interface SaveTaskInput {
   deadlineDate?: string;
   deadlineTime?: string;
   category?: string;
+  reminderMinutesBefore?: number;
+  recurrenceRule?: string;
+  linkedEntityId?: string;
+  sourceUrl?: string;
   completedAt?: string;
 }
 
@@ -36,6 +45,9 @@ export interface CalendarSource {
   uri: string;
   color?: string;
   enabled: boolean;
+  authType: CalendarSourceAuthType;
+  username?: string;
+  passwordSecretId?: string;
   lastSyncedAt?: string;
   lastSyncError?: string;
   createdAt: string;
@@ -49,6 +61,10 @@ export interface SaveCalendarSourceInput {
   uri: string;
   color?: string;
   enabled?: boolean;
+  authType?: CalendarSourceAuthType;
+  username?: string;
+  password?: string;
+  passwordSecretId?: string;
 }
 
 export interface CalendarEventOccurrence {

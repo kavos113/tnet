@@ -1,0 +1,80 @@
+.section {
+  display: grid;
+  gap: 12px;
+}
+
+.sourceList {
+  display: grid;
+  gap: 6px;
+}
+
+.sourceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--background-dark);
+  border-radius: 6px;
+}
+
+.sourceText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sourceText strong,
+.sourceText span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sourceText span,
+.error {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.formGrid label {
+  display: grid;
+  gap: 4px;
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.formGrid input,
+.formGrid select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.checkboxLabel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}

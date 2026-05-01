@@ -73,6 +73,12 @@ const tasksSlice = createSlice({
     setTaskCategories: (state, action: PayloadAction<string[]>) => {
       state.categories = action.payload;
     },
+    setTasksCalendarSources: (state, action: PayloadAction<CalendarSource[]>) => {
+      state.calendarSources = action.payload;
+    },
+    setTasksCalendarOccurrences: (state, action: PayloadAction<CalendarEventOccurrence[]>) => {
+      state.calendarOccurrences = action.payload;
+    },
     setTasksSettings: (state, action: PayloadAction<TasksGlobalSettings>) => {
       state.settings = action.payload;
       state.view = action.payload.defaultView;
@@ -97,6 +103,8 @@ export const {
   restoreTasks,
   setTaskCategories,
   setTasks,
+  setTasksCalendarOccurrences,
+  setTasksCalendarSources,
   setTasksCategoryFilter,
   setTasksCurrentDate,
   setTasksError,

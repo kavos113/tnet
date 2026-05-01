@@ -1,0 +1,42 @@
+.portal {
+  display: grid;
+  gap: 8px;
+  padding: 0 24px 12px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.title {
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shortcut {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.shortcut:hover {
+  color: var(--foreground);
+  background: var(--background-light);
+}
+
+.icon:global(.material-icons-round) {
+  font-size: 16px;
+}

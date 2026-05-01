@@ -26,6 +26,7 @@ import {
 } from '@tnet/app-markdown/renderer';
 import {
   TasksApp,
+  type TasksAppProps,
   TasksRuntime,
   TasksSettingsDialog,
   TasksSidebar
@@ -35,7 +36,7 @@ export interface AppModule {
   id: AppId;
   label: string;
   icon: string;
-  Main: React.ComponentType;
+  Main: React.ComponentType<TasksAppProps> | React.ComponentType;
   Sidebar?: React.ComponentType;
   Runtime?: React.ComponentType;
   Settings?: React.ComponentType<{ isOpen: boolean; onClose: () => void }>;

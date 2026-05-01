@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS tasks (
   deadline_date TEXT,
   deadline_time TEXT,
   category TEXT,
+  reminder_minutes_before INTEGER,
+  recurrence_rule TEXT,
+  linked_entity_id TEXT,
+  source_url TEXT,
   completed_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -32,6 +36,9 @@ CREATE TABLE IF NOT EXISTS calendar_sources (
   uri TEXT NOT NULL,
   color TEXT,
   enabled INTEGER NOT NULL,
+  auth_type TEXT NOT NULL DEFAULT 'none',
+  username TEXT,
+  password_secret_id TEXT,
   last_synced_at TEXT,
   last_sync_error TEXT,
   created_at TEXT NOT NULL,
@@ -75,5 +82,29 @@ export const openTasksDatabase = (userDataDir: string): TasksDatabase => {
   database.pragma('journal_mode = WAL');
   database.pragma('busy_timeout = 5000');
   database.exec(schemaSql);
+  ensureCurrentSchema(database);
   return database;
+};
+
+const ensureCurrentSchema = (database: TasksDatabase): void => {
+  ensureColumn(database, 'tasks', 'reminder_minutes_before', 'reminder_minutes_before INTEGER');
+  ensureColumn(database, 'tasks', 'recurrence_rule', 'recurrence_rule TEXT');
+  ensureColumn(database, 'tasks', 'linked_entity_id', 'linked_entity_id TEXT');
+  ensureColumn(database, 'tasks', 'source_url', 'source_url TEXT');
+  ensureColumn(database, 'calendar_sources', 'auth_type', "auth_type TEXT NOT NULL DEFAULT 'none'");
+  ensureColumn(database, 'calendar_sources', 'username', 'username TEXT');
+  ensureColumn(database, 'calendar_sources', 'password_secret_id', 'password_secret_id TEXT');
+};
+
+const ensureColumn = (
+  database: TasksDatabase,
+  table: 'tasks' | 'calendar_sources',
+  column: string,
+  definition: string
+): void => {
+  const rows = database.prepare(`PRAGMA table_info(${table})`).all() as Array<{
+    name: string;
+  }>;
+  if (rows.some((row) => row.name === column)) return;
+  database.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`);
 };

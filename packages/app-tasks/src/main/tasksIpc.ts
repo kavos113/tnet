@@ -8,6 +8,8 @@ import {
   openTasksDatabase,
   TaskRepository
 } from './repository';
+import { IcalSyncService } from './icalSyncService';
+import { createTasksSecretStore } from './tasksSecretStore';
 
 export interface RegisterTasksIpcOptions {
   userDataDir: string;
@@ -18,6 +20,12 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   const taskRepository = new TaskRepository(database);
   const calendarSourceRepository = new CalendarSourceRepository(database);
   const calendarEventOccurrenceRepository = new CalendarEventOccurrenceRepository(database);
+  const secretStore = createTasksSecretStore(userDataDir);
+  const syncService = new IcalSyncService(
+    calendarSourceRepository,
+    calendarEventOccurrenceRepository,
+    secretStore
+  );
 
   ipcMain.handle(tasksIpcChannels.config.loadGlobal, async () =>
     loadTasksGlobalConfig(userDataDir)
@@ -43,13 +51,29 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   ipcMain.handle(tasksIpcChannels.calendarSources.list, async () =>
     calendarSourceRepository.list()
   );
-  ipcMain.handle(tasksIpcChannels.calendarSources.save, async (_event, request) =>
-    calendarSourceRepository.save(request)
-  );
+  ipcMain.handle(tasksIpcChannels.calendarSources.save, async (_event, request) => {
+    const passwordSecretId = request.password
+      ? secretStore.saveSecret(request.password)
+      : request.passwordSecretId;
+    return calendarSourceRepository.save({
+      ...request,
+      password: undefined,
+      passwordSecretId
+    });
+  });
   ipcMain.handle(tasksIpcChannels.calendarSources.remove, async (_event, request) => {
     calendarSourceRepository.remove(request.sourceId);
   });
   ipcMain.handle(tasksIpcChannels.calendarOccurrences.list, async (_event, request) =>
     calendarEventOccurrenceRepository.list(request)
   );
+  ipcMain.handle(tasksIpcChannels.sync.manual, async (_event, request) =>
+    syncService.sync(request?.sourceId)
+  );
+  ipcMain.handle(tasksIpcChannels.sync.writeTask, async (_event, request) =>
+    syncService.writeTask(request.sourceId, request.task)
+  );
+  ipcMain.handle(tasksIpcChannels.secrets.has, async (_event, request) => ({
+    exists: secretStore.hasSecret(request.secretId)
+  }));
 };

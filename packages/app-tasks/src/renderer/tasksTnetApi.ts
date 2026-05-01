@@ -26,6 +26,13 @@ export const tasksTnetApi: TasksApi = {
     },
     calendarOccurrences: {
       list: (request) => getApi().tasks.calendarOccurrences.list(request)
+    },
+    sync: {
+      manual: (request) => getApi().tasks.sync.manual(request),
+      writeTask: (request) => getApi().tasks.sync.writeTask(request)
+    },
+    secrets: {
+      has: (request) => getApi().tasks.secrets.has(request)
     }
   }
 };

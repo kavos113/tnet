@@ -1,6 +1,6 @@
 .root {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -12,9 +12,9 @@
 
 .clockHeader {
   display: flex;
+  gap: 18px;
   align-items: end;
   justify-content: space-between;
-  gap: 18px;
   padding: 20px 24px 16px;
   border-bottom: 1px solid var(--background-dark);
 }
@@ -48,9 +48,7 @@
   align-items: center;
 }
 
-.viewButton,
-.navButton,
-.iconButton {
+.viewButton {
   display: grid;
   place-items: center;
   min-width: 32px;
@@ -64,54 +62,8 @@
 }
 
 .viewButtonActive,
-.viewButton:hover,
-.navButton:hover,
-.iconButton:hover {
+.viewButton:hover {
   background: var(--background-light);
-}
-
-.iconButton {
-  width: 30px;
-  padding: 0;
-}
-
-.iconButton:global(.material-icons-round) {
-  font-size: 18px;
-}
-
-.quickAdd {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) 140px 110px 160px auto;
-  gap: 8px;
-  align-items: center;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--background-dark);
-}
-
-.quickAdd input {
-  width: 100%;
-  min-width: 0;
-  height: 32px;
-  padding: 6px 8px;
-  color: var(--foreground);
-  background: var(--background);
-  border: 1px solid var(--gray);
-  border-radius: 4px;
-}
-
-.primaryButton {
-  height: 32px;
-  padding: 0 14px;
-  color: var(--color-text-inverse);
-  cursor: pointer;
-  background: var(--main-dark);
-  border: 0;
-  border-radius: 4px;
-}
-
-.primaryButton:disabled {
-  cursor: default;
-  opacity: 0.45;
 }
 
 .content {
@@ -121,104 +73,10 @@
   overflow: hidden;
 }
 
-.taskColumn {
-  min-width: 0;
-  overflow: auto;
-  border-right: 1px solid var(--background-dark);
-}
-
-.section {
-  display: grid;
-  gap: 8px;
-  padding: 16px 18px;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.sectionTitle {
+.error,
+.loading {
   margin: 0;
-  color: var(--foreground);
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.count {
-  color: var(--foreground-muted);
-  font-size: 12px;
-}
-
-.taskList {
-  display: grid;
-  gap: 6px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.taskItem {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: start;
-  min-height: 42px;
-  padding: 8px;
-  background: var(--background);
-  border: 1px solid var(--background-dark);
-  border-radius: 6px;
-}
-
-.taskCheckbox {
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
-}
-
-.taskBody {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.taskTitle {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--foreground);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.taskTitleDone {
-  color: var(--foreground-muted);
-  text-decoration: line-through;
-}
-
-.taskMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  color: var(--foreground-muted);
-  font-size: 11px;
-}
-
-.categoryPill {
-  padding: 1px 6px;
-  color: var(--foreground);
-  background: var(--background-light);
-  border-radius: 4px;
-}
-
-.emptyMessage,
-.error {
-  margin: 0;
+  padding: 10px 24px;
   color: var(--foreground-muted);
   font-size: 12px;
 }
@@ -227,90 +85,8 @@
   color: var(--color-danger);
 }
 
-.calendarPane {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.calendarHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--background-dark);
-}
-
-.calendarTitle {
-  margin: 0;
-  font-size: 16px;
-}
-
-.calendarGrid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(96px, 1fr));
-  min-height: 0;
-  overflow: auto;
-}
-
-.calendarCell {
-  min-height: 132px;
-  padding: 8px;
-  border-right: 1px solid var(--background-dark);
-  border-bottom: 1px solid var(--background-dark);
-}
-
-.calendarCellToday {
-  background: color-mix(in srgb, var(--main-light) 26%, var(--background));
-}
-
-.calendarDayLabel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  color: var(--foreground-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.calendarItems {
-  display: grid;
-  gap: 4px;
-}
-
-.calendarTask {
-  min-width: 0;
-  padding: 4px 6px;
-  overflow: hidden;
-  color: var(--foreground);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  background: var(--background);
-  border: 1px solid var(--main-light);
-  border-radius: 4px;
-}
-
-.calendarEvent {
-  border-color: var(--gray);
-}
-
 @media (max-width: 1040px) {
-  .quickAdd {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .content {
     grid-template-columns: 1fr;
-  }
-
-  .taskColumn {
-    max-height: 320px;
-    border-right: 0;
-    border-bottom: 1px solid var(--background-dark);
   }
 }

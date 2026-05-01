@@ -18,6 +18,13 @@ export const AppShell = (): React.JSX.Element => {
   const ActiveApp = activeModule.Main;
   const ActiveSidebar = activeModule.Sidebar;
   const ActiveRuntime = activeModule.Runtime;
+  const portalShortcuts = appRegistry
+    .filter((app) => app.id !== 'tasks')
+    .map((app) => ({
+      id: app.id,
+      label: app.label,
+      icon: app.icon
+    }));
 
   useShortcut({
     key: ',',
@@ -74,7 +81,16 @@ export const AppShell = (): React.JSX.Element => {
       />
       {isAppRestored && ActiveRuntime ? <ActiveRuntime /> : null}
       {isAppRestored && ActiveSidebar ? <ActiveSidebar /> : null}
-      {isAppRestored ? <ActiveApp /> : null}
+      {isAppRestored ? (
+        activeAppId === 'tasks' ? (
+          <ActiveApp
+            portalShortcuts={portalShortcuts}
+            onSelectPortalApp={(appId) => dispatch(setActiveApp(appId))}
+          />
+        ) : (
+          <ActiveApp />
+        )
+      ) : null}
       <AppSettingsCenter
         isOpen={isSettingsOpen}
         activeAppId={activeAppId}
