@@ -25,6 +25,7 @@
     "dev": "pnpm --filter @tnet/desktop dev",
     "verify:dev": "pnpm sqlite:electron && pnpm papers:server:build && pnpm papers:extension:build && powershell -ExecutionPolicy Bypass -File scripts/verify-dev.ps1",
     "build": "pnpm typecheck && pnpm --filter @tnet/desktop build",
+    "build:analyze": "pnpm --filter @tnet/desktop build:analyze",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "pnpm --filter @tnet/desktop build:unpack",
     "build:win": "pnpm --filter @tnet/desktop build:win",
@@ -95,9 +96,9 @@
     "happy-dom": "^20.7.0",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
+    "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "^5.9.3",
     "vite": "^7.2.6",
-    "vite-bundle-analyzer": "^1.3.8",
     "vitest": "^4.0.16"
   },
   "pnpm": {

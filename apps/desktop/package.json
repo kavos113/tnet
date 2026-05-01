@@ -8,6 +8,7 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "build:analyze": "$env:ANALYZE=\"true\"; electron-vite build",
     "build:unpack": "pnpm --dir ../.. papers:server:build && pnpm build && electron-builder --dir",
     "build:win": "pnpm --dir ../.. papers:server:build && pnpm build && electron-builder --win",
     "build:mac": "pnpm --dir ../.. papers:server:build && pnpm build && electron-builder --mac",

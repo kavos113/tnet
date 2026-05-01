@@ -1,7 +1,10 @@
 import { builtinModules } from 'module';
 import { resolve } from 'path';
 import { defineConfig } from 'electron-vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 import react from '@vitejs/plugin-react';
+
+const analyze = process.env.ANALYZE === 'true';
 
 const workspacePackages = [
   '@tnet/app-papers',
@@ -87,6 +90,14 @@ export default defineConfig({
         '@tnet/ui': resolve('../../packages/ui/src')
       }
     },
-    plugins: [react()]
+    plugins: [
+      react(),
+      analyze && visualizer({
+        open: true,
+        filename: 'bundle-analysis.html',
+        gzipSize: true,
+        brotliSize: true
+      })
+    ]
   }
 });
