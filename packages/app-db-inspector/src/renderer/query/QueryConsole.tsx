@@ -25,6 +25,7 @@ export const QueryConsole = (): React.JSX.Element => {
   );
   const [sqlText, setSqlText] = useState(activeTab?.sqlText ?? 'SELECT * FROM ');
   const [title, setTitle] = useState(activeTab?.title ?? 'Query');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     setSqlText(activeTab?.sqlText ?? 'SELECT * FROM ');
@@ -57,7 +58,10 @@ export const QueryConsole = (): React.JSX.Element => {
   };
 
   return (
-    <section className={styles.queryConsole} aria-label="SQL query console">
+    <section
+      className={`${styles.queryConsole} ${isExpanded ? styles.queryConsoleExpanded : ''}`}
+      aria-label="SQL query console"
+    >
       <div className={styles.queryHeader}>
         <div className={styles.queryTitleRow}>
           <input
@@ -82,52 +86,74 @@ export const QueryConsole = (): React.JSX.Element => {
           >
             Execute
           </button>
+          <button
+            className={styles.iconButton}
+            type="button"
+            aria-label={isExpanded ? 'Collapse SQL editor' : 'Expand SQL editor'}
+            title={isExpanded ? 'Collapse SQL editor' : 'Expand SQL editor'}
+            onClick={() => setIsExpanded((current) => !current)}
+          >
+            <span className="material-icons">{isExpanded ? 'unfold_less' : 'unfold_more'}</span>
+          </button>
         </div>
         <span className={styles.queryMeta}>
           {queryResult
-            ? `${queryResult.rows.length} rows · ${queryResult.durationMs} ms${
-                queryResult.truncated ? ' · truncated' : ''
+            ? `${queryResult.rows.length} rows - ${queryResult.durationMs} ms${
+                queryResult.truncated ? ' - truncated' : ''
               }`
             : 'Ready'}
         </span>
       </div>
-      <div className={styles.queryBody}>
-        <div className={styles.queryEditorPane}>
+      {isExpanded ? (
+        <div className={styles.queryBody}>
+          <div className={styles.queryEditorPane}>
+            <SqlEditor
+              value={sqlText}
+              onChange={setSqlText}
+              queryFontFamily={globalSettings.queryFontFamily}
+              queryFontSize={globalSettings.queryFontSize}
+              minHeight={150}
+            />
+          </div>
+          <div className={styles.queryResultPane}>
+            {queryError ? <div className={styles.error}>{queryError}</div> : null}
+            {queryResult ? <QueryResultTable result={queryResult} /> : null}
+          </div>
+          <aside className={styles.queryHistoryPane} aria-label="Query history">
+            <strong>History</strong>
+            {queryHistory.length === 0 ? (
+              <span className={styles.mutedText}>No query history.</span>
+            ) : (
+              queryHistory.slice(0, 20).map((entry) => (
+                <button
+                  key={entry.id}
+                  className={styles.historyButton}
+                  type="button"
+                  title={entry.sqlText}
+                  onClick={() => setSqlText(entry.sqlText)}
+                >
+                  <span>{entry.sqlText}</span>
+                  <small>
+                    {entry.errorMessage
+                      ? 'failed'
+                      : `${entry.rowCount} rows - ${entry.durationMs} ms`}
+                  </small>
+                </button>
+              ))
+            )}
+          </aside>
+        </div>
+      ) : (
+        <div className={styles.queryCollapsedEditor}>
           <SqlEditor
             value={sqlText}
             onChange={setSqlText}
             queryFontFamily={globalSettings.queryFontFamily}
             queryFontSize={globalSettings.queryFontSize}
+            minHeight={28}
           />
         </div>
-        <div className={styles.queryResultPane}>
-          {queryError ? <div className={styles.error}>{queryError}</div> : null}
-          {queryResult ? <QueryResultTable result={queryResult} /> : null}
-        </div>
-        <aside className={styles.queryHistoryPane} aria-label="Query history">
-          <strong>History</strong>
-          {queryHistory.length === 0 ? (
-            <span className={styles.mutedText}>No query history.</span>
-          ) : (
-            queryHistory.slice(0, 20).map((entry) => (
-              <button
-                key={entry.id}
-                className={styles.historyButton}
-                type="button"
-                title={entry.sqlText}
-                onClick={() => setSqlText(entry.sqlText)}
-              >
-                <span>{entry.sqlText}</span>
-                <small>
-                  {entry.errorMessage
-                    ? 'failed'
-                    : `${entry.rowCount} rows · ${entry.durationMs} ms`}
-                </small>
-              </button>
-            ))
-          )}
-        </aside>
-      </div>
+      )}
     </section>
   );
 };

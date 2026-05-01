@@ -38,6 +38,10 @@
   gap: 8px;
 }
 
+.tableToolbar strong {
+  flex: 0 0 auto;
+}
+
 .toolbar {
   justify-content: space-between;
   border-bottom: 1px solid var(--color-border);
@@ -90,6 +94,11 @@
   padding: 5px 7px;
   color: inherit;
   background: var(--background);
+}
+
+.previewSqlInput {
+  flex: 1;
+  font-family: var(--db-inspector-query-font-family, monospace);
 }
 
 .workspaceForm {
@@ -221,14 +230,16 @@
 
 .content {
   min-height: 0;
-  overflow: auto;
+  flex: 1;
+  overflow: hidden;
   padding: 8px;
 }
 
 .workspaceBody {
   display: grid;
-  min-height: 100%;
-  grid-template-rows: minmax(180px, 1fr) minmax(260px, 0.8fr);
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 10px;
 }
 
@@ -244,11 +255,13 @@
 
 .tableShell {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   gap: 10px;
 }
 
 .tableWrapper {
+  min-height: 0;
   overflow: auto;
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -340,13 +353,20 @@
 
 .queryConsole {
   display: grid;
-  min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 8px;
+  height: 78px;
+  min-height: 78px;
+  grid-template-rows: auto auto;
+  gap: 6px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   padding: 8px;
   background: var(--background);
+}
+
+.queryConsoleExpanded {
+  height: 360px;
+  min-height: 360px;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .queryHeader {
@@ -373,15 +393,20 @@
 .queryBody {
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(300px, 1.2fr) 220px;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(300px, 1.25fr) 220px;
   gap: 8px;
 }
 
 .queryEditorPane,
+.queryCollapsedEditor,
 .queryResultPane,
 .queryHistoryPane {
   min-height: 0;
   overflow: auto;
+}
+
+.queryCollapsedEditor {
+  overflow: hidden;
 }
 
 .queryHistoryPane {

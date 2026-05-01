@@ -64,6 +64,19 @@ describe('SqliteDriver', () => {
     expect(result.rows).toEqual([{ id: 2, author_id: 2, title: 'Debugging Notes' }]);
   });
 
+  it('loads paged table data with a SQL where clause', async () => {
+    const result = await new SqliteDriver().loadTablePage(connection, {
+      workspaceId: 'workspace-1',
+      tableName: 'papers',
+      page: 0,
+      pageSize: 10,
+      whereClause: 'author_id = 1'
+    });
+
+    expect(result.totalRows).toBe(1);
+    expect(result.rows).toEqual([{ id: 1, author_id: 1, title: 'Compiler Notes' }]);
+  });
+
   it('rejects mutating queries in read-only mode', async () => {
     await expect(
       new SqliteDriver().executeQuery(

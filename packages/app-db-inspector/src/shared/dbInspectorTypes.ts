@@ -74,6 +74,7 @@ export interface LoadTablePageRequest {
     column: string;
     direction: 'asc' | 'desc';
   };
+  whereClause?: string;
   filter?: string;
 }
 

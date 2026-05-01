@@ -8,6 +8,7 @@ interface SqlEditorProps {
   value: string;
   queryFontFamily?: string;
   queryFontSize?: number;
+  minHeight: number;
   onChange: (value: string) => void;
 }
 
@@ -15,6 +16,7 @@ export const SqlEditor = ({
   onChange,
   queryFontFamily,
   queryFontSize,
+  minHeight,
   value
 }: SqlEditorProps): React.JSX.Element => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -43,15 +45,15 @@ export const SqlEditor = ({
           }),
           EditorView.theme({
             '&': {
-              minHeight: '150px',
-              height: '100%',
+              minHeight: `${minHeight}px`,
+              height: `${minHeight}px`,
               border: '1px solid var(--color-border)',
               borderRadius: '4px',
               backgroundColor: 'var(--background)',
               color: 'var(--foreground)'
             },
             '.cm-content': {
-              minHeight: '150px',
+              minHeight: `${minHeight}px`,
               fontFamily: queryFontFamily || 'monospace',
               fontSize: `${queryFontSize && queryFontSize > 0 ? queryFontSize : 13}px`,
               lineHeight: '1.45',
@@ -83,7 +85,7 @@ export const SqlEditor = ({
       view.destroy();
       viewRef.current = null;
     };
-  }, [queryFontFamily, queryFontSize]);
+  }, [minHeight, queryFontFamily, queryFontSize]);
 
   useEffect(() => {
     const view = viewRef.current;

@@ -164,8 +164,10 @@ export class SqliteDriver implements DatabaseDriver {
       const table = tableReference(request.schemaName, request.tableName);
       const filter = request.filter?.trim();
       const searchableColumns = columns.map((column) => column.name);
-      const whereSql =
-        filter && searchableColumns.length > 0
+      const whereClause = request.whereClause?.trim();
+      const whereSql = whereClause
+        ? `WHERE ${whereClause}`
+        : filter && searchableColumns.length > 0
           ? `WHERE ${searchableColumns
               .map((column) => `CAST(${quoteIdentifier(column)} AS TEXT) LIKE @filter`)
               .join(' OR ')}`

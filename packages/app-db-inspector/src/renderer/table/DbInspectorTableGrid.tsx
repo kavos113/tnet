@@ -8,14 +8,14 @@ interface DbInspectorTableGridProps {
   activeTableName?: string;
   activeTable: TablePageResult;
   activeTableModel?: DatabaseTable;
-  filter: string;
+  previewSql: string;
   page: number;
   sort?: {
     column: string;
     direction: 'asc' | 'desc';
   };
   isLoading: boolean;
-  onFilterChange: (filter: string) => void;
+  onPreviewSqlChange: (sql: string) => void;
   onSortChange: (sort: { column: string; direction: 'asc' | 'desc' } | undefined) => void;
   onOpenTable: (table: DatabaseTable, page: number) => void;
 }
@@ -24,22 +24,28 @@ export const DbInspectorTableGrid = ({
   activeTable,
   activeTableModel,
   activeTableName,
-  filter,
   isLoading,
-  onFilterChange,
+  onPreviewSqlChange,
   onSortChange,
   onOpenTable,
   page,
+  previewSql,
   sort
 }: DbInspectorTableGridProps): React.JSX.Element => (
   <div className={styles.tableShell}>
     <div className={styles.tableToolbar}>
       <strong>{activeTableName}</strong>
       <input
-        className={styles.input}
-        value={filter}
-        onChange={(event) => onFilterChange(event.target.value)}
-        placeholder="Filter"
+        className={`${styles.input} ${styles.previewSqlInput}`}
+        value={previewSql}
+        onChange={(event) => onPreviewSqlChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && activeTableModel && !isLoading) {
+            onOpenTable(activeTableModel, 0);
+          }
+        }}
+        aria-label="Table preview SQL"
+        placeholder="SELECT * FROM table"
       />
       <button
         className={styles.button}

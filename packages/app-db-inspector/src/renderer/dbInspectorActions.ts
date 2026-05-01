@@ -229,6 +229,7 @@ export const openDbInspectorTable = async (
       column: string;
       direction: 'asc' | 'desc';
     };
+    whereClause?: string;
     activeWorkspaceId?: string;
     settings: DbInspectorWorkspaceSettings;
     globalSettings: DbInspectorGlobalSettings;
@@ -245,6 +246,7 @@ export const openDbInspectorTable = async (
       page: input.page,
       pageSize: input.settings.tablePageSize || input.globalSettings.defaultPageSize || 100,
       sort: input.sort,
+      whereClause: input.whereClause,
       filter: input.filter
     });
     dispatch(setDbInspectorActiveTable({ tableName: input.table.name, table: pageResult }));

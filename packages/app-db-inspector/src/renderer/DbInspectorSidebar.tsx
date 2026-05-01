@@ -29,7 +29,6 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
   const [workspaceName, setWorkspaceName] = useState('');
   const [databasePath, setDatabasePath] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [filter] = useState('');
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
 
   const handleCreateWorkspace = async (): Promise<void> => {
@@ -56,7 +55,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
     void openDbInspectorTable(dispatch, {
       table,
       page,
-      filter,
+      filter: '',
       activeWorkspaceId,
       settings,
       globalSettings
