@@ -1,0 +1,197 @@
+.app {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  color: var(--app-text-color);
+  background: var(--app-bg-color);
+  font-family: var(--db-inspector-grid-font-family, sans-serif);
+  font-size: var(--db-inspector-grid-font-size, 13px);
+}
+
+.sidebar {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  border-right: 1px solid var(--app-border-color);
+  padding: 12px;
+  background: var(--app-sidebar-bg-color);
+}
+
+.main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.toolbar,
+.sidebarHeader,
+.tableToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--app-border-color);
+  padding: 10px 12px;
+}
+
+.sidebarHeader {
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.button,
+.iconButton {
+  border: 1px solid var(--app-border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: inherit;
+  background: var(--app-button-bg-color);
+  cursor: pointer;
+}
+
+.iconButton {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+}
+
+.button:disabled,
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.select,
+.input {
+  min-width: 0;
+  border: 1px solid var(--app-border-color);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: inherit;
+  background: var(--app-input-bg-color);
+}
+
+.workspaceForm {
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid var(--app-border-color);
+  padding-bottom: 12px;
+}
+
+.label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--app-muted-text-color);
+}
+
+.pathRow,
+.pagingRow {
+  display: flex;
+  gap: 8px;
+}
+
+.pathRow .input,
+.pagingRow .input {
+  flex: 1;
+}
+
+.schemaTree {
+  min-height: 0;
+  overflow: auto;
+}
+
+.schemaGroup {
+  margin-bottom: 10px;
+}
+
+.schemaName {
+  margin-bottom: 4px;
+  color: var(--app-muted-text-color);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.treeButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 6px;
+  padding: 5px 6px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.treeButton:hover {
+  background: var(--app-hover-bg-color);
+}
+
+.content {
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.empty,
+.error {
+  margin: 16px;
+  color: var(--app-muted-text-color);
+}
+
+.error {
+  color: var(--app-danger-color);
+}
+
+.tableShell {
+  display: grid;
+  min-height: 0;
+  gap: 10px;
+}
+
+.tableWrapper {
+  overflow: auto;
+  border: 1px solid var(--app-border-color);
+  border-radius: 6px;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--db-inspector-grid-font-family, sans-serif);
+  font-size: var(--db-inspector-grid-font-size, 13px);
+}
+
+.dataTable th,
+.dataTable td {
+  max-width: 360px;
+  border-bottom: 1px solid var(--app-border-color);
+  padding: 6px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dataTable th {
+  position: sticky;
+  top: 0;
+  background: var(--app-sidebar-bg-color);
+  text-align: left;
+}

@@ -205,6 +205,25 @@ importers:
         specifier: ^12.9.0
         version: 12.9.0
 
+  packages/app-db-inspector:
+    dependencies:
+      '@tnet/main-core':
+        specifier: workspace:*
+        version: link:../main-core
+      '@tnet/renderer-core':
+        specifier: workspace:*
+        version: link:../renderer-core
+      '@tnet/shared':
+        specifier: workspace:*
+        version: link:../shared
+      better-sqlite3:
+        specifier: ^12.9.0
+        version: 12.9.0
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
+
   packages/app-markdown:
     dependencies:
       '@tnet/main-core':

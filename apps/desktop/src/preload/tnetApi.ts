@@ -4,8 +4,9 @@ import type { TnetApi } from '@tnet/shared/ipc/contracts';
 import { markdownIpcChannels, type MarkdownApi } from '@tnet/app-markdown/shared/ipc';
 import { papersIpcChannels, type PapersApi } from '@tnet/app-papers/shared/ipc';
 import { requesterIpcChannels, type RequesterApi } from '@tnet/app-requester/shared/ipc';
+import { dbInspectorIpcChannels, type DbInspectorApi } from '@tnet/app-db-inspector/shared/ipc';
 
-export type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi & RequesterApi;
+export type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi & RequesterApi & DbInspectorApi;
 
 export const tnetApi: DesktopTnetApi = {
   workspace: {
@@ -155,6 +156,40 @@ export const tnetApi: DesktopTnetApi = {
       exportWorkspace: (request) =>
         ipcRenderer.invoke(requesterIpcChannels.backup.exportWorkspace, request),
       importWorkspace: () => ipcRenderer.invoke(requesterIpcChannels.backup.importWorkspace)
+    }
+  },
+  dbInspector: {
+    config: {
+      loadGlobal: () => ipcRenderer.invoke(dbInspectorIpcChannels.config.loadGlobal),
+      saveGlobal: (config) => ipcRenderer.invoke(dbInspectorIpcChannels.config.saveGlobal, config)
+    },
+    workspaces: {
+      list: () => ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.list),
+      create: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.create, request),
+      update: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.update, request),
+      remove: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.remove, request),
+      getSettings: (request) =>
+        ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.getSettings, request),
+      saveSettings: (request) =>
+        ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.saveSettings, request),
+      testConnection: (request) =>
+        ipcRenderer.invoke(dbInspectorIpcChannels.workspaces.testConnection, request)
+    },
+    schema: {
+      refresh: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.schema.refresh, request),
+      getTree: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.schema.getTree, request)
+    },
+    tableData: {
+      loadPage: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.tableData.loadPage, request)
+    },
+    query: {
+      execute: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.query.execute, request),
+      listHistory: (request) =>
+        ipcRenderer.invoke(dbInspectorIpcChannels.query.listHistory, request)
+    },
+    files: {
+      selectSqliteDatabase: () =>
+        ipcRenderer.invoke(dbInspectorIpcChannels.files.selectSqliteDatabase)
     }
   }
 };

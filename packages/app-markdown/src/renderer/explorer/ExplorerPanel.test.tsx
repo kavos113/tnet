@@ -297,6 +297,7 @@ describe('ExplorerPanel', () => {
           },
           papers: {},
           requester: {},
+          'db-inspector': {},
           code: {}
         }
       });
@@ -348,6 +349,7 @@ describe('ExplorerPanel', () => {
           },
           papers: {},
           requester: {},
+          'db-inspector': {},
           code: {}
         }
       });
@@ -418,6 +420,7 @@ describe('ExplorerPanel', () => {
           },
           papers: {},
           requester: {},
+          'db-inspector': {},
           code: {}
         }
       });

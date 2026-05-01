@@ -3,6 +3,7 @@ import appReducer from './appSlice';
 import { editorReducer, explorerReducer, workspaceReducer } from '@tnet/app-markdown/renderer';
 import { papersContentReducer, papersLibraryReducer } from '@tnet/app-papers/renderer';
 import { requesterReducer } from '@tnet/app-requester/renderer';
+import { dbInspectorReducer } from '@tnet/app-db-inspector/renderer';
 
 export interface RootState {
   app: ReturnType<typeof appReducer>;
@@ -12,6 +13,7 @@ export interface RootState {
   papersLibrary: ReturnType<typeof papersLibraryReducer>;
   papersContent: ReturnType<typeof papersContentReducer>;
   requester: ReturnType<typeof requesterReducer>;
+  dbInspector: ReturnType<typeof dbInspectorReducer>;
 }
 
 export const createAppStore = (): EnhancedStore<RootState> =>
@@ -23,7 +25,8 @@ export const createAppStore = (): EnhancedStore<RootState> =>
       editor: editorReducer,
       papersLibrary: papersLibraryReducer,
       papersContent: papersContentReducer,
-      requester: requesterReducer
+      requester: requesterReducer,
+      dbInspector: dbInspectorReducer
     },
     devTools: import.meta.env.DEV
   });

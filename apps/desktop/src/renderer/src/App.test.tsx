@@ -131,6 +131,35 @@ describe('App', () => {
           graphql: {
             introspect: vi.fn()
           }
+        },
+        dbInspector: {
+          config: {
+            loadGlobal: vi.fn().mockResolvedValue({}),
+            saveGlobal: vi.fn().mockResolvedValue(undefined)
+          },
+          workspaces: {
+            list: vi.fn().mockResolvedValue([]),
+            create: vi.fn(),
+            update: vi.fn(),
+            remove: vi.fn(),
+            getSettings: vi.fn(),
+            saveSettings: vi.fn(),
+            testConnection: vi.fn()
+          },
+          schema: {
+            refresh: vi.fn(),
+            getTree: vi.fn()
+          },
+          tableData: {
+            loadPage: vi.fn()
+          },
+          query: {
+            execute: vi.fn(),
+            listHistory: vi.fn()
+          },
+          files: {
+            selectSqliteDatabase: vi.fn()
+          }
         }
       },
       writable: true
@@ -191,6 +220,21 @@ describe('App', () => {
     expect(screen.getByRole('main', { name: 'Requester' })).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText('Create a request workspace to begin.')).toBeInTheDocument();
+    });
+  });
+
+  it('opens the DB Inspector app module from the app rail', async () => {
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'DB Inspector' }));
+
+    expect(screen.getByRole('main', { name: 'DB Inspector' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Select a table from the schema tree.')).toBeInTheDocument();
     });
   });
 });

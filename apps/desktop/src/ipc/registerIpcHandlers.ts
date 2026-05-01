@@ -1,6 +1,7 @@
 import { registerMarkdownIpcHandlers } from '@tnet/app-markdown/main';
 import { registerPapersIpcHandlers } from '@tnet/app-papers/main';
 import { registerRequesterIpcHandlers } from '@tnet/app-requester/main';
+import { registerDbInspectorIpcHandlers } from '@tnet/app-db-inspector/main';
 import { registerConfigIpc } from './configIpc';
 import { registerFileIpc } from './fileIpc';
 import { registerSessionIpc } from './sessionIpc';
@@ -18,6 +19,9 @@ export const registerIpcHandlers = (): void => {
     userDataDir: app.getPath('userData')
   });
   registerRequesterIpcHandlers({
+    userDataDir: app.getPath('userData')
+  });
+  registerDbInspectorIpcHandlers({
     userDataDir: app.getPath('userData')
   });
 };

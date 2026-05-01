@@ -7,6 +7,7 @@ const workspacePackages = [
   '@tnet/app-papers',
   '@tnet/app-markdown',
   '@tnet/app-requester',
+  '@tnet/app-db-inspector',
   '@tnet/main-core',
   '@tnet/markdown-editor',
   '@tnet/renderer-core',
@@ -40,6 +41,7 @@ export default defineConfig({
         '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/app-requester': resolve('../../packages/app-requester/src'),
+        '@tnet/app-db-inspector': resolve('../../packages/app-db-inspector/src'),
         '@tnet/main-core': resolve('../../packages/main-core/src'),
         '@tnet/markdown-editor': resolve('../../packages/markdown-editor/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
@@ -63,6 +65,7 @@ export default defineConfig({
         '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/app-requester': resolve('../../packages/app-requester/src'),
+        '@tnet/app-db-inspector': resolve('../../packages/app-db-inspector/src'),
         '@tnet/markdown-editor': resolve('../../packages/markdown-editor/src'),
         '@tnet/shared': resolve('../../packages/shared/src')
       }
@@ -76,6 +79,7 @@ export default defineConfig({
         '@tnet/app-papers': resolve('../../packages/app-papers/src'),
         '@tnet/app-markdown': resolve('../../packages/app-markdown/src'),
         '@tnet/app-requester': resolve('../../packages/app-requester/src'),
+        '@tnet/app-db-inspector': resolve('../../packages/app-db-inspector/src'),
         '@tnet/markdown-editor': resolve('../../packages/markdown-editor/src'),
         '@tnet/renderer-core': resolve('../../packages/renderer-core/src'),
         '@tnet/shared': resolve('../../packages/shared/src'),

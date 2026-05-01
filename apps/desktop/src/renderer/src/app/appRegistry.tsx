@@ -13,6 +13,11 @@ import {
   RequesterSidebar
 } from '@tnet/app-requester/renderer';
 import {
+  DbInspectorApp,
+  DbInspectorRuntime,
+  DbInspectorSidebar
+} from '@tnet/app-db-inspector/renderer';
+import {
   MarkdownApp,
   MarkdownRuntime,
   MarkdownSettingsDialog,
@@ -56,6 +61,14 @@ export const appRegistry: AppModule[] = [
     Sidebar: RequesterSidebar,
     Runtime: RequesterRuntime,
     Settings: RequesterSettingsDialog
+  },
+  {
+    id: 'db-inspector',
+    label: 'DB Inspector',
+    icon: 'database',
+    Main: DbInspectorApp,
+    Sidebar: DbInspectorSidebar,
+    Runtime: DbInspectorRuntime
   },
   {
     id: 'code',

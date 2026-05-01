@@ -11,6 +11,7 @@ export const defaultGlobalConfig = (): GlobalConfig => ({
     markdown: {},
     papers: {},
     requester: {},
+    'db-inspector': {},
     code: {}
   }
 });
