@@ -15,6 +15,7 @@ import {
 import {
   DbInspectorApp,
   DbInspectorRuntime,
+  DbInspectorSettingsDialog,
   DbInspectorSidebar
 } from '@tnet/app-db-inspector/renderer';
 import {
@@ -68,7 +69,8 @@ export const appRegistry: AppModule[] = [
     icon: 'database',
     Main: DbInspectorApp,
     Sidebar: DbInspectorSidebar,
-    Runtime: DbInspectorRuntime
+    Runtime: DbInspectorRuntime,
+    Settings: DbInspectorSettingsDialog
   },
   {
     id: 'code',

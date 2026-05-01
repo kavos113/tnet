@@ -85,6 +85,15 @@ const dbInspectorSlice = createSlice({
     setDbInspectorLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
+    setDbInspectorSettings: (state, action: PayloadAction<DbInspectorWorkspaceSettings>) => {
+      state.settings = action.payload;
+    },
+    setDbInspectorGlobalSettings: (state, action: PayloadAction<DbInspectorGlobalSettings>) => {
+      state.globalSettings = {
+        ...defaultDbInspectorGlobalSettings(),
+        ...action.payload
+      };
+    },
     setDbInspectorError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
     }
@@ -95,8 +104,10 @@ export const {
   restoreDbInspector,
   setDbInspectorActiveTable,
   setDbInspectorError,
+  setDbInspectorGlobalSettings,
   setDbInspectorLoading,
   setDbInspectorSchema,
+  setDbInspectorSettings,
   setDbInspectorWorkspace
 } = dbInspectorSlice.actions;
 

@@ -9,6 +9,10 @@ import {
   RequesterGlobalSettingsPage,
   RequesterWorkspaceSettingsPage
 } from '@tnet/app-requester/renderer';
+import {
+  DbInspectorGlobalSettingsPage,
+  DbInspectorWorkspaceSettingsPage
+} from '@tnet/app-db-inspector/renderer';
 import { SettingsCenterDialog, type SettingsCenterPage } from '@tnet/ui/settings';
 import { useAppSelector } from './hooks';
 
@@ -26,6 +30,7 @@ export const AppSettingsCenter = ({
   const markdownRootPath = useAppSelector((state) => state.workspace.rootPath);
   const papersLibraryRoot = useAppSelector((state) => state.papersLibrary.activeLibraryRoot);
   const requesterWorkspaceId = useAppSelector((state) => state.requester.activeWorkspaceId);
+  const dbInspectorWorkspaceId = useAppSelector((state) => state.dbInspector.activeWorkspaceId);
   const [activePageId, setActivePageId] = useState(() => getInitialPageId(activeAppId, true));
 
   const pages = useMemo<SettingsCenterPage[]>(
@@ -83,9 +88,27 @@ export const AppSettingsCenter = ({
         scopeLabel: 'Workspace',
         title: requesterWorkspaceId ? 'Requester Workspace' : 'Requester Workspace',
         content: <RequesterWorkspaceSettingsPage onClose={onClose} />
+      },
+      {
+        id: 'db-inspector-global',
+        appId: 'db-inspector',
+        appLabel: 'DB Inspector',
+        appIcon: 'database',
+        scopeLabel: 'Global',
+        title: 'DB Inspector Global',
+        content: <DbInspectorGlobalSettingsPage onClose={onClose} />
+      },
+      {
+        id: 'db-inspector-workspace',
+        appId: 'db-inspector',
+        appLabel: 'DB Inspector',
+        appIcon: 'database',
+        scopeLabel: 'Workspace',
+        title: dbInspectorWorkspaceId ? 'DB Inspector Workspace' : 'DB Inspector Workspace',
+        content: <DbInspectorWorkspaceSettingsPage onClose={onClose} />
       }
     ],
-    [markdownRootPath, onClose, papersLibraryRoot, requesterWorkspaceId]
+    [dbInspectorWorkspaceId, markdownRootPath, onClose, papersLibraryRoot, requesterWorkspaceId]
   );
 
   useEffect(() => {
@@ -97,9 +120,18 @@ export const AppSettingsCenter = ({
           ? Boolean(papersLibraryRoot)
           : activeAppId === 'requester'
             ? Boolean(requesterWorkspaceId)
-            : false;
+            : activeAppId === 'db-inspector'
+              ? Boolean(dbInspectorWorkspaceId)
+              : false;
     setActivePageId(getInitialPageId(activeAppId, hasActiveWorkspace));
-  }, [activeAppId, isOpen, markdownRootPath, papersLibraryRoot, requesterWorkspaceId]);
+  }, [
+    activeAppId,
+    dbInspectorWorkspaceId,
+    isOpen,
+    markdownRootPath,
+    papersLibraryRoot,
+    requesterWorkspaceId
+  ]);
 
   return (
     <SettingsCenterDialog
@@ -118,5 +150,8 @@ const getInitialPageId = (appId: AppId, hasWorkspace: boolean): string => {
   if (appId === 'markdown') return hasWorkspace ? 'markdown-workspace' : 'markdown-global';
   if (appId === 'papers') return hasWorkspace ? 'papers-workspace' : 'papers-global';
   if (appId === 'requester') return hasWorkspace ? 'requester-workspace' : 'requester-global';
+  if (appId === 'db-inspector') {
+    return hasWorkspace ? 'db-inspector-workspace' : 'db-inspector-global';
+  }
   return 'markdown-global';
 };
