@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import type {
   RequesterBodyMode,
   RequesterHttpMethod,
-  RequesterKeyValueRow
+  RequesterKeyValueRow,
+  RequesterRequestDetail,
+  SaveRequesterRequestInput
 } from '@tnet/app-requester/shared/requesterTypes';
 import {
   setActiveRequesterRequest,
@@ -132,9 +134,10 @@ export const RequesterApp = (): React.JSX.Element => {
     setGraphqlSchemaTypes([]);
   }, [activeRequest]);
 
-  const saveRequest = async (): Promise<void> => {
-    if (!activeWorkspaceId) return;
-    const saved = await requesterTnetApi.requester.requests.save({
+  const buildRequestInput = (): SaveRequesterRequestInput | undefined => {
+    if (!activeWorkspaceId) return undefined;
+
+    return {
       id: activeRequest?.id,
       workspaceId: activeWorkspaceId,
       name: name.trim() || 'Untitled Request',
@@ -153,12 +156,21 @@ export const RequesterApp = (): React.JSX.Element => {
       authToken,
       authApiKeyName,
       authApiKeyValue
-    });
+    };
+  };
+
+  const saveRequest = async (): Promise<RequesterRequestDetail | undefined> => {
+    const requestInput = buildRequestInput();
+    if (!requestInput) return undefined;
+
+    const saved = await requesterTnetApi.requester.requests.save(requestInput);
     const requests = await requesterTnetApi.requester.requests.list({
-      workspaceId: activeWorkspaceId
+      workspaceId: requestInput.workspaceId
     });
     dispatch(setActiveRequesterRequest(saved));
     dispatch(setRequesterRequests(requests));
+
+    return saved;
   };
 
   const runSave = (): void => {
@@ -169,31 +181,18 @@ export const RequesterApp = (): React.JSX.Element => {
   };
 
   const sendRequest = async (): Promise<void> => {
-    if (!activeWorkspaceId) return;
+    const requestInput = buildRequestInput();
+    if (!requestInput) return;
+
+    const saved = await saveRequest();
     const result = await requesterTnetApi.requester.execution.send({
-      id: activeRequest?.id,
-      workspaceId: activeWorkspaceId,
-      name: name.trim() || 'Untitled Request',
-      method,
-      url,
-      bodyMode,
-      bodyText,
-      binaryFilePath,
-      graphqlVariablesText,
-      graphqlOperationName,
-      headers,
-      queryParams,
-      authType,
-      authUsername,
-      authPassword,
-      authToken,
-      authApiKeyName,
-      authApiKeyValue,
+      ...requestInput,
+      id: saved?.id ?? requestInput.id,
       timeoutMs: settings.requestTimeoutMs,
       followRedirects: settings.followRedirects
     });
     const history = await requesterTnetApi.requester.history.list({
-      workspaceId: activeWorkspaceId
+      workspaceId: requestInput.workspaceId
     });
     dispatch(setRequesterResponse(result.response));
     dispatch(setRequesterHistory(history));
