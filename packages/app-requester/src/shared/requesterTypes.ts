@@ -31,6 +31,22 @@ export interface RequesterKeyValueRow {
   description?: string;
 }
 
+export interface RequesterCookie {
+  id: string;
+  workspaceId: string;
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  expiresAt?: string;
+  secure: boolean;
+  httpOnly: boolean;
+  sameSite?: 'strict' | 'lax' | 'none';
+  hostOnly: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RequesterRequestDetail extends RequesterRequestSummary {
   headers: RequesterKeyValueRow[];
   queryParams: RequesterKeyValueRow[];
@@ -69,6 +85,7 @@ export interface SaveRequesterRequestInput {
   authApiKeyValue?: string;
   timeoutMs?: number;
   followRedirects?: boolean;
+  cookieJarEnabled?: boolean;
 }
 
 export interface RequesterVariableSet {

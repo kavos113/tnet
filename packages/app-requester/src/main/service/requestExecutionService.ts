@@ -19,6 +19,11 @@ export interface RequesterHistoryStore {
   }): string | undefined;
 }
 
+export interface RequesterCookieStore {
+  getCookieHeader(workspaceId: string, requestUrl: string): string | undefined;
+  saveFromResponse(workspaceId: string, requestUrl: string, headers: Headers): void;
+}
+
 const defaultTransport: RequesterTransport = {
   fetch: (url, init) => fetch(url, init)
 };
@@ -27,13 +32,15 @@ export class RequestExecutionService {
   constructor(
     private readonly historyStore: RequesterHistoryStore,
     private readonly transport: RequesterTransport = defaultTransport,
-    private readonly timeoutMs = 30000
+    private readonly timeoutMs = 30000,
+    private readonly cookieStore?: RequesterCookieStore
   ) {}
 
   async send(request: SaveRequesterRequestInput): Promise<RequesterExecutionResult> {
     const startedAt = new Date().toISOString();
     const started = performance.now();
-    const serialized = await serializeRequesterRequest(request);
+    const requestWithCookies = await this.withCookieHeader(request);
+    const serialized = await serializeRequesterRequest(requestWithCookies);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), request.timeoutMs ?? this.timeoutMs);
     let response: Response;
@@ -45,6 +52,9 @@ export class RequestExecutionService {
       });
     } finally {
       clearTimeout(timeout);
+    }
+    if (request.cookieJarEnabled) {
+      this.cookieStore?.saveFromResponse(request.workspaceId, serialized.url, response.headers);
     }
     const snapshot = await parseRequesterResponse(
       response,
@@ -59,6 +69,31 @@ export class RequestExecutionService {
     return {
       response: snapshot,
       historyId
+    };
+  }
+
+  private async withCookieHeader(
+    request: SaveRequesterRequestInput
+  ): Promise<SaveRequesterRequestInput> {
+    if (!request.cookieJarEnabled || !this.cookieStore) return request;
+    if (request.headers?.some((row) => row.enabled && row.key.trim().toLowerCase() === 'cookie')) {
+      return request;
+    }
+
+    const cookieHeader = this.cookieStore.getCookieHeader(request.workspaceId, request.url);
+    if (!cookieHeader) return request;
+
+    return {
+      ...request,
+      headers: [
+        ...(request.headers ?? []),
+        {
+          id: 'workspace-cookie-jar',
+          enabled: true,
+          key: 'Cookie',
+          value: cookieHeader
+        }
+      ]
     };
   }
 }

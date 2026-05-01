@@ -1,3 +1,4 @@
+export * from './cookieRepository';
 export * from './graphqlSchemaRepository';
 export * from './historyRepository';
 export * from './requesterDb';

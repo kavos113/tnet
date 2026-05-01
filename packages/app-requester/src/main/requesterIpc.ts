@@ -4,6 +4,7 @@ import { requesterIpcChannels } from '@tnet/app-requester/shared/ipc';
 import { loadRequesterGlobalConfig, saveRequesterGlobalConfig } from './requesterConfigService';
 import {
   GraphqlSchemaRepository,
+  CookieRepository,
   openRequesterDatabase,
   HistoryRepository,
   RequestRepository,
@@ -28,8 +29,14 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   const requestRepository = new RequestRepository(database);
   const variableSetRepository = new VariableSetRepository(database);
   const historyRepository = new HistoryRepository(database);
+  const cookieRepository = new CookieRepository(database);
   const graphqlSchemaRepository = new GraphqlSchemaRepository(database);
-  const requestExecutionService = new RequestExecutionService(historyRepository);
+  const requestExecutionService = new RequestExecutionService(
+    historyRepository,
+    undefined,
+    undefined,
+    cookieRepository
+  );
   const graphqlIntrospectionService = new GraphqlIntrospectionService(graphqlSchemaRepository);
 
   ipcMain.handle(requesterIpcChannels.config.loadGlobal, async () =>

@@ -239,7 +239,8 @@ export const RequesterApp = (): React.JSX.Element => {
       ...requestInput,
       id: saved?.id ?? requestInput.id,
       timeoutMs: settings.requestTimeoutMs,
-      followRedirects: settings.followRedirects
+      followRedirects: settings.followRedirects,
+      cookieJarEnabled: settings.cookieJarEnabled
     });
     const history = await requesterTnetApi.requester.history.list({
       workspaceId: requestInput.workspaceId,

@@ -127,6 +127,20 @@ export const RequesterSettingsDialog = ({
                   TLS validation should stay enabled unless you are calling a trusted local service.
                 </p>
               ) : null}
+              <label className="form-item form-item-inline" htmlFor="requester-cookie-jar-enabled">
+                <span>Use workspace cookie jar</span>
+                <input
+                  id="requester-cookie-jar-enabled"
+                  type="checkbox"
+                  checked={draft.cookieJarEnabled}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      cookieJarEnabled: event.target.checked
+                    })
+                  }
+                />
+              </label>
             </div>
             <div className="settings-group">
               <h3>History</h3>

@@ -56,6 +56,24 @@ CREATE TABLE IF NOT EXISTS history_entries (
   FOREIGN KEY (request_id) REFERENCES requests(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS cookies (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  value TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  path TEXT NOT NULL,
+  expires_at TEXT,
+  secure INTEGER NOT NULL,
+  http_only INTEGER NOT NULL,
+  same_site TEXT,
+  host_only INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE,
+  UNIQUE (workspace_id, name, domain, path)
+);
+
 CREATE TABLE IF NOT EXISTS response_blobs (
   id TEXT PRIMARY KEY,
   history_id TEXT NOT NULL,

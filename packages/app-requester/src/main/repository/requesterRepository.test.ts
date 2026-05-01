@@ -5,6 +5,7 @@ import path from 'path';
 import { describe, expect, it } from 'vitest';
 import { normalizeRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import { openRequesterDatabase } from './requesterDb';
+import { CookieRepository, parseSetCookieHeader } from './cookieRepository';
 import { HistoryRepository } from './historyRepository';
 import { GraphqlSchemaRepository } from './graphqlSchemaRepository';
 import { RequestRepository } from './requestRepository';
@@ -18,6 +19,7 @@ const createRepositories = async (
   name: string
 ): Promise<{
   database: ReturnType<typeof openRequesterDatabase>;
+  cookieRepository: CookieRepository;
   requestRepository: RequestRepository;
   historyRepository: HistoryRepository;
   graphqlSchemaRepository: GraphqlSchemaRepository;
@@ -29,6 +31,7 @@ const createRepositories = async (
   const database = openRequesterDatabase(userDataDir);
   return {
     database,
+    cookieRepository: new CookieRepository(database),
     graphqlSchemaRepository: new GraphqlSchemaRepository(database),
     historyRepository: new HistoryRepository(database),
     requestRepository: new RequestRepository(database),
@@ -207,6 +210,54 @@ describe('Requester repositories', () => {
     expect(graphqlSchemaRepository.get(workspace.id, 'https://example.test/graphql')).toEqual(
       cached
     );
+    database.close();
+  });
+
+  it('stores workspace cookies from Set-Cookie and returns matching Cookie headers', async () => {
+    const { cookieRepository, database, workspaceRepository } = await createRepositories('cookies');
+    const workspace = workspaceRepository.create('Local Dev');
+
+    expect(
+      parseSetCookieHeader(
+        'session=abc; Path=/api; HttpOnly; Secure; SameSite=Lax',
+        'https://example.test/api/login'
+      )
+    ).toMatchObject({
+      name: 'session',
+      value: 'abc',
+      domain: 'example.test',
+      path: '/api',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      hostOnly: true
+    });
+
+    cookieRepository.saveFromResponse(
+      workspace.id,
+      'https://example.test/api/login',
+      new Headers({
+        'set-cookie': 'session=abc; Path=/api; HttpOnly; Secure; SameSite=Lax'
+      })
+    );
+
+    expect(cookieRepository.list(workspace.id)).toEqual([
+      expect.objectContaining({
+        name: 'session',
+        value: 'abc',
+        domain: 'example.test',
+        path: '/api',
+        secure: true,
+        httpOnly: true,
+        sameSite: 'lax'
+      })
+    ]);
+    expect(cookieRepository.getCookieHeader(workspace.id, 'https://example.test/api/users')).toBe(
+      'session=abc'
+    );
+    expect(
+      cookieRepository.getCookieHeader(workspace.id, 'http://example.test/api/users')
+    ).toBeUndefined();
     database.close();
   });
 });

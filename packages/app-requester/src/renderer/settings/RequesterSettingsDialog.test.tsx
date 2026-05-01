@@ -70,6 +70,7 @@ describe('RequesterSettingsDialog', () => {
     });
     fireEvent.click(screen.getByLabelText('Follow redirects'));
     fireEvent.click(screen.getByLabelText('Validate TLS certificates'));
+    fireEvent.click(screen.getByLabelText('Use workspace cookie jar'));
     fireEvent.change(screen.getByLabelText('Code font family'), {
       target: { value: 'Code Font' }
     });
@@ -91,6 +92,7 @@ describe('RequesterSettingsDialog', () => {
           requestTimeoutMs: 12000,
           followRedirects: false,
           validateTlsCertificates: false,
+          cookieJarEnabled: true,
           codeFontFamily: 'Code Font',
           codeFontSize: 15,
           appFontFamily: 'UI Font',
@@ -103,6 +105,7 @@ describe('RequesterSettingsDialog', () => {
         requestTimeoutMs: 12000,
         followRedirects: false,
         validateTlsCertificates: false,
+        cookieJarEnabled: true,
         codeFontFamily: 'Code Font',
         codeFontSize: 15,
         appFontFamily: 'UI Font',

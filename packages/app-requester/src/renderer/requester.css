@@ -450,6 +450,42 @@
   text-align: left;
 }
 
+.requester-tree-action {
+  margin-left: auto;
+  opacity: 0;
+}
+
+.file-tree-item:hover .requester-tree-action,
+.requester-tree-action:focus-visible {
+  opacity: 1;
+}
+
+.requester-rename-dialog {
+  gap: 12px;
+}
+
+.requester-path-preview {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  background: var(--background-dark);
+}
+
+.requester-path-preview span {
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.requester-path-preview strong {
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-family: var(--requester-code-font-family, monospace);
+  font-size: var(--requester-code-font-size, 13px);
+}
+
 .requester-error {
   margin: 0;
   color: #b42318;

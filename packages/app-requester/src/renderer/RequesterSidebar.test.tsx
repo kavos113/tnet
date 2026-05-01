@@ -324,4 +324,70 @@ describe('RequesterSidebar', () => {
     expect(store.getState().requester.activeRequestId).toBeUndefined();
     expect(store.getState().requester.requests).toEqual([]);
   });
+
+  it('renames and moves a request from the request path dialog', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [requestSummary()],
+        settings: {
+          ...defaultRequesterWorkspaceSettings(),
+          expandedRequestPaths: ['accounts']
+        }
+      })
+    );
+    getRequest.mockResolvedValue(requestDetail());
+    saveRequest.mockResolvedValue(
+      requestDetail({
+        name: 'Create user',
+        requestPath: 'admin/users/Create user.http'
+      })
+    );
+    listRequests.mockResolvedValue([
+      requestSummary({
+        name: 'Create user',
+        requestPath: 'admin/users/Create user.http'
+      })
+    ]);
+
+    render(
+      <Provider store={store}>
+        <RequesterSidebar />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByLabelText('Rename list.http'));
+    fireEvent.change(screen.getByLabelText('Request name'), {
+      target: { value: 'Create user' }
+    });
+    fireEvent.change(screen.getByLabelText('Folder path'), {
+      target: { value: 'admin/users' }
+    });
+
+    expect(screen.getByLabelText('Request path preview')).toHaveTextContent(
+      'admin/users/Create user.http'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(saveRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'request-1',
+          name: 'Create user',
+          requestPath: 'admin/users/Create user.http'
+        })
+      )
+    );
+    expect(saveSettings).toHaveBeenCalledWith({
+      workspaceId: 'workspace-1',
+      settings: expect.objectContaining({
+        expandedRequestPaths: ['accounts', 'admin/users'],
+        requestFolderPaths: ['admin/users']
+      })
+    });
+    expect(store.getState().requester.activeRequestFolderPath).toBe('admin/users');
+  });
 });

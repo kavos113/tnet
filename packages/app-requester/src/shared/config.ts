@@ -14,6 +14,7 @@ export interface RequesterWorkspaceSettings {
   requestTimeoutMs: number;
   followRedirects: boolean;
   validateTlsCertificates: boolean;
+  cookieJarEnabled: boolean;
   codeFontFamily: string;
   codeFontSize: number;
   appFontFamily: string;
@@ -33,6 +34,7 @@ export const defaultRequesterWorkspaceSettings = (): RequesterWorkspaceSettings 
   requestTimeoutMs: 30000,
   followRedirects: true,
   validateTlsCertificates: true,
+  cookieJarEnabled: false,
   codeFontFamily: 'monospace',
   codeFontSize: 13,
   appFontFamily: 'sans-serif',

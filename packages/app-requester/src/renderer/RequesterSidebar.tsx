@@ -26,14 +26,28 @@ interface NewFolderState {
   name: string;
 }
 
+interface RenameRequestState {
+  isActive: boolean;
+  requestId?: string;
+  name: string;
+  folderPath: string;
+}
+
 const emptyNewFolder: NewFolderState = {
   isActive: false,
   name: ''
 };
 
+const emptyRenameRequest: RenameRequestState = {
+  isActive: false,
+  name: '',
+  folderPath: ''
+};
+
 export const RequesterSidebar = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
   const [newFolder, setNewFolder] = useState<NewFolderState>(emptyNewFolder);
+  const [renameRequest, setRenameRequest] = useState<RenameRequestState>(emptyRenameRequest);
   const activeFolderPath = useRequesterSelector((state) => state.requester.activeRequestFolderPath);
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const activeRequestId = useRequesterSelector((state) => state.requester.activeRequestId);
@@ -43,6 +57,13 @@ export const RequesterSidebar = (): React.JSX.Element => {
   const requestTree = buildRequesterExplorerTree(requests, settings.requestFolderPaths);
   const shouldShowNewFolderAtRoot =
     newFolder.isActive && !newFolder.parentPath && Boolean(activeWorkspaceId);
+  const renameRequestPathPreview = renameRequest.isActive
+    ? normalizeRequestPath(
+        renameRequest.folderPath
+          ? `${renameRequest.folderPath}/${renameRequest.name}`
+          : renameRequest.name
+      )
+    : '';
 
   const activateWorkspace = async (workspaceId: string): Promise<void> => {
     const [latestWorkspaces, latestRequests, settings, history] = await Promise.all([
@@ -180,6 +201,69 @@ export const RequesterSidebar = (): React.JSX.Element => {
     });
     dispatch(setRequesterRequests(latestRequests));
     dispatch(setActiveRequesterRequest(undefined));
+  };
+
+  const startRenameRequest = (requestId: string): void => {
+    const request = requests.find((request) => request.id === requestId);
+    if (!request) return;
+    setRenameRequest({
+      isActive: true,
+      requestId,
+      name: request.name,
+      folderPath: requestFolderFromPath(request.requestPath) ?? ''
+    });
+  };
+
+  const cancelRenameRequest = (): void => {
+    setRenameRequest(emptyRenameRequest);
+  };
+
+  const confirmRenameRequest = async (): Promise<void> => {
+    if (!activeWorkspaceId || !renameRequest.requestId) return;
+    const name = renameRequest.name.trim();
+    if (!name || /[\\/]/.test(name)) {
+      cancelRenameRequest();
+      return;
+    }
+    const folderPath = normalizeRequestFolderPath(renameRequest.folderPath) ?? '';
+    const detail = await requesterTnetApi.requester.requests.get({
+      requestId: renameRequest.requestId
+    });
+    if (!detail) {
+      cancelRenameRequest();
+      return;
+    }
+    const saved = await requesterTnetApi.requester.requests.save({
+      ...detail,
+      name,
+      requestPath: normalizeRequestPath(folderPath ? `${folderPath}/${name}` : name)
+    });
+    const latestRequests = await requesterTnetApi.requester.requests.list({
+      workspaceId: activeWorkspaceId
+    });
+    const nextSettings = folderPath
+      ? {
+          ...settings,
+          expandedRequestPaths: settings.expandedRequestPaths.includes(folderPath)
+            ? settings.expandedRequestPaths
+            : [...settings.expandedRequestPaths, folderPath],
+          requestFolderPaths: settings.requestFolderPaths.includes(folderPath)
+            ? settings.requestFolderPaths
+            : [...settings.requestFolderPaths, folderPath]
+        }
+      : settings;
+
+    if (nextSettings !== settings) {
+      dispatch(setRequesterSettings(nextSettings));
+      await requesterTnetApi.requester.workspaces.saveSettings({
+        workspaceId: activeWorkspaceId,
+        settings: nextSettings
+      });
+    }
+    dispatch(setRequesterRequests(latestRequests));
+    dispatch(setActiveRequesterFolder(requestFolderFromPath(saved.requestPath)));
+    if (activeRequestId === saved.id) dispatch(setActiveRequesterRequest(saved));
+    cancelRenameRequest();
   };
 
   const selectFolder = (folderPath: string): void => {
@@ -323,6 +407,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
             }
             onSelectFolder={selectFolder}
             onSelectRequest={(requestId) => runAction(() => selectRequest(requestId))}
+            onStartRenameRequest={startRenameRequest}
             onToggleFolder={(folderPath) => runAction(() => toggleFolder(folderPath))}
           />
         </ul>
@@ -332,6 +417,60 @@ export const RequesterSidebar = (): React.JSX.Element => {
           <p className="empty-list-message">No requests yet.</p>
         ) : null}
       </div>
+      {renameRequest.isActive ? (
+        <div className="modal-overlay" onMouseDown={cancelRenameRequest}>
+          <section
+            className="modal-content requester-rename-dialog"
+            aria-label="Rename or move request"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h2>Rename Request</h2>
+            <label className="form-item" htmlFor="requester-rename-name">
+              <span>Request name</span>
+              <input
+                id="requester-rename-name"
+                value={renameRequest.name}
+                onChange={(event) =>
+                  setRenameRequest((current) => ({
+                    ...current,
+                    name: event.target.value
+                  }))
+                }
+              />
+            </label>
+            <label className="form-item" htmlFor="requester-rename-folder">
+              <span>Folder path</span>
+              <input
+                id="requester-rename-folder"
+                placeholder="users/admin"
+                value={renameRequest.folderPath}
+                onChange={(event) =>
+                  setRenameRequest((current) => ({
+                    ...current,
+                    folderPath: event.target.value
+                  }))
+                }
+              />
+            </label>
+            <div className="requester-path-preview" aria-label="Request path preview">
+              <span>Request path</span>
+              <strong>{renameRequestPathPreview}</strong>
+            </div>
+            <footer className="modal-actions">
+              <button type="button" className="settings-close-button" onClick={cancelRenameRequest}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="open-folder-button"
+                onClick={() => runAction(confirmRenameRequest)}
+              >
+                Save
+              </button>
+            </footer>
+          </section>
+        </div>
+      ) : null}
     </aside>
   );
 };

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { RequesterHistoryStore } from './requestExecutionService';
+import type { RequesterCookieStore, RequesterHistoryStore } from './requestExecutionService';
 import { RequestExecutionService } from './requestExecutionService';
 
 const createResponse = (body: string, init: ResponseInit): Response => new Response(body, init);
@@ -105,5 +105,70 @@ describe('RequestExecutionService', () => {
         signal: expect.any(AbortSignal)
       })
     );
+  });
+
+  it('uses the workspace cookie jar when enabled and stores response cookies', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-1')
+    };
+    const cookieStore: RequesterCookieStore = {
+      getCookieHeader: vi.fn().mockReturnValue('session=abc'),
+      saveFromResponse: vi.fn()
+    };
+    const transport = {
+      fetch: vi.fn().mockResolvedValue(
+        createResponse('ok', {
+          status: 200,
+          headers: {
+            'set-cookie': 'theme=dark; Path=/'
+          }
+        })
+      )
+    };
+    const service = new RequestExecutionService(historyStore, transport, 30000, cookieStore);
+
+    await service.send({
+      workspaceId: 'workspace-1',
+      name: 'Cookie',
+      method: 'GET',
+      url: 'https://example.test/api',
+      cookieJarEnabled: true
+    });
+
+    const [url, init] = transport.fetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://example.test/api');
+    expect((init.headers as Headers).get('Cookie')).toBe('session=abc');
+    expect(cookieStore.saveFromResponse).toHaveBeenCalledWith(
+      'workspace-1',
+      'https://example.test/api',
+      expect.any(Headers)
+    );
+  });
+
+  it('does not override an explicit Cookie header with the workspace cookie jar', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-1')
+    };
+    const cookieStore: RequesterCookieStore = {
+      getCookieHeader: vi.fn().mockReturnValue('session=abc'),
+      saveFromResponse: vi.fn()
+    };
+    const transport = {
+      fetch: vi.fn().mockResolvedValue(createResponse('ok', { status: 200 }))
+    };
+    const service = new RequestExecutionService(historyStore, transport, 30000, cookieStore);
+
+    await service.send({
+      workspaceId: 'workspace-1',
+      name: 'Cookie',
+      method: 'GET',
+      url: 'https://example.test/api',
+      headers: [{ id: 'cookie', enabled: true, key: 'Cookie', value: 'manual=yes' }],
+      cookieJarEnabled: true
+    });
+
+    const [, init] = transport.fetch.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Headers).get('Cookie')).toBe('manual=yes');
+    expect(cookieStore.getCookieHeader).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,7 @@ interface RequesterRequestTreeProps {
   onNewFolderNameChange: (name: string) => void;
   onSelectFolder: (folderPath: string) => void;
   onSelectRequest: (requestId: string) => void;
+  onStartRenameRequest: (requestId: string) => void;
   onToggleFolder: (folderPath: string) => void;
 }
 
@@ -29,6 +30,7 @@ const RequesterRequestTreeItem = ({
   node,
   onSelectFolder,
   onSelectRequest,
+  onStartRenameRequest,
   onToggleFolder,
   ...itemProps
 }: RequesterRequestTreeItemProps): React.JSX.Element => {
@@ -85,6 +87,20 @@ const RequesterRequestTreeItem = ({
         <p className={`file-item-name ${node.isDirectory ? '' : 'file-item-not-directory'}`}>
           {node.name}
         </p>
+        {!node.isDirectory && node.requestId ? (
+          <button
+            type="button"
+            className="sidebar-icon-button material-icons-round requester-tree-action"
+            aria-label={`Rename ${node.name}`}
+            title="Rename or move request"
+            onClick={(event) => {
+              event.stopPropagation();
+              onStartRenameRequest(node.requestId ?? '');
+            }}
+          >
+            edit
+          </button>
+        ) : null}
       </div>
       {node.isDirectory && node.children && isExpanded ? (
         <ul className="file-item-children">
@@ -125,6 +141,7 @@ const RequesterRequestTreeItem = ({
               node={child}
               onSelectFolder={onSelectFolder}
               onSelectRequest={onSelectRequest}
+              onStartRenameRequest={onStartRenameRequest}
               onToggleFolder={onToggleFolder}
               {...itemProps}
             />
