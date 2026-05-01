@@ -56,8 +56,8 @@ export const JsonTextEditor = ({
             },
             '.cm-content': {
               minHeight: `${minHeight}px`,
-              fontFamily: 'monospace',
-              fontSize: '13px',
+              fontFamily: 'var(--requester-code-font-family, monospace)',
+              fontSize: 'var(--requester-code-font-size, 13px)',
               lineHeight: '1.5',
               padding: '10px'
             },

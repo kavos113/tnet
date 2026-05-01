@@ -63,16 +63,26 @@ export class HistoryRepository implements RequesterHistoryStore {
     return id;
   }
 
-  list(workspaceId: string): RequesterHistoryEntry[] {
-    const rows = this.database
-      .prepare(
-        `SELECT id, workspace_id, request_id, started_at, duration_ms, status,
-                request_snapshot_json, response_snapshot_json
-         FROM history_entries
-         WHERE workspace_id = ?
-         ORDER BY started_at DESC`
-      )
-      .all(workspaceId) as HistoryRow[];
+  list(workspaceId: string, requestId?: string): RequesterHistoryEntry[] {
+    const rows = requestId
+      ? (this.database
+          .prepare(
+            `SELECT id, workspace_id, request_id, started_at, duration_ms, status,
+                    request_snapshot_json, response_snapshot_json
+             FROM history_entries
+             WHERE workspace_id = ? AND request_id = ?
+             ORDER BY started_at DESC`
+          )
+          .all(workspaceId, requestId) as HistoryRow[])
+      : (this.database
+          .prepare(
+            `SELECT id, workspace_id, request_id, started_at, duration_ms, status,
+                    request_snapshot_json, response_snapshot_json
+             FROM history_entries
+             WHERE workspace_id = ?
+             ORDER BY started_at DESC`
+          )
+          .all(workspaceId) as HistoryRow[]);
     return rows.map(toEntry);
   }
 

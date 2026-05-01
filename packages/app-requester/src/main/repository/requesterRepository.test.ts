@@ -125,12 +125,19 @@ describe('Requester repositories', () => {
   });
 
   it('stores request execution history', async () => {
-    const { database, historyRepository, workspaceRepository } =
+    const { database, historyRepository, requestRepository, workspaceRepository } =
       await createRepositories('history');
     const workspace = workspaceRepository.create('Local Dev');
+    const savedRequest = requestRepository.save({
+      workspaceId: workspace.id,
+      name: 'Health',
+      method: 'GET',
+      url: 'https://example.test/health'
+    });
     const historyId = historyRepository.saveExecution({
       startedAt: '2026-05-01T00:00:00.000Z',
       request: {
+        id: savedRequest.id,
         workspaceId: workspace.id,
         name: 'Health',
         method: 'GET',
@@ -154,7 +161,7 @@ describe('Requester repositories', () => {
       {
         id: historyId,
         workspaceId: workspace.id,
-        requestId: undefined,
+        requestId: savedRequest.id,
         requestName: 'Health',
         method: 'GET',
         url: 'https://example.test/health',
@@ -163,6 +170,13 @@ describe('Requester repositories', () => {
         status: 200
       }
     ]);
+    expect(historyRepository.list(workspace.id, savedRequest.id)).toEqual([
+      expect.objectContaining({
+        id: historyId,
+        requestId: savedRequest.id
+      })
+    ]);
+    expect(historyRepository.list(workspace.id, 'other-request')).toEqual([]);
     expect(historyRepository.get(historyId ?? '')?.responseSnapshot.bodyText).toBe('{"ok":true}');
     historyRepository.clear(workspace.id);
     expect(historyRepository.list(workspace.id)).toEqual([]);

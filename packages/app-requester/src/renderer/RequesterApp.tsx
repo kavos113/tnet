@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type {
   RequesterBodyMode,
   RequesterHttpMethod,
@@ -113,8 +113,11 @@ export const RequesterApp = (): React.JSX.Element => {
   const [authApiKeyName, setAuthApiKeyName] = useState('');
   const [authApiKeyValue, setAuthApiKeyValue] = useState('');
   const [graphqlSchemaTypes, setGraphqlSchemaTypes] = useState<GraphqlSchemaTypeSummary[]>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string>();
+  const nameAutosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
+    if (nameAutosaveTimeoutRef.current) clearTimeout(nameAutosaveTimeoutRef.current);
     setName(activeRequest?.name ?? '');
     setMethod(activeRequest?.method ?? 'GET');
     setUrl(activeRequest?.url ?? '');
@@ -132,15 +135,49 @@ export const RequesterApp = (): React.JSX.Element => {
     setAuthApiKeyName(activeRequest?.authApiKeyName ?? '');
     setAuthApiKeyValue(activeRequest?.authApiKeyValue ?? '');
     setGraphqlSchemaTypes([]);
+    setSelectedHistoryId(undefined);
   }, [activeRequest]);
 
-  const buildRequestInput = (): SaveRequesterRequestInput | undefined => {
+  useEffect(
+    () => () => {
+      if (nameAutosaveTimeoutRef.current) clearTimeout(nameAutosaveTimeoutRef.current);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!activeWorkspaceId || !activeRequest?.id) {
+      dispatch(setRequesterHistory([]));
+      return;
+    }
+
+    let canceled = false;
+
+    requesterTnetApi.requester.history
+      .list({
+        workspaceId: activeWorkspaceId,
+        requestId: activeRequest.id
+      })
+      .then((history) => {
+        if (!canceled) dispatch(setRequesterHistory(history));
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load request history', error);
+        if (!canceled) dispatch(setRequesterError('Failed to load request history.'));
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [activeRequest?.id, activeWorkspaceId, dispatch]);
+
+  const buildRequestInput = (nameOverride?: string): SaveRequesterRequestInput | undefined => {
     if (!activeWorkspaceId) return undefined;
 
     return {
       id: activeRequest?.id,
       workspaceId: activeWorkspaceId,
-      name: name.trim() || 'Untitled Request',
+      name: (nameOverride ?? name).trim() || 'Untitled Request',
       method,
       url,
       bodyMode,
@@ -159,8 +196,10 @@ export const RequesterApp = (): React.JSX.Element => {
     };
   };
 
-  const saveRequest = async (): Promise<RequesterRequestDetail | undefined> => {
-    const requestInput = buildRequestInput();
+  const saveRequest = async (
+    nameOverride?: string
+  ): Promise<RequesterRequestDetail | undefined> => {
+    const requestInput = buildRequestInput(nameOverride);
     if (!requestInput) return undefined;
 
     const saved = await requesterTnetApi.requester.requests.save(requestInput);
@@ -180,6 +219,17 @@ export const RequesterApp = (): React.JSX.Element => {
     });
   };
 
+  const scheduleNameAutosave = (nextName: string): void => {
+    setName(nextName);
+    if (nameAutosaveTimeoutRef.current) clearTimeout(nameAutosaveTimeoutRef.current);
+    nameAutosaveTimeoutRef.current = setTimeout(() => {
+      saveRequest(nextName).catch((error: unknown) => {
+        console.error('Failed to autosave request name', error);
+        dispatch(setRequesterError('Failed to autosave request name.'));
+      });
+    }, 600);
+  };
+
   const sendRequest = async (): Promise<void> => {
     const requestInput = buildRequestInput();
     if (!requestInput) return;
@@ -192,10 +242,12 @@ export const RequesterApp = (): React.JSX.Element => {
       followRedirects: settings.followRedirects
     });
     const history = await requesterTnetApi.requester.history.list({
-      workspaceId: requestInput.workspaceId
+      workspaceId: requestInput.workspaceId,
+      requestId: saved?.id ?? requestInput.id
     });
     dispatch(setRequesterResponse(result.response));
     dispatch(setRequesterHistory(history));
+    setSelectedHistoryId(result.historyId);
   };
 
   const runSend = (): void => {
@@ -249,6 +301,27 @@ export const RequesterApp = (): React.JSX.Element => {
         dispatch(setRequesterError('Failed to open response.'));
       });
   };
+
+  const showHistoryResponse = (historyId: string): void => {
+    requesterTnetApi.requester.history
+      .get({ historyId })
+      .then((detail) => {
+        if (!detail) return;
+        setSelectedHistoryId(historyId);
+        dispatch(setRequesterResponse(detail.responseSnapshot));
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load history response', error);
+        dispatch(setRequesterError('Failed to load history response.'));
+      });
+  };
+
+  const requesterStyle = {
+    '--requester-code-font-family': settings.codeFontFamily,
+    '--requester-code-font-size': `${settings.codeFontSize}px`,
+    '--requester-app-font-family': settings.appFontFamily,
+    '--requester-app-font-size': `${settings.appFontSize}px`
+  } as CSSProperties;
 
   const introspectGraphql = (): void => {
     if (!activeWorkspaceId || !url.trim()) return;
@@ -378,14 +451,14 @@ export const RequesterApp = (): React.JSX.Element => {
   }
 
   return (
-    <main className="requester-app" aria-label="Requester">
+    <main className="requester-app" aria-label="Requester" style={requesterStyle}>
       <section className="requester-editor" aria-label="API request editor">
         <header className="requester-editor-header">
           <input
             className="requester-name-input"
             aria-label="Request name"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => scheduleNameAutosave(event.target.value)}
           />
           <button type="button" className="open-folder-button" onClick={runSave}>
             Save
@@ -582,6 +655,35 @@ export const RequesterApp = (): React.JSX.Element => {
             {activeResponse.isBodyTruncated ? (
               <p className="requester-error">Response body preview was truncated at 1 MB.</p>
             ) : null}
+            <section className="requester-response-detail" aria-label="Response details">
+              <div>
+                <span>Content-Type</span>
+                <strong>{activeResponse.contentType || '-'}</strong>
+              </div>
+              <div>
+                <span>Preview</span>
+                <strong>{activeResponse.previewType}</strong>
+              </div>
+              <div>
+                <span>Truncated</span>
+                <strong>{activeResponse.isBodyTruncated ? 'yes' : 'no'}</strong>
+              </div>
+            </section>
+            <section className="requester-response-headers" aria-label="Response headers">
+              <h3>Headers</h3>
+              {activeResponse.headers.length > 0 ? (
+                <div className="requester-response-header-grid">
+                  {activeResponse.headers.map((header) => (
+                    <div className="requester-response-header-row" key={header.id}>
+                      <span>{header.key}</span>
+                      <span>{header.value}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>No headers.</p>
+              )}
+            </section>
             {activeResponse.previewType === 'image' ? (
               <img
                 className="requester-response-image"
@@ -604,12 +706,19 @@ export const RequesterApp = (): React.JSX.Element => {
         <section className="requester-history-list" aria-label="Request history">
           <h3>History</h3>
           {history.slice(0, 5).map((entry) => (
-            <div className="requester-history-row" key={entry.id}>
+            <button
+              type="button"
+              className={`requester-history-row ${
+                entry.id === selectedHistoryId ? 'requester-history-row-selected' : ''
+              }`}
+              key={entry.id}
+              onClick={() => showHistoryResponse(entry.id)}
+            >
               <span>{entry.method}</span>
               <span>{entry.status ?? '-'}</span>
               <span>{entry.requestName}</span>
               <time>{new Date(entry.startedAt).toLocaleTimeString()}</time>
-            </div>
+            </button>
           ))}
           {history.length === 0 ? <p>No history yet.</p> : null}
         </section>

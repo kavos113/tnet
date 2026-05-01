@@ -70,6 +70,18 @@ describe('RequesterSettingsDialog', () => {
     });
     fireEvent.click(screen.getByLabelText('Follow redirects'));
     fireEvent.click(screen.getByLabelText('Validate TLS certificates'));
+    fireEvent.change(screen.getByLabelText('Code font family'), {
+      target: { value: 'Code Font' }
+    });
+    fireEvent.change(screen.getByLabelText('Code font size (px)'), {
+      target: { value: '15' }
+    });
+    fireEvent.change(screen.getByLabelText('App font family'), {
+      target: { value: 'UI Font' }
+    });
+    fireEvent.change(screen.getByLabelText('App font size (px)'), {
+      target: { value: '14' }
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Save Settings' }));
 
     await waitFor(() =>
@@ -78,7 +90,11 @@ describe('RequesterSettingsDialog', () => {
         settings: expect.objectContaining({
           requestTimeoutMs: 12000,
           followRedirects: false,
-          validateTlsCertificates: false
+          validateTlsCertificates: false,
+          codeFontFamily: 'Code Font',
+          codeFontSize: 15,
+          appFontFamily: 'UI Font',
+          appFontSize: 14
         })
       })
     );
@@ -86,7 +102,11 @@ describe('RequesterSettingsDialog', () => {
       expect.objectContaining({
         requestTimeoutMs: 12000,
         followRedirects: false,
-        validateTlsCertificates: false
+        validateTlsCertificates: false,
+        codeFontFamily: 'Code Font',
+        codeFontSize: 15,
+        appFontFamily: 'UI Font',
+        appFontSize: 14
       })
     );
     expect(onClose).toHaveBeenCalledOnce();

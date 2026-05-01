@@ -159,6 +159,65 @@ export const RequesterSettingsDialog = ({
                 />
               </label>
             </div>
+            <div className="settings-group">
+              <h3>Fonts</h3>
+              <label className="form-item" htmlFor="requester-code-font-family">
+                <span>Code font family</span>
+                <input
+                  id="requester-code-font-family"
+                  value={draft.codeFontFamily}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      codeFontFamily: event.target.value
+                    })
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="requester-code-font-size">
+                <span>Code font size (px)</span>
+                <input
+                  id="requester-code-font-size"
+                  type="number"
+                  min={1}
+                  value={draft.codeFontSize}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      codeFontSize: Number(event.target.value)
+                    })
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="requester-app-font-family">
+                <span>App font family</span>
+                <input
+                  id="requester-app-font-family"
+                  value={draft.appFontFamily}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      appFontFamily: event.target.value
+                    })
+                  }
+                />
+              </label>
+              <label className="form-item" htmlFor="requester-app-font-size">
+                <span>App font size (px)</span>
+                <input
+                  id="requester-app-font-size"
+                  type="number"
+                  min={1}
+                  value={draft.appFontSize}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      appFontSize: Number(event.target.value)
+                    })
+                  }
+                />
+              </label>
+            </div>
             <footer className="modal-actions">
               <button type="button" className="settings-close-button" onClick={onClose}>
                 Cancel

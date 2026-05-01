@@ -99,7 +99,10 @@ export interface RequesterApi {
       abort: (request: { executionId: string }) => Promise<void>;
     };
     history: {
-      list: (request: { workspaceId: string }) => Promise<RequesterHistoryEntry[]>;
+      list: (request: {
+        workspaceId: string;
+        requestId?: string;
+      }) => Promise<RequesterHistoryEntry[]>;
       get: (request: { historyId: string }) => Promise<RequesterHistoryDetail | null>;
       remove: (request: { historyId: string }) => Promise<void>;
       clear: (request: { workspaceId: string }) => Promise<void>;

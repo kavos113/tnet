@@ -14,6 +14,10 @@ export interface RequesterWorkspaceSettings {
   requestTimeoutMs: number;
   followRedirects: boolean;
   validateTlsCertificates: boolean;
+  codeFontFamily: string;
+  codeFontSize: number;
+  appFontFamily: string;
+  appFontSize: number;
   defaultVariableSetId?: string;
 }
 
@@ -26,7 +30,11 @@ export const defaultRequesterWorkspaceSettings = (): RequesterWorkspaceSettings 
   maxBinaryResponseBytes: 10 * 1024 * 1024,
   requestTimeoutMs: 30000,
   followRedirects: true,
-  validateTlsCertificates: true
+  validateTlsCertificates: true,
+  codeFontFamily: 'monospace',
+  codeFontSize: 13,
+  appFontFamily: 'sans-serif',
+  appFontSize: 13
 });
 
 export const getRequesterGlobalConfig = (config: GlobalConfig): RequesterGlobalConfig => ({
@@ -68,6 +76,14 @@ export const normalizeRequesterWorkspaceSettings = (
     requestTimeoutMs:
       settings.requestTimeoutMs && settings.requestTimeoutMs > 0
         ? settings.requestTimeoutMs
-        : defaults.requestTimeoutMs
+        : defaults.requestTimeoutMs,
+    codeFontFamily: settings.codeFontFamily || defaults.codeFontFamily,
+    codeFontSize:
+      settings.codeFontSize && settings.codeFontSize > 0
+        ? settings.codeFontSize
+        : defaults.codeFontSize,
+    appFontFamily: settings.appFontFamily || defaults.appFontFamily,
+    appFontSize:
+      settings.appFontSize && settings.appFontSize > 0 ? settings.appFontSize : defaults.appFontSize
   };
 };

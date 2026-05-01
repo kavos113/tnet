@@ -102,7 +102,7 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
   );
   ipcMain.handle(requesterIpcChannels.execution.abort, async () => undefined);
   ipcMain.handle(requesterIpcChannels.history.list, async (_event, request) =>
-    historyRepository.list(request.workspaceId)
+    historyRepository.list(request.workspaceId, request.requestId)
   );
   ipcMain.handle(requesterIpcChannels.history.get, async (_event, request) =>
     historyRepository.get(request.historyId)
