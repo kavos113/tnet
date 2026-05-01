@@ -4,6 +4,5 @@ node_modules
 .pnpm-store
 dist
 out
-.eslintcache
 *.tsbuildinfo
 docs
