@@ -8,6 +8,7 @@ import type {
 import { extractVariablesFromResponse } from '../extraction/responseExtraction';
 import { serializeRequesterRequest } from '../http/requestSerializer';
 import { parseRequesterResponse } from '../http/responseParser';
+import { buildRequesterNetworkOptions } from './networkOptions';
 import { redactRequesterRequest } from './redaction';
 
 export interface RequesterTransport {
@@ -56,7 +57,7 @@ export class RequestExecutionService {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), request.timeoutMs ?? this.timeoutMs);
     let response: Response;
-    const networkOptions = this.buildNetworkOptions(request);
+    const networkOptions = buildRequesterNetworkOptions(request);
     try {
       response = await this.transport.fetch(
         serialized.url,
@@ -101,26 +102,6 @@ export class RequestExecutionService {
     );
     if (extracted.length === 0) return;
     this.variableStore.upsertVariables(request.variableSetId, extracted);
-  }
-
-  private buildNetworkOptions(request: SaveRequesterRequestInput): RequesterNetworkOptions {
-    return {
-      validateTlsCertificates: request.validateTlsCertificates !== false,
-      proxy: {
-        mode: request.proxyMode ?? 'system',
-        host: request.proxyHost || undefined,
-        port: request.proxyPort && request.proxyPort > 0 ? request.proxyPort : undefined,
-        username: request.proxyUsername || undefined,
-        passwordSecretId: request.proxyPasswordSecretId || undefined
-      },
-      tls: {
-        clientCertificatePath: request.clientCertificatePath || undefined,
-        clientCertificateKeyPath: request.clientCertificateKeyPath || undefined,
-        clientCertificatePassphraseSecretId:
-          request.clientCertificatePassphraseSecretId || undefined,
-        customCaCertificatePath: request.customCaCertificatePath || undefined
-      }
-    };
   }
 
   private async withCookieHeader(

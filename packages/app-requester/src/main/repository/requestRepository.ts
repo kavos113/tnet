@@ -65,6 +65,26 @@ const parseRequestJson = (json: string): Required<RequestJson> => ({
   ...(JSON.parse(json) as RequestJson)
 });
 
+const requestJsonFromInput = (
+  input: SaveRequesterRequestInput,
+  existing: RequesterRequestDetail | undefined
+): Required<RequestJson> => ({
+  headers: input.headers ?? existing?.headers ?? [],
+  queryParams: input.queryParams ?? existing?.queryParams ?? [],
+  bodyMode: input.bodyMode ?? existing?.bodyMode ?? 'none',
+  bodyText: input.bodyText ?? existing?.bodyText ?? '',
+  binaryFilePath: input.binaryFilePath ?? existing?.binaryFilePath ?? '',
+  graphqlVariablesText: input.graphqlVariablesText ?? existing?.graphqlVariablesText ?? '',
+  graphqlOperationName: input.graphqlOperationName ?? existing?.graphqlOperationName ?? '',
+  authType: input.authType ?? existing?.authType ?? 'none',
+  authUsername: input.authUsername ?? existing?.authUsername ?? '',
+  authPassword: input.authPassword ?? existing?.authPassword ?? '',
+  authToken: input.authToken ?? existing?.authToken ?? '',
+  authApiKeyName: input.authApiKeyName ?? existing?.authApiKeyName ?? '',
+  authApiKeyValue: input.authApiKeyValue ?? existing?.authApiKeyValue ?? '',
+  extractionRules: input.extractionRules ?? existing?.extractionRules ?? []
+});
+
 const toSummary = (row: RequestRow): RequesterRequestSummary => ({
   id: row.id,
   workspaceId: row.workspace_id,
@@ -183,22 +203,7 @@ export class RequestRepository {
         sortOrder,
         method: input.method,
         url: input.url,
-        requestJson: JSON.stringify({
-          headers: input.headers ?? [],
-          queryParams: input.queryParams ?? [],
-          bodyMode: input.bodyMode ?? 'none',
-          bodyText: input.bodyText ?? '',
-          binaryFilePath: input.binaryFilePath ?? '',
-          graphqlVariablesText: input.graphqlVariablesText ?? '',
-          graphqlOperationName: input.graphqlOperationName ?? '',
-          authType: input.authType ?? 'none',
-          authUsername: input.authUsername ?? '',
-          authPassword: input.authPassword ?? '',
-          authToken: input.authToken ?? '',
-          authApiKeyName: input.authApiKeyName ?? '',
-          authApiKeyValue: input.authApiKeyValue ?? '',
-          extractionRules: input.extractionRules ?? []
-        }),
+        requestJson: JSON.stringify(requestJsonFromInput(input, undefined)),
         createdAt: now,
         updatedAt: now
       });
@@ -231,22 +236,7 @@ export class RequestRepository {
         requestPath,
         method: input.method,
         url: input.url,
-        requestJson: JSON.stringify({
-          headers: input.headers ?? existing.headers,
-          queryParams: input.queryParams ?? existing.queryParams,
-          bodyMode: input.bodyMode ?? existing.bodyMode,
-          bodyText: input.bodyText ?? existing.bodyText,
-          binaryFilePath: input.binaryFilePath ?? existing.binaryFilePath,
-          graphqlVariablesText: input.graphqlVariablesText ?? existing.graphqlVariablesText,
-          graphqlOperationName: input.graphqlOperationName ?? existing.graphqlOperationName,
-          authType: input.authType ?? existing.authType,
-          authUsername: input.authUsername ?? existing.authUsername,
-          authPassword: input.authPassword ?? existing.authPassword,
-          authToken: input.authToken ?? existing.authToken,
-          authApiKeyName: input.authApiKeyName ?? existing.authApiKeyName,
-          authApiKeyValue: input.authApiKeyValue ?? existing.authApiKeyValue,
-          extractionRules: input.extractionRules ?? existing.extractionRules
-        }),
+        requestJson: JSON.stringify(requestJsonFromInput(input, existing)),
         updatedAt: new Date().toISOString()
       });
     const updated = this.get(input.id);

@@ -16,9 +16,9 @@ import {
 } from '@tnet/app-requester/shared/requestPath';
 import { requesterTnetApi } from './requesterTnetApi';
 import { RequesterRequestTree } from './RequesterRequestTree';
+import { RequesterRenameDialog } from './sidebar/RequesterRenameDialog';
+import { RequesterWorkspaceSwitcher } from './sidebar/RequesterWorkspaceSwitcher';
 import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
-
-const workspaceInitial = (name: string): string => (name.trim()[0] ?? '?').toUpperCase();
 
 interface NewFolderState {
   isActive: boolean;
@@ -317,32 +317,12 @@ export const RequesterSidebar = (): React.JSX.Element => {
 
   return (
     <aside className="explorer-panel" aria-label="Requester workspace">
-      <nav className="workspace-switcher" aria-label="Requester workspaces">
-        {workspaces.map((workspace) => (
-          <button
-            key={workspace.id}
-            type="button"
-            className={`workspace-switcher-item ${
-              workspace.id === activeWorkspaceId ? 'workspace-switcher-item-active' : ''
-            }`}
-            title={workspace.name}
-            aria-label={`Switch to ${workspace.name}`}
-            aria-current={workspace.id === activeWorkspaceId ? 'page' : undefined}
-            onClick={() => runAction(() => activateWorkspace(workspace.id))}
-          >
-            {workspaceInitial(workspace.name)}
-          </button>
-        ))}
-        <button
-          type="button"
-          className="workspace-switcher-add material-icons-round"
-          aria-label="Create requester workspace"
-          title="Create requester workspace"
-          onClick={() => runAction(createWorkspace)}
-        >
-          add
-        </button>
-      </nav>
+      <RequesterWorkspaceSwitcher
+        workspaces={workspaces}
+        activeWorkspaceId={activeWorkspaceId}
+        onActivateWorkspace={(workspaceId) => runAction(() => activateWorkspace(workspaceId))}
+        onCreateWorkspace={() => runAction(createWorkspace)}
+      />
       <div className="explorer-content">
         <header className="sidebar-header">
           <span className="sidebar-title">Requests</span>
@@ -418,58 +398,25 @@ export const RequesterSidebar = (): React.JSX.Element => {
         ) : null}
       </div>
       {renameRequest.isActive ? (
-        <div className="modal-overlay" onMouseDown={cancelRenameRequest}>
-          <section
-            className="modal-content requester-rename-dialog"
-            aria-label="Rename or move request"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <h2>Rename Request</h2>
-            <label className="form-item" htmlFor="requester-rename-name">
-              <span>Request name</span>
-              <input
-                id="requester-rename-name"
-                value={renameRequest.name}
-                onChange={(event) =>
-                  setRenameRequest((current) => ({
-                    ...current,
-                    name: event.target.value
-                  }))
-                }
-              />
-            </label>
-            <label className="form-item" htmlFor="requester-rename-folder">
-              <span>Folder path</span>
-              <input
-                id="requester-rename-folder"
-                placeholder="users/admin"
-                value={renameRequest.folderPath}
-                onChange={(event) =>
-                  setRenameRequest((current) => ({
-                    ...current,
-                    folderPath: event.target.value
-                  }))
-                }
-              />
-            </label>
-            <div className="requester-path-preview" aria-label="Request path preview">
-              <span>Request path</span>
-              <strong>{renameRequestPathPreview}</strong>
-            </div>
-            <footer className="modal-actions">
-              <button type="button" className="settings-close-button" onClick={cancelRenameRequest}>
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="open-folder-button"
-                onClick={() => runAction(confirmRenameRequest)}
-              >
-                Save
-              </button>
-            </footer>
-          </section>
-        </div>
+        <RequesterRenameDialog
+          name={renameRequest.name}
+          folderPath={renameRequest.folderPath}
+          pathPreview={renameRequestPathPreview}
+          onNameChange={(name) =>
+            setRenameRequest((current) => ({
+              ...current,
+              name
+            }))
+          }
+          onFolderPathChange={(folderPath) =>
+            setRenameRequest((current) => ({
+              ...current,
+              folderPath
+            }))
+          }
+          onCancel={cancelRenameRequest}
+          onSave={() => runAction(confirmRenameRequest)}
+        />
       ) : null}
     </aside>
   );
