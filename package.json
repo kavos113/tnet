@@ -1,6 +1,6 @@
 {
   "name": "tnet-workspace",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "private": true,
   "description": "Workspace for the tnet Electron app and packages",
   "scripts": {
