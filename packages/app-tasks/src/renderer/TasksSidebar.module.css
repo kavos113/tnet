@@ -1,0 +1,107 @@
+.panel {
+  display: flex;
+  flex: 0 0 250px;
+  width: 250px;
+  overflow: hidden;
+  background: var(--background-dark);
+  border-right: 1px solid var(--gray);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.title {
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.summary {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.summaryValue {
+  color: var(--foreground);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.summaryLabel {
+  color: var(--foreground-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.section {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+}
+
+.sectionTitle {
+  padding: 0 12px;
+  color: var(--foreground-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.filterButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 12px;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.filterButton:hover {
+  background: var(--gray);
+}
+
+.filterButtonActive,
+.filterButtonActive:hover {
+  background: var(--main-light);
+}
+
+.filterName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterCount {
+  flex: 0 0 auto;
+  color: var(--foreground-muted);
+  font-size: 11px;
+}
+
+.emptyMessage {
+  margin: 10px 12px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+}

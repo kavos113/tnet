@@ -5,8 +5,14 @@ import { markdownIpcChannels, type MarkdownApi } from '@tnet/app-markdown/shared
 import { papersIpcChannels, type PapersApi } from '@tnet/app-papers/shared/ipc';
 import { requesterIpcChannels, type RequesterApi } from '@tnet/app-requester/shared/ipc';
 import { dbInspectorIpcChannels, type DbInspectorApi } from '@tnet/app-db-inspector/shared/ipc';
+import { tasksIpcChannels, type TasksApi } from '@tnet/app-tasks/shared/ipc';
 
-export type DesktopTnetApi = TnetApi & MarkdownApi & PapersApi & RequesterApi & DbInspectorApi;
+export type DesktopTnetApi = TnetApi &
+  MarkdownApi &
+  PapersApi &
+  RequesterApi &
+  DbInspectorApi &
+  TasksApi;
 
 export const tnetApi: DesktopTnetApi = {
   workspace: {
@@ -26,6 +32,29 @@ export const tnetApi: DesktopTnetApi = {
   config: {
     loadGlobal: () => ipcRenderer.invoke(ipcChannels.config.loadGlobal),
     saveGlobal: (config) => ipcRenderer.invoke(ipcChannels.config.saveGlobal, config)
+  },
+  tasks: {
+    config: {
+      loadGlobal: () => ipcRenderer.invoke(tasksIpcChannels.config.loadGlobal),
+      saveGlobal: (config) => ipcRenderer.invoke(tasksIpcChannels.config.saveGlobal, config)
+    },
+    tasks: {
+      list: (request) => ipcRenderer.invoke(tasksIpcChannels.tasks.list, request),
+      save: (request) => ipcRenderer.invoke(tasksIpcChannels.tasks.save, request),
+      complete: (request) => ipcRenderer.invoke(tasksIpcChannels.tasks.complete, request),
+      remove: (request) => ipcRenderer.invoke(tasksIpcChannels.tasks.remove, request)
+    },
+    categories: {
+      list: () => ipcRenderer.invoke(tasksIpcChannels.categories.list)
+    },
+    calendarSources: {
+      list: () => ipcRenderer.invoke(tasksIpcChannels.calendarSources.list),
+      save: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarSources.save, request),
+      remove: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarSources.remove, request)
+    },
+    calendarOccurrences: {
+      list: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarOccurrences.list, request)
+    }
   },
   markdown: {
     config: {

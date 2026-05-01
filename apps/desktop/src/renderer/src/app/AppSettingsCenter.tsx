@@ -13,6 +13,7 @@ import {
   DbInspectorGlobalSettingsPage,
   DbInspectorWorkspaceSettingsPage
 } from '@tnet/app-db-inspector/renderer';
+import { TasksGlobalSettingsPage } from '@tnet/app-tasks/renderer';
 import { SettingsCenterDialog, type SettingsCenterPage } from '@tnet/ui/settings';
 import { useAppSelector } from './hooks';
 
@@ -35,6 +36,15 @@ export const AppSettingsCenter = ({
 
   const pages = useMemo<SettingsCenterPage[]>(
     () => [
+      {
+        id: 'tasks-global',
+        appId: 'tasks',
+        appLabel: 'Tasks',
+        appIcon: 'task_alt',
+        scopeLabel: 'Global',
+        title: 'Tasks Global',
+        content: <TasksGlobalSettingsPage onClose={onClose} />
+      },
       {
         id: 'markdown-global',
         appId: 'markdown',
@@ -148,10 +158,11 @@ export const AppSettingsCenter = ({
 
 const getInitialPageId = (appId: AppId, hasWorkspace: boolean): string => {
   if (appId === 'markdown') return hasWorkspace ? 'markdown-workspace' : 'markdown-global';
+  if (appId === 'tasks') return 'tasks-global';
   if (appId === 'papers') return hasWorkspace ? 'papers-workspace' : 'papers-global';
   if (appId === 'requester') return hasWorkspace ? 'requester-workspace' : 'requester-global';
   if (appId === 'db-inspector') {
     return hasWorkspace ? 'db-inspector-workspace' : 'db-inspector-global';
   }
-  return 'markdown-global';
+  return 'tasks-global';
 };

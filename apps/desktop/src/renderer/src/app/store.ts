@@ -4,9 +4,11 @@ import { editorReducer, explorerReducer, workspaceReducer } from '@tnet/app-mark
 import { papersContentReducer, papersLibraryReducer } from '@tnet/app-papers/renderer';
 import { requesterReducer } from '@tnet/app-requester/renderer';
 import { dbInspectorReducer } from '@tnet/app-db-inspector/renderer';
+import { tasksReducer } from '@tnet/app-tasks/renderer';
 
 export interface RootState {
   app: ReturnType<typeof appReducer>;
+  tasks: ReturnType<typeof tasksReducer>;
   workspace: ReturnType<typeof workspaceReducer>;
   explorer: ReturnType<typeof explorerReducer>;
   editor: ReturnType<typeof editorReducer>;
@@ -20,6 +22,7 @@ export const createAppStore = (): EnhancedStore<RootState> =>
   configureStore({
     reducer: {
       app: appReducer,
+      tasks: tasksReducer,
       workspace: workspaceReducer,
       explorer: explorerReducer,
       editor: editorReducer,

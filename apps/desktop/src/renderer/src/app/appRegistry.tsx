@@ -24,6 +24,12 @@ import {
   MarkdownSettingsDialog,
   MarkdownSidebar
 } from '@tnet/app-markdown/renderer';
+import {
+  TasksApp,
+  TasksRuntime,
+  TasksSettingsDialog,
+  TasksSidebar
+} from '@tnet/app-tasks/renderer';
 
 export interface AppModule {
   id: AppId;
@@ -36,6 +42,15 @@ export interface AppModule {
 }
 
 export const appRegistry: AppModule[] = [
+  {
+    id: 'tasks',
+    label: 'Tasks',
+    icon: 'task_alt',
+    Main: TasksApp,
+    Sidebar: TasksSidebar,
+    Runtime: TasksRuntime,
+    Settings: TasksSettingsDialog
+  },
   {
     id: 'markdown',
     label: 'Markdown',

@@ -295,6 +295,7 @@ describe('ExplorerPanel', () => {
             activeWorkspaceRoot: '/second',
             workspaceRoots: ['/workspace', '/second']
           },
+          tasks: {},
           papers: {},
           requester: {},
           'db-inspector': {},
@@ -347,6 +348,7 @@ describe('ExplorerPanel', () => {
             activeWorkspaceRoot: '/second',
             workspaceRoots: ['/workspace', '/second']
           },
+          tasks: {},
           papers: {},
           requester: {},
           'db-inspector': {},
@@ -418,6 +420,7 @@ describe('ExplorerPanel', () => {
             activeWorkspaceRoot: '/legacy',
             workspaceRoots: ['/workspace', '/legacy']
           },
+          tasks: {},
           papers: {},
           requester: {},
           'db-inspector': {},

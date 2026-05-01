@@ -29,6 +29,29 @@ describe('App', () => {
           loadGlobal: vi.fn().mockResolvedValue({}),
           saveGlobal: vi.fn().mockResolvedValue(undefined)
         },
+        tasks: {
+          config: {
+            loadGlobal: vi.fn().mockResolvedValue({}),
+            saveGlobal: vi.fn().mockResolvedValue(undefined)
+          },
+          tasks: {
+            list: vi.fn().mockResolvedValue([]),
+            save: vi.fn(),
+            complete: vi.fn(),
+            remove: vi.fn()
+          },
+          categories: {
+            list: vi.fn().mockResolvedValue([])
+          },
+          calendarSources: {
+            list: vi.fn().mockResolvedValue([]),
+            save: vi.fn(),
+            remove: vi.fn()
+          },
+          calendarOccurrences: {
+            list: vi.fn().mockResolvedValue([])
+          }
+        },
         markdown: {
           config: {
             loadProject: vi.fn(),
@@ -177,9 +200,9 @@ describe('App', () => {
       </Provider>
     );
 
-    expect(await screen.findByText('No folder selected')).toBeInTheDocument();
-    expect(screen.getByText('Open Folder')).toBeInTheDocument();
-    expect(screen.getByText('No file selected')).toBeInTheDocument();
+    expect(await screen.findByRole('main', { name: 'Tasks' })).toBeInTheDocument();
+    expect(await screen.findByLabelText('Task title')).toBeInTheDocument();
+    expect(screen.getByText('Open Tasks')).toBeInTheDocument();
   });
 
   it('switches between app modules from the app rail', async () => {

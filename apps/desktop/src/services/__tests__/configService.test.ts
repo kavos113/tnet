@@ -23,6 +23,7 @@ describe('config services', () => {
     await saveGlobalConfig(userDataDir, {
       activeAppId: 'markdown',
       apps: {
+        tasks: {},
         markdown: {
           lastOpenedDirectory: 'C:/workspace',
           activeWorkspaceRoot: 'C:/workspace',
@@ -34,6 +35,7 @@ describe('config services', () => {
     await expect(loadGlobalConfig(userDataDir)).resolves.toEqual({
       activeAppId: 'markdown',
       apps: {
+        tasks: {},
         markdown: {
           lastOpenedDirectory: 'C:/workspace',
           activeWorkspaceRoot: 'C:/workspace',

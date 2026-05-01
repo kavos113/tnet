@@ -8,6 +8,7 @@ export interface GlobalConfig {
 export const defaultGlobalConfig = (): GlobalConfig => ({
   activeAppId: defaultAppId,
   apps: {
+    tasks: {},
     markdown: {},
     papers: {},
     requester: {},
