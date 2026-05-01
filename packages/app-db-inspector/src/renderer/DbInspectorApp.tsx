@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { DatabaseTable } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
+import type {
+  DatabaseTable,
+  DbInspectorWorkspace
+} from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import {
   buildTablePreviewSql,
   parseTablePreviewSql
@@ -9,7 +12,10 @@ import { setDbInspectorError } from './dbInspectorSlice';
 import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
 import { QueryConsole } from './query/QueryConsole';
 import { DbInspectorTableGrid } from './table/DbInspectorTableGrid';
+import { ErDiagramView } from './diagram/ErDiagramView';
 import styles from './DbInspectorApp.module.css';
+
+type DbInspectorMainView = 'table' | 'schema-er' | 'table-er';
 
 export const DbInspectorApp = (): React.JSX.Element => {
   const dispatch = useDbInspectorDispatch();
@@ -27,6 +33,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState<{ column: string; direction: 'asc' | 'desc' } | undefined>();
   const [previewSql, setPreviewSql] = useState('SELECT * FROM ');
+  const [mainView, setMainView] = useState<DbInspectorMainView>('table');
 
   const activeWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === activeWorkspaceId),
@@ -35,6 +42,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
   const activeTableModel = schema?.schemas
     .flatMap((databaseSchema) => databaseSchema.tables)
     .find((table) => table.name === activeTableName);
+  const activeSchemaName = activeTableModel?.schemaName ?? schema?.schemas[0]?.name;
 
   const appStyle = {
     '--db-inspector-grid-font-family': globalSettings.gridFontFamily || undefined,
@@ -106,14 +114,47 @@ export const DbInspectorApp = (): React.JSX.Element => {
       <div className={styles.toolbar}>
         <div className={styles.workspaceSummary}>
           <strong>{activeWorkspace?.name ?? 'No database selected'}</strong>
-          {activeWorkspace ? <span>{activeWorkspace.connection.databasePath}</span> : null}
+          {activeWorkspace ? <span>{describeConnection(activeWorkspace)}</span> : null}
+        </div>
+        <div className={styles.segmentedControl} aria-label="DB Inspector view">
+          <button
+            className={mainView === 'table' ? styles.segmentedActive : ''}
+            type="button"
+            onClick={() => setMainView('table')}
+          >
+            Table
+          </button>
+          <button
+            className={mainView === 'schema-er' ? styles.segmentedActive : ''}
+            type="button"
+            disabled={!schema}
+            onClick={() => setMainView('schema-er')}
+          >
+            Schema ER
+          </button>
+          <button
+            className={mainView === 'table-er' ? styles.segmentedActive : ''}
+            type="button"
+            disabled={!schema || !activeTableName}
+            onClick={() => setMainView('table-er')}
+          >
+            Table ER
+          </button>
         </div>
         <span className={styles.modeBadge}>{settings.readOnlyMode ? 'Read only' : 'Writable'}</span>
       </div>
       {error ? <div className={styles.error}>{error}</div> : null}
       <div className={styles.content}>
         <div className={styles.workspaceBody}>
-          {!activeTable ? (
+          {mainView === 'schema-er' && schema ? (
+            <ErDiagramView schema={schema} schemaName={activeSchemaName} />
+          ) : mainView === 'table-er' && schema ? (
+            <ErDiagramView
+              schema={schema}
+              schemaName={activeSchemaName}
+              tableName={activeTableName}
+            />
+          ) : !activeTable ? (
             <div className={styles.empty}>Select a table from the schema tree.</div>
           ) : (
             <DbInspectorTableGrid
@@ -134,4 +175,10 @@ export const DbInspectorApp = (): React.JSX.Element => {
       </div>
     </main>
   );
+};
+
+const describeConnection = (workspace: DbInspectorWorkspace): string => {
+  const { connection } = workspace;
+  if (connection.driver === 'sqlite') return connection.databasePath;
+  return `${connection.driver}://${connection.username}@${connection.host}:${connection.port}/${connection.database}`;
 };

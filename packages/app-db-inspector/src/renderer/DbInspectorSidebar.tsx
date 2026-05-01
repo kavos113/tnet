@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import type { DatabaseTable } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
+import type {
+  DatabaseTable,
+  DbInspectorWorkspace
+} from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import {
-  createSqliteWorkspace,
+  createDbInspectorWorkspace,
+  type DbInspectorWorkspaceDraft,
   openDbInspectorTable,
   refreshDbInspectorSchema,
   selectDbInspectorWorkspace,
   testDbInspectorConnection,
-  updateSqliteWorkspace
+  updateDbInspectorWorkspace
 } from './dbInspectorActions';
 import { dbInspectorTnetApi } from './dbInspectorTnetApi';
 import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
@@ -26,23 +30,34 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
     settings,
     workspaces
   } = useDbInspectorSelector((state) => state.dbInspector);
-  const [workspaceName, setWorkspaceName] = useState('');
-  const [databasePath, setDatabasePath] = useState('');
+  const [workspaceDraft, setWorkspaceDraft] = useState<DbInspectorWorkspaceDraft>({
+    name: '',
+    driver: 'sqlite',
+    databasePath: '',
+    readOnly: true
+  });
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
 
   const handleCreateWorkspace = async (): Promise<void> => {
-    const workspace = await createSqliteWorkspace(dispatch, { name: workspaceName, databasePath });
+    const workspace = await createDbInspectorWorkspace(dispatch, workspaceDraft);
     if (!workspace) return;
-    setWorkspaceName('');
-    setDatabasePath('');
+    setWorkspaceDraft({
+      name: '',
+      driver: 'sqlite',
+      databasePath: '',
+      readOnly: true
+    });
   };
 
   const handlePickSqlite = async (): Promise<void> => {
     return pickSqliteFile().then((selected) => {
       if (!selected) return;
-      setDatabasePath(selected.path);
-      setWorkspaceName((current) => current || selected.name);
+      setWorkspaceDraft((current) => ({
+        ...current,
+        databasePath: selected.path,
+        name: current.name || selected.name
+      }));
     });
   };
 
@@ -98,7 +113,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
             }`}
             type="button"
             role="treeitem"
-            title={workspace.connection.databasePath}
+            title={describeConnection(workspace)}
             onClick={() => void selectDbInspectorWorkspace(dispatch, workspace.id)}
           >
             <span className="material-icons">database</span>
@@ -107,11 +122,9 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
         ))}
       </div>
       <DbInspectorWorkspaceForm
-        workspaceName={workspaceName}
-        databasePath={databasePath}
+        draft={workspaceDraft}
         isLoading={isLoading}
-        onWorkspaceNameChange={setWorkspaceName}
-        onDatabasePathChange={setDatabasePath}
+        onDraftChange={setWorkspaceDraft}
         onPickSqlite={() => void handlePickSqlite()}
         onCreateWorkspace={() => void handleCreateWorkspace()}
       />
@@ -132,11 +145,9 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
           });
         }}
         onSave={(input) => {
-          void updateSqliteWorkspace(dispatch, {
+          void updateDbInspectorWorkspace(dispatch, {
             workspaceId: activeWorkspaceId,
-            name: input.name,
-            databasePath: input.databasePath,
-            readOnly: input.readOnly
+            ...input
           }).then((workspace) => {
             if (workspace) setIsEditDialogOpen(false);
           });
@@ -144,4 +155,10 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
       />
     </aside>
   );
+};
+
+const describeConnection = (workspace: DbInspectorWorkspace): string => {
+  const { connection } = workspace;
+  if (connection.driver === 'sqlite') return connection.databasePath;
+  return `${connection.username}@${connection.host}:${connection.port}/${connection.database}`;
 };

@@ -14,7 +14,10 @@
     "@tnet/main-core": "workspace:*",
     "@tnet/renderer-core": "workspace:*",
     "@tnet/shared": "workspace:*",
-    "better-sqlite3": "^12.9.0"
+    "@types/pg": "^8.20.0",
+    "better-sqlite3": "^12.9.0",
+    "mysql2": "^3.22.3",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13"

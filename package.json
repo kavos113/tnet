@@ -8,6 +8,7 @@
     "lint": "oxlint",
     "sqlite:node": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target node",
     "sqlite:electron": "powershell -ExecutionPolicy Bypass -File scripts/rebuild-sqlite-abi.ps1 -Target electron",
+    "db-inspector:integration": "powershell -ExecutionPolicy Bypass -File scripts/db-inspector-integration.ps1",
     "papers:proto": "buf generate",
     "papers:server:build": "powershell -ExecutionPolicy Bypass -File scripts/paper-server-build.ps1",
     "papers:server:mocks": "cd services/papers-server && go generate ./...",

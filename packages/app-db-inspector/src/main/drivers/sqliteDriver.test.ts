@@ -4,12 +4,12 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { SqliteDriver } from './sqliteDriver';
-import type { DbInspectorConnection } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
+import type { DbInspectorSqliteConnection } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 
 describe('SqliteDriver', () => {
   let tempDir: string;
   let databasePath: string;
-  let connection: DbInspectorConnection;
+  let connection: DbInspectorSqliteConnection;
 
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tnet-db-inspector-'));

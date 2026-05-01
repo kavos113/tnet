@@ -17,6 +17,7 @@ const workspacePackages = [
 const nodeExternal = [
   'electron',
   'better-sqlite3',
+  'pg-native',
   'bufferutil',
   'utf-8-validate',
   ...builtinModules,

@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { QueryExecutionResult } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { isMutatingSql } from '@tnet/app-db-inspector/shared/sqlModel';
-import { executeDbInspectorQuery, saveDbInspectorQueryTab } from '../dbInspectorActions';
+import {
+  cancelDbInspectorQuery,
+  executeDbInspectorQuery,
+  saveDbInspectorQueryTab
+} from '../dbInspectorActions';
 import { useDbInspectorDispatch, useDbInspectorSelector } from '../storeHooks';
 import { SqlEditor } from './SqlEditor';
 import styles from '../DbInspectorApp.module.css';
@@ -85,6 +89,14 @@ export const QueryConsole = (): React.JSX.Element => {
             onClick={execute}
           >
             Execute
+          </button>
+          <button
+            className={styles.button}
+            type="button"
+            disabled={!isLoading}
+            onClick={() => cancelDbInspectorQuery(dispatch)}
+          >
+            Cancel
           </button>
           <button
             className={styles.iconButton}

@@ -1,6 +1,7 @@
 import type { UnknownAction } from '@reduxjs/toolkit';
 import type {
   DatabaseTable,
+  DbInspectorDriverType,
   DbInspectorWorkspace
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import type {
@@ -21,6 +22,22 @@ import {
 } from './dbInspectorSlice';
 
 type DbInspectorDispatch = (action: UnknownAction) => unknown;
+
+let schemaRefreshRequestId = 0;
+let queryExecutionRequestId = 0;
+
+export interface DbInspectorWorkspaceDraft {
+  name: string;
+  driver: DbInspectorDriverType;
+  databasePath?: string;
+  host?: string;
+  port?: number;
+  database?: string;
+  username?: string;
+  password?: string;
+  sslMode?: string;
+  readOnly?: boolean;
+}
 
 export const refreshDbInspectorWorkspace = async (
   dispatch: DbInspectorDispatch,
@@ -60,21 +77,44 @@ export const selectDbInspectorWorkspace = async (
   }
 };
 
-export const createSqliteWorkspace = async (
-  dispatch: DbInspectorDispatch,
-  input: { name: string; databasePath: string }
-): Promise<DbInspectorWorkspace | null> => {
-  if (!input.databasePath.trim()) {
-    dispatch(setDbInspectorError('SQLite database path is required.'));
-    return null;
+const validateWorkspaceDraft = (
+  input: DbInspectorWorkspaceDraft,
+  dispatch: DbInspectorDispatch
+): boolean => {
+  if (input.driver === 'sqlite') {
+    if (!input.databasePath?.trim()) {
+      dispatch(setDbInspectorError('SQLite database path is required.'));
+      return false;
+    }
+    return true;
   }
+
+  if (!input.host?.trim() || !input.database?.trim() || !input.username?.trim()) {
+    dispatch(setDbInspectorError('Host, database, and user are required.'));
+    return false;
+  }
+  return true;
+};
+
+export const createDbInspectorWorkspace = async (
+  dispatch: DbInspectorDispatch,
+  input: DbInspectorWorkspaceDraft
+): Promise<DbInspectorWorkspace | null> => {
+  if (!validateWorkspaceDraft(input, dispatch)) return null;
 
   dispatch(setDbInspectorLoading(true));
   try {
     const workspace = await dbInspectorTnetApi.dbInspector.workspaces.create({
       name: input.name,
+      driver: input.driver,
       databasePath: input.databasePath,
-      readOnly: true
+      host: input.host,
+      port: input.port,
+      database: input.database,
+      username: input.username,
+      password: input.password,
+      sslMode: input.sslMode,
+      readOnly: input.readOnly ?? true
     });
     const refreshedSchema = await dbInspectorTnetApi.dbInspector.schema.refresh({
       workspaceId: workspace.id
@@ -103,22 +143,26 @@ export const createSqliteWorkspace = async (
   }
 };
 
-export const updateSqliteWorkspace = async (
+export const updateDbInspectorWorkspace = async (
   dispatch: DbInspectorDispatch,
-  input: { workspaceId?: string; name: string; databasePath: string; readOnly?: boolean }
+  input: DbInspectorWorkspaceDraft & { workspaceId?: string }
 ): Promise<DbInspectorWorkspace | null> => {
   if (!input.workspaceId) return null;
-  if (!input.databasePath.trim()) {
-    dispatch(setDbInspectorError('SQLite database path is required.'));
-    return null;
-  }
+  if (!validateWorkspaceDraft(input, dispatch)) return null;
 
   dispatch(setDbInspectorLoading(true));
   try {
     const workspace = await dbInspectorTnetApi.dbInspector.workspaces.update({
       workspaceId: input.workspaceId,
       name: input.name,
+      driver: input.driver,
       databasePath: input.databasePath,
+      host: input.host,
+      port: input.port,
+      database: input.database,
+      username: input.username,
+      password: input.password,
+      sslMode: input.sslMode,
       readOnly: input.readOnly ?? true
     });
     await refreshDbInspectorWorkspace(dispatch, workspace.id);
@@ -161,6 +205,7 @@ export const executeDbInspectorQuery = async (
     return;
   }
 
+  const requestId = ++queryExecutionRequestId;
   dispatch(setDbInspectorLoading(true));
   try {
     const result = await dbInspectorTnetApi.dbInspector.query.execute({
@@ -171,17 +216,25 @@ export const executeDbInspectorQuery = async (
     const history = await dbInspectorTnetApi.dbInspector.query.listHistory({
       workspaceId: input.workspaceId
     });
+    if (requestId !== queryExecutionRequestId) return;
     dispatch(setDbInspectorQueryResult(result));
     dispatch(setDbInspectorQueryHistory(history));
   } catch (error) {
     const history = await dbInspectorTnetApi.dbInspector.query
       .listHistory({ workspaceId: input.workspaceId })
       .catch(() => undefined);
+    if (requestId !== queryExecutionRequestId) return;
     if (history) dispatch(setDbInspectorQueryHistory(history));
     dispatch(setDbInspectorQueryError(error instanceof Error ? error.message : String(error)));
   } finally {
-    dispatch(setDbInspectorLoading(false));
+    if (requestId === queryExecutionRequestId) dispatch(setDbInspectorLoading(false));
   }
+};
+
+export const cancelDbInspectorQuery = (dispatch: DbInspectorDispatch): void => {
+  queryExecutionRequestId += 1;
+  dispatch(setDbInspectorLoading(false));
+  dispatch(setDbInspectorQueryError('Query cancellation requested.'));
 };
 
 export const saveDbInspectorQueryTab = async (
@@ -207,15 +260,18 @@ export const refreshDbInspectorSchema = async (
 ): Promise<void> => {
   if (!workspaceId) return;
 
+  const requestId = ++schemaRefreshRequestId;
   dispatch(setDbInspectorLoading(true));
   try {
     const refreshedSchema = await dbInspectorTnetApi.dbInspector.schema.refresh({ workspaceId });
+    if (requestId !== schemaRefreshRequestId) return;
     dispatch(setDbInspectorSchema(refreshedSchema));
     dispatch(setDbInspectorError(undefined));
   } catch (error) {
+    if (requestId !== schemaRefreshRequestId) return;
     dispatch(setDbInspectorError(error instanceof Error ? error.message : String(error)));
   } finally {
-    dispatch(setDbInspectorLoading(false));
+    if (requestId === schemaRefreshRequestId) dispatch(setDbInspectorLoading(false));
   }
 };
 

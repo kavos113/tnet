@@ -13,6 +13,8 @@ import {
   WorkspaceRepository
 } from './repository';
 import { DbInspectorService } from './service/dbInspectorService';
+import { connectionFromInput } from './service/connectionFactory';
+import { createDbInspectorSecretStore } from './service/secretStore';
 import { selectSqliteDatabaseFile } from './dbInspectorFileService';
 
 export interface RegisterDbInspectorIpcOptions {
@@ -25,10 +27,12 @@ export const registerDbInspectorIpc = ({ userDataDir }: RegisterDbInspectorIpcOp
   const schemaCacheRepository = new SchemaCacheRepository(database);
   const queryHistoryRepository = new QueryHistoryRepository(database);
   const queryTabRepository = new QueryTabRepository(database);
+  const secretStore = createDbInspectorSecretStore(userDataDir);
   const dbInspectorService = new DbInspectorService(
     workspaceRepository,
     schemaCacheRepository,
-    queryHistoryRepository
+    queryHistoryRepository,
+    secretStore
   );
 
   ipcMain.handle(dbInspectorIpcChannels.config.loadGlobal, async () =>
@@ -44,24 +48,17 @@ export const registerDbInspectorIpc = ({ userDataDir }: RegisterDbInspectorIpcOp
   ipcMain.handle(dbInspectorIpcChannels.workspaces.create, async (_event, request) =>
     workspaceRepository.create({
       name: request.name,
-      connection: {
-        driver: 'sqlite',
-        databasePath: request.databasePath,
-        readOnly: request.readOnly ?? true
-      }
+      connection: connectionFromInput(request, secretStore)
     })
   );
-  ipcMain.handle(dbInspectorIpcChannels.workspaces.update, async (_event, request) =>
-    workspaceRepository.update({
+  ipcMain.handle(dbInspectorIpcChannels.workspaces.update, async (_event, request) => {
+    const currentWorkspace = workspaceRepository.get(request.workspaceId);
+    return workspaceRepository.update({
       workspaceId: request.workspaceId,
       name: request.name,
-      connection: {
-        driver: 'sqlite',
-        databasePath: request.databasePath,
-        readOnly: request.readOnly ?? true
-      }
-    })
-  );
+      connection: connectionFromInput(request, secretStore, currentWorkspace?.connection)
+    });
+  });
   ipcMain.handle(dbInspectorIpcChannels.workspaces.remove, async (_event, request) => {
     workspaceRepository.remove(request.workspaceId);
   });

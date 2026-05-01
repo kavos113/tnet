@@ -6,7 +6,32 @@ export interface DbInspectorSqliteConnection {
   readOnly: boolean;
 }
 
-export type DbInspectorConnection = DbInspectorSqliteConnection;
+export interface DbInspectorPostgresConnection {
+  driver: 'postgresql';
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  passwordSecretId?: string;
+  hasPassword: boolean;
+  sslMode: 'disable' | 'prefer' | 'require';
+}
+
+export interface DbInspectorMysqlConnection {
+  driver: 'mysql';
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  passwordSecretId?: string;
+  hasPassword: boolean;
+  sslMode: 'disable' | 'require';
+}
+
+export type DbInspectorConnection =
+  | DbInspectorSqliteConnection
+  | DbInspectorPostgresConnection
+  | DbInspectorMysqlConnection;
 
 export interface DbInspectorWorkspace {
   id: string;

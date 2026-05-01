@@ -1,5 +1,6 @@
 import type {
   DatabaseSchemaSnapshot,
+  DbInspectorConnection,
   ExecuteQueryRequest,
   LoadTablePageRequest,
   QueryExecutionResult,
@@ -8,25 +9,45 @@ import type {
 import type { WorkspaceRepository } from '../repository/workspaceRepository';
 import type { SchemaCacheRepository } from '../repository/schemaCacheRepository';
 import type { QueryHistoryRepository } from '../repository/queryHistoryRepository';
+import type { DbInspectorSecretStore } from './secretStore';
+import type { DatabaseDriver } from '../drivers/databaseDriver';
 import { SqliteDriver } from '../drivers/sqliteDriver';
+import { PostgresDriver } from '../drivers/postgresDriver';
+import { MysqlDriver } from '../drivers/mysqlDriver';
+import { withQueryTimeout } from '../../shared/queryTimeout';
+import { normalizeDbInspectorError } from './dbInspectorErrors';
 
 export class DbInspectorService {
   private readonly sqliteDriver = new SqliteDriver();
+  private readonly postgresDriver: PostgresDriver;
+  private readonly mysqlDriver: MysqlDriver;
 
   constructor(
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly schemaCacheRepository: SchemaCacheRepository,
-    private readonly queryHistoryRepository: QueryHistoryRepository
-  ) {}
+    private readonly queryHistoryRepository: QueryHistoryRepository,
+    secretStore: DbInspectorSecretStore
+  ) {
+    this.postgresDriver = new PostgresDriver(secretStore);
+    this.mysqlDriver = new MysqlDriver(secretStore);
+  }
 
   async testConnection(workspaceId: string): Promise<void> {
     const workspace = this.getWorkspaceOrThrow(workspaceId);
-    await this.sqliteDriver.testConnection(workspace.connection);
+    try {
+      await this.driverFor(workspace.connection).testConnection(workspace.connection);
+    } catch (error) {
+      throw normalizeDbInspectorError(error);
+    }
   }
 
   async refreshSchema(workspaceId: string): Promise<DatabaseSchemaSnapshot> {
     const workspace = this.getWorkspaceOrThrow(workspaceId);
-    const snapshot = await this.sqliteDriver.introspect(workspace.connection);
+    const snapshot = await this.driverFor(workspace.connection)
+      .introspect(workspace.connection)
+      .catch((error) => {
+        throw normalizeDbInspectorError(error);
+      });
     this.schemaCacheRepository.save(workspaceId, snapshot);
     return snapshot;
   }
@@ -37,7 +58,7 @@ export class DbInspectorService {
 
   async loadTablePage(request: LoadTablePageRequest): Promise<TablePageResult> {
     const workspace = this.getWorkspaceOrThrow(request.workspaceId);
-    return this.sqliteDriver.loadTablePage(workspace.connection, request);
+    return this.driverFor(workspace.connection).loadTablePage(workspace.connection, request);
   }
 
   async executeQuery(request: ExecuteQueryRequest): Promise<QueryExecutionResult> {
@@ -45,10 +66,13 @@ export class DbInspectorService {
     const settings = this.workspaceRepository.getSettings(request.workspaceId);
     const startedAt = new Date().toISOString();
     try {
-      const result = await this.sqliteDriver.executeQuery(
-        workspace.connection,
-        request,
-        settings.readOnlyMode
+      const result = await withQueryTimeout(
+        this.driverFor(workspace.connection).executeQuery(
+          workspace.connection,
+          request,
+          settings.readOnlyMode
+        ),
+        settings.queryTimeoutMs
       );
       this.queryHistoryRepository.save({
         workspaceId: request.workspaceId,
@@ -68,7 +92,7 @@ export class DbInspectorService {
         errorCode: 'query_failed',
         errorMessage: error instanceof Error ? error.message : String(error)
       });
-      throw error;
+      throw normalizeDbInspectorError(error);
     }
   }
 
@@ -76,5 +100,11 @@ export class DbInspectorService {
     const workspace = this.workspaceRepository.get(workspaceId);
     if (!workspace) throw new Error(`Workspace not found: ${workspaceId}`);
     return workspace;
+  }
+
+  private driverFor(connection: DbInspectorConnection): DatabaseDriver {
+    if (connection.driver === 'postgresql') return this.postgresDriver;
+    if (connection.driver === 'mysql') return this.mysqlDriver;
+    return this.sqliteDriver;
   }
 }

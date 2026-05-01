@@ -8,3 +8,6 @@ export const dbInspectorGlobalConfigPath = (userDataDir: string): string =>
 
 export const dbInspectorDatabasePath = (userDataDir: string): string =>
   path.join(dbInspectorDataDir(userDataDir), 'db-inspector.db');
+
+export const dbInspectorSecretsPath = (userDataDir: string): string =>
+  path.join(dbInspectorDataDir(userDataDir), 'secrets.json');

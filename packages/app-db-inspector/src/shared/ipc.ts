@@ -53,13 +53,27 @@ export interface DbInspectorApi {
       list: () => Promise<DbInspectorWorkspace[]>;
       create: (request: {
         name: string;
-        databasePath: string;
+        driver?: 'sqlite' | 'postgresql' | 'mysql';
+        databasePath?: string;
+        host?: string;
+        port?: number;
+        database?: string;
+        username?: string;
+        password?: string;
+        sslMode?: string;
         readOnly?: boolean;
       }) => Promise<DbInspectorWorkspace>;
       update: (request: {
         workspaceId: string;
         name: string;
-        databasePath: string;
+        driver?: 'sqlite' | 'postgresql' | 'mysql';
+        databasePath?: string;
+        host?: string;
+        port?: number;
+        database?: string;
+        username?: string;
+        password?: string;
+        sslMode?: string;
         readOnly?: boolean;
       }) => Promise<DbInspectorWorkspace>;
       remove: (request: { workspaceId: string }) => Promise<void>;

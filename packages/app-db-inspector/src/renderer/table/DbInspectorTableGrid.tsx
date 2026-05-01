@@ -2,6 +2,8 @@ import type {
   DatabaseTable,
   TablePageResult
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
+import { formatExportValue, rowsToCsv, rowToTsv } from '@tnet/app-db-inspector/shared/tableExport';
+import { useState } from 'react';
 import styles from '../DbInspectorApp.module.css';
 
 interface DbInspectorTableGridProps {
@@ -31,100 +33,157 @@ export const DbInspectorTableGrid = ({
   page,
   previewSql,
   sort
-}: DbInspectorTableGridProps): React.JSX.Element => (
-  <div className={styles.tableShell}>
-    <div className={styles.tableToolbar}>
-      <strong>{activeTableName}</strong>
-      <input
-        className={`${styles.input} ${styles.previewSqlInput}`}
-        value={previewSql}
-        onChange={(event) => onPreviewSqlChange(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && activeTableModel && !isLoading) {
-            onOpenTable(activeTableModel, 0);
-          }
-        }}
-        aria-label="Table preview SQL"
-        placeholder="SELECT * FROM table"
-      />
-      <button
-        className={styles.button}
-        type="button"
-        disabled={!activeTableModel || isLoading}
-        onClick={() => activeTableModel && onOpenTable(activeTableModel, 0)}
-      >
-        Apply
-      </button>
-      <span>{activeTable.totalRows} rows</span>
-    </div>
-    <div className={styles.tableWrapper}>
-      <table className={styles.dataTable}>
-        <thead>
-          <tr>
-            {activeTable.columns.map((column) => {
-              const nextDirection =
-                sort?.column === column.name && sort.direction === 'asc' ? 'desc' : 'asc';
-              return (
-                <th key={column.name}>
-                  <button
-                    className={styles.columnSortButton}
-                    type="button"
-                    onClick={() => {
-                      onSortChange({ column: column.name, direction: nextDirection });
-                    }}
-                  >
-                    {column.name}
-                    {sort?.column === column.name ? (
-                      <span className="material-icons">
-                        {sort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward'}
-                      </span>
-                    ) : null}
-                  </button>
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody>
-          {activeTable.rows.map((row, index) => (
-            <tr key={index}>
-              {activeTable.columns.map((column) => (
-                <td key={column.name}>{formatCell(row[column.name])}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <div className={styles.pagingRow}>
-      <button
-        className={styles.button}
-        type="button"
-        disabled={!activeTableModel || page === 0 || isLoading}
-        onClick={() => activeTableModel && onOpenTable(activeTableModel, page - 1)}
-      >
-        Previous
-      </button>
-      <span>Page {page + 1}</span>
-      <button
-        className={styles.button}
-        type="button"
-        disabled={
-          !activeTableModel ||
-          isLoading ||
-          (page + 1) * activeTable.pageSize >= activeTable.totalRows
-        }
-        onClick={() => activeTableModel && onOpenTable(activeTableModel, page + 1)}
-      >
-        Next
-      </button>
-    </div>
-  </div>
-);
+}: DbInspectorTableGridProps): React.JSX.Element => {
+  const [selectedCell, setSelectedCell] = useState<
+    { rowIndex: number; columnName: string } | undefined
+  >();
+  const selectedRow =
+    selectedCell?.rowIndex !== undefined ? activeTable.rows[selectedCell.rowIndex] : undefined;
 
-const formatCell = (value: unknown): string => {
-  if (value === null) return 'NULL';
-  if (value === undefined) return '';
-  if (typeof value === 'object') return JSON.stringify(value);
-  return String(value);
+  const copySelectedCell = (): void => {
+    if (!selectedCell) return;
+    const row = activeTable.rows[selectedCell.rowIndex];
+    void writeClipboard(formatExportValue(row?.[selectedCell.columnName]));
+  };
+
+  const copySelectedRow = (): void => {
+    if (!selectedRow) return;
+    void writeClipboard(rowToTsv(activeTable.columns, selectedRow));
+  };
+
+  const copyCsv = (): void => {
+    void writeClipboard(rowsToCsv(activeTable.columns, activeTable.rows));
+  };
+
+  return (
+    <div className={styles.tableShell}>
+      <div className={styles.tableToolbar}>
+        <strong>{activeTableName}</strong>
+        <input
+          className={`${styles.input} ${styles.previewSqlInput}`}
+          value={previewSql}
+          onChange={(event) => onPreviewSqlChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && activeTableModel && !isLoading) {
+              onOpenTable(activeTableModel, 0);
+            }
+          }}
+          aria-label="Table preview SQL"
+          placeholder="SELECT * FROM table"
+        />
+        <button
+          className={styles.button}
+          type="button"
+          disabled={!activeTableModel || isLoading}
+          onClick={() => activeTableModel && onOpenTable(activeTableModel, 0)}
+        >
+          Apply
+        </button>
+        <button
+          className={styles.iconButton}
+          type="button"
+          title="Copy cell"
+          disabled={!selectedCell}
+          onClick={copySelectedCell}
+        >
+          <span className="material-icons">content_copy</span>
+        </button>
+        <button
+          className={styles.iconButton}
+          type="button"
+          title="Copy row"
+          disabled={!selectedRow}
+          onClick={copySelectedRow}
+        >
+          <span className="material-icons">view_week</span>
+        </button>
+        <button
+          className={styles.iconButton}
+          type="button"
+          title="Copy CSV"
+          disabled={activeTable.rows.length === 0}
+          onClick={copyCsv}
+        >
+          <span className="material-icons">csv</span>
+        </button>
+        <span>{activeTable.totalRows} rows</span>
+      </div>
+      <div className={styles.tableWrapper}>
+        <table className={styles.dataTable}>
+          <thead>
+            <tr>
+              {activeTable.columns.map((column) => {
+                const nextDirection =
+                  sort?.column === column.name && sort.direction === 'asc' ? 'desc' : 'asc';
+                return (
+                  <th key={column.name}>
+                    <button
+                      className={styles.columnSortButton}
+                      type="button"
+                      onClick={() => {
+                        onSortChange({ column: column.name, direction: nextDirection });
+                      }}
+                    >
+                      {column.name}
+                      {sort?.column === column.name ? (
+                        <span className="material-icons">
+                          {sort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward'}
+                        </span>
+                      ) : null}
+                    </button>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {activeTable.rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {activeTable.columns.map((column) => (
+                  <td
+                    key={column.name}
+                    className={
+                      selectedCell?.rowIndex === rowIndex && selectedCell.columnName === column.name
+                        ? styles.selectedCell
+                        : undefined
+                    }
+                    onClick={() => setSelectedCell({ rowIndex, columnName: column.name })}
+                  >
+                    {formatExportValue(row[column.name])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className={styles.pagingRow}>
+        <button
+          className={styles.button}
+          type="button"
+          disabled={!activeTableModel || page === 0 || isLoading}
+          onClick={() => activeTableModel && onOpenTable(activeTableModel, page - 1)}
+        >
+          Previous
+        </button>
+        <span>Page {page + 1}</span>
+        <button
+          className={styles.button}
+          type="button"
+          disabled={
+            !activeTableModel ||
+            isLoading ||
+            (page + 1) * activeTable.pageSize >= activeTable.totalRows
+          }
+          onClick={() => activeTableModel && onOpenTable(activeTableModel, page + 1)}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const writeClipboard = async (value: string): Promise<void> => {
+  await navigator.clipboard.writeText(value);
 };
