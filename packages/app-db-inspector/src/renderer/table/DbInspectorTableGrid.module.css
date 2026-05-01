@@ -1,0 +1,98 @@
+.tableShell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  gap: 10px;
+}
+
+.tableToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableToolbar strong {
+  flex: 0 0 auto;
+}
+
+.previewSqlInput {
+  flex: 1;
+  font-family: var(--db-inspector-query-font-family, monospace);
+}
+
+.tableWrapper {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-family: var(--db-inspector-grid-font-family, sans-serif);
+  font-size: var(--db-inspector-grid-font-size, 13px);
+  table-layout: auto;
+}
+
+.dataTable th,
+.dataTable td {
+  max-width: 360px;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 3px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dataTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--background-dark);
+  box-shadow: inset 0 -1px 0 var(--color-border);
+  text-align: left;
+  font-weight: 600;
+}
+
+.dataTable th:last-child,
+.dataTable td:last-child {
+  border-right: 0;
+}
+
+.dataTable tbody tr:hover {
+  background: var(--background-light);
+}
+
+.columnSortButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.columnSortButton :global(.material-icons) {
+  font-size: 14px;
+}
+
+.selectedCell {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  background: var(--tab-active-bg);
+}
+
+.pagingRow {
+  display: flex;
+  gap: 8px;
+}

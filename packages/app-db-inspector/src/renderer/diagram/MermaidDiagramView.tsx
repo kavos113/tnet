@@ -8,7 +8,8 @@ import {
   naturalBaseScale,
   zoomAroundPoint
 } from './mermaidViewportMath';
-import styles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorApp.module.css';
+import styles from './MermaidDiagramView.module.css';
 
 interface MermaidDiagramViewProps {
   source: string;
@@ -155,7 +156,7 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
     <div className={styles.mermaidPane}>
       <div className={styles.mermaidToolbar}>
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Zoom out"
           onClick={() => updateZoom(zoom / ZOOM_FACTOR)}
@@ -172,21 +173,21 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
           onChange={(event) => updateZoom(Number(event.target.value) / 100)}
         />
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Zoom in"
           onClick={() => updateZoom(zoom * ZOOM_FACTOR)}
         >
           <span className="material-icons">add</span>
         </button>
-        <button className={styles.button} type="button" onClick={() => fitDiagram(zoom)}>
+        <button className={appStyles.button} type="button" onClick={() => fitDiagram(zoom)}>
           Fit
         </button>
-        <button className={styles.button} type="button" onClick={resetDiagram}>
+        <button className={appStyles.button} type="button" onClick={resetDiagram}>
           100%
         </button>
       </div>
-      {error ? <div className={styles.error}>Mermaid render failed: {error}</div> : null}
+      {error ? <div className={appStyles.error}>Mermaid render failed: {error}</div> : null}
       <div
         ref={viewportRef}
         className={`${styles.mermaidViewport} ${isDragging ? styles.mermaidViewportDragging : ''}`}

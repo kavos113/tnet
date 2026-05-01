@@ -5,7 +5,8 @@ import {
 } from '@tnet/app-db-inspector/shared/erDiagram';
 import type { DatabaseSchemaSnapshot } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { MermaidDiagramView } from './MermaidDiagramView';
-import styles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorApp.module.css';
+import styles from './ErDiagramView.module.css';
 
 interface ErDiagramViewProps {
   schema: DatabaseSchemaSnapshot;
@@ -34,9 +35,9 @@ export const ErDiagramView = ({
   return (
     <section className={styles.erView} aria-label="Entity relationship diagram">
       <header className={styles.erToolbar}>
-        <div className={styles.segmentedControl} aria-label="ER diagram renderer">
+        <div className={appStyles.segmentedControl} aria-label="ER diagram renderer">
           <button
-            className={mode === 'cards' ? styles.segmentedActive : ''}
+            className={mode === 'cards' ? appStyles.segmentedActive : ''}
             type="button"
             aria-pressed={mode === 'cards'}
             onClick={() => setMode('cards')}
@@ -44,7 +45,7 @@ export const ErDiagramView = ({
             Cards
           </button>
           <button
-            className={mode === 'mermaid' ? styles.segmentedActive : ''}
+            className={mode === 'mermaid' ? appStyles.segmentedActive : ''}
             type="button"
             aria-pressed={mode === 'mermaid'}
             onClick={() => setMode('mermaid')}
@@ -54,12 +55,12 @@ export const ErDiagramView = ({
         </div>
       </header>
       {graph.truncated ? (
-        <div className={styles.warning}>
+        <div className={appStyles.warning}>
           Large schema detected. Showing the first {graph.nodes.length} tables.
         </div>
       ) : null}
       {graph.nodes.length === 0 ? (
-        <div className={styles.empty}>No tables are available for the ER view.</div>
+        <div className={appStyles.empty}>No tables are available for the ER view.</div>
       ) : mode === 'mermaid' ? (
         <MermaidDiagramView source={mermaidSource} />
       ) : (
@@ -88,7 +89,7 @@ export const ErDiagramView = ({
           <aside className={styles.erEdges} aria-label="Foreign key relationships">
             <strong>Relationships</strong>
             {graph.edges.length === 0 ? (
-              <span className={styles.mutedText}>No foreign keys found.</span>
+              <span className={appStyles.mutedText}>No foreign keys found.</span>
             ) : (
               graph.edges.map((edge) => (
                 <div key={edge.id} className={styles.erEdge}>

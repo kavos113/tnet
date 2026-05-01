@@ -8,7 +8,8 @@ import {
 } from '../dbInspectorActions';
 import { useDbInspectorDispatch, useDbInspectorSelector } from '../storeHooks';
 import { SqlEditor } from './SqlEditor';
-import styles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorApp.module.css';
+import styles from './QueryConsole.module.css';
 
 export const QueryConsole = (): React.JSX.Element => {
   const dispatch = useDbInspectorDispatch();
@@ -69,13 +70,13 @@ export const QueryConsole = (): React.JSX.Element => {
       <div className={styles.queryHeader}>
         <div className={styles.queryTitleRow}>
           <input
-            className={styles.input}
+            className={appStyles.input}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             aria-label="Query tab title"
           />
           <button
-            className={styles.button}
+            className={appStyles.button}
             type="button"
             disabled={!activeWorkspaceId}
             onClick={saveTab}
@@ -83,7 +84,7 @@ export const QueryConsole = (): React.JSX.Element => {
             Save Query
           </button>
           <button
-            className={styles.button}
+            className={appStyles.button}
             type="button"
             disabled={!activeWorkspaceId || isLoading}
             onClick={execute}
@@ -91,7 +92,7 @@ export const QueryConsole = (): React.JSX.Element => {
             Execute
           </button>
           <button
-            className={styles.button}
+            className={appStyles.button}
             type="button"
             disabled={!isLoading}
             onClick={() => cancelDbInspectorQuery(dispatch)}
@@ -99,7 +100,7 @@ export const QueryConsole = (): React.JSX.Element => {
             Cancel
           </button>
           <button
-            className={styles.iconButton}
+            className={appStyles.iconButton}
             type="button"
             aria-label={isExpanded ? 'Collapse SQL editor' : 'Expand SQL editor'}
             title={isExpanded ? 'Collapse SQL editor' : 'Expand SQL editor'}
@@ -128,7 +129,7 @@ export const QueryConsole = (): React.JSX.Element => {
             />
           </div>
           <div className={styles.queryResultPane}>
-            {queryError ? <div className={styles.error}>{queryError}</div> : null}
+            {queryError ? <div className={appStyles.error}>{queryError}</div> : null}
             {queryResult ? <QueryResultTable result={queryResult} /> : null}
           </div>
           <aside className={styles.queryHistoryPane} aria-label="Query history">
@@ -172,11 +173,11 @@ export const QueryConsole = (): React.JSX.Element => {
 
 const QueryResultTable = ({ result }: { result: QueryExecutionResult }): React.JSX.Element => {
   if (result.affectedRows !== undefined) {
-    return <div className={styles.empty}>{result.affectedRows} rows affected.</div>;
+    return <div className={appStyles.empty}>{result.affectedRows} rows affected.</div>;
   }
 
   if (result.columns.length === 0) {
-    return <div className={styles.empty}>Query executed.</div>;
+    return <div className={appStyles.empty}>Query executed.</div>;
   }
 
   return (

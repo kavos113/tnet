@@ -1,5 +1,6 @@
 import type { DbInspectorWorkspaceDraft } from '../dbInspectorActions';
-import styles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorApp.module.css';
+import styles from './DbInspectorSidebar.module.css';
 
 interface DbInspectorWorkspaceFormProps {
   draft: DbInspectorWorkspaceDraft;
@@ -20,7 +21,7 @@ export const DbInspectorWorkspaceForm = ({
     <label className={styles.label}>
       Name
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.name}
         onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
         placeholder="Local database"
@@ -29,7 +30,7 @@ export const DbInspectorWorkspaceForm = ({
     <label className={styles.label}>
       Driver
       <select
-        className={styles.select}
+        className={appStyles.select}
         value={draft.driver}
         onChange={(event) =>
           onDraftChange({
@@ -48,12 +49,12 @@ export const DbInspectorWorkspaceForm = ({
         SQLite path
         <span className={styles.pathRow}>
           <input
-            className={styles.input}
+            className={appStyles.input}
             value={draft.databasePath ?? ''}
             onChange={(event) => onDraftChange({ ...draft, databasePath: event.target.value })}
             placeholder="C:\\path\\database.db"
           />
-          <button className={styles.button} type="button" onClick={onPickSqlite}>
+          <button className={appStyles.button} type="button" onClick={onPickSqlite}>
             Browse
           </button>
         </span>
@@ -62,7 +63,7 @@ export const DbInspectorWorkspaceForm = ({
       <ConnectionFields draft={draft} onDraftChange={onDraftChange} />
     )}
     <button
-      className={styles.button}
+      className={appStyles.button}
       type="button"
       disabled={isLoading}
       onClick={onCreateWorkspace}
@@ -83,7 +84,7 @@ const ConnectionFields = ({
     <label className={styles.label}>
       Host
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.host ?? ''}
         onChange={(event) => onDraftChange({ ...draft, host: event.target.value })}
         placeholder="localhost"
@@ -93,7 +94,7 @@ const ConnectionFields = ({
       <label className={styles.label}>
         Port
         <input
-          className={styles.input}
+          className={appStyles.input}
           type="number"
           value={draft.port ?? (draft.driver === 'postgresql' ? 5432 : 3306)}
           onChange={(event) => onDraftChange({ ...draft, port: Number(event.target.value) })}
@@ -102,7 +103,7 @@ const ConnectionFields = ({
       <label className={styles.label}>
         SSL
         <select
-          className={styles.select}
+          className={appStyles.select}
           value={draft.sslMode ?? (draft.driver === 'postgresql' ? 'prefer' : 'disable')}
           onChange={(event) => onDraftChange({ ...draft, sslMode: event.target.value })}
         >
@@ -115,7 +116,7 @@ const ConnectionFields = ({
     <label className={styles.label}>
       Database
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.database ?? ''}
         onChange={(event) => onDraftChange({ ...draft, database: event.target.value })}
       />
@@ -123,7 +124,7 @@ const ConnectionFields = ({
     <label className={styles.label}>
       User
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.username ?? ''}
         onChange={(event) => onDraftChange({ ...draft, username: event.target.value })}
       />
@@ -131,7 +132,7 @@ const ConnectionFields = ({
     <label className={styles.label}>
       Password
       <input
-        className={styles.input}
+        className={appStyles.input}
         type="password"
         value={draft.password ?? ''}
         onChange={(event) => onDraftChange({ ...draft, password: event.target.value })}

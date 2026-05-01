@@ -17,7 +17,8 @@ import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
 import { DbInspectorSchemaTree } from './sidebar/DbInspectorSchemaTree';
 import { DbInspectorWorkspaceDialog } from './sidebar/DbInspectorWorkspaceDialog';
 import { DbInspectorWorkspaceForm } from './sidebar/DbInspectorWorkspaceForm';
-import styles from './DbInspectorApp.module.css';
+import appStyles from './DbInspectorApp.module.css';
+import styles from './sidebar/DbInspectorSidebar.module.css';
 
 export const DbInspectorSidebar = (): React.JSX.Element => {
   const dispatch = useDbInspectorDispatch();
@@ -82,7 +83,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
       <div className={styles.sidebarHeader}>
         <h2 className={styles.title}>DB Inspector</h2>
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Refresh schema"
           disabled={!activeWorkspaceId || isLoading}
@@ -91,7 +92,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
           <span className="material-icons">refresh</span>
         </button>
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Edit workspace"
           disabled={!activeWorkspace || isLoading}

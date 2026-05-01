@@ -1,0 +1,122 @@
+.queryConsole {
+  display: grid;
+  height: 78px;
+  min-height: 78px;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 8px;
+  background: var(--background);
+}
+
+.queryConsoleExpanded {
+  height: 360px;
+  min-height: 360px;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.queryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.queryTitleRow {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.queryMeta,
+.mutedText {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.queryBody {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(300px, 1.25fr) 220px;
+  gap: 8px;
+}
+
+.queryEditorPane,
+.queryCollapsedEditor,
+.queryResultPane,
+.queryHistoryPane {
+  min-height: 0;
+  overflow: auto;
+}
+
+.queryCollapsedEditor {
+  overflow: hidden;
+}
+
+.queryHistoryPane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 1px solid var(--color-border);
+  padding-left: 8px;
+}
+
+.historyButton {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 6px;
+  color: inherit;
+  background: var(--background);
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyButton span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyButton small {
+  color: var(--foreground-muted);
+}
+
+.tableWrapper {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-family: var(--db-inspector-grid-font-family, sans-serif);
+  font-size: var(--db-inspector-grid-font-size, 13px);
+}
+
+.dataTable th,
+.dataTable td {
+  max-width: 360px;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 3px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dataTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--background-dark);
+  text-align: left;
+  font-weight: 600;
+}

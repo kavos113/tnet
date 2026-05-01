@@ -4,7 +4,8 @@ import type {
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { formatExportValue, rowsToCsv, rowToTsv } from '@tnet/app-db-inspector/shared/tableExport';
 import { useState } from 'react';
-import styles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorApp.module.css';
+import styles from './DbInspectorTableGrid.module.css';
 
 interface DbInspectorTableGridProps {
   activeTableName?: string;
@@ -60,7 +61,7 @@ export const DbInspectorTableGrid = ({
       <div className={styles.tableToolbar}>
         <strong>{activeTableName}</strong>
         <input
-          className={`${styles.input} ${styles.previewSqlInput}`}
+          className={`${appStyles.input} ${styles.previewSqlInput}`}
           value={previewSql}
           onChange={(event) => onPreviewSqlChange(event.target.value)}
           onKeyDown={(event) => {
@@ -72,7 +73,7 @@ export const DbInspectorTableGrid = ({
           placeholder="SELECT * FROM table"
         />
         <button
-          className={styles.button}
+          className={appStyles.button}
           type="button"
           disabled={!activeTableModel || isLoading}
           onClick={() => activeTableModel && onOpenTable(activeTableModel, 0)}
@@ -80,7 +81,7 @@ export const DbInspectorTableGrid = ({
           Apply
         </button>
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Copy cell"
           disabled={!selectedCell}
@@ -89,7 +90,7 @@ export const DbInspectorTableGrid = ({
           <span className="material-icons">content_copy</span>
         </button>
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Copy row"
           disabled={!selectedRow}
@@ -98,7 +99,7 @@ export const DbInspectorTableGrid = ({
           <span className="material-icons">view_week</span>
         </button>
         <button
-          className={styles.iconButton}
+          className={appStyles.iconButton}
           type="button"
           title="Copy CSV"
           disabled={activeTable.rows.length === 0}
@@ -159,7 +160,7 @@ export const DbInspectorTableGrid = ({
       </div>
       <div className={styles.pagingRow}>
         <button
-          className={styles.button}
+          className={appStyles.button}
           type="button"
           disabled={!activeTableModel || page === 0 || isLoading}
           onClick={() => activeTableModel && onOpenTable(activeTableModel, page - 1)}
@@ -168,7 +169,7 @@ export const DbInspectorTableGrid = ({
         </button>
         <span>Page {page + 1}</span>
         <button
-          className={styles.button}
+          className={appStyles.button}
           type="button"
           disabled={
             !activeTableModel ||

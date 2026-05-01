@@ -1,0 +1,124 @@
+.erView {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--background);
+}
+
+.erToolbar {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 8px;
+  background: var(--background-dark);
+}
+
+.erLayout {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.erNodeGrid {
+  display: grid;
+  align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.erNode {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--background);
+}
+
+.erNodeHeader {
+  display: grid;
+  gap: 1px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 8px;
+  background: var(--background-dark);
+}
+
+.erNodeHeader span {
+  color: var(--foreground-muted);
+  font-size: 11px;
+}
+
+.erColumnList {
+  display: grid;
+  align-content: start;
+  min-height: 0;
+  overflow: auto;
+}
+
+.erColumn {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 3px 6px;
+}
+
+.erColumn:last-child {
+  border-bottom: 0;
+}
+
+.erColumn span,
+.erColumn small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.erColumn small,
+.erColumn em {
+  color: var(--foreground-muted);
+  font-style: normal;
+}
+
+.erColumn b {
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-size: 10px;
+}
+
+.erEdges {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+  border-left: 1px solid var(--color-border);
+  padding: 8px;
+}
+
+.erEdge {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 6px;
+}
+
+.erEdge :global(.material-icons) {
+  color: var(--foreground-muted);
+  font-size: 14px;
+}
+
+.erEdge small {
+  color: var(--foreground-muted);
+}

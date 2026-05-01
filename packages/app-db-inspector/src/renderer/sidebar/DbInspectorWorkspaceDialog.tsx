@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { DbInspectorWorkspace } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import type { DbInspectorWorkspaceDraft } from '../dbInspectorActions';
-import styles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorApp.module.css';
+import styles from './DbInspectorSidebar.module.css';
 
 interface DbInspectorWorkspaceDialogProps {
   isOpen: boolean;
@@ -44,14 +45,14 @@ export const DbInspectorWorkspaceDialog = ({
       >
         <header className={styles.dialogHeader}>
           <strong>{workspace ? 'Edit Workspace' : 'Create Workspace'}</strong>
-          <button className={styles.iconButton} type="button" onClick={onClose}>
+          <button className={appStyles.iconButton} type="button" onClick={onClose}>
             <span className="material-icons">close</span>
           </button>
         </header>
         <label className={styles.label}>
           Name
           <input
-            className={styles.input}
+            className={appStyles.input}
             value={draft.name}
             onChange={(event) => setDraft({ ...draft, name: event.target.value })}
           />
@@ -59,7 +60,7 @@ export const DbInspectorWorkspaceDialog = ({
         <label className={styles.label}>
           Driver
           <select
-            className={styles.select}
+            className={appStyles.select}
             value={draft.driver}
             onChange={(event) =>
               setDraft({
@@ -79,12 +80,12 @@ export const DbInspectorWorkspaceDialog = ({
               SQLite path
               <span className={styles.pathRow}>
                 <input
-                  className={styles.input}
+                  className={appStyles.input}
                   value={draft.databasePath ?? ''}
                   onChange={(event) => setDraft({ ...draft, databasePath: event.target.value })}
                 />
                 <button
-                  className={styles.button}
+                  className={appStyles.button}
                   type="button"
                   onClick={() => {
                     onPickSqlite().then((selected) => {
@@ -116,7 +117,7 @@ export const DbInspectorWorkspaceDialog = ({
         <footer className={styles.dialogActions}>
           {workspace ? (
             <button
-              className={styles.button}
+              className={appStyles.button}
               type="button"
               disabled={isLoading}
               onClick={onTestConnection}
@@ -124,11 +125,11 @@ export const DbInspectorWorkspaceDialog = ({
               Test Connection
             </button>
           ) : null}
-          <button className={styles.button} type="button" onClick={onClose}>
+          <button className={appStyles.button} type="button" onClick={onClose}>
             Cancel
           </button>
           <button
-            className={styles.button}
+            className={appStyles.button}
             type="button"
             disabled={isLoading}
             onClick={() => onSave(draft)}
@@ -177,7 +178,7 @@ const ServerConnectionFields = ({
     <label className={styles.label}>
       Host
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.host ?? ''}
         onChange={(event) => onDraftChange({ ...draft, host: event.target.value })}
       />
@@ -186,7 +187,7 @@ const ServerConnectionFields = ({
       <label className={styles.label}>
         Port
         <input
-          className={styles.input}
+          className={appStyles.input}
           type="number"
           value={draft.port ?? (draft.driver === 'postgresql' ? 5432 : 3306)}
           onChange={(event) => onDraftChange({ ...draft, port: Number(event.target.value) })}
@@ -195,7 +196,7 @@ const ServerConnectionFields = ({
       <label className={styles.label}>
         SSL
         <select
-          className={styles.select}
+          className={appStyles.select}
           value={draft.sslMode ?? (draft.driver === 'postgresql' ? 'prefer' : 'disable')}
           onChange={(event) => onDraftChange({ ...draft, sslMode: event.target.value })}
         >
@@ -208,7 +209,7 @@ const ServerConnectionFields = ({
     <label className={styles.label}>
       Database
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.database ?? ''}
         onChange={(event) => onDraftChange({ ...draft, database: event.target.value })}
       />
@@ -216,7 +217,7 @@ const ServerConnectionFields = ({
     <label className={styles.label}>
       User
       <input
-        className={styles.input}
+        className={appStyles.input}
         value={draft.username ?? ''}
         onChange={(event) => onDraftChange({ ...draft, username: event.target.value })}
       />
@@ -224,7 +225,7 @@ const ServerConnectionFields = ({
     <label className={styles.label}>
       Password
       <input
-        className={styles.input}
+        className={appStyles.input}
         type="password"
         value={draft.password ?? ''}
         onChange={(event) => onDraftChange({ ...draft, password: event.target.value })}
