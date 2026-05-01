@@ -26,11 +26,11 @@
   border-bottom: 1px solid var(--background-dark);
 }
 
-.group {
+.section {
   margin-bottom: 20px;
 }
 
-.group h3 {
+.section h3 {
   margin: 0 0 15px;
   font-size: 1.1em;
 }
@@ -71,6 +71,18 @@
   width: auto;
 }
 
+.helperText {
+  margin: -4px 0 10px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.warningText {
+  margin: -4px 0 10px;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -87,11 +99,44 @@
 }
 
 .primaryButton {
-  color: white;
+  color: var(--color-text-inverse);
   background: var(--main-dark);
+}
+
+.primaryButton:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 .secondaryButton {
   color: var(--foreground);
   background: var(--gray);
+}
+
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.iconButton:global(.material-icons-round),
+.iconButton :global(.material-icons-round) {
+  font-size: 18px;
+}
+
+.iconButton:hover {
+  background: var(--gray);
+}
+
+.emptyMessage {
+  margin: 10px;
+  font-size: 12px;
+  color: var(--foreground-muted);
 }

@@ -1,6 +1,15 @@
+import type { SettingsFieldConfig } from '@tnet/ui/settings';
+import {
+  SettingsActions,
+  SettingsEmptyMessage,
+  SettingsFieldsSection,
+  SettingsFormItem,
+  SettingsIconButton,
+  SettingsSecondaryButton,
+  SettingsSection
+} from '@tnet/ui/settings';
 import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import type { RequesterCookie } from '@tnet/app-requester/shared/requesterTypes';
-import sharedStyles from '../RequesterShared.module.css';
 import styles from './RequesterSettingsSections.module.css';
 
 type SetDraft = (draft: RequesterWorkspaceSettings) => void;
@@ -21,202 +30,60 @@ export const RequesterExecutionSettings = ({
   clientCertificatePassphraseDraft = '',
   onProxyPasswordDraftChange = () => undefined,
   onClientCertificatePassphraseDraftChange = () => undefined
-}: SettingsSectionProps): React.JSX.Element => (
-  <div className={sharedStyles.group}>
-    <h3>Execution</h3>
-    <label className={sharedStyles.formItem} htmlFor="requester-timeout-ms">
-      <span>Request timeout (ms)</span>
-      <input
-        id="requester-timeout-ms"
-        type="number"
-        min={1}
-        step={1000}
-        value={draft.requestTimeoutMs}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            requestTimeoutMs: Number(event.target.value)
-          })
-        }
+}: SettingsSectionProps): React.JSX.Element => {
+  const updateDraft = createDraftUpdater(draft, setDraft);
+
+  return (
+    <SettingsSection title="Execution">
+      <SettingsFieldsSection
+        title=""
+        draft={draft}
+        fields={executionFields}
+        onFieldChange={updateDraft}
       />
-    </label>
-    <label
-      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
-      htmlFor="requester-follow-redirects"
-    >
-      <span>Follow redirects</span>
-      <input
-        id="requester-follow-redirects"
-        type="checkbox"
-        checked={draft.followRedirects}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            followRedirects: event.target.checked
-          })
-        }
+      {!draft.validateTlsCertificates ? (
+        <p className={styles.error}>
+          TLS validation should stay enabled unless you are calling a trusted local service.
+        </p>
+      ) : null}
+      <ProxySettings
+        draft={draft}
+        setDraft={setDraft}
+        proxyPasswordDraft={proxyPasswordDraft}
+        onProxyPasswordDraftChange={onProxyPasswordDraftChange}
       />
-    </label>
-    <label
-      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
-      htmlFor="requester-validate-tls"
-    >
-      <span>Validate TLS certificates</span>
-      <input
-        id="requester-validate-tls"
-        type="checkbox"
-        checked={draft.validateTlsCertificates}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            validateTlsCertificates: event.target.checked
-          })
-        }
+      <CertificateSettings
+        draft={draft}
+        setDraft={setDraft}
+        clientCertificatePassphraseDraft={clientCertificatePassphraseDraft}
+        onClientCertificatePassphraseDraftChange={onClientCertificatePassphraseDraftChange}
       />
-    </label>
-    {!draft.validateTlsCertificates ? (
-      <p className={styles.error}>
-        TLS validation should stay enabled unless you are calling a trusted local service.
-      </p>
-    ) : null}
-    <label
-      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
-      htmlFor="requester-cookie-jar-enabled"
-    >
-      <span>Use workspace cookie jar</span>
-      <input
-        id="requester-cookie-jar-enabled"
-        type="checkbox"
-        checked={draft.cookieJarEnabled}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            cookieJarEnabled: event.target.checked
-          })
-        }
-      />
-    </label>
-    <ProxySettings
-      draft={draft}
-      setDraft={setDraft}
-      proxyPasswordDraft={proxyPasswordDraft}
-      onProxyPasswordDraftChange={onProxyPasswordDraftChange}
-    />
-    <CertificateSettings
-      draft={draft}
-      setDraft={setDraft}
-      clientCertificatePassphraseDraft={clientCertificatePassphraseDraft}
-      onClientCertificatePassphraseDraftChange={onClientCertificatePassphraseDraftChange}
-    />
-  </div>
-);
+    </SettingsSection>
+  );
+};
 
 export const RequesterHistorySettings = ({
   draft,
   setDraft
 }: SettingsSectionProps): React.JSX.Element => (
-  <div className={sharedStyles.group}>
-    <h3>History</h3>
-    <label
-      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
-      htmlFor="requester-history-enabled"
-    >
-      <span>Save request history</span>
-      <input
-        id="requester-history-enabled"
-        type="checkbox"
-        checked={draft.historyEnabled}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            historyEnabled: event.target.checked
-          })
-        }
-      />
-    </label>
-    <label
-      className={`${sharedStyles.formItem} ${sharedStyles.formItemInline}`}
-      htmlFor="requester-save-response-body"
-    >
-      <span>Save response body previews</span>
-      <input
-        id="requester-save-response-body"
-        type="checkbox"
-        checked={draft.saveResponseBody}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            saveResponseBody: event.target.checked
-          })
-        }
-      />
-    </label>
-  </div>
+  <SettingsFieldsSection
+    title="History"
+    draft={draft}
+    fields={historyFields}
+    onFieldChange={createDraftUpdater(draft, setDraft)}
+  />
 );
 
 export const RequesterFontSettings = ({
   draft,
   setDraft
 }: SettingsSectionProps): React.JSX.Element => (
-  <div className={sharedStyles.group}>
-    <h3>Fonts</h3>
-    <label className={sharedStyles.formItem} htmlFor="requester-code-font-family">
-      <span>Code font family</span>
-      <input
-        id="requester-code-font-family"
-        value={draft.codeFontFamily}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            codeFontFamily: event.target.value
-          })
-        }
-      />
-    </label>
-    <label className={sharedStyles.formItem} htmlFor="requester-code-font-size">
-      <span>Code font size (px)</span>
-      <input
-        id="requester-code-font-size"
-        type="number"
-        min={1}
-        value={draft.codeFontSize}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            codeFontSize: Number(event.target.value)
-          })
-        }
-      />
-    </label>
-    <label className={sharedStyles.formItem} htmlFor="requester-app-font-family">
-      <span>App font family</span>
-      <input
-        id="requester-app-font-family"
-        value={draft.appFontFamily}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            appFontFamily: event.target.value
-          })
-        }
-      />
-    </label>
-    <label className={sharedStyles.formItem} htmlFor="requester-app-font-size">
-      <span>App font size (px)</span>
-      <input
-        id="requester-app-font-size"
-        type="number"
-        min={1}
-        value={draft.appFontSize}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            appFontSize: Number(event.target.value)
-          })
-        }
-      />
-    </label>
-  </div>
+  <SettingsFieldsSection
+    title="Fonts"
+    draft={draft}
+    fields={fontFields}
+    onFieldChange={createDraftUpdater(draft, setDraft)}
+  />
 );
 
 export const RequesterCookieSettings = ({
@@ -230,21 +97,13 @@ export const RequesterCookieSettings = ({
   onRemove: (cookieId: string) => void;
   onClear: () => void;
 }): React.JSX.Element => (
-  <div className={sharedStyles.group}>
-    <h3>Cookies</h3>
-    <div className={styles.actions}>
-      <button type="button" className={sharedStyles.secondaryButton} onClick={onReload}>
-        Reload Cookies
-      </button>
-      <button
-        type="button"
-        className={sharedStyles.secondaryButton}
-        disabled={cookies.length === 0}
-        onClick={onClear}
-      >
+  <SettingsSection title="Cookies">
+    <SettingsActions>
+      <SettingsSecondaryButton onClick={onReload}>Reload Cookies</SettingsSecondaryButton>
+      <SettingsSecondaryButton disabled={cookies.length === 0} onClick={onClear}>
         Clear Cookies
-      </button>
-    </div>
+      </SettingsSecondaryButton>
+    </SettingsActions>
     {cookies.length > 0 ? (
       <div className={styles.cookieList} aria-label="Workspace cookies">
         {cookies.map((cookie) => (
@@ -253,21 +112,20 @@ export const RequesterCookieSettings = ({
             <span>{cookie.domain}</span>
             <span>{cookie.path}</span>
             <span>{cookie.expiresAt ?? 'session'}</span>
-            <button
-              type="button"
-              className={`${sharedStyles.iconButton} material-icons-round`}
+            <SettingsIconButton
+              className="material-icons-round"
               aria-label={`Remove cookie ${cookie.name}`}
               onClick={() => onRemove(cookie.id)}
             >
               close
-            </button>
+            </SettingsIconButton>
           </div>
         ))}
       </div>
     ) : (
-      <p className={sharedStyles.emptyMessage}>No cookies stored.</p>
+      <SettingsEmptyMessage>No cookies stored.</SettingsEmptyMessage>
     )}
-  </div>
+  </SettingsSection>
 );
 
 export const RequesterBackupSettings = ({
@@ -277,17 +135,12 @@ export const RequesterBackupSettings = ({
   onExport: () => void;
   onImport: () => void;
 }): React.JSX.Element => (
-  <div className={sharedStyles.group}>
-    <h3>Backup</h3>
-    <div className={styles.actions}>
-      <button type="button" className={sharedStyles.secondaryButton} onClick={onExport}>
-        Export Workspace
-      </button>
-      <button type="button" className={sharedStyles.secondaryButton} onClick={onImport}>
-        Import Workspace
-      </button>
-    </div>
-  </div>
+  <SettingsSection title="Backup">
+    <SettingsActions>
+      <SettingsSecondaryButton onClick={onExport}>Export Workspace</SettingsSecondaryButton>
+      <SettingsSecondaryButton onClick={onImport}>Import Workspace</SettingsSecondaryButton>
+    </SettingsActions>
+  </SettingsSection>
 );
 
 const ProxySettings = ({
@@ -295,133 +148,206 @@ const ProxySettings = ({
   setDraft,
   proxyPasswordDraft = '',
   onProxyPasswordDraftChange = () => undefined
-}: SettingsSectionProps): React.JSX.Element => (
-  <>
-    <label className={sharedStyles.formItem} htmlFor="requester-proxy-mode">
-      <span>Proxy mode</span>
-      <select
-        id="requester-proxy-mode"
-        value={draft.proxyMode}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            proxyMode: event.target.value as RequesterWorkspaceSettings['proxyMode']
-          })
-        }
-      >
-        <option value="system">system</option>
-        <option value="none">none</option>
-        <option value="http">http</option>
-        <option value="socks">socks</option>
-      </select>
-    </label>
-    {draft.proxyMode === 'http' || draft.proxyMode === 'socks' ? (
-      <div className={styles.authFields}>
-        <input
-          aria-label="Proxy host"
-          placeholder="Proxy host"
-          value={draft.proxyHost}
-          onChange={(event) =>
-            setDraft({
-              ...draft,
-              proxyHost: event.target.value
-            })
-          }
-        />
-        <input
-          aria-label="Proxy port"
-          placeholder="Port"
-          type="number"
-          min={1}
-          value={draft.proxyPort || ''}
-          onChange={(event) =>
-            setDraft({
-              ...draft,
-              proxyPort: Number(event.target.value)
-            })
-          }
-        />
-        <input
-          aria-label="Proxy username"
-          placeholder="Username"
-          value={draft.proxyUsername}
-          onChange={(event) =>
-            setDraft({
-              ...draft,
-              proxyUsername: event.target.value
-            })
-          }
-        />
-        <input
-          aria-label="Proxy password"
-          placeholder={draft.proxyPasswordSecretId ? 'Saved proxy password' : 'Password'}
-          type="password"
-          value={proxyPasswordDraft}
-          onChange={(event) => onProxyPasswordDraftChange(event.target.value)}
-        />
-      </div>
-    ) : null}
-  </>
-);
+}: SettingsSectionProps): React.JSX.Element => {
+  const updateDraft = createDraftUpdater(draft, setDraft);
+
+  return (
+    <>
+      <SettingsFieldsSection
+        title=""
+        draft={draft}
+        fields={proxyModeFields}
+        onFieldChange={updateDraft}
+      />
+      {draft.proxyMode === 'http' || draft.proxyMode === 'socks' ? (
+        <div className={styles.authFields}>
+          <input
+            aria-label="Proxy host"
+            placeholder="Proxy host"
+            value={draft.proxyHost}
+            onChange={(event) => updateDraft('proxyHost', event.target.value)}
+          />
+          <input
+            aria-label="Proxy port"
+            placeholder="Port"
+            type="number"
+            min={1}
+            value={draft.proxyPort || ''}
+            onChange={(event) => updateDraft('proxyPort', Number(event.target.value))}
+          />
+          <input
+            aria-label="Proxy username"
+            placeholder="Username"
+            value={draft.proxyUsername}
+            onChange={(event) => updateDraft('proxyUsername', event.target.value)}
+          />
+          <input
+            aria-label="Proxy password"
+            placeholder={draft.proxyPasswordSecretId ? 'Saved proxy password' : 'Password'}
+            type="password"
+            value={proxyPasswordDraft}
+            onChange={(event) => onProxyPasswordDraftChange(event.target.value)}
+          />
+        </div>
+      ) : null}
+    </>
+  );
+};
 
 const CertificateSettings = ({
   draft,
   setDraft,
   clientCertificatePassphraseDraft = '',
   onClientCertificatePassphraseDraftChange = () => undefined
-}: SettingsSectionProps): React.JSX.Element => (
-  <>
-    <label className={sharedStyles.formItem} htmlFor="requester-client-certificate">
-      <span>Client certificate path</span>
-      <input
-        id="requester-client-certificate"
-        value={draft.clientCertificatePath}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            clientCertificatePath: event.target.value
-          })
-        }
-      />
-    </label>
-    <label className={sharedStyles.formItem} htmlFor="requester-client-certificate-key">
-      <span>Client certificate key path</span>
-      <input
-        id="requester-client-certificate-key"
-        value={draft.clientCertificateKeyPath}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            clientCertificateKeyPath: event.target.value
-          })
-        }
-      />
-    </label>
-    <label className={sharedStyles.formItem} htmlFor="requester-custom-ca-certificate">
-      <span>Custom CA certificate path</span>
-      <input
-        id="requester-custom-ca-certificate"
-        value={draft.customCaCertificatePath}
-        onChange={(event) =>
-          setDraft({
-            ...draft,
-            customCaCertificatePath: event.target.value
-          })
-        }
-      />
-    </label>
-    <label className={sharedStyles.formItem} htmlFor="requester-client-certificate-passphrase">
-      <span>Client certificate passphrase</span>
-      <input
-        id="requester-client-certificate-passphrase"
-        aria-label="Client certificate passphrase"
-        type="password"
-        placeholder={
-          draft.clientCertificatePassphraseSecretId ? 'Saved certificate passphrase' : 'Passphrase'
-        }
-        value={clientCertificatePassphraseDraft}
-        onChange={(event) => onClientCertificatePassphraseDraftChange(event.target.value)}
-      />
-    </label>
-  </>
-);
+}: SettingsSectionProps): React.JSX.Element => {
+  const updateDraft = createDraftUpdater(draft, setDraft);
+
+  return (
+    <>
+      <SettingsFormItem htmlFor="requester-client-certificate" label="Client certificate path">
+        <input
+          id="requester-client-certificate"
+          value={draft.clientCertificatePath}
+          onChange={(event) => updateDraft('clientCertificatePath', event.target.value)}
+        />
+      </SettingsFormItem>
+      <SettingsFormItem
+        htmlFor="requester-client-certificate-key"
+        label="Client certificate key path"
+      >
+        <input
+          id="requester-client-certificate-key"
+          value={draft.clientCertificateKeyPath}
+          onChange={(event) => updateDraft('clientCertificateKeyPath', event.target.value)}
+        />
+      </SettingsFormItem>
+      <SettingsFormItem
+        htmlFor="requester-custom-ca-certificate"
+        label="Custom CA certificate path"
+      >
+        <input
+          id="requester-custom-ca-certificate"
+          value={draft.customCaCertificatePath}
+          onChange={(event) => updateDraft('customCaCertificatePath', event.target.value)}
+        />
+      </SettingsFormItem>
+      <SettingsFormItem
+        htmlFor="requester-client-certificate-passphrase"
+        label="Client certificate passphrase"
+      >
+        <input
+          id="requester-client-certificate-passphrase"
+          aria-label="Client certificate passphrase"
+          type="password"
+          placeholder={
+            draft.clientCertificatePassphraseSecretId
+              ? 'Saved certificate passphrase'
+              : 'Passphrase'
+          }
+          value={clientCertificatePassphraseDraft}
+          onChange={(event) => onClientCertificatePassphraseDraftChange(event.target.value)}
+        />
+      </SettingsFormItem>
+    </>
+  );
+};
+
+const createDraftUpdater =
+  (draft: RequesterWorkspaceSettings, setDraft: SetDraft) =>
+  <Key extends keyof RequesterWorkspaceSettings>(
+    key: Key,
+    value: RequesterWorkspaceSettings[Key]
+  ): void => {
+    setDraft({
+      ...draft,
+      [key]: value
+    });
+  };
+
+const executionFields: ReadonlyArray<SettingsFieldConfig<RequesterWorkspaceSettings>> = [
+  {
+    id: 'requester-timeout-ms',
+    label: 'Request timeout (ms)',
+    key: 'requestTimeoutMs',
+    type: 'number',
+    min: 1,
+    step: 1000
+  },
+  {
+    id: 'requester-follow-redirects',
+    label: 'Follow redirects',
+    key: 'followRedirects',
+    type: 'checkbox'
+  },
+  {
+    id: 'requester-validate-tls',
+    label: 'Validate TLS certificates',
+    key: 'validateTlsCertificates',
+    type: 'checkbox'
+  },
+  {
+    id: 'requester-cookie-jar-enabled',
+    label: 'Use workspace cookie jar',
+    key: 'cookieJarEnabled',
+    type: 'checkbox'
+  }
+];
+
+const proxyModeFields: ReadonlyArray<SettingsFieldConfig<RequesterWorkspaceSettings>> = [
+  {
+    id: 'requester-proxy-mode',
+    label: 'Proxy mode',
+    key: 'proxyMode',
+    type: 'select',
+    options: [
+      { value: 'system', label: 'system' },
+      { value: 'none', label: 'none' },
+      { value: 'http', label: 'http' },
+      { value: 'socks', label: 'socks' }
+    ]
+  }
+];
+
+const historyFields: ReadonlyArray<SettingsFieldConfig<RequesterWorkspaceSettings>> = [
+  {
+    id: 'requester-history-enabled',
+    label: 'Save request history',
+    key: 'historyEnabled',
+    type: 'checkbox'
+  },
+  {
+    id: 'requester-save-response-body',
+    label: 'Save response body previews',
+    key: 'saveResponseBody',
+    type: 'checkbox'
+  }
+];
+
+const fontFields: ReadonlyArray<SettingsFieldConfig<RequesterWorkspaceSettings>> = [
+  {
+    id: 'requester-code-font-family',
+    label: 'Code font family',
+    key: 'codeFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'requester-code-font-size',
+    label: 'Code font size (px)',
+    key: 'codeFontSize',
+    type: 'number',
+    min: 1
+  },
+  {
+    id: 'requester-app-font-family',
+    label: 'App font family',
+    key: 'appFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'requester-app-font-size',
+    label: 'App font size (px)',
+    key: 'appFontSize',
+    type: 'number',
+    min: 1
+  }
+];

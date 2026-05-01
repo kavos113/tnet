@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./AppRail": "./src/AppRail/AppRail.tsx",
-    "./DirectoryTree": "./src/DirectoryTree/DirectoryTree.tsx"
+    "./DirectoryTree": "./src/DirectoryTree/DirectoryTree.tsx",
+    "./settings": "./src/settings/index.ts"
   },
   "dependencies": {
     "@tnet/shared": "workspace:*"

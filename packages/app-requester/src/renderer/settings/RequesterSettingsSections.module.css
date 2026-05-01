@@ -48,3 +48,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
+
+.authFields input {
+  width: 100%;
+  padding: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}

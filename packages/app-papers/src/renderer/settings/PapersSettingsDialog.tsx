@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import type { SettingsFieldConfig } from '@tnet/ui/settings';
+import { SettingsDialogShell, SettingsFieldsSection } from '@tnet/ui/settings';
 import type { PapersLibraryConfig } from '@tnet/app-papers/shared/config';
 import {
   defaultPapersLibraryConfig,
@@ -6,10 +8,7 @@ import {
 } from '@tnet/app-papers/shared/config';
 import { setPapersLibrarySettings } from '../library/librarySlice';
 import { papersTnetApi } from '../papersTnetApi';
-import sharedStyles from '../PapersShared.module.css';
 import { usePapersDispatch, usePapersSelector } from '../storeHooks';
-import buttonStyles from '../PapersButtons.module.css';
-import styles from './PapersSettingsDialog.module.css';
 
 interface PapersSettingsDialogProps {
   isOpen: boolean;
@@ -48,8 +47,6 @@ export const PapersSettingsDialog = ({
     };
   }, [activeLibraryRoot, isOpen, settings]);
 
-  if (!isOpen) return null;
-
   const updateDraft = <Key extends keyof PapersLibraryConfig>(
     key: Key,
     value: PapersLibraryConfig[Key]
@@ -64,159 +61,115 @@ export const PapersSettingsDialog = ({
   };
 
   return (
-    <div className={styles.overlay} role="presentation" onMouseDown={onClose}>
-      <section
-        className={styles.content}
-        aria-label="Papers settings"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <h2>Papers Settings</h2>
-
-        {!activeLibraryRoot ? (
-          <div className={sharedStyles.emptyState}>
-            Open a paper library before editing settings.
-          </div>
-        ) : (
-          <>
-            <div className={styles.group}>
-              <h3>List</h3>
-              <label className={styles.formItem} htmlFor="papers-list-density">
-                <span>Density</span>
-                <select
-                  id="papers-list-density"
-                  value={draft.listDensity}
-                  onChange={(event) =>
-                    updateDraft(
-                      'listDensity',
-                      event.target.value as PapersLibraryConfig['listDensity']
-                    )
-                  }
-                >
-                  <option value="comfortable">Comfortable</option>
-                  <option value="compact">Compact</option>
-                </select>
-              </label>
-            </div>
-
-            <div className={styles.group}>
-              <h3>PDF</h3>
-              <label className={styles.formItem} htmlFor="papers-pdf-zoom">
-                <span>Default zoom</span>
-                <select
-                  id="papers-pdf-zoom"
-                  value={draft.pdfZoomMode}
-                  onChange={(event) =>
-                    updateDraft(
-                      'pdfZoomMode',
-                      event.target.value as PapersLibraryConfig['pdfZoomMode']
-                    )
-                  }
-                >
-                  <option value="page-width">Fit width</option>
-                  <option value="page-fit">Fit page</option>
-                  <option value="actual-size">100%</option>
-                </select>
-              </label>
-            </div>
-
-            <div className={styles.group}>
-              <h3>Notes</h3>
-              <label className={styles.formItem} htmlFor="papers-note-mode">
-                <span>Mode</span>
-                <select
-                  id="papers-note-mode"
-                  value={draft.noteEditorMode}
-                  onChange={(event) =>
-                    updateDraft(
-                      'noteEditorMode',
-                      event.target.value as PapersLibraryConfig['noteEditorMode']
-                    )
-                  }
-                >
-                  <option value="editor">Editor</option>
-                  <option value="preview">Preview</option>
-                  <option value="split">Split</option>
-                </select>
-              </label>
-              <label className={styles.formItem} htmlFor="papers-note-debounce">
-                <span>Auto save delay (ms)</span>
-                <input
-                  id="papers-note-debounce"
-                  type="number"
-                  min={100}
-                  step={100}
-                  value={draft.noteAutoSaveDebounceMs}
-                  onChange={(event) =>
-                    updateDraft('noteAutoSaveDebounceMs', Number(event.target.value))
-                  }
-                />
-              </label>
-              <label className={styles.formItem} htmlFor="papers-note-editor-font-family">
-                <span>Editor font family</span>
-                <input
-                  id="papers-note-editor-font-family"
-                  value={draft.noteEditorFontFamily}
-                  onChange={(event) => updateDraft('noteEditorFontFamily', event.target.value)}
-                />
-              </label>
-              <label className={styles.formItem} htmlFor="papers-note-editor-font-size">
-                <span>Editor font size (px)</span>
-                <input
-                  id="papers-note-editor-font-size"
-                  type="number"
-                  min={10}
-                  max={32}
-                  value={draft.noteEditorFontSize}
-                  onChange={(event) =>
-                    updateDraft('noteEditorFontSize', Number(event.target.value))
-                  }
-                />
-              </label>
-              <label className={styles.formItem} htmlFor="papers-note-preview-font-family">
-                <span>Preview font family</span>
-                <input
-                  id="papers-note-preview-font-family"
-                  value={draft.notePreviewFontFamily}
-                  onChange={(event) => updateDraft('notePreviewFontFamily', event.target.value)}
-                />
-              </label>
-              <label className={styles.formItem} htmlFor="papers-note-preview-font-size">
-                <span>Preview font size (px)</span>
-                <input
-                  id="papers-note-preview-font-size"
-                  type="number"
-                  min={10}
-                  max={32}
-                  value={draft.notePreviewFontSize}
-                  onChange={(event) =>
-                    updateDraft('notePreviewFontSize', Number(event.target.value))
-                  }
-                />
-              </label>
-            </div>
-          </>
-        )}
-
-        <div className={styles.actions}>
-          <button type="button" className={buttonStyles.secondaryButton} onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={buttonStyles.primaryButton}
-            disabled={!activeLibraryRoot}
-            onClick={() => {
-              saveSettings()
-                .then(onClose)
-                .catch((error: unknown) => {
-                  console.error('Failed to save paper settings', error);
-                });
-            }}
-          >
-            Save
-          </button>
-        </div>
-      </section>
-    </div>
+    <SettingsDialogShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Papers Settings"
+      ariaLabel="Papers settings"
+      unavailableMessage={
+        !activeLibraryRoot ? 'Open a paper library before editing settings.' : undefined
+      }
+      isSaveDisabled={!activeLibraryRoot}
+      onSave={saveSettings}
+      onSaveError={(error) => {
+        console.error('Failed to save paper settings', error);
+      }}
+    >
+      <SettingsFieldsSection
+        title="List"
+        draft={draft}
+        fields={listFields}
+        onFieldChange={updateDraft}
+      />
+      <SettingsFieldsSection
+        title="PDF"
+        draft={draft}
+        fields={pdfFields}
+        onFieldChange={updateDraft}
+      />
+      <SettingsFieldsSection
+        title="Notes"
+        draft={draft}
+        fields={noteFields}
+        onFieldChange={updateDraft}
+      />
+    </SettingsDialogShell>
   );
 };
+
+const listFields: ReadonlyArray<SettingsFieldConfig<PapersLibraryConfig>> = [
+  {
+    id: 'papers-list-density',
+    label: 'Density',
+    key: 'listDensity',
+    type: 'select',
+    options: [
+      { value: 'comfortable', label: 'Comfortable' },
+      { value: 'compact', label: 'Compact' }
+    ]
+  }
+];
+
+const pdfFields: ReadonlyArray<SettingsFieldConfig<PapersLibraryConfig>> = [
+  {
+    id: 'papers-pdf-zoom',
+    label: 'Default zoom',
+    key: 'pdfZoomMode',
+    type: 'select',
+    options: [
+      { value: 'page-width', label: 'Fit width' },
+      { value: 'page-fit', label: 'Fit page' },
+      { value: 'actual-size', label: '100%' }
+    ]
+  }
+];
+
+const noteFields: ReadonlyArray<SettingsFieldConfig<PapersLibraryConfig>> = [
+  {
+    id: 'papers-note-mode',
+    label: 'Mode',
+    key: 'noteEditorMode',
+    type: 'select',
+    options: [
+      { value: 'editor', label: 'Editor' },
+      { value: 'preview', label: 'Preview' },
+      { value: 'split', label: 'Split' }
+    ]
+  },
+  {
+    id: 'papers-note-debounce',
+    label: 'Auto save delay (ms)',
+    key: 'noteAutoSaveDebounceMs',
+    type: 'number',
+    min: 100,
+    step: 100
+  },
+  {
+    id: 'papers-note-editor-font-family',
+    label: 'Editor font family',
+    key: 'noteEditorFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'papers-note-editor-font-size',
+    label: 'Editor font size (px)',
+    key: 'noteEditorFontSize',
+    type: 'number',
+    min: 10,
+    max: 32
+  },
+  {
+    id: 'papers-note-preview-font-family',
+    label: 'Preview font family',
+    key: 'notePreviewFontFamily',
+    type: 'text'
+  },
+  {
+    id: 'papers-note-preview-font-size',
+    label: 'Preview font size (px)',
+    key: 'notePreviewFontSize',
+    type: 'number',
+    min: 10,
+    max: 32
+  }
+];

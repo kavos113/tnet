@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SettingsDialogShell } from '@tnet/ui/settings';
 import type { RequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import { normalizeRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
 import type { RequesterCookie } from '@tnet/app-requester/shared/requesterTypes';
@@ -12,7 +13,6 @@ import {
   RequesterBackupSettings,
   RequesterHistorySettings
 } from './RequesterSettingsSections';
-import sharedStyles from '../RequesterShared.module.css';
 
 interface RequesterSettingsDialogProps {
   isOpen: boolean;
@@ -60,8 +60,6 @@ export const RequesterSettingsDialog = ({
       canceled = true;
     };
   }, [activeWorkspaceId, isOpen, settings]);
-
-  if (!isOpen) return null;
 
   const reloadCookies = (): void => {
     if (!activeWorkspaceId) return;
@@ -133,12 +131,9 @@ export const RequesterSettingsDialog = ({
       });
   };
 
-  const save = (): void => {
+  const save = async (): Promise<void> => {
     if (!activeWorkspaceId) return;
-    saveSettings().catch((error: unknown) => {
-      console.error('Failed to save requester settings', error);
-      dispatch(setRequesterError('Failed to save requester settings.'));
-    });
+    await saveSettings();
   };
 
   const saveSettings = async (): Promise<void> => {
@@ -162,51 +157,42 @@ export const RequesterSettingsDialog = ({
       settings: normalizedDraft
     });
     dispatch(setRequesterSettings(normalizedDraft));
-    onClose();
   };
 
   return (
-    <div className={sharedStyles.overlay} role="presentation" onMouseDown={onClose}>
-      <section
-        className={sharedStyles.modal}
-        aria-label="Requester settings"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <h2>Requester Settings</h2>
-        {!activeWorkspaceId ? (
-          <div className={sharedStyles.emptyMessage}>
-            Create a request workspace before editing settings.
-          </div>
-        ) : (
-          <>
-            <RequesterExecutionSettings
-              draft={draft}
-              setDraft={setDraft}
-              proxyPasswordDraft={proxyPasswordDraft}
-              clientCertificatePassphraseDraft={clientCertificatePassphraseDraft}
-              onProxyPasswordDraftChange={setProxyPasswordDraft}
-              onClientCertificatePassphraseDraftChange={setClientCertificatePassphraseDraft}
-            />
-            <RequesterHistorySettings draft={draft} setDraft={setDraft} />
-            <RequesterCookieSettings
-              cookies={cookies}
-              onReload={reloadCookies}
-              onRemove={removeCookie}
-              onClear={clearCookies}
-            />
-            <RequesterBackupSettings onExport={exportWorkspace} onImport={importWorkspace} />
-            <RequesterFontSettings draft={draft} setDraft={setDraft} />
-            <footer className={sharedStyles.modalActions}>
-              <button type="button" className={sharedStyles.secondaryButton} onClick={onClose}>
-                Cancel
-              </button>
-              <button type="button" className={sharedStyles.openButton} onClick={save}>
-                Save Settings
-              </button>
-            </footer>
-          </>
-        )}
-      </section>
-    </div>
+    <SettingsDialogShell
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Requester Settings"
+      ariaLabel="Requester settings"
+      saveLabel="Save Settings"
+      unavailableMessage={
+        !activeWorkspaceId ? 'Create a request workspace before editing settings.' : undefined
+      }
+      isSaveDisabled={!activeWorkspaceId}
+      onSave={save}
+      onSaveError={(error) => {
+        console.error('Failed to save requester settings', error);
+        dispatch(setRequesterError('Failed to save requester settings.'));
+      }}
+    >
+      <RequesterExecutionSettings
+        draft={draft}
+        setDraft={setDraft}
+        proxyPasswordDraft={proxyPasswordDraft}
+        clientCertificatePassphraseDraft={clientCertificatePassphraseDraft}
+        onProxyPasswordDraftChange={setProxyPasswordDraft}
+        onClientCertificatePassphraseDraftChange={setClientCertificatePassphraseDraft}
+      />
+      <RequesterHistorySettings draft={draft} setDraft={setDraft} />
+      <RequesterCookieSettings
+        cookies={cookies}
+        onReload={reloadCookies}
+        onRemove={removeCookie}
+        onClear={clearCookies}
+      />
+      <RequesterBackupSettings onExport={exportWorkspace} onImport={importWorkspace} />
+      <RequesterFontSettings draft={draft} setDraft={setDraft} />
+    </SettingsDialogShell>
   );
 };
