@@ -3,6 +3,7 @@ import {
   buildRequesterExplorerTree,
   requestDisplayNameFromPath,
   requestFolderFromPath,
+  normalizeRequestFolderPath,
   normalizeRequestPath,
   requestNameFromPath
 } from './requestPath';
@@ -28,6 +29,8 @@ describe('requestPath', () => {
     expect(requestDisplayNameFromPath('users/list')).toBe('list.http');
     expect(requestFolderFromPath('users/admin/list.http')).toBe('users/admin');
     expect(requestFolderFromPath('health.http')).toBeUndefined();
+    expect(normalizeRequestFolderPath(' users\\admin.http ')).toBe('users/admin');
+    expect(normalizeRequestFolderPath('')).toBeUndefined();
     expect(requestNameFromPath('health')).toBe('health');
   });
 
@@ -84,6 +87,30 @@ describe('requestPath', () => {
         { id: 'a-root', name: 'A Root', method: 'GET', requestPath: 'a-root.http' }
       ]).map((node) => node.path)
     ).toEqual(['accounts', 'admin', 'a-root.http', 'z-root.http']);
+  });
+
+  it('includes empty folders in the explorer tree', () => {
+    expect(buildRequesterExplorerTree([], ['empty', 'users/admin'])).toEqual([
+      {
+        name: 'empty',
+        path: 'empty',
+        isDirectory: true,
+        children: []
+      },
+      {
+        name: 'users',
+        path: 'users',
+        isDirectory: true,
+        children: [
+          {
+            name: 'admin',
+            path: 'users/admin',
+            isDirectory: true,
+            children: []
+          }
+        ]
+      }
+    ]);
   });
 
   it('keeps same-name folders and requests distinct', () => {

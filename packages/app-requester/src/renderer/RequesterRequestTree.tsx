@@ -4,7 +4,15 @@ interface RequesterRequestTreeProps {
   activeFolderPath?: string;
   activeRequestId?: string;
   expandedPaths: string[];
+  newFolder: {
+    isActive: boolean;
+    parentPath?: string;
+    name: string;
+  };
   nodes: RequesterExplorerNode[];
+  onCancelNewFolder: () => void;
+  onConfirmNewFolder: () => Promise<void>;
+  onNewFolderNameChange: (name: string) => void;
   onSelectFolder: (folderPath: string) => void;
   onSelectRequest: (requestId: string) => void;
   onToggleFolder: (folderPath: string) => void;
@@ -21,12 +29,15 @@ const RequesterRequestTreeItem = ({
   node,
   onSelectFolder,
   onSelectRequest,
-  onToggleFolder
+  onToggleFolder,
+  ...itemProps
 }: RequesterRequestTreeItemProps): React.JSX.Element => {
   const isExpanded = expandedPaths.includes(node.path);
   const isSelected = node.isDirectory
     ? activeFolderPath === node.path && !activeRequestId
     : activeRequestId === node.requestId;
+  const shouldShowNewFolderHere =
+    itemProps.newFolder.isActive && itemProps.newFolder.parentPath === node.path;
 
   const activate = (): void => {
     if (node.isDirectory) {
@@ -77,6 +88,34 @@ const RequesterRequestTreeItem = ({
       </div>
       {node.isDirectory && node.children && isExpanded ? (
         <ul className="file-item-children">
+          {shouldShowNewFolderHere ? (
+            <li className="file-item-new">
+              <div className="file-tree-item">
+                <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+                  chevron_right
+                </span>
+                <span className="material-icons file-item-folder">folder</span>
+                <input
+                  className="file-item-new-input"
+                  value={itemProps.newFolder.name}
+                  onChange={(event) => itemProps.onNewFolderNameChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      itemProps.onConfirmNewFolder().catch((error: unknown) => {
+                        console.error('Failed to create requester folder', error);
+                      });
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      itemProps.onCancelNewFolder();
+                    }
+                  }}
+                  onBlur={itemProps.onCancelNewFolder}
+                  autoFocus
+                />
+              </div>
+            </li>
+          ) : null}
           {node.children.map((child) => (
             <RequesterRequestTreeItem
               key={child.path}
@@ -87,6 +126,7 @@ const RequesterRequestTreeItem = ({
               onSelectFolder={onSelectFolder}
               onSelectRequest={onSelectRequest}
               onToggleFolder={onToggleFolder}
+              {...itemProps}
             />
           ))}
         </ul>

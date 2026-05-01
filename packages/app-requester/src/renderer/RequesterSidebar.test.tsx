@@ -15,6 +15,7 @@ const createWorkspace = vi.fn();
 const listRequests = vi.fn();
 const getRequest = vi.fn();
 const saveRequest = vi.fn();
+const removeRequest = vi.fn();
 const getSettings = vi.fn();
 const saveSettings = vi.fn();
 const saveGlobalConfig = vi.fn();
@@ -79,7 +80,8 @@ const installTnetApi = (): void => {
         requests: {
           list: listRequests,
           get: getRequest,
-          save: saveRequest
+          save: saveRequest,
+          remove: removeRequest
         },
         history: {
           list: listHistory
@@ -93,6 +95,10 @@ const installTnetApi = (): void => {
 describe('RequesterSidebar', () => {
   beforeEach(() => {
     installTnetApi();
+    Object.defineProperty(window, 'confirm', {
+      value: vi.fn(() => true),
+      writable: true
+    });
     listWorkspaces.mockResolvedValue([{ id: 'workspace-1', name: 'Local' }]);
     createWorkspace.mockResolvedValue({ id: 'workspace-2', name: 'Workspace 2' });
     getSettings.mockResolvedValue(defaultRequesterWorkspaceSettings());
@@ -101,6 +107,7 @@ describe('RequesterSidebar', () => {
     listRequests.mockResolvedValue([requestSummary()]);
     getRequest.mockResolvedValue(requestDetail());
     saveRequest.mockImplementation(async (request) => requestDetail(request));
+    removeRequest.mockResolvedValue(undefined);
     listHistory.mockResolvedValue([]);
   });
 
@@ -181,5 +188,140 @@ describe('RequesterSidebar', () => {
         })
       )
     );
+  });
+
+  it('creates a new request with Ctrl+N', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+
+    render(
+      <Provider store={store}>
+        <RequesterSidebar />
+      </Provider>
+    );
+
+    fireEvent.keyDown(window, { key: 'n', ctrlKey: true });
+
+    await waitFor(() =>
+      expect(saveRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workspaceId: 'workspace-1',
+          name: 'Request 1',
+          requestPath: 'Request 1.http'
+        })
+      )
+    );
+  });
+
+  it('creates a root requester folder with Ctrl+Shift+N', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+
+    render(
+      <Provider store={store}>
+        <RequesterSidebar />
+      </Provider>
+    );
+
+    fireEvent.keyDown(window, { key: 'N', ctrlKey: true, shiftKey: true });
+    const input = screen.getByDisplayValue('New Folder');
+    fireEvent.change(input, { target: { value: 'admin' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() =>
+      expect(saveSettings).toHaveBeenCalledWith({
+        workspaceId: 'workspace-1',
+        settings: expect.objectContaining({
+          requestFolderPaths: ['admin'],
+          expandedRequestPaths: ['admin']
+        })
+      })
+    );
+    expect(store.getState().requester.activeRequestFolderPath).toBe('admin');
+    expect(screen.getByText('admin')).toBeInTheDocument();
+  });
+
+  it('creates a requester folder under the selected folder with Ctrl+Shift+N', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [],
+        settings: {
+          ...defaultRequesterWorkspaceSettings(),
+          requestFolderPaths: ['admin'],
+          expandedRequestPaths: ['admin']
+        }
+      })
+    );
+
+    render(
+      <Provider store={store}>
+        <RequesterSidebar />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('admin'));
+    fireEvent.keyDown(window, { key: 'N', ctrlKey: true, shiftKey: true });
+    const input = screen.getByDisplayValue('New Folder');
+    fireEvent.change(input, { target: { value: 'users' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() =>
+      expect(saveSettings).toHaveBeenCalledWith({
+        workspaceId: 'workspace-1',
+        settings: expect.objectContaining({
+          requestFolderPaths: ['admin', 'admin/users'],
+          expandedRequestPaths: ['admin', 'admin/users']
+        })
+      })
+    );
+    expect(store.getState().requester.activeRequestFolderPath).toBe('admin/users');
+  });
+
+  it('deletes the selected request with Delete', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [requestSummary()],
+        settings: {
+          ...defaultRequesterWorkspaceSettings(),
+          expandedRequestPaths: ['accounts']
+        }
+      })
+    );
+    listRequests.mockResolvedValue([]);
+
+    render(
+      <Provider store={store}>
+        <RequesterSidebar />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByText('list.http'));
+    await waitFor(() => expect(getRequest).toHaveBeenCalledWith({ requestId: 'request-1' }));
+
+    fireEvent.keyDown(window, { key: 'Delete' });
+
+    await waitFor(() => expect(removeRequest).toHaveBeenCalledWith({ requestId: 'request-1' }));
+    expect(store.getState().requester.activeRequestId).toBeUndefined();
+    expect(store.getState().requester.requests).toEqual([]);
   });
 });

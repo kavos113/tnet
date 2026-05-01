@@ -1,12 +1,16 @@
+import { useState } from 'react';
+import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import {
   setActiveRequesterFolder,
   setActiveRequesterRequest,
   setRequesterError,
+  setRequesterRequests,
   setRequesterSettings,
   setRequesterWorkspace
 } from './requesterSlice';
 import {
   buildRequesterExplorerTree,
+  normalizeRequestFolderPath,
   normalizeRequestPath,
   requestFolderFromPath
 } from '@tnet/app-requester/shared/requestPath';
@@ -16,15 +20,29 @@ import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
 
 const workspaceInitial = (name: string): string => (name.trim()[0] ?? '?').toUpperCase();
 
+interface NewFolderState {
+  isActive: boolean;
+  parentPath?: string;
+  name: string;
+}
+
+const emptyNewFolder: NewFolderState = {
+  isActive: false,
+  name: ''
+};
+
 export const RequesterSidebar = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
+  const [newFolder, setNewFolder] = useState<NewFolderState>(emptyNewFolder);
   const activeFolderPath = useRequesterSelector((state) => state.requester.activeRequestFolderPath);
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
   const activeRequestId = useRequesterSelector((state) => state.requester.activeRequestId);
   const requests = useRequesterSelector((state) => state.requester.requests);
   const settings = useRequesterSelector((state) => state.requester.settings);
   const workspaces = useRequesterSelector((state) => state.requester.workspaces);
-  const requestTree = buildRequesterExplorerTree(requests);
+  const requestTree = buildRequesterExplorerTree(requests, settings.requestFolderPaths);
+  const shouldShowNewFolderAtRoot =
+    newFolder.isActive && !newFolder.parentPath && Boolean(activeWorkspaceId);
 
   const activateWorkspace = async (workspaceId: string): Promise<void> => {
     const [latestWorkspaces, latestRequests, settings, history] = await Promise.all([
@@ -83,12 +101,85 @@ export const RequesterSidebar = (): React.JSX.Element => {
     dispatch(setActiveRequesterFolder(requestFolderFromPath(request.requestPath)));
   };
 
+  const startNewFolder = (): void => {
+    if (!activeWorkspaceId) return;
+    const parentPath = activeFolderPath;
+    setNewFolder({
+      isActive: true,
+      parentPath,
+      name: 'New Folder'
+    });
+    if (!parentPath || settings.expandedRequestPaths.includes(parentPath)) return;
+    const nextSettings = {
+      ...settings,
+      expandedRequestPaths: [...settings.expandedRequestPaths, parentPath]
+    };
+    dispatch(setRequesterSettings(nextSettings));
+    requesterTnetApi.requester.workspaces
+      .saveSettings({
+        workspaceId: activeWorkspaceId,
+        settings: nextSettings
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to expand requester folder', error);
+      });
+  };
+
+  const cancelNewFolder = (): void => {
+    setNewFolder(emptyNewFolder);
+  };
+
+  const confirmNewFolder = async (): Promise<void> => {
+    if (!activeWorkspaceId || !newFolder.isActive) return;
+    const folderName = newFolder.name.trim();
+    if (!folderName || /[\\/]/.test(folderName)) {
+      cancelNewFolder();
+      return;
+    }
+
+    const folderPath = normalizeRequestFolderPath(
+      newFolder.parentPath ? `${newFolder.parentPath}/${folderName}` : folderName
+    );
+    if (!folderPath) return;
+
+    const expandedRequestPaths = settings.expandedRequestPaths.includes(folderPath)
+      ? settings.expandedRequestPaths
+      : [...settings.expandedRequestPaths, folderPath];
+    const requestFolderPaths = settings.requestFolderPaths.includes(folderPath)
+      ? settings.requestFolderPaths
+      : [...settings.requestFolderPaths, folderPath];
+    const nextSettings = {
+      ...settings,
+      expandedRequestPaths,
+      requestFolderPaths
+    };
+    dispatch(setRequesterSettings(nextSettings));
+    dispatch(setActiveRequesterFolder(folderPath));
+    await requesterTnetApi.requester.workspaces.saveSettings({
+      workspaceId: activeWorkspaceId,
+      settings: nextSettings
+    });
+    cancelNewFolder();
+  };
+
   const selectRequest = async (requestId: string): Promise<void> => {
     const request = await requesterTnetApi.requester.requests.get({ requestId });
     dispatch(setActiveRequesterRequest(request ?? undefined));
     dispatch(
       setActiveRequesterFolder(request ? requestFolderFromPath(request.requestPath) : undefined)
     );
+  };
+
+  const deleteSelectedRequest = async (): Promise<void> => {
+    if (!activeWorkspaceId || !activeRequestId) return;
+    const request = requests.find((request) => request.id === activeRequestId);
+    if (!window.confirm(`Delete ${request?.requestPath ?? 'request'}?`)) return;
+    await requesterTnetApi.requester.requests.remove({ requestId: activeRequestId });
+    const latestRequests = await requesterTnetApi.requester.requests.list({
+      workspaceId: activeWorkspaceId
+    });
+    dispatch(setRequesterRequests(latestRequests));
+    dispatch(setActiveRequesterRequest(undefined));
   };
 
   const selectFolder = (folderPath: string): void => {
@@ -118,6 +209,27 @@ export const RequesterSidebar = (): React.JSX.Element => {
       dispatch(setRequesterError('Requester action failed.'));
     });
   };
+
+  useShortcut({
+    key: 'n',
+    ctrlOrMeta: true,
+    enabled: Boolean(activeWorkspaceId),
+    onTrigger: () => runAction(createRequest)
+  });
+
+  useShortcut({
+    key: 'n',
+    ctrlOrMeta: true,
+    shift: true,
+    enabled: Boolean(activeWorkspaceId),
+    onTrigger: startNewFolder
+  });
+
+  useShortcut({
+    key: 'Delete',
+    enabled: Boolean(activeRequestId),
+    onTrigger: () => runAction(deleteSelectedRequest)
+  });
 
   return (
     <aside className="explorer-panel" aria-label="Requester workspace">
@@ -162,11 +274,53 @@ export const RequesterSidebar = (): React.JSX.Element => {
           </button>
         </header>
         <ul className="file-explorer-list">
+          {shouldShowNewFolderAtRoot ? (
+            <li className="file-item-new">
+              <div className="file-tree-item">
+                <span className="material-icons-round file-item-chevron file-item-icon-placeholder">
+                  chevron_right
+                </span>
+                <span className="material-icons file-item-folder">folder</span>
+                <input
+                  className="file-item-new-input"
+                  value={newFolder.name}
+                  onChange={(event) =>
+                    setNewFolder((current) => ({
+                      ...current,
+                      name: event.target.value
+                    }))
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      confirmNewFolder().catch((error: unknown) => {
+                        console.error('Failed to create requester folder', error);
+                      });
+                    } else if (event.key === 'Escape') {
+                      event.preventDefault();
+                      cancelNewFolder();
+                    }
+                  }}
+                  onBlur={cancelNewFolder}
+                  autoFocus
+                />
+              </div>
+            </li>
+          ) : null}
           <RequesterRequestTree
             activeFolderPath={activeFolderPath}
             activeRequestId={activeRequestId}
             expandedPaths={settings.expandedRequestPaths}
+            newFolder={newFolder}
             nodes={requestTree}
+            onCancelNewFolder={cancelNewFolder}
+            onConfirmNewFolder={confirmNewFolder}
+            onNewFolderNameChange={(name) =>
+              setNewFolder((current) => ({
+                ...current,
+                name
+              }))
+            }
             onSelectFolder={selectFolder}
             onSelectRequest={(requestId) => runAction(() => selectRequest(requestId))}
             onToggleFolder={(folderPath) => runAction(() => toggleFolder(folderPath))}

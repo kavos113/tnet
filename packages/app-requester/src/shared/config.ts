@@ -19,6 +19,7 @@ export interface RequesterWorkspaceSettings {
   appFontFamily: string;
   appFontSize: number;
   expandedRequestPaths: string[];
+  requestFolderPaths: string[];
   defaultVariableSetId?: string;
 }
 
@@ -36,7 +37,8 @@ export const defaultRequesterWorkspaceSettings = (): RequesterWorkspaceSettings 
   codeFontSize: 13,
   appFontFamily: 'sans-serif',
   appFontSize: 13,
-  expandedRequestPaths: []
+  expandedRequestPaths: [],
+  requestFolderPaths: []
 });
 
 export const getRequesterGlobalConfig = (config: GlobalConfig): RequesterGlobalConfig => ({
@@ -91,6 +93,9 @@ export const normalizeRequesterWorkspaceSettings = (
         : defaults.appFontSize,
     expandedRequestPaths: Array.isArray(settings.expandedRequestPaths)
       ? [...new Set(settings.expandedRequestPaths.filter((path) => typeof path === 'string'))]
-      : defaults.expandedRequestPaths
+      : defaults.expandedRequestPaths,
+    requestFolderPaths: Array.isArray(settings.requestFolderPaths)
+      ? [...new Set(settings.requestFolderPaths.filter((path) => typeof path === 'string'))]
+      : defaults.requestFolderPaths
   };
 };

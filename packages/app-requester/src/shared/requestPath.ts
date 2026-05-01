@@ -41,6 +41,18 @@ export const requestFolderFromPath = (requestPath: string): string | undefined =
   return parts.length > 0 ? parts.join('/') : undefined;
 };
 
+export const normalizeRequestFolderPath = (folderPath: string): string | undefined => {
+  const normalized = folderPath
+    .trim()
+    .replaceAll('\\', '/')
+    .split('/')
+    .map((part) => stripRequestExtension(part.trim()))
+    .filter(Boolean)
+    .join('/');
+
+  return normalized || undefined;
+};
+
 export const requestDisplayNameFromPath = (requestPath: string): string => {
   const filename =
     normalizeRequestPath(requestPath).split('/').at(-1) ?? `untitled${requesterRequestExtension}`;
@@ -48,9 +60,42 @@ export const requestDisplayNameFromPath = (requestPath: string): string => {
 };
 
 export const buildRequesterExplorerTree = (
-  requests: { id?: string; name: string; method?: string; requestPath: string }[]
+  requests: { id?: string; name: string; method?: string; requestPath: string }[],
+  folders: string[] = []
 ): RequesterExplorerNode[] => {
   const root: RequesterExplorerNode[] = [];
+
+  const ensureDirectory = (folderPath: string): RequesterExplorerNode | undefined => {
+    const normalizedFolderPath = normalizeRequestFolderPath(folderPath);
+    if (!normalizedFolderPath) return undefined;
+
+    const parts = normalizedFolderPath.split('/');
+    let siblings = root;
+    let currentPath = '';
+    let directory: RequesterExplorerNode | undefined;
+
+    for (const part of parts) {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      let node = siblings.find((item) => item.name === part && item.isDirectory);
+      if (!node) {
+        node = {
+          name: part,
+          path: currentPath,
+          isDirectory: true,
+          children: []
+        };
+        siblings.push(node);
+      }
+      directory = node;
+      siblings = node.children ?? [];
+    }
+
+    return directory;
+  };
+
+  for (const folder of folders) {
+    ensureDirectory(folder);
+  }
 
   for (const request of requests) {
     const parts = normalizeRequestPath(request.requestPath).split('/');
