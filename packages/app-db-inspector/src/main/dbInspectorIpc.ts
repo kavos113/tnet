@@ -15,7 +15,7 @@ import {
 import { DbInspectorService } from './service/dbInspectorService';
 import { connectionFromInput } from './service/connectionFactory';
 import { createDbInspectorSecretStore } from './service/secretStore';
-import { selectSqliteDatabaseFile } from './dbInspectorFileService';
+import { saveTextFile, selectSqliteDatabaseFile } from './dbInspectorFileService';
 
 export interface RegisterDbInspectorIpcOptions {
   userDataDir: string;
@@ -98,5 +98,8 @@ export const registerDbInspectorIpc = ({ userDataDir }: RegisterDbInspectorIpcOp
   });
   ipcMain.handle(dbInspectorIpcChannels.files.selectSqliteDatabase, async () =>
     selectSqliteDatabaseFile()
+  );
+  ipcMain.handle(dbInspectorIpcChannels.files.saveTextFile, async (_event, request) =>
+    saveTextFile(request)
   );
 };

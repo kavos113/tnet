@@ -39,7 +39,8 @@ export const dbInspectorIpcChannels = {
     closeTab: 'db-inspector:query:closeTab'
   },
   files: {
-    selectSqliteDatabase: 'db-inspector:files:selectSqliteDatabase'
+    selectSqliteDatabase: 'db-inspector:files:selectSqliteDatabase',
+    saveTextFile: 'db-inspector:files:saveTextFile'
   }
 } as const;
 
@@ -104,6 +105,11 @@ export interface DbInspectorApi {
     };
     files: {
       selectSqliteDatabase: () => Promise<{ path: string; name: string } | null>;
+      saveTextFile: (request: {
+        defaultPath: string;
+        content: string;
+        filters?: Array<{ name: string; extensions: string[] }>;
+      }) => Promise<{ path: string } | null>;
     };
   };
 }

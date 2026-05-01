@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { QueryExecutionResult } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
+import type {
+  DbInspectorDriverType,
+  QueryExecutionResult
+} from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { isMutatingSql } from '@tnet/app-db-inspector/shared/sqlModel';
 import {
   cancelDbInspectorQuery,
   executeDbInspectorQuery,
   saveDbInspectorQueryTab
 } from '../dbInspectorActions';
+import {
+  exportRowsAsCsv,
+  exportRowsAsInsertSql,
+  safeExportFileName
+} from '../exportDbInspectorData';
 import { useDbInspectorDispatch, useDbInspectorSelector } from '../storeHooks';
 import { SqlEditor } from './SqlEditor';
 import appStyles from '../DbInspectorApp.module.css';
@@ -15,6 +23,7 @@ export const QueryConsole = (): React.JSX.Element => {
   const dispatch = useDbInspectorDispatch();
   const {
     activeQueryTabId,
+    activeTableName,
     activeWorkspaceId,
     globalSettings,
     isLoading,
@@ -22,6 +31,7 @@ export const QueryConsole = (): React.JSX.Element => {
     queryHistory,
     queryResult,
     queryTabs,
+    workspaces,
     settings
   } = useDbInspectorSelector((state) => state.dbInspector);
   const activeTab = useMemo(
@@ -31,6 +41,10 @@ export const QueryConsole = (): React.JSX.Element => {
   const [sqlText, setSqlText] = useState(activeTab?.sqlText ?? 'SELECT * FROM ');
   const [title, setTitle] = useState(activeTab?.title ?? 'Query');
   const [isExpanded, setIsExpanded] = useState(false);
+  const activeWorkspace = useMemo(
+    () => workspaces.find((workspace) => workspace.id === activeWorkspaceId),
+    [activeWorkspaceId, workspaces]
+  );
 
   useEffect(() => {
     setSqlText(activeTab?.sqlText ?? 'SELECT * FROM ');
@@ -130,7 +144,13 @@ export const QueryConsole = (): React.JSX.Element => {
           </div>
           <div className={styles.queryResultPane}>
             {queryError ? <div className={appStyles.error}>{queryError}</div> : null}
-            {queryResult ? <QueryResultTable result={queryResult} /> : null}
+            {queryResult ? (
+              <QueryResultTable
+                result={queryResult}
+                dialect={activeWorkspace?.driver ?? 'sqlite'}
+                defaultTableName={activeTableName}
+              />
+            ) : null}
           </div>
           <aside className={styles.queryHistoryPane} aria-label="Query history">
             <strong>History</strong>
@@ -171,7 +191,15 @@ export const QueryConsole = (): React.JSX.Element => {
   );
 };
 
-const QueryResultTable = ({ result }: { result: QueryExecutionResult }): React.JSX.Element => {
+const QueryResultTable = ({
+  defaultTableName,
+  dialect,
+  result
+}: {
+  defaultTableName?: string;
+  dialect: DbInspectorDriverType;
+  result: QueryExecutionResult;
+}): React.JSX.Element => {
   if (result.affectedRows !== undefined) {
     return <div className={appStyles.empty}>{result.affectedRows} rows affected.</div>;
   }
@@ -180,26 +208,56 @@ const QueryResultTable = ({ result }: { result: QueryExecutionResult }): React.J
     return <div className={appStyles.empty}>Query executed.</div>;
   }
 
+  const exportCsv = (): void => {
+    void exportRowsAsCsv({
+      columns: result.columns,
+      rows: result.rows,
+      defaultPath: safeExportFileName(defaultTableName ?? 'query-result', 'csv')
+    });
+  };
+
+  const exportInsert = (): void => {
+    const tableName = defaultTableName ?? window.prompt('Table name for INSERT export');
+    if (!tableName) return;
+    void exportRowsAsInsertSql({
+      columns: result.columns,
+      rows: result.rows,
+      dialect,
+      tableName,
+      defaultPath: safeExportFileName(`${tableName}-insert`, 'sql')
+    });
+  };
+
   return (
-    <div className={styles.tableWrapper}>
-      <table className={styles.dataTable}>
-        <thead>
-          <tr>
-            {result.columns.map((column) => (
-              <th key={column.name}>{column.name}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {result.rows.map((row, index) => (
-            <tr key={index}>
+    <div className={styles.queryResultTableShell}>
+      <div className={styles.queryResultToolbar}>
+        <button className={appStyles.button} type="button" onClick={exportCsv}>
+          Export CSV
+        </button>
+        <button className={appStyles.button} type="button" onClick={exportInsert}>
+          Export INSERT
+        </button>
+      </div>
+      <div className={styles.tableWrapper}>
+        <table className={styles.dataTable}>
+          <thead>
+            <tr>
               {result.columns.map((column) => (
-                <td key={column.name}>{formatCell(row[column.name])}</td>
+                <th key={column.name}>{column.name}</th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {result.rows.map((row, index) => (
+              <tr key={index}>
+                {result.columns.map((column) => (
+                  <td key={column.name}>{formatCell(row[column.name])}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

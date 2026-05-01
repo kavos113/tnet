@@ -34,7 +34,8 @@ export const dbInspectorTnetApi: DbInspectorApi = {
       closeTab: (request) => getApi().dbInspector.query.closeTab(request)
     },
     files: {
-      selectSqliteDatabase: () => getApi().dbInspector.files.selectSqliteDatabase()
+      selectSqliteDatabase: () => getApi().dbInspector.files.selectSqliteDatabase(),
+      saveTextFile: (request) => getApi().dbInspector.files.saveTextFile(request)
     }
   }
 };

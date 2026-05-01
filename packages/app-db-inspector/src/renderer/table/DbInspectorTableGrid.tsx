@@ -21,6 +21,8 @@ interface DbInspectorTableGridProps {
   onPreviewSqlChange: (sql: string) => void;
   onSortChange: (sort: { column: string; direction: 'asc' | 'desc' } | undefined) => void;
   onOpenTable: (table: DatabaseTable, page: number) => void;
+  onExportCsv: () => void;
+  onExportInsert: () => void;
 }
 
 export const DbInspectorTableGrid = ({
@@ -28,6 +30,8 @@ export const DbInspectorTableGrid = ({
   activeTableModel,
   activeTableName,
   isLoading,
+  onExportCsv,
+  onExportInsert,
   onPreviewSqlChange,
   onSortChange,
   onOpenTable,
@@ -106,6 +110,22 @@ export const DbInspectorTableGrid = ({
           onClick={copyCsv}
         >
           <span className="material-icons">csv</span>
+        </button>
+        <button
+          className={appStyles.button}
+          type="button"
+          disabled={activeTable.totalRows === 0 || isLoading}
+          onClick={onExportCsv}
+        >
+          Export CSV
+        </button>
+        <button
+          className={appStyles.button}
+          type="button"
+          disabled={!activeTableModel || activeTable.totalRows === 0 || isLoading}
+          onClick={onExportInsert}
+        >
+          Export INSERT
         </button>
         <span>{activeTable.totalRows} rows</span>
       </div>

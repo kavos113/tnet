@@ -161,7 +161,8 @@ describe('App', () => {
             closeTab: vi.fn()
           },
           files: {
-            selectSqliteDatabase: vi.fn()
+            selectSqliteDatabase: vi.fn(),
+            saveTextFile: vi.fn()
           }
         }
       },

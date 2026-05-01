@@ -192,7 +192,9 @@ export const tnetApi: DesktopTnetApi = {
     },
     files: {
       selectSqliteDatabase: () =>
-        ipcRenderer.invoke(dbInspectorIpcChannels.files.selectSqliteDatabase)
+        ipcRenderer.invoke(dbInspectorIpcChannels.files.selectSqliteDatabase),
+      saveTextFile: (request) =>
+        ipcRenderer.invoke(dbInspectorIpcChannels.files.saveTextFile, request)
     }
   }
 };

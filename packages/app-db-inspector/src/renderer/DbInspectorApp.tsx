@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type {
+  DatabaseColumn,
   DatabaseTable,
   DbInspectorWorkspace
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
@@ -9,6 +10,12 @@ import {
 } from '@tnet/app-db-inspector/shared/tablePreviewSql';
 import { openDbInspectorTable } from './dbInspectorActions';
 import { setDbInspectorError } from './dbInspectorSlice';
+import {
+  exportRowsAsCsv,
+  exportRowsAsInsertSql,
+  loadAllTableRowsForExport,
+  safeExportFileName
+} from './exportDbInspectorData';
 import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
 import { QueryConsole } from './query/QueryConsole';
 import { DbInspectorTableGrid } from './table/DbInspectorTableGrid';
@@ -109,6 +116,73 @@ export const DbInspectorApp = (): React.JSX.Element => {
     }
   };
 
+  const loadAllFilteredRowsForActiveTable = async (): Promise<
+    | {
+        columns: DatabaseColumn[];
+        rows: Record<string, unknown>[];
+      }
+    | undefined
+  > => {
+    if (!activeWorkspaceId || !activeTable || !activeTableModel) return undefined;
+    const parsedSql = parsePreviewSqlOrReport(activeTableModel);
+    if (!parsedSql) return undefined;
+    const result = await loadAllTableRowsForExport(
+      {
+        workspaceId: activeWorkspaceId,
+        schemaName: activeTableModel.schemaName,
+        tableName: activeTableModel.name,
+        sort: parsedSql.sort,
+        whereClause: parsedSql.whereClause,
+        filter: ''
+      },
+      activeTable.columns
+    );
+    return { columns: result.columns, rows: result.rows };
+  };
+
+  const handleExportTableCsv = (): void => {
+    if (!activeTableModel) return;
+    void loadAllFilteredRowsForActiveTable()
+      .then((result) => {
+        if (!result) return;
+        return exportRowsAsCsv({
+          columns: result.columns,
+          rows: result.rows,
+          defaultPath: safeExportFileName(activeTableModel.name, 'csv')
+        });
+      })
+      .catch((exportError) => {
+        dispatch(
+          setDbInspectorError(
+            exportError instanceof Error ? exportError.message : String(exportError)
+          )
+        );
+      });
+  };
+
+  const handleExportTableInsert = (): void => {
+    if (!activeTableModel) return;
+    void loadAllFilteredRowsForActiveTable()
+      .then((result) => {
+        if (!result) return;
+        return exportRowsAsInsertSql({
+          columns: result.columns,
+          rows: result.rows,
+          dialect: activeWorkspace?.driver ?? 'sqlite',
+          tableName: activeTableModel.name,
+          schemaName: activeTableModel.schemaName,
+          defaultPath: safeExportFileName(`${activeTableModel.name}-insert`, 'sql')
+        });
+      })
+      .catch((exportError) => {
+        dispatch(
+          setDbInspectorError(
+            exportError instanceof Error ? exportError.message : String(exportError)
+          )
+        );
+      });
+  };
+
   return (
     <main className={styles.app} style={appStyle} role="main" aria-label="DB Inspector">
       <div className={styles.toolbar}>
@@ -171,6 +245,8 @@ export const DbInspectorApp = (): React.JSX.Element => {
               onPreviewSqlChange={setPreviewSql}
               onSortChange={handleSortChange}
               onOpenTable={handleOpenTable}
+              onExportCsv={handleExportTableCsv}
+              onExportInsert={handleExportTableInsert}
             />
           )}
           <QueryConsole />
