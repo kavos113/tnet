@@ -4,6 +4,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/better-sqlite3':
+      specifier: ^7.6.13
+      version: 7.6.13
+    better-sqlite3:
+      specifier: ^12.9.0
+      version: 12.9.0
+
 importers:
 
   .:
@@ -202,7 +211,7 @@ importers:
   apps/desktop:
     dependencies:
       better-sqlite3:
-        specifier: ^12.9.0
+        specifier: 'catalog:'
         version: 12.9.0
 
   packages/app-db-inspector:
@@ -220,7 +229,7 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0
       better-sqlite3:
-        specifier: ^12.9.0
+        specifier: 'catalog:'
         version: 12.9.0
       mysql2:
         specifier: ^3.22.3
@@ -230,7 +239,7 @@ importers:
         version: 8.20.0
     devDependencies:
       '@types/better-sqlite3':
-        specifier: ^7.6.13
+        specifier: 'catalog:'
         version: 7.6.13
 
   packages/app-markdown:
@@ -263,14 +272,14 @@ importers:
         specifier: workspace:*
         version: link:../shared
       better-sqlite3:
-        specifier: ^12.9.0
+        specifier: 'catalog:'
         version: 12.9.0
       pdfjs-dist:
         specifier: 4.10.38
         version: 4.10.38
     devDependencies:
       '@types/better-sqlite3':
-        specifier: ^7.6.13
+        specifier: 'catalog:'
         version: 7.6.13
 
   packages/app-papers-extension: {}
@@ -287,11 +296,11 @@ importers:
         specifier: workspace:*
         version: link:../shared
       better-sqlite3:
-        specifier: ^12.9.0
+        specifier: 'catalog:'
         version: 12.9.0
     devDependencies:
       '@types/better-sqlite3':
-        specifier: ^7.6.13
+        specifier: 'catalog:'
         version: 7.6.13
 
   packages/main-core:

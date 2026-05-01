@@ -14,6 +14,6 @@
     "build:linux": "pnpm --dir ../.. papers:server:build && pnpm build && electron-builder --linux"
   },
   "dependencies": {
-    "better-sqlite3": "^12.9.0"
+    "better-sqlite3": "catalog:"
   }
 }
