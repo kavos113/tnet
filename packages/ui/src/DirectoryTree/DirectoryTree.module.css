@@ -34,6 +34,10 @@
   transition: transform 0.12s ease;
 }
 
+.chevron:global(.material-icons-round) {
+  font-size: 12px;
+}
+
 .chevronExpanded {
   transform: rotate(90deg);
 }
@@ -41,6 +45,10 @@
 .folder {
   flex: 0 0 auto;
   color: var(--folder);
+  font-size: 12px;
+}
+
+.folder:global(.material-icons) {
   font-size: 12px;
 }
 

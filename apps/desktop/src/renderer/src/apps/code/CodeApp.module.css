@@ -22,6 +22,10 @@
   color: var(--foreground);
 }
 
+.icon:global(.material-icons-round) {
+  font-size: 34px;
+}
+
 .placeholder h1 {
   margin: 0;
   font-size: 18px;

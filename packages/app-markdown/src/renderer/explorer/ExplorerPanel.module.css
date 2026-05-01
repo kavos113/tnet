@@ -45,6 +45,10 @@
   font-size: 18px;
 }
 
+.workspaceSwitcherAdd:global(.material-icons-round) {
+  font-size: 18px;
+}
+
 .workspaceSwitcherItem:hover,
 .workspaceSwitcherAdd:hover {
   background: var(--gray);
@@ -100,6 +104,10 @@
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
+}
+
+.iconButton:global(.material-icons-round) {
+  font-size: 18px;
 }
 
 .iconButton:hover,

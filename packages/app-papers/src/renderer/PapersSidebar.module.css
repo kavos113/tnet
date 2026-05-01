@@ -45,6 +45,10 @@
   font-size: 18px;
 }
 
+.workspaceSwitcherAdd:global(.material-icons-round) {
+  font-size: 18px;
+}
+
 .workspaceSwitcherItem:hover,
 .workspaceSwitcherAdd:hover {
   background: var(--gray);
@@ -146,6 +150,10 @@
   font-size: 12px;
 }
 
+.folder:global(.material-icons) {
+  font-size: 12px;
+}
+
 .itemName {
   min-width: 0;
   margin: 0;
@@ -179,6 +187,10 @@
   border: 0;
   font-size: 12px;
   line-height: 1;
+}
+
+.chevron:global(.material-icons-round) {
+  font-size: 12px;
 }
 
 .iconPlaceholder {

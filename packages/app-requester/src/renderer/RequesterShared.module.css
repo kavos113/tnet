@@ -51,6 +51,10 @@
   font-size: 18px;
 }
 
+.workspaceSwitcherAdd:global(.material-icons-round) {
+  font-size: 18px;
+}
+
 .workspaceSwitcherItem:hover,
 .workspaceSwitcherAdd:hover {
   background: var(--gray);
@@ -92,6 +96,11 @@
   background: transparent;
   border: 0;
   border-radius: 4px;
+}
+
+.iconButton:global(.material-icons-round),
+.iconButton :global(.material-icons-round) {
+  font-size: 18px;
 }
 
 .iconButton:hover,
@@ -142,6 +151,10 @@
   transition: transform 0.12s ease;
 }
 
+.chevron:global(.material-icons-round) {
+  font-size: 12px;
+}
+
 .chevronExpanded {
   transform: rotate(90deg);
 }
@@ -149,6 +162,10 @@
 .folder {
   flex: 0 0 auto;
   color: var(--folder);
+  font-size: 12px;
+}
+
+.folder:global(.material-icons) {
   font-size: 12px;
 }
 
@@ -317,4 +334,8 @@
 .placeholderIcon {
   font-size: 34px;
   color: var(--foreground);
+}
+
+.placeholderIcon:global(.material-icons-round) {
+  font-size: 34px;
 }

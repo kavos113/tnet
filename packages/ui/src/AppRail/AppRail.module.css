@@ -23,6 +23,10 @@
   border-radius: 6px;
 }
 
+.item:global(.material-icons-round) {
+  font-size: 20px;
+}
+
 .item:hover,
 .active {
   color: var(--foreground);

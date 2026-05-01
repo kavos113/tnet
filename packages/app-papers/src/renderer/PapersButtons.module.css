@@ -21,6 +21,11 @@
   border-color: var(--gray);
 }
 
+.iconButton :global(.material-icons-round),
+.iconButton:global(.material-icons-round) {
+  font-size: 18px;
+}
+
 .primaryButton {
   padding: 8px 14px;
   color: white;

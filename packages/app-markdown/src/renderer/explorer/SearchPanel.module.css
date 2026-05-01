@@ -22,6 +22,10 @@
   color: var(--foreground);
 }
 
+.inputIcon:global(.material-icons-round) {
+  font-size: 16px;
+}
+
 .input {
   flex: 1 1 auto;
   min-width: 0;
