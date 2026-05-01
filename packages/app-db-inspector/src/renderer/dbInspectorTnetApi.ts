@@ -28,7 +28,10 @@ export const dbInspectorTnetApi: DbInspectorApi = {
     },
     query: {
       execute: (request) => getApi().dbInspector.query.execute(request),
-      listHistory: (request) => getApi().dbInspector.query.listHistory(request)
+      listHistory: (request) => getApi().dbInspector.query.listHistory(request),
+      listTabs: (request) => getApi().dbInspector.query.listTabs(request),
+      saveTab: (request) => getApi().dbInspector.query.saveTab(request),
+      closeTab: (request) => getApi().dbInspector.query.closeTab(request)
     },
     files: {
       selectSqliteDatabase: () => getApi().dbInspector.files.selectSqliteDatabase()

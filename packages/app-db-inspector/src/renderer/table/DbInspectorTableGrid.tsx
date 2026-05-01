@@ -10,8 +10,13 @@ interface DbInspectorTableGridProps {
   activeTableModel?: DatabaseTable;
   filter: string;
   page: number;
+  sort?: {
+    column: string;
+    direction: 'asc' | 'desc';
+  };
   isLoading: boolean;
   onFilterChange: (filter: string) => void;
+  onSortChange: (sort: { column: string; direction: 'asc' | 'desc' } | undefined) => void;
   onOpenTable: (table: DatabaseTable, page: number) => void;
 }
 
@@ -22,8 +27,10 @@ export const DbInspectorTableGrid = ({
   filter,
   isLoading,
   onFilterChange,
+  onSortChange,
   onOpenTable,
-  page
+  page,
+  sort
 }: DbInspectorTableGridProps): React.JSX.Element => (
   <div className={styles.tableShell}>
     <div className={styles.tableToolbar}>
@@ -48,9 +55,28 @@ export const DbInspectorTableGrid = ({
       <table className={styles.dataTable}>
         <thead>
           <tr>
-            {activeTable.columns.map((column) => (
-              <th key={column.name}>{column.name}</th>
-            ))}
+            {activeTable.columns.map((column) => {
+              const nextDirection =
+                sort?.column === column.name && sort.direction === 'asc' ? 'desc' : 'asc';
+              return (
+                <th key={column.name}>
+                  <button
+                    className={styles.columnSortButton}
+                    type="button"
+                    onClick={() => {
+                      onSortChange({ column: column.name, direction: nextDirection });
+                    }}
+                  >
+                    {column.name}
+                    {sort?.column === column.name ? (
+                      <span className="material-icons">
+                        {sort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward'}
+                      </span>
+                    ) : null}
+                  </button>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>

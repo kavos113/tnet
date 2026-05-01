@@ -4,11 +4,14 @@ import {
   createSqliteWorkspace,
   openDbInspectorTable,
   refreshDbInspectorSchema,
-  selectDbInspectorWorkspace
+  selectDbInspectorWorkspace,
+  testDbInspectorConnection,
+  updateSqliteWorkspace
 } from './dbInspectorActions';
 import { dbInspectorTnetApi } from './dbInspectorTnetApi';
 import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
 import { DbInspectorSchemaTree } from './sidebar/DbInspectorSchemaTree';
+import { DbInspectorWorkspaceDialog } from './sidebar/DbInspectorWorkspaceDialog';
 import { DbInspectorWorkspaceForm } from './sidebar/DbInspectorWorkspaceForm';
 import styles from './DbInspectorApp.module.css';
 
@@ -25,7 +28,9 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
   } = useDbInspectorSelector((state) => state.dbInspector);
   const [workspaceName, setWorkspaceName] = useState('');
   const [databasePath, setDatabasePath] = useState('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [filter] = useState('');
+  const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId);
 
   const handleCreateWorkspace = async (): Promise<void> => {
     const workspace = await createSqliteWorkspace(dispatch, { name: workspaceName, databasePath });
@@ -35,10 +40,16 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
   };
 
   const handlePickSqlite = async (): Promise<void> => {
+    return pickSqliteFile().then((selected) => {
+      if (!selected) return;
+      setDatabasePath(selected.path);
+      setWorkspaceName((current) => current || selected.name);
+    });
+  };
+
+  const pickSqliteFile = async (): Promise<{ path: string; name: string } | null> => {
     const selected = await dbInspectorTnetApi.dbInspector.files.selectSqliteDatabase();
-    if (!selected) return;
-    setDatabasePath(selected.path);
-    setWorkspaceName((current) => current || selected.name);
+    return selected;
   };
 
   const handleOpenTable = (table: DatabaseTable, page: number): void => {
@@ -64,6 +75,15 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
           onClick={() => void refreshDbInspectorSchema(dispatch, activeWorkspaceId)}
         >
           <span className="material-icons">refresh</span>
+        </button>
+        <button
+          className={styles.iconButton}
+          type="button"
+          title="Edit workspace"
+          disabled={!activeWorkspace || isLoading}
+          onClick={() => setIsEditDialogOpen(true)}
+        >
+          <span className="material-icons">settings</span>
         </button>
       </div>
       <div className={styles.workspaceTree} role="tree" aria-label="DB workspaces">
@@ -100,6 +120,28 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
         schema={schema}
         activeTableName={activeTableName}
         onOpenTable={handleOpenTable}
+      />
+      <DbInspectorWorkspaceDialog
+        isOpen={isEditDialogOpen}
+        workspace={activeWorkspace}
+        isLoading={isLoading}
+        onClose={() => setIsEditDialogOpen(false)}
+        onPickSqlite={pickSqliteFile}
+        onTestConnection={() => {
+          void testDbInspectorConnection(dispatch, activeWorkspaceId).then((ok) => {
+            if (ok) window.alert('Connection succeeded.');
+          });
+        }}
+        onSave={(input) => {
+          void updateSqliteWorkspace(dispatch, {
+            workspaceId: activeWorkspaceId,
+            name: input.name,
+            databasePath: input.databasePath,
+            readOnly: input.readOnly
+          }).then((workspace) => {
+            if (workspace) setIsEditDialogOpen(false);
+          });
+        }}
       />
     </aside>
   );

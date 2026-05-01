@@ -12,6 +12,10 @@ import {
   setDbInspectorActiveTable,
   setDbInspectorError,
   setDbInspectorLoading,
+  setDbInspectorQueryError,
+  setDbInspectorQueryHistory,
+  setDbInspectorQueryResult,
+  setDbInspectorQueryTabs,
   setDbInspectorSchema,
   setDbInspectorWorkspace
 } from './dbInspectorSlice';
@@ -22,16 +26,20 @@ export const refreshDbInspectorWorkspace = async (
   dispatch: DbInspectorDispatch,
   workspaceId: string
 ): Promise<void> => {
-  const [nextWorkspaces, nextSchema, nextSettings] = await Promise.all([
+  const [nextWorkspaces, nextSchema, nextSettings, queryTabs, queryHistory] = await Promise.all([
     dbInspectorTnetApi.dbInspector.workspaces.list(),
     dbInspectorTnetApi.dbInspector.schema.getTree({ workspaceId }),
-    dbInspectorTnetApi.dbInspector.workspaces.getSettings({ workspaceId })
+    dbInspectorTnetApi.dbInspector.workspaces.getSettings({ workspaceId }),
+    dbInspectorTnetApi.dbInspector.query.listTabs({ workspaceId }),
+    dbInspectorTnetApi.dbInspector.query.listHistory({ workspaceId })
   ]);
   dispatch(
     setDbInspectorWorkspace({
       activeWorkspaceId: workspaceId,
       workspaces: nextWorkspaces,
       schema: nextSchema ?? undefined,
+      queryTabs,
+      queryHistory,
       settings: nextSettings
     })
   );
@@ -71,12 +79,18 @@ export const createSqliteWorkspace = async (
     const refreshedSchema = await dbInspectorTnetApi.dbInspector.schema.refresh({
       workspaceId: workspace.id
     });
-    const nextWorkspaces = await dbInspectorTnetApi.dbInspector.workspaces.list();
+    const [nextWorkspaces, queryTabs, queryHistory] = await Promise.all([
+      dbInspectorTnetApi.dbInspector.workspaces.list(),
+      dbInspectorTnetApi.dbInspector.query.listTabs({ workspaceId: workspace.id }),
+      dbInspectorTnetApi.dbInspector.query.listHistory({ workspaceId: workspace.id })
+    ]);
     dispatch(
       setDbInspectorWorkspace({
         activeWorkspaceId: workspace.id,
         workspaces: nextWorkspaces,
-        schema: refreshedSchema
+        schema: refreshedSchema,
+        queryTabs,
+        queryHistory
       })
     );
     dispatch(setDbInspectorError(undefined));
@@ -87,6 +101,104 @@ export const createSqliteWorkspace = async (
   } finally {
     dispatch(setDbInspectorLoading(false));
   }
+};
+
+export const updateSqliteWorkspace = async (
+  dispatch: DbInspectorDispatch,
+  input: { workspaceId?: string; name: string; databasePath: string; readOnly?: boolean }
+): Promise<DbInspectorWorkspace | null> => {
+  if (!input.workspaceId) return null;
+  if (!input.databasePath.trim()) {
+    dispatch(setDbInspectorError('SQLite database path is required.'));
+    return null;
+  }
+
+  dispatch(setDbInspectorLoading(true));
+  try {
+    const workspace = await dbInspectorTnetApi.dbInspector.workspaces.update({
+      workspaceId: input.workspaceId,
+      name: input.name,
+      databasePath: input.databasePath,
+      readOnly: input.readOnly ?? true
+    });
+    await refreshDbInspectorWorkspace(dispatch, workspace.id);
+    dispatch(setDbInspectorError(undefined));
+    return workspace;
+  } catch (error) {
+    dispatch(setDbInspectorError(error instanceof Error ? error.message : String(error)));
+    return null;
+  } finally {
+    dispatch(setDbInspectorLoading(false));
+  }
+};
+
+export const testDbInspectorConnection = async (
+  dispatch: DbInspectorDispatch,
+  workspaceId?: string
+): Promise<boolean> => {
+  if (!workspaceId) return false;
+  dispatch(setDbInspectorLoading(true));
+  try {
+    await dbInspectorTnetApi.dbInspector.workspaces.testConnection({ workspaceId });
+    dispatch(setDbInspectorError(undefined));
+    return true;
+  } catch (error) {
+    dispatch(setDbInspectorError(error instanceof Error ? error.message : String(error)));
+    return false;
+  } finally {
+    dispatch(setDbInspectorLoading(false));
+  }
+};
+
+export const executeDbInspectorQuery = async (
+  dispatch: DbInspectorDispatch,
+  input: { workspaceId?: string; sqlText: string; maxRows?: number }
+): Promise<void> => {
+  if (!input.workspaceId) return;
+  const sqlText = input.sqlText.trim();
+  if (!sqlText) {
+    dispatch(setDbInspectorQueryError('SQL text is empty.'));
+    return;
+  }
+
+  dispatch(setDbInspectorLoading(true));
+  try {
+    const result = await dbInspectorTnetApi.dbInspector.query.execute({
+      workspaceId: input.workspaceId,
+      sqlText,
+      maxRows: input.maxRows
+    });
+    const history = await dbInspectorTnetApi.dbInspector.query.listHistory({
+      workspaceId: input.workspaceId
+    });
+    dispatch(setDbInspectorQueryResult(result));
+    dispatch(setDbInspectorQueryHistory(history));
+  } catch (error) {
+    const history = await dbInspectorTnetApi.dbInspector.query
+      .listHistory({ workspaceId: input.workspaceId })
+      .catch(() => undefined);
+    if (history) dispatch(setDbInspectorQueryHistory(history));
+    dispatch(setDbInspectorQueryError(error instanceof Error ? error.message : String(error)));
+  } finally {
+    dispatch(setDbInspectorLoading(false));
+  }
+};
+
+export const saveDbInspectorQueryTab = async (
+  dispatch: DbInspectorDispatch,
+  input: { id?: string; workspaceId?: string; title: string; sqlText: string }
+): Promise<void> => {
+  if (!input.workspaceId) return;
+  const savedTab = await dbInspectorTnetApi.dbInspector.query.saveTab({
+    id: input.id,
+    workspaceId: input.workspaceId,
+    title: input.title,
+    sqlText: input.sqlText
+  });
+  const tabs = await dbInspectorTnetApi.dbInspector.query.listTabs({
+    workspaceId: input.workspaceId
+  });
+  dispatch(setDbInspectorQueryTabs(tabs.length > 0 ? tabs : [savedTab]));
 };
 
 export const refreshDbInspectorSchema = async (
@@ -113,6 +225,10 @@ export const openDbInspectorTable = async (
     table: DatabaseTable;
     page: number;
     filter: string;
+    sort?: {
+      column: string;
+      direction: 'asc' | 'desc';
+    };
     activeWorkspaceId?: string;
     settings: DbInspectorWorkspaceSettings;
     globalSettings: DbInspectorGlobalSettings;
@@ -128,6 +244,7 @@ export const openDbInspectorTable = async (
       tableName: input.table.name,
       page: input.page,
       pageSize: input.settings.tablePageSize || input.globalSettings.defaultPageSize || 100,
+      sort: input.sort,
       filter: input.filter
     });
     dispatch(setDbInspectorActiveTable({ tableName: input.table.name, table: pageResult }));

@@ -96,6 +96,7 @@ export interface QueryExecutionResult {
   rows: Record<string, unknown>[];
   affectedRows?: number;
   durationMs: number;
+  truncated?: boolean;
 }
 
 export interface QueryHistoryEntry {
@@ -107,4 +108,20 @@ export interface QueryHistoryEntry {
   rowCount: number;
   errorCode?: string;
   errorMessage?: string;
+}
+
+export interface QueryTab {
+  id: string;
+  workspaceId: string;
+  title: string;
+  sqlText: string;
+  sortOrder: number;
+  updatedAt: string;
+}
+
+export interface SaveQueryTabInput {
+  id?: string;
+  workspaceId: string;
+  title: string;
+  sqlText: string;
 }

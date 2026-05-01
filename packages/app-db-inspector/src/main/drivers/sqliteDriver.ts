@@ -209,7 +209,8 @@ export class SqliteDriver implements DatabaseDriver {
       const statement = database.prepare(request.sqlText);
       if (statement.reader) {
         const rows = statement.all() as Record<string, unknown>[];
-        const limitedRows = rows.slice(0, Math.max(request.maxRows ?? 500, 1));
+        const maxRows = Math.max(request.maxRows ?? 500, 1);
+        const limitedRows = rows.slice(0, maxRows);
         return {
           columns: Object.keys(limitedRows[0] ?? {}).map((name) => ({
             name,
@@ -217,7 +218,8 @@ export class SqliteDriver implements DatabaseDriver {
             nullable: true
           })),
           rows: limitedRows,
-          durationMs: Math.round(performance.now() - startedAt)
+          durationMs: Math.round(performance.now() - startedAt),
+          truncated: rows.length > maxRows
         };
       }
 

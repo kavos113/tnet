@@ -8,6 +8,7 @@ import {
 import {
   openDbInspectorDatabase,
   QueryHistoryRepository,
+  QueryTabRepository,
   SchemaCacheRepository,
   WorkspaceRepository
 } from './repository';
@@ -23,6 +24,7 @@ export const registerDbInspectorIpc = ({ userDataDir }: RegisterDbInspectorIpcOp
   const workspaceRepository = new WorkspaceRepository(database);
   const schemaCacheRepository = new SchemaCacheRepository(database);
   const queryHistoryRepository = new QueryHistoryRepository(database);
+  const queryTabRepository = new QueryTabRepository(database);
   const dbInspectorService = new DbInspectorService(
     workspaceRepository,
     schemaCacheRepository,
@@ -88,6 +90,15 @@ export const registerDbInspectorIpc = ({ userDataDir }: RegisterDbInspectorIpcOp
   ipcMain.handle(dbInspectorIpcChannels.query.listHistory, async (_event, request) =>
     queryHistoryRepository.list(request.workspaceId)
   );
+  ipcMain.handle(dbInspectorIpcChannels.query.listTabs, async (_event, request) =>
+    queryTabRepository.list(request.workspaceId)
+  );
+  ipcMain.handle(dbInspectorIpcChannels.query.saveTab, async (_event, request) =>
+    queryTabRepository.save(request)
+  );
+  ipcMain.handle(dbInspectorIpcChannels.query.closeTab, async (_event, request) => {
+    queryTabRepository.remove(request.queryTabId);
+  });
   ipcMain.handle(dbInspectorIpcChannels.files.selectSqliteDatabase, async () =>
     selectSqliteDatabaseFile()
   );

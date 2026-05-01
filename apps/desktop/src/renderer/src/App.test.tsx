@@ -155,7 +155,10 @@ describe('App', () => {
           },
           query: {
             execute: vi.fn(),
-            listHistory: vi.fn()
+            listHistory: vi.fn(),
+            listTabs: vi.fn().mockResolvedValue([]),
+            saveTab: vi.fn(),
+            closeTab: vi.fn()
           },
           files: {
             selectSqliteDatabase: vi.fn()

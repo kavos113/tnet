@@ -4,6 +4,8 @@ import type {
   LoadTablePageRequest,
   QueryExecutionResult,
   QueryHistoryEntry,
+  QueryTab,
+  SaveQueryTabInput,
   TablePageResult
 } from './dbInspectorTypes';
 import type { DbInspectorGlobalConfig, DbInspectorWorkspaceSettings } from './config';
@@ -31,7 +33,10 @@ export const dbInspectorIpcChannels = {
   },
   query: {
     execute: 'db-inspector:query:execute',
-    listHistory: 'db-inspector:query:listHistory'
+    listHistory: 'db-inspector:query:listHistory',
+    listTabs: 'db-inspector:query:listTabs',
+    saveTab: 'db-inspector:query:saveTab',
+    closeTab: 'db-inspector:query:closeTab'
   },
   files: {
     selectSqliteDatabase: 'db-inspector:files:selectSqliteDatabase'
@@ -79,6 +84,9 @@ export interface DbInspectorApi {
         maxRows?: number;
       }) => Promise<QueryExecutionResult>;
       listHistory: (request: { workspaceId: string }) => Promise<QueryHistoryEntry[]>;
+      listTabs: (request: { workspaceId: string }) => Promise<QueryTab[]>;
+      saveTab: (request: SaveQueryTabInput) => Promise<QueryTab>;
+      closeTab: (request: { queryTabId: string }) => Promise<void>;
     };
     files: {
       selectSqliteDatabase: () => Promise<{ path: string; name: string } | null>;

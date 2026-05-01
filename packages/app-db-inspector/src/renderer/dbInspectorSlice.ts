@@ -2,6 +2,9 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorWorkspace,
+  QueryExecutionResult,
+  QueryHistoryEntry,
+  QueryTab,
   TablePageResult
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import type {
@@ -19,6 +22,11 @@ interface DbInspectorState {
   schema?: DatabaseSchemaSnapshot;
   activeTableName?: string;
   activeTable?: TablePageResult;
+  queryTabs: QueryTab[];
+  activeQueryTabId?: string;
+  queryHistory: QueryHistoryEntry[];
+  queryResult?: QueryExecutionResult;
+  queryError?: string;
   settings: DbInspectorWorkspaceSettings;
   globalSettings: DbInspectorGlobalSettings;
   isRestored: boolean;
@@ -28,6 +36,8 @@ interface DbInspectorState {
 
 const initialState: DbInspectorState = {
   workspaces: [],
+  queryTabs: [],
+  queryHistory: [],
   settings: defaultDbInspectorWorkspaceSettings(),
   globalSettings: defaultDbInspectorGlobalSettings(),
   isRestored: false,
@@ -44,6 +54,8 @@ const dbInspectorSlice = createSlice({
         activeWorkspaceId?: string;
         workspaces: DbInspectorWorkspace[];
         schema?: DatabaseSchemaSnapshot;
+        queryTabs?: QueryTab[];
+        queryHistory?: QueryHistoryEntry[];
         settings?: DbInspectorWorkspaceSettings;
         globalSettings?: DbInspectorGlobalSettings;
       }>
@@ -51,6 +63,9 @@ const dbInspectorSlice = createSlice({
       state.activeWorkspaceId = action.payload.activeWorkspaceId;
       state.workspaces = action.payload.workspaces;
       state.schema = action.payload.schema;
+      state.queryTabs = action.payload.queryTabs ?? [];
+      state.activeQueryTabId = action.payload.queryTabs?.[0]?.id;
+      state.queryHistory = action.payload.queryHistory ?? [];
       state.settings = action.payload.settings ?? defaultDbInspectorWorkspaceSettings();
       state.globalSettings = action.payload.globalSettings ?? defaultDbInspectorGlobalSettings();
       state.isRestored = true;
@@ -61,6 +76,8 @@ const dbInspectorSlice = createSlice({
         activeWorkspaceId?: string;
         workspaces: DbInspectorWorkspace[];
         schema?: DatabaseSchemaSnapshot;
+        queryTabs?: QueryTab[];
+        queryHistory?: QueryHistoryEntry[];
         settings?: DbInspectorWorkspaceSettings;
       }>
     ) => {
@@ -69,6 +86,11 @@ const dbInspectorSlice = createSlice({
       state.schema = action.payload.schema;
       state.activeTableName = undefined;
       state.activeTable = undefined;
+      state.queryTabs = action.payload.queryTabs ?? [];
+      state.activeQueryTabId = action.payload.queryTabs?.[0]?.id;
+      state.queryHistory = action.payload.queryHistory ?? [];
+      state.queryResult = undefined;
+      state.queryError = undefined;
       state.settings = action.payload.settings ?? defaultDbInspectorWorkspaceSettings();
       state.isRestored = true;
     },
@@ -81,6 +103,27 @@ const dbInspectorSlice = createSlice({
     ) => {
       state.activeTableName = action.payload.tableName;
       state.activeTable = action.payload.table;
+    },
+    setDbInspectorQueryTabs: (state, action: PayloadAction<QueryTab[]>) => {
+      state.queryTabs = action.payload;
+      state.activeQueryTabId =
+        state.activeQueryTabId && action.payload.some((tab) => tab.id === state.activeQueryTabId)
+          ? state.activeQueryTabId
+          : action.payload[0]?.id;
+    },
+    setActiveDbInspectorQueryTab: (state, action: PayloadAction<string | undefined>) => {
+      state.activeQueryTabId = action.payload;
+    },
+    setDbInspectorQueryHistory: (state, action: PayloadAction<QueryHistoryEntry[]>) => {
+      state.queryHistory = action.payload;
+    },
+    setDbInspectorQueryResult: (state, action: PayloadAction<QueryExecutionResult | undefined>) => {
+      state.queryResult = action.payload;
+      if (action.payload) state.queryError = undefined;
+    },
+    setDbInspectorQueryError: (state, action: PayloadAction<string | undefined>) => {
+      state.queryError = action.payload;
+      if (action.payload) state.queryResult = undefined;
     },
     setDbInspectorLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -102,10 +145,15 @@ const dbInspectorSlice = createSlice({
 
 export const {
   restoreDbInspector,
+  setActiveDbInspectorQueryTab,
   setDbInspectorActiveTable,
   setDbInspectorError,
   setDbInspectorGlobalSettings,
   setDbInspectorLoading,
+  setDbInspectorQueryError,
+  setDbInspectorQueryHistory,
+  setDbInspectorQueryResult,
+  setDbInspectorQueryTabs,
   setDbInspectorSchema,
   setDbInspectorSettings,
   setDbInspectorWorkspace

@@ -48,6 +48,10 @@
   justify-content: space-between;
 }
 
+.sidebarHeader > h2 {
+  margin-right: auto;
+}
+
 .title {
   margin: 0;
   font-size: 14px;
@@ -221,6 +225,13 @@
   padding: 8px;
 }
 
+.workspaceBody {
+  display: grid;
+  min-height: 100%;
+  grid-template-rows: minmax(180px, 1fr) minmax(260px, 0.8fr);
+  gap: 10px;
+}
+
 .empty,
 .error {
   margin: 16px;
@@ -273,6 +284,26 @@
   font-weight: 600;
 }
 
+.columnSortButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.columnSortButton :global(.material-icons) {
+  font-size: 14px;
+}
+
 .dataTable th:last-child,
 .dataTable td:last-child {
   border-right: 0;
@@ -303,6 +334,124 @@
   border: 1px solid var(--color-border);
   border-radius: 999px;
   padding: 3px 8px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.queryConsole {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 8px;
+  background: var(--background);
+}
+
+.queryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.queryTitleRow {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.queryMeta,
+.mutedText {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.queryBody {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(300px, 1.2fr) 220px;
+  gap: 8px;
+}
+
+.queryEditorPane,
+.queryResultPane,
+.queryHistoryPane {
+  min-height: 0;
+  overflow: auto;
+}
+
+.queryHistoryPane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 1px solid var(--color-border);
+  padding-left: 8px;
+}
+
+.historyButton {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 6px;
+  color: inherit;
+  background: var(--background);
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyButton span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyButton small {
+  color: var(--foreground-muted);
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.workspaceDialog {
+  display: grid;
+  width: min(560px, calc(100vw - 48px));
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 14px;
+  background: var(--background);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+}
+
+.dialogHeader,
+.dialogActions,
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialogHeader,
+.dialogActions {
+  justify-content: flex-end;
+}
+
+.dialogHeader strong {
+  margin-right: auto;
+}
+
+.checkboxLabel {
   color: var(--foreground-muted);
   font-size: 12px;
 }

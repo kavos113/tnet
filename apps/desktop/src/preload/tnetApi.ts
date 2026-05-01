@@ -185,7 +185,10 @@ export const tnetApi: DesktopTnetApi = {
     query: {
       execute: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.query.execute, request),
       listHistory: (request) =>
-        ipcRenderer.invoke(dbInspectorIpcChannels.query.listHistory, request)
+        ipcRenderer.invoke(dbInspectorIpcChannels.query.listHistory, request),
+      listTabs: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.query.listTabs, request),
+      saveTab: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.query.saveTab, request),
+      closeTab: (request) => ipcRenderer.invoke(dbInspectorIpcChannels.query.closeTab, request)
     },
     files: {
       selectSqliteDatabase: () =>

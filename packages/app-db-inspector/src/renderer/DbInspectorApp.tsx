@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { DatabaseTable } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { openDbInspectorTable } from './dbInspectorActions';
 import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
+import { QueryConsole } from './query/QueryConsole';
 import { DbInspectorTableGrid } from './table/DbInspectorTableGrid';
 import styles from './DbInspectorApp.module.css';
 
@@ -20,6 +21,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
   } = useDbInspectorSelector((state) => state.dbInspector);
   const [filter, setFilter] = useState('');
   const [page, setPage] = useState(0);
+  const [sort, setSort] = useState<{ column: string; direction: 'asc' | 'desc' } | undefined>();
 
   const activeWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === activeWorkspaceId),
@@ -42,6 +44,22 @@ export const DbInspectorApp = (): React.JSX.Element => {
       table,
       page: nextPage,
       filter,
+      sort,
+      activeWorkspaceId,
+      settings,
+      globalSettings
+    });
+  };
+
+  const handleSortChange = (nextSort: typeof sort): void => {
+    setSort(nextSort);
+    if (!activeTableModel || !nextSort) return;
+    setPage(0);
+    void openDbInspectorTable(dispatch, {
+      table: activeTableModel,
+      page: 0,
+      filter,
+      sort: nextSort,
       activeWorkspaceId,
       settings,
       globalSettings
@@ -59,20 +77,25 @@ export const DbInspectorApp = (): React.JSX.Element => {
       </div>
       {error ? <div className={styles.error}>{error}</div> : null}
       <div className={styles.content}>
-        {!activeTable ? (
-          <div className={styles.empty}>Select a table from the schema tree.</div>
-        ) : (
-          <DbInspectorTableGrid
-            activeTable={activeTable}
-            activeTableModel={activeTableModel}
-            activeTableName={activeTableName}
-            filter={filter}
-            page={page}
-            isLoading={isLoading}
-            onFilterChange={setFilter}
-            onOpenTable={handleOpenTable}
-          />
-        )}
+        <div className={styles.workspaceBody}>
+          {!activeTable ? (
+            <div className={styles.empty}>Select a table from the schema tree.</div>
+          ) : (
+            <DbInspectorTableGrid
+              activeTable={activeTable}
+              activeTableModel={activeTableModel}
+              activeTableName={activeTableName}
+              filter={filter}
+              sort={sort}
+              page={page}
+              isLoading={isLoading}
+              onFilterChange={setFilter}
+              onSortChange={handleSortChange}
+              onOpenTable={handleOpenTable}
+            />
+          )}
+          <QueryConsole />
+        </div>
       </div>
     </main>
   );

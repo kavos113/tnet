@@ -31,6 +31,12 @@ export const DbInspectorRuntime = (): null => {
               })
             ])
           : [undefined, undefined];
+        const [queryTabs, queryHistory] = activeWorkspaceId
+          ? await Promise.all([
+              dbInspectorTnetApi.dbInspector.query.listTabs({ workspaceId: activeWorkspaceId }),
+              dbInspectorTnetApi.dbInspector.query.listHistory({ workspaceId: activeWorkspaceId })
+            ])
+          : [[], []];
 
         if (!cancelled) {
           dispatch(
@@ -38,6 +44,8 @@ export const DbInspectorRuntime = (): null => {
               activeWorkspaceId,
               workspaces,
               schema: schema ?? undefined,
+              queryTabs,
+              queryHistory,
               settings,
               globalSettings: getDbInspectorGlobalSettings(rootConfig)
             })
