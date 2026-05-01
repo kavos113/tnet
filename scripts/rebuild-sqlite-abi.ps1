@@ -16,6 +16,9 @@ function Invoke-NodeRebuild {
     Push-Location $betterSqliteDir
     try {
         pnpm exec prebuild-install
+        if ($LASTEXITCODE -ne 0) {
+            throw "prebuild-install failed with exit code $LASTEXITCODE."
+        }
     }
     finally {
         Pop-Location
@@ -53,6 +56,9 @@ function Invoke-ElectronRebuild {
     $electronVersion = Get-ElectronVersion
     $electronRebuildCommand = Get-ElectronRebuildCommand
     & $electronRebuildCommand -f -w better-sqlite3 -v $electronVersion
+    if ($LASTEXITCODE -ne 0) {
+        throw "electron-rebuild failed with exit code $LASTEXITCODE."
+    }
 }
 
 if ($Target -eq 'node') {

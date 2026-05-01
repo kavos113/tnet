@@ -11,23 +11,29 @@ let papersServerSupervisor: PapersServerSupervisor | null = null;
 if (!hasSingleInstanceLock) {
   app.quit();
 } else {
-  app.whenReady().then(async () => {
-    electronApp.setAppUserModelId('com.tnet.app');
+  app
+    .whenReady()
+    .then(async () => {
+      electronApp.setAppUserModelId('com.tnet.app');
 
-    app.on('browser-window-created', (_, window) => {
-      optimizer.watchWindowShortcuts(window);
+      app.on('browser-window-created', (_, window) => {
+        optimizer.watchWindowShortcuts(window);
+      });
+
+      await installDevtools();
+      papersServerSupervisor = createPapersServerSupervisor();
+      await papersServerSupervisor.start();
+      registerIpcHandlers();
+      createWindow();
+
+      app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+      });
+    })
+    .catch((error: unknown) => {
+      console.error('App threw an error during startup', error);
+      app.quit();
     });
-
-    await installDevtools();
-    papersServerSupervisor = createPapersServerSupervisor();
-    await papersServerSupervisor.start();
-    registerIpcHandlers();
-    createWindow();
-
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-  });
 }
 
 app.on('before-quit', () => {
