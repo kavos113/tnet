@@ -75,7 +75,10 @@
 }
 
 .segmentedActive {
+  color: var(--foreground);
   background: var(--tab-active-bg) !important;
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+  font-weight: 600;
 }
 
 .sidebarHeader {
@@ -529,11 +532,21 @@
 }
 
 .erView {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: var(--background);
+}
+
+.erToolbar {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 8px;
+  background: var(--background-dark);
 }
 
 .erLayout {
@@ -554,6 +567,9 @@
 }
 
 .erNode {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: 320px;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -575,6 +591,9 @@
 
 .erColumnList {
   display: grid;
+  align-content: start;
+  min-height: 0;
+  overflow: auto;
 }
 
 .erColumn {
@@ -635,4 +654,56 @@
 
 .erEdge small {
   color: var(--foreground-muted);
+}
+
+.mermaidPane {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mermaidToolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 8px;
+  background: var(--background);
+}
+
+.zoomInput {
+  width: 72px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 7px;
+  color: inherit;
+  background: var(--background);
+}
+
+.mermaidViewport {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.mermaidViewportDragging {
+  cursor: grabbing;
+}
+
+.mermaidDiagram {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.mermaidDiagram svg {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
 }

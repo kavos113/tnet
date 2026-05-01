@@ -1,5 +1,10 @@
-import { buildErDiagramGraph } from '@tnet/app-db-inspector/shared/erDiagram';
+import { useMemo, useState } from 'react';
+import {
+  buildErDiagramGraph,
+  buildMermaidErDiagram
+} from '@tnet/app-db-inspector/shared/erDiagram';
 import type { DatabaseSchemaSnapshot } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
+import { MermaidDiagramView } from './MermaidDiagramView';
 import styles from '../DbInspectorApp.module.css';
 
 interface ErDiagramViewProps {
@@ -13,7 +18,12 @@ export const ErDiagramView = ({
   schemaName,
   tableName
 }: ErDiagramViewProps): React.JSX.Element => {
-  const graph = buildErDiagramGraph(schema, { schemaName, tableName, maxNodes: 60 });
+  const graph = useMemo(
+    () => buildErDiagramGraph(schema, { schemaName, tableName, maxNodes: 60 }),
+    [schema, schemaName, tableName]
+  );
+  const mermaidSource = useMemo(() => buildMermaidErDiagram(graph), [graph]);
+  const [mode, setMode] = useState<'cards' | 'mermaid'>('cards');
   const nodeNameById = new Map(
     graph.nodes.map((node) => [
       node.id,
@@ -23,6 +33,26 @@ export const ErDiagramView = ({
 
   return (
     <section className={styles.erView} aria-label="Entity relationship diagram">
+      <header className={styles.erToolbar}>
+        <div className={styles.segmentedControl} aria-label="ER diagram renderer">
+          <button
+            className={mode === 'cards' ? styles.segmentedActive : ''}
+            type="button"
+            aria-pressed={mode === 'cards'}
+            onClick={() => setMode('cards')}
+          >
+            Cards
+          </button>
+          <button
+            className={mode === 'mermaid' ? styles.segmentedActive : ''}
+            type="button"
+            aria-pressed={mode === 'mermaid'}
+            onClick={() => setMode('mermaid')}
+          >
+            Mermaid
+          </button>
+        </div>
+      </header>
       {graph.truncated ? (
         <div className={styles.warning}>
           Large schema detected. Showing the first {graph.nodes.length} tables.
@@ -30,6 +60,8 @@ export const ErDiagramView = ({
       ) : null}
       {graph.nodes.length === 0 ? (
         <div className={styles.empty}>No tables are available for the ER view.</div>
+      ) : mode === 'mermaid' ? (
+        <MermaidDiagramView source={mermaidSource} />
       ) : (
         <div className={styles.erLayout}>
           <div className={styles.erNodeGrid}>

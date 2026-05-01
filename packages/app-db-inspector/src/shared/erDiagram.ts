@@ -67,6 +67,29 @@ export const buildErDiagramGraph = (
   };
 };
 
+export const buildMermaidErDiagram = (graph: ErDiagramGraph): string => {
+  const lines = ['erDiagram'];
+  graph.nodes.forEach((node) => {
+    lines.push(`  ${mermaidEntityName(node.id)} {`);
+    node.columns.forEach((column) => {
+      const keyFlags = [column.primaryKey ? 'PK' : undefined, column.foreignKey ? 'FK' : undefined]
+        .filter(Boolean)
+        .join(',');
+      const comment = column.nullable ? '' : ' "NOT NULL"';
+      lines.push(
+        `    ${mermaidToken(column.type || 'unknown')} ${mermaidToken(column.name)}${keyFlags ? ` ${keyFlags}` : ''}${comment}`
+      );
+    });
+    lines.push('  }');
+  });
+  graph.edges.forEach((edge) => {
+    lines.push(
+      `  ${mermaidEntityName(edge.fromTableId)} }o--|| ${mermaidEntityName(edge.toTableId)} : "${mermaidLabel(edge.columns, edge.referencedColumns)}"`
+    );
+  });
+  return lines.join('\n');
+};
+
 const relatedTables = (tables: DatabaseTable[], tableName: string): DatabaseTable[] => {
   const selected = tables.find((table) => table.name === tableName);
   if (!selected) return [];
@@ -114,3 +137,13 @@ const toNode = (table: DatabaseTable): ErDiagramNode => {
 
 const tableId = (table: { schemaName?: string; name: string }): string =>
   `${table.schemaName ?? 'main'}.${table.name}`;
+
+const mermaidEntityName = (value: string): string => mermaidToken(value.replace(/\./g, '__'));
+
+const mermaidToken = (value: string): string => {
+  const normalized = value.trim().replace(/[^A-Za-z0-9_]/g, '_');
+  return normalized && /^[A-Za-z_]/.test(normalized) ? normalized : `_${normalized || 'value'}`;
+};
+
+const mermaidLabel = (columns: string[], referencedColumns: string[]): string =>
+  `${columns.join(', ')} to ${referencedColumns.join(', ')}`.replace(/"/g, '\\"');

@@ -120,6 +120,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
           <button
             className={mainView === 'table' ? styles.segmentedActive : ''}
             type="button"
+            aria-pressed={mainView === 'table'}
             onClick={() => setMainView('table')}
           >
             Table
@@ -127,6 +128,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
           <button
             className={mainView === 'schema-er' ? styles.segmentedActive : ''}
             type="button"
+            aria-pressed={mainView === 'schema-er'}
             disabled={!schema}
             onClick={() => setMainView('schema-er')}
           >
@@ -135,6 +137,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
           <button
             className={mainView === 'table-er' ? styles.segmentedActive : ''}
             type="button"
+            aria-pressed={mainView === 'table-er'}
             disabled={!schema || !activeTableName}
             onClick={() => setMainView('table-er')}
           >

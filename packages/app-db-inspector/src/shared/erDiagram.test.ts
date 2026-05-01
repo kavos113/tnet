@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DatabaseSchemaSnapshot } from './dbInspectorTypes';
-import { buildErDiagramGraph } from './erDiagram';
+import { buildErDiagramGraph, buildMermaidErDiagram } from './erDiagram';
 
 const snapshot: DatabaseSchemaSnapshot = {
   refreshedAt: '2026-01-01T00:00:00.000Z',
@@ -64,5 +64,14 @@ describe('erDiagram', () => {
   it('can build a selected table neighborhood graph', () => {
     const graph = buildErDiagramGraph(snapshot, { tableName: 'papers' });
     expect(graph.nodes.map((node) => node.tableName)).toEqual(['authors', 'papers']);
+  });
+
+  it('builds a mermaid erDiagram from the graph', () => {
+    const mermaid = buildMermaidErDiagram(buildErDiagramGraph(snapshot));
+
+    expect(mermaid).toContain('erDiagram');
+    expect(mermaid).toContain('main__authors {');
+    expect(mermaid).toContain('INTEGER id PK "NOT NULL"');
+    expect(mermaid).toContain('main__papers }o--|| main__authors : "author_id to id"');
   });
 });
