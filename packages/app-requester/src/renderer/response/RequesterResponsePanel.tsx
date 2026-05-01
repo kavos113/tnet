@@ -5,6 +5,7 @@ import type {
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
+import styles from './RequesterResponsePanel.module.css';
 
 interface RequesterResponsePanelProps {
   response?: RequesterResponseSnapshot;
@@ -27,12 +28,12 @@ export const RequesterResponsePanel = ({
   onOpenResponse,
   onSelectHistory
 }: RequesterResponsePanelProps): React.JSX.Element => (
-  <section className="requester-response-placeholder" aria-label="API response">
+  <section className={styles.root} aria-label="API response">
     <h2>Response</h2>
     {error ? (
-      <section className="requester-response-error" aria-label="Response error details">
+      <section className={styles.error} aria-label="Response error details">
         <h3>Request failed</h3>
-        <dl className="requester-response-summary">
+        <dl className={styles.summary}>
           <div>
             <dt>Name</dt>
             <dd>{error.name}</dd>
@@ -46,7 +47,7 @@ export const RequesterResponsePanel = ({
             <dd>{error.cause ?? '-'}</dd>
           </div>
         </dl>
-        {error.stack ? <pre className="requester-response-body">{error.stack}</pre> : null}
+        {error.stack ? <pre className={styles.body}>{error.stack}</pre> : null}
       </section>
     ) : response ? (
       <RequesterResponseContent
@@ -58,13 +59,13 @@ export const RequesterResponsePanel = ({
     ) : (
       <p>Send a request to view the response.</p>
     )}
-    <section className="requester-history-list" aria-label="Request history">
+    <section className={styles.history} aria-label="Request history">
       <h3>History</h3>
       {history.slice(0, 5).map((entry) => (
         <button
           type="button"
-          className={`requester-history-row ${
-            entry.id === selectedHistoryId ? 'requester-history-row-selected' : ''
+          className={`${styles.historyRow} ${
+            entry.id === selectedHistoryId ? styles.historyRowSelected : ''
           }`}
           key={entry.id}
           onClick={() => onSelectHistory(entry.id)}
@@ -95,7 +96,7 @@ const RequesterResponseContent = ({
 
   return (
     <>
-      <dl className="requester-response-summary">
+      <dl className={styles.summary}>
         <div>
           <dt>Status</dt>
           <dd>
@@ -111,7 +112,7 @@ const RequesterResponseContent = ({
           <dd>{response.byteSize} bytes</dd>
         </div>
       </dl>
-      <div className="requester-response-actions">
+      <div className={styles.actions}>
         <button type="button" className="open-folder-button" onClick={onSaveResponse}>
           Save Body
         </button>
@@ -120,9 +121,9 @@ const RequesterResponseContent = ({
         </button>
       </div>
       {response.isBodyTruncated ? (
-        <p className="requester-error">Response body preview was truncated at 1 MB.</p>
+        <p className={styles.errorText}>Response body preview was truncated at 1 MB.</p>
       ) : null}
-      <section className="requester-response-detail" aria-label="Response details">
+      <section className={styles.detail} aria-label="Response details">
         <div>
           <span>Content-Type</span>
           <strong>{response.contentType || '-'}</strong>
@@ -136,12 +137,12 @@ const RequesterResponseContent = ({
           <strong>{response.isBodyTruncated ? 'yes' : 'no'}</strong>
         </div>
       </section>
-      <section className="requester-response-headers" aria-label="Response headers">
+      <section className={styles.headers} aria-label="Response headers">
         <h3>Headers</h3>
         {response.headers.length > 0 ? (
-          <div className="requester-response-header-grid">
+          <div className={styles.headerGrid}>
             {response.headers.map((header) => (
-              <div className="requester-response-header-row" key={header.id}>
+              <div className={styles.headerRow} key={header.id}>
                 <span>{header.key}</span>
                 <span>{header.value}</span>
               </div>
@@ -151,12 +152,12 @@ const RequesterResponseContent = ({
           <p>No headers.</p>
         )}
       </section>
-      <section className="requester-extraction-preview" aria-label="Extraction preview">
+      <section className={styles.extractionPreview} aria-label="Extraction preview">
         <h3>Extraction Preview</h3>
         {previewVariables.length > 0 ? (
-          <div className="requester-response-header-grid">
+          <div className={styles.headerGrid}>
             {previewVariables.map((variable) => (
-              <div className="requester-response-header-row" key={variable.key}>
+              <div className={styles.headerRow} key={variable.key}>
                 <span>{variable.key}</span>
                 <span>{variable.value}</span>
               </div>
@@ -168,18 +169,18 @@ const RequesterResponseContent = ({
       </section>
       {response.previewType === 'image' ? (
         <img
-          className="requester-response-image"
+          className={styles.image}
           alt="Response preview"
           src={`data:${response.contentType};base64,${response.bodyBase64}`}
         />
       ) : response.previewType === 'pdf' ? (
         <iframe
-          className="requester-response-pdf"
+          className={styles.pdf}
           title="PDF response preview"
           src={`data:application/pdf;base64,${response.bodyBase64}`}
         />
       ) : (
-        <pre className="requester-response-body">{response.bodyText}</pre>
+        <pre className={styles.body}>{response.bodyText}</pre>
       )}
     </>
   );
