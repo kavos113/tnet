@@ -1,7 +1,4 @@
-import type {
-  RequesterExtractionRule,
-  RequesterResponseSnapshot
-} from '@tnet/app-requester/shared/requesterTypes';
+import type { RequesterExtractionRule, RequesterResponseSnapshot } from './requesterTypes';
 
 export interface ExtractedVariable {
   key: string;

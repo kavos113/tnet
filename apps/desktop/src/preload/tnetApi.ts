@@ -117,7 +117,9 @@ export const tnetApi: DesktopTnetApi = {
       save: (request) => ipcRenderer.invoke(requesterIpcChannels.variableSets.save, request),
       remove: (request) => ipcRenderer.invoke(requesterIpcChannels.variableSets.remove, request),
       setActive: (request) =>
-        ipcRenderer.invoke(requesterIpcChannels.variableSets.setActive, request)
+        ipcRenderer.invoke(requesterIpcChannels.variableSets.setActive, request),
+      listVariables: (request) =>
+        ipcRenderer.invoke(requesterIpcChannels.variableSets.listVariables, request)
     },
     execution: {
       send: (request) => ipcRenderer.invoke(requesterIpcChannels.execution.send, request),

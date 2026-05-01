@@ -31,7 +31,8 @@ export const requesterTnetApi: RequesterApi = {
       list: (request) => getApi().requester.variableSets.list(request),
       save: (request) => getApi().requester.variableSets.save(request),
       remove: (request) => getApi().requester.variableSets.remove(request),
-      setActive: (request) => getApi().requester.variableSets.setActive(request)
+      setActive: (request) => getApi().requester.variableSets.setActive(request),
+      listVariables: (request) => getApi().requester.variableSets.listVariables(request)
     },
     execution: {
       send: (request) => getApi().requester.execution.send(request),

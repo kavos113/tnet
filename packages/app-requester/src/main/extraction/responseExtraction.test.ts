@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import type { RequesterResponseSnapshot } from '@tnet/app-requester/shared/requesterTypes';
-import { extractVariablesFromResponse } from './responseExtraction';
+import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
 
 const response = (bodyText: string): RequesterResponseSnapshot => ({
   status: 200,

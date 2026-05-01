@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type {
   RequesterAuthType,
   RequesterBodyMode,
+  RequesterExtractionRule,
   RequesterHttpMethod,
   RequesterKeyValueRow,
   RequesterRequestDetail,
@@ -27,6 +28,7 @@ export interface RequesterRequestDraft {
   authApiKeyName: string;
   authApiKeyValue: string;
   graphqlSchemaTypes: GraphqlSchemaTypeSummary[];
+  extractionRules: RequesterExtractionRule[];
   setName: (value: string) => void;
   setMethod: (value: RequesterHttpMethod) => void;
   setUrl: (value: string) => void;
@@ -44,6 +46,7 @@ export interface RequesterRequestDraft {
   setAuthApiKeyName: (value: string) => void;
   setAuthApiKeyValue: (value: string) => void;
   setGraphqlSchemaTypes: (value: GraphqlSchemaTypeSummary[]) => void;
+  setExtractionRules: (value: RequesterExtractionRule[]) => void;
   buildRequestInput: (nameOverride?: string) => SaveRequesterRequestInput | undefined;
 }
 
@@ -68,6 +71,7 @@ export const useRequesterRequestDraft = (
   const [authApiKeyName, setAuthApiKeyName] = useState('');
   const [authApiKeyValue, setAuthApiKeyValue] = useState('');
   const [graphqlSchemaTypes, setGraphqlSchemaTypes] = useState<GraphqlSchemaTypeSummary[]>([]);
+  const [extractionRules, setExtractionRules] = useState<RequesterExtractionRule[]>([]);
 
   useEffect(() => {
     setName(activeRequest?.name ?? '');
@@ -87,6 +91,7 @@ export const useRequesterRequestDraft = (
     setAuthApiKeyName(activeRequest?.authApiKeyName ?? '');
     setAuthApiKeyValue(activeRequest?.authApiKeyValue ?? '');
     setGraphqlSchemaTypes([]);
+    setExtractionRules(activeRequest?.extractionRules ?? []);
   }, [activeRequest]);
 
   const buildRequestInput = (nameOverride?: string): SaveRequesterRequestInput | undefined => {
@@ -111,7 +116,7 @@ export const useRequesterRequestDraft = (
       authToken,
       authApiKeyName,
       authApiKeyValue,
-      extractionRules: activeRequest?.extractionRules ?? []
+      extractionRules
     };
   };
 
@@ -133,6 +138,7 @@ export const useRequesterRequestDraft = (
     authApiKeyName,
     authApiKeyValue,
     graphqlSchemaTypes,
+    extractionRules,
     setName,
     setMethod,
     setUrl,
@@ -150,6 +156,7 @@ export const useRequesterRequestDraft = (
     setAuthApiKeyName,
     setAuthApiKeyValue,
     setGraphqlSchemaTypes,
+    setExtractionRules,
     buildRequestInput
   };
 };

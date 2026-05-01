@@ -104,6 +104,9 @@ export const registerRequesterIpc = ({ userDataDir }: RegisterRequesterIpcOption
       defaultVariableSetId: request.variableSetId
     });
   });
+  ipcMain.handle(requesterIpcChannels.variableSets.listVariables, async (_event, request) =>
+    variableSetRepository.listVariables(request.variableSetId)
+  );
 
   ipcMain.handle(requesterIpcChannels.execution.send, async (_event, request) =>
     requestExecutionService.send(request)

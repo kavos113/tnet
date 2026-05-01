@@ -6,6 +6,7 @@ import type {
   RequesterHistoryEntry,
   RequesterCookie,
   RequesterRequestSummary,
+  RequesterVariable,
   RequesterVariableSet,
   RequesterWorkspace,
   SaveRequesterRequestInput
@@ -37,7 +38,8 @@ export const requesterIpcChannels = {
     list: 'requester:variableSets:list',
     save: 'requester:variableSets:save',
     remove: 'requester:variableSets:remove',
-    setActive: 'requester:variableSets:setActive'
+    setActive: 'requester:variableSets:setActive',
+    listVariables: 'requester:variableSets:listVariables'
   },
   execution: {
     send: 'requester:execution:send',
@@ -99,6 +101,7 @@ export interface RequesterApi {
       }) => Promise<RequesterVariableSet>;
       remove: (request: { variableSetId: string }) => Promise<void>;
       setActive: (request: { workspaceId: string; variableSetId?: string }) => Promise<void>;
+      listVariables: (request: { variableSetId: string }) => Promise<RequesterVariable[]>;
     };
     execution: {
       send: (request: SaveRequesterRequestInput) => Promise<RequesterExecutionResult>;

@@ -125,6 +125,13 @@
   overflow: hidden;
 }
 
+.requester-extraction-section {
+  min-width: 0;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
 .requester-kv-section header {
   display: flex;
   align-items: center;
@@ -135,8 +142,26 @@
   border-bottom: 1px solid var(--gray);
 }
 
+.requester-extraction-section header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+  background: var(--background-dark);
+}
+
 .requester-kv-section h2 {
   margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.requester-extraction-section h2,
+.requester-variable-suggestions h2 {
+  margin: 0;
+  color: var(--foreground);
   font-size: 12px;
   text-transform: uppercase;
 }
@@ -148,6 +173,12 @@
   padding: 8px;
 }
 
+.requester-extraction-table {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+}
+
 .requester-kv-row {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 28px;
@@ -155,8 +186,17 @@
   align-items: center;
 }
 
+.requester-extraction-row {
+  display: grid;
+  grid-template-columns: 24px 112px minmax(0, 1fr) minmax(0, 0.8fr) 28px;
+  gap: 6px;
+  align-items: center;
+}
+
 .requester-kv-row input[type='text'],
-.requester-kv-row input:not([type]) {
+.requester-kv-row input:not([type]),
+.requester-extraction-row input,
+.requester-extraction-row select {
   min-width: 0;
   height: 28px;
   padding: 0 8px;
@@ -164,6 +204,31 @@
   border-radius: 4px;
   background: var(--background);
   color: var(--foreground);
+}
+
+.requester-variable-suggestions {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  background: var(--background-dark);
+}
+
+.requester-variable-suggestions div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.requester-variable-suggestions code {
+  padding: 2px 6px;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--requester-code-font-family, monospace);
+  font-size: var(--requester-code-font-size, 13px);
 }
 
 .requester-body-editor label {
@@ -367,10 +432,15 @@
   margin-bottom: 10px;
 }
 
-.requester-response-headers h3 {
+.requester-response-headers h3,
+.requester-extraction-preview h3 {
   margin: 0 0 6px;
   color: var(--foreground);
   font-size: 13px;
+}
+
+.requester-extraction-preview {
+  margin-bottom: 10px;
 }
 
 .requester-response-error h3 {

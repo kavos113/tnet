@@ -1,11 +1,15 @@
 import type {
   RequesterAuthType,
   RequesterBodyMode,
+  RequesterExtractionRule,
   RequesterHttpMethod,
-  RequesterKeyValueRow
+  RequesterKeyValueRow,
+  RequesterVariable
 } from '@tnet/app-requester/shared/requesterTypes';
+import { RequesterExtractionRulesEditor } from './RequesterExtractionRulesEditor';
 import { JsonTextEditor } from './JsonTextEditor';
 import { RequesterKeyValueTable } from './RequesterKeyValueTable';
+import { RequesterVariableSuggestions } from './RequesterVariableSuggestions';
 import type { GraphqlSchemaTypeSummary } from './requesterAppHelpers';
 
 const httpMethods: RequesterHttpMethod[] = [
@@ -44,6 +48,8 @@ export interface RequesterEditorProps {
   authApiKeyName: string;
   authApiKeyValue: string;
   graphqlSchemaTypes: GraphqlSchemaTypeSummary[];
+  extractionRules: RequesterExtractionRule[];
+  variables: RequesterVariable[];
   error?: string;
   onNameChange: (value: string) => void;
   onMethodChange: (value: RequesterHttpMethod) => void;
@@ -61,6 +67,7 @@ export interface RequesterEditorProps {
   onAuthTokenChange: (value: string) => void;
   onAuthApiKeyNameChange: (value: string) => void;
   onAuthApiKeyValueChange: (value: string) => void;
+  onExtractionRulesChange: (value: RequesterExtractionRule[]) => void;
   onSave: () => void;
   onSend: () => void;
   onIntrospectGraphql: () => void;
@@ -84,6 +91,8 @@ export const RequesterEditor = ({
   authApiKeyName,
   authApiKeyValue,
   graphqlSchemaTypes,
+  extractionRules,
+  variables,
   error,
   onNameChange,
   onMethodChange,
@@ -101,6 +110,7 @@ export const RequesterEditor = ({
   onAuthTokenChange,
   onAuthApiKeyNameChange,
   onAuthApiKeyValueChange,
+  onExtractionRulesChange,
   onSave,
   onSend,
   onIntrospectGraphql
@@ -205,6 +215,7 @@ export const RequesterEditor = ({
         />
         <RequesterKeyValueTable label="Headers" rows={headers} onChange={onHeadersChange} />
       </div>
+      <RequesterVariableSuggestions variables={variables} />
       <label>
         Body
         <select
@@ -270,6 +281,7 @@ export const RequesterEditor = ({
           </button>
         </div>
       ) : null}
+      <RequesterExtractionRulesEditor rules={extractionRules} onChange={onExtractionRulesChange} />
     </section>
     {error ? <p className="requester-error">{error}</p> : null}
   </section>

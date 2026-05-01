@@ -225,6 +225,7 @@ describe('RequestExecutionService', () => {
       saveExecution: vi.fn().mockReturnValue('history-1')
     };
     const variableStore = {
+      listVariables: vi.fn().mockReturnValue([]),
       upsertVariables: vi.fn()
     };
     const transport = {
@@ -273,5 +274,52 @@ describe('RequestExecutionService', () => {
       { key: 'accessToken', value: 'abc' },
       { key: 'requestId', value: 'req-1' }
     ]);
+  });
+
+  it('interpolates variables before serializing and sending the request', async () => {
+    const historyStore: RequesterHistoryStore = {
+      saveExecution: vi.fn().mockReturnValue('history-1')
+    };
+    const variableStore = {
+      listVariables: vi.fn().mockReturnValue([
+        {
+          key: 'baseUrl',
+          value: 'https://example.test',
+          updatedAt: '2026-05-01T00:00:00.000Z'
+        },
+        {
+          key: 'token',
+          value: 'abc',
+          updatedAt: '2026-05-01T00:00:00.000Z'
+        }
+      ]),
+      upsertVariables: vi.fn()
+    };
+    const transport = {
+      fetch: vi.fn().mockResolvedValue(createResponse('ok', { status: 200 }))
+    };
+    const service = new RequestExecutionService(
+      historyStore,
+      transport,
+      30000,
+      undefined,
+      variableStore
+    );
+
+    await service.send({
+      workspaceId: 'workspace-1',
+      name: 'Variables',
+      method: 'POST',
+      url: '{{baseUrl}}/users',
+      headers: [{ id: 'auth', enabled: true, key: 'Authorization', value: 'Bearer {{token}}' }],
+      bodyMode: 'text',
+      bodyText: '{{token}}',
+      variableSetId: 'variables-1'
+    });
+
+    const [url, init] = transport.fetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('https://example.test/users');
+    expect((init.headers as Headers).get('Authorization')).toBe('Bearer abc');
+    expect(init.body).toBe('abc');
   });
 });

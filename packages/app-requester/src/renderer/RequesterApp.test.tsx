@@ -12,6 +12,7 @@ const listRequests = vi.fn();
 const sendRequest = vi.fn();
 const listHistory = vi.fn();
 const getHistory = vi.fn();
+const listVariables = vi.fn();
 
 interface RequesterTestState {
   requester: ReturnType<typeof requesterReducer>;
@@ -61,6 +62,9 @@ const installTnetApi = (): void => {
         history: {
           list: listHistory,
           get: getHistory
+        },
+        variableSets: {
+          listVariables
         }
       }
     },
@@ -89,6 +93,7 @@ describe('RequesterApp', () => {
     });
     listHistory.mockResolvedValue([]);
     getHistory.mockResolvedValue(null);
+    listVariables.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -225,6 +230,64 @@ describe('RequesterApp', () => {
     expect(screen.getByText('201 Created')).toBeInTheDocument();
     expect(screen.getByText('{"created":true}')).toBeInTheDocument();
     expect(screen.getByText('content-type')).toBeInTheDocument();
+  });
+
+  it('shows active variable suggestions and extraction preview', async () => {
+    const store = createStore();
+    const requestWithExtraction: RequesterRequestDetail = {
+      ...activeRequest,
+      extractionRules: [
+        {
+          id: 'token',
+          enabled: true,
+          source: 'json-body',
+          expression: '$.token',
+          targetVariable: 'accessToken'
+        }
+      ]
+    };
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [requestWithExtraction],
+        settings: {
+          ...defaultRequesterWorkspaceSettings(),
+          defaultVariableSetId: 'variables-1'
+        }
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(requestWithExtraction));
+    listVariables.mockResolvedValue([
+      { key: 'baseUrl', value: 'https://example.test', updatedAt: '2026-05-01T00:00:00.000Z' }
+    ]);
+    sendRequest.mockResolvedValue({
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [],
+        bodyText: '{"token":"abc"}',
+        bodyBase64: 'eyJ0b2tlbiI6ImFiYyJ9',
+        contentType: 'application/json',
+        byteSize: 15,
+        durationMs: 12,
+        isBodyTruncated: false,
+        previewType: 'json'
+      }
+    });
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    expect(await screen.findByText('{{baseUrl}}')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByRole('heading', { name: 'Extraction Preview' })).toBeInTheDocument();
+    expect(screen.getByText('accessToken')).toBeInTheDocument();
+    expect(screen.getByText('abc')).toBeInTheDocument();
   });
 
   it('shows execution errors in the response panel', async () => {

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import type { RequesterVariable } from '@tnet/app-requester/shared/requesterTypes';
 import { setRequesterError, setRequesterHistory } from './requesterSlice';
 import { RequesterEditor } from './request/RequesterEditor';
 import { RequesterPlaceholder } from './request/RequesterPlaceholder';
@@ -19,6 +20,7 @@ export const RequesterApp = (): React.JSX.Element => {
   const isRestored = useRequesterSelector((state) => state.requester.isRestored);
   const settings = useRequesterSelector((state) => state.requester.settings);
   const draft = useRequesterRequestDraft(activeRequest, activeWorkspaceId);
+  const [variables, setVariables] = useState<RequesterVariable[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>();
   const nameAutosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const actions = useRequesterRequestActions({
@@ -66,6 +68,28 @@ export const RequesterApp = (): React.JSX.Element => {
       canceled = true;
     };
   }, [activeRequest?.id, activeWorkspaceId, dispatch]);
+
+  useEffect(() => {
+    if (!settings.defaultVariableSetId) {
+      setVariables([]);
+      return;
+    }
+
+    let canceled = false;
+    requesterTnetApi.requester.variableSets
+      .listVariables({ variableSetId: settings.defaultVariableSetId })
+      .then((variables) => {
+        if (!canceled) setVariables(variables);
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to load requester variables', error);
+        if (!canceled) dispatch(setRequesterError('Failed to load requester variables.'));
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [dispatch, settings.defaultVariableSetId]);
 
   const scheduleNameAutosave = (nextName: string): void => {
     draft.setName(nextName);
@@ -135,6 +159,8 @@ export const RequesterApp = (): React.JSX.Element => {
         authApiKeyName={draft.authApiKeyName}
         authApiKeyValue={draft.authApiKeyValue}
         graphqlSchemaTypes={draft.graphqlSchemaTypes}
+        extractionRules={draft.extractionRules}
+        variables={variables}
         error={error}
         onNameChange={scheduleNameAutosave}
         onMethodChange={draft.setMethod}
@@ -152,6 +178,7 @@ export const RequesterApp = (): React.JSX.Element => {
         onAuthTokenChange={draft.setAuthToken}
         onAuthApiKeyNameChange={draft.setAuthApiKeyName}
         onAuthApiKeyValueChange={draft.setAuthApiKeyValue}
+        onExtractionRulesChange={draft.setExtractionRules}
         onSave={actions.runSave}
         onSend={actions.runSend}
         onIntrospectGraphql={actions.introspectGraphql}
@@ -159,6 +186,7 @@ export const RequesterApp = (): React.JSX.Element => {
       <RequesterResponsePanel
         response={activeResponse}
         error={activeResponseError}
+        extractionRules={draft.extractionRules}
         history={history}
         selectedHistoryId={selectedHistoryId}
         onSaveResponse={actions.saveResponse}

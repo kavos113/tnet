@@ -1,12 +1,15 @@
 import type {
   RequesterExecutionErrorSnapshot,
+  RequesterExtractionRule,
   RequesterHistoryEntry,
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
+import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
 
 interface RequesterResponsePanelProps {
   response?: RequesterResponseSnapshot;
   error?: RequesterExecutionErrorSnapshot;
+  extractionRules: RequesterExtractionRule[];
   history: RequesterHistoryEntry[];
   selectedHistoryId?: string;
   onSaveResponse: () => void;
@@ -17,6 +20,7 @@ interface RequesterResponsePanelProps {
 export const RequesterResponsePanel = ({
   response,
   error,
+  extractionRules,
   history,
   selectedHistoryId,
   onSaveResponse,
@@ -47,6 +51,7 @@ export const RequesterResponsePanel = ({
     ) : response ? (
       <RequesterResponseContent
         response={response}
+        extractionRules={extractionRules}
         onSaveResponse={onSaveResponse}
         onOpenResponse={onOpenResponse}
       />
@@ -77,84 +82,105 @@ export const RequesterResponsePanel = ({
 
 const RequesterResponseContent = ({
   response,
+  extractionRules,
   onSaveResponse,
   onOpenResponse
 }: {
   response: RequesterResponseSnapshot;
+  extractionRules: RequesterExtractionRule[];
   onSaveResponse: () => void;
   onOpenResponse: () => void;
-}): React.JSX.Element => (
-  <>
-    <dl className="requester-response-summary">
-      <div>
-        <dt>Status</dt>
-        <dd>
-          {response.status} {response.statusText}
-        </dd>
-      </div>
-      <div>
-        <dt>Time</dt>
-        <dd>{response.durationMs} ms</dd>
-      </div>
-      <div>
-        <dt>Size</dt>
-        <dd>{response.byteSize} bytes</dd>
-      </div>
-    </dl>
-    <div className="requester-response-actions">
-      <button type="button" className="open-folder-button" onClick={onSaveResponse}>
-        Save Body
-      </button>
-      <button type="button" className="open-folder-button" onClick={onOpenResponse}>
-        Open
-      </button>
-    </div>
-    {response.isBodyTruncated ? (
-      <p className="requester-error">Response body preview was truncated at 1 MB.</p>
-    ) : null}
-    <section className="requester-response-detail" aria-label="Response details">
-      <div>
-        <span>Content-Type</span>
-        <strong>{response.contentType || '-'}</strong>
-      </div>
-      <div>
-        <span>Preview</span>
-        <strong>{response.previewType}</strong>
-      </div>
-      <div>
-        <span>Truncated</span>
-        <strong>{response.isBodyTruncated ? 'yes' : 'no'}</strong>
-      </div>
-    </section>
-    <section className="requester-response-headers" aria-label="Response headers">
-      <h3>Headers</h3>
-      {response.headers.length > 0 ? (
-        <div className="requester-response-header-grid">
-          {response.headers.map((header) => (
-            <div className="requester-response-header-row" key={header.id}>
-              <span>{header.key}</span>
-              <span>{header.value}</span>
-            </div>
-          ))}
+}): React.JSX.Element => {
+  const previewVariables = extractVariablesFromResponse(extractionRules, response);
+
+  return (
+    <>
+      <dl className="requester-response-summary">
+        <div>
+          <dt>Status</dt>
+          <dd>
+            {response.status} {response.statusText}
+          </dd>
         </div>
+        <div>
+          <dt>Time</dt>
+          <dd>{response.durationMs} ms</dd>
+        </div>
+        <div>
+          <dt>Size</dt>
+          <dd>{response.byteSize} bytes</dd>
+        </div>
+      </dl>
+      <div className="requester-response-actions">
+        <button type="button" className="open-folder-button" onClick={onSaveResponse}>
+          Save Body
+        </button>
+        <button type="button" className="open-folder-button" onClick={onOpenResponse}>
+          Open
+        </button>
+      </div>
+      {response.isBodyTruncated ? (
+        <p className="requester-error">Response body preview was truncated at 1 MB.</p>
+      ) : null}
+      <section className="requester-response-detail" aria-label="Response details">
+        <div>
+          <span>Content-Type</span>
+          <strong>{response.contentType || '-'}</strong>
+        </div>
+        <div>
+          <span>Preview</span>
+          <strong>{response.previewType}</strong>
+        </div>
+        <div>
+          <span>Truncated</span>
+          <strong>{response.isBodyTruncated ? 'yes' : 'no'}</strong>
+        </div>
+      </section>
+      <section className="requester-response-headers" aria-label="Response headers">
+        <h3>Headers</h3>
+        {response.headers.length > 0 ? (
+          <div className="requester-response-header-grid">
+            {response.headers.map((header) => (
+              <div className="requester-response-header-row" key={header.id}>
+                <span>{header.key}</span>
+                <span>{header.value}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No headers.</p>
+        )}
+      </section>
+      <section className="requester-extraction-preview" aria-label="Extraction preview">
+        <h3>Extraction Preview</h3>
+        {previewVariables.length > 0 ? (
+          <div className="requester-response-header-grid">
+            {previewVariables.map((variable) => (
+              <div className="requester-response-header-row" key={variable.key}>
+                <span>{variable.key}</span>
+                <span>{variable.value}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No extracted variables.</p>
+        )}
+      </section>
+      {response.previewType === 'image' ? (
+        <img
+          className="requester-response-image"
+          alt="Response preview"
+          src={`data:${response.contentType};base64,${response.bodyBase64}`}
+        />
+      ) : response.previewType === 'pdf' ? (
+        <iframe
+          className="requester-response-pdf"
+          title="PDF response preview"
+          src={`data:application/pdf;base64,${response.bodyBase64}`}
+        />
       ) : (
-        <p>No headers.</p>
+        <pre className="requester-response-body">{response.bodyText}</pre>
       )}
-    </section>
-    {response.previewType === 'image' ? (
-      <img
-        className="requester-response-image"
-        alt="Response preview"
-        src={`data:${response.contentType};base64,${response.bodyBase64}`}
-      />
-    ) : response.previewType === 'pdf' ? (
-      <iframe
-        className="requester-response-pdf"
-        title="PDF response preview"
-        src={`data:application/pdf;base64,${response.bodyBase64}`}
-      />
-    ) : (
-      <pre className="requester-response-body">{response.bodyText}</pre>
-    )}
-  </>
-);
+    </>
+  );
+};

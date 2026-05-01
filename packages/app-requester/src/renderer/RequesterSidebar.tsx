@@ -4,7 +4,10 @@ import {
   setActiveRequesterFolder,
   setActiveRequesterRequest,
   setRequesterError,
+  setRequesterHistory,
   setRequesterRequests,
+  setRequesterResponse,
+  setRequesterResponseError,
   setRequesterSettings,
   setRequesterWorkspace
 } from './requesterSlice';
@@ -18,6 +21,7 @@ import { requesterTnetApi } from './requesterTnetApi';
 import { RequesterRequestTree } from './RequesterRequestTree';
 import { RequesterRenameDialog } from './sidebar/RequesterRenameDialog';
 import { RequesterWorkspaceSwitcher } from './sidebar/RequesterWorkspaceSwitcher';
+import { toExecutionErrorSnapshot } from './request/requesterAppHelpers';
 import { useRequesterDispatch, useRequesterSelector } from './storeHooks';
 
 interface NewFolderState {
@@ -203,6 +207,42 @@ export const RequesterSidebar = (): React.JSX.Element => {
     dispatch(setActiveRequesterRequest(undefined));
   };
 
+  const runSequence = async (): Promise<void> => {
+    if (!activeWorkspaceId || requests.length === 0) return;
+
+    let lastHistoryRequestId: string | undefined;
+    for (const request of requests) {
+      const detail = await requesterTnetApi.requester.requests.get({ requestId: request.id });
+      if (!detail) continue;
+      const result = await requesterTnetApi.requester.execution.send({
+        ...detail,
+        timeoutMs: settings.requestTimeoutMs,
+        followRedirects: settings.followRedirects,
+        cookieJarEnabled: settings.cookieJarEnabled,
+        validateTlsCertificates: settings.validateTlsCertificates,
+        proxyMode: settings.proxyMode,
+        proxyHost: settings.proxyHost,
+        proxyPort: settings.proxyPort,
+        proxyUsername: settings.proxyUsername,
+        proxyPasswordSecretId: settings.proxyPasswordSecretId,
+        clientCertificatePath: settings.clientCertificatePath,
+        clientCertificateKeyPath: settings.clientCertificateKeyPath,
+        clientCertificatePassphraseSecretId: settings.clientCertificatePassphraseSecretId,
+        customCaCertificatePath: settings.customCaCertificatePath,
+        variableSetId: settings.defaultVariableSetId
+      });
+      dispatch(setRequesterResponse(result.response));
+      dispatch(setRequesterResponseError(undefined));
+      lastHistoryRequestId = detail.id;
+    }
+
+    const history = await requesterTnetApi.requester.history.list({
+      workspaceId: activeWorkspaceId,
+      requestId: lastHistoryRequestId
+    });
+    dispatch(setRequesterHistory(history));
+  };
+
   const startRenameRequest = (requestId: string): void => {
     const request = requests.find((request) => request.id === requestId);
     if (!request) return;
@@ -290,6 +330,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
   const runAction = (action: () => Promise<void>): void => {
     action().catch((error: unknown) => {
       console.error('Requester sidebar action failed', error);
+      dispatch(setRequesterResponseError(toExecutionErrorSnapshot(error)));
       dispatch(setRequesterError('Requester action failed.'));
     });
   };
@@ -326,6 +367,16 @@ export const RequesterSidebar = (): React.JSX.Element => {
       <div className="explorer-content">
         <header className="sidebar-header">
           <span className="sidebar-title">Requests</span>
+          <button
+            type="button"
+            className="sidebar-icon-button material-icons-round"
+            aria-label="Run sequence"
+            title="Run sequence"
+            disabled={!activeWorkspaceId || requests.length === 0}
+            onClick={() => runAction(runSequence)}
+          >
+            play_arrow
+          </button>
           <button
             type="button"
             className="sidebar-icon-button material-icons-round"

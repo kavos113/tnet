@@ -20,6 +20,7 @@ const getSettings = vi.fn();
 const saveSettings = vi.fn();
 const saveGlobalConfig = vi.fn();
 const listHistory = vi.fn();
+const sendRequest = vi.fn();
 
 interface RequesterTestState {
   requester: ReturnType<typeof requesterReducer>;
@@ -86,6 +87,9 @@ const installTnetApi = (): void => {
         },
         history: {
           list: listHistory
+        },
+        execution: {
+          send: sendRequest
         }
       }
     },
@@ -110,6 +114,20 @@ describe('RequesterSidebar', () => {
     saveRequest.mockImplementation(async (request) => requestDetail(request));
     removeRequest.mockResolvedValue(undefined);
     listHistory.mockResolvedValue([]);
+    sendRequest.mockResolvedValue({
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [],
+        bodyText: 'ok',
+        bodyBase64: '',
+        contentType: 'text/plain',
+        byteSize: 2,
+        durationMs: 10,
+        isBodyTruncated: false,
+        previewType: 'text'
+      }
+    });
   });
 
   afterEach(() => {
@@ -390,5 +408,53 @@ describe('RequesterSidebar', () => {
       })
     });
     expect(store.getState().requester.activeRequestFolderPath).toBe('admin/users');
+  });
+
+  it('runs all workspace requests as an explicit sequence', async () => {
+    const store = createStore();
+    const first = requestSummary({ id: 'request-1', name: 'First', requestPath: 'First.http' });
+    const second = requestSummary({ id: 'request-2', name: 'Second', requestPath: 'Second.http' });
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [first, second],
+        settings: {
+          ...defaultRequesterWorkspaceSettings(),
+          defaultVariableSetId: 'variables-1'
+        }
+      })
+    );
+    getRequest.mockImplementation(async (request: { requestId: string }) =>
+      requestDetail(request.requestId === 'request-2' ? second : first)
+    );
+
+    render(
+      <Provider store={store}>
+        <RequesterSidebar />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByLabelText('Run sequence'));
+
+    await waitFor(() => expect(sendRequest).toHaveBeenCalledTimes(2));
+    expect(sendRequest).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        id: 'request-1',
+        variableSetId: 'variables-1'
+      })
+    );
+    expect(sendRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        id: 'request-2',
+        variableSetId: 'variables-1'
+      })
+    );
+    expect(listHistory).toHaveBeenCalledWith({
+      workspaceId: 'workspace-1',
+      requestId: 'request-2'
+    });
   });
 });
