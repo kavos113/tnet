@@ -113,6 +113,9 @@ export const DbInspectorTableGrid = ({
         <table className={styles.dataTable}>
           <thead>
             <tr>
+              <th className={styles.rowNumberHeader} aria-label="Row number">
+                #
+              </th>
               {activeTable.columns.map((column) => {
                 const nextDirection =
                   sort?.column === column.name && sort.direction === 'asc' ? 'desc' : 'asc';
@@ -140,6 +143,9 @@ export const DbInspectorTableGrid = ({
           <tbody>
             {activeTable.rows.map((row, rowIndex) => (
               <tr key={rowIndex}>
+                <th className={styles.rowNumberCell} scope="row">
+                  {page * activeTable.pageSize + rowIndex + 1}
+                </th>
                 {activeTable.columns.map((column) => (
                   <td
                     key={column.name}

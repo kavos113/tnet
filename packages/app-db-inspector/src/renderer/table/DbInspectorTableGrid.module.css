@@ -62,7 +62,35 @@
   border-right: 0;
 }
 
+.rowNumberHeader,
+.rowNumberCell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 48px;
+  min-width: 48px;
+  max-width: 64px;
+  color: var(--foreground-muted);
+  background: var(--background-dark);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.rowNumberHeader {
+  z-index: 3;
+  text-align: center;
+}
+
+.rowNumberCell {
+  font-weight: 400;
+}
+
 .dataTable tbody tr:hover {
+  background: var(--background-light);
+}
+
+.dataTable tbody tr:hover .rowNumberCell {
   background: var(--background-light);
 }
 
