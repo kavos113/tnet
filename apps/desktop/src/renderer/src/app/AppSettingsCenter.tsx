@@ -93,7 +93,7 @@ export const AppSettingsCenter = ({
         id: 'db-inspector-global',
         appId: 'db-inspector',
         appLabel: 'DB Inspector',
-        appIcon: 'database',
+        appIcon: 'storage',
         scopeLabel: 'Global',
         title: 'DB Inspector Global',
         content: <DbInspectorGlobalSettingsPage onClose={onClose} />
@@ -102,7 +102,7 @@ export const AppSettingsCenter = ({
         id: 'db-inspector-workspace',
         appId: 'db-inspector',
         appLabel: 'DB Inspector',
-        appIcon: 'database',
+        appIcon: 'storage',
         scopeLabel: 'Workspace',
         title: dbInspectorWorkspaceId ? 'DB Inspector Workspace' : 'DB Inspector Workspace',
         content: <DbInspectorWorkspaceSettingsPage onClose={onClose} />

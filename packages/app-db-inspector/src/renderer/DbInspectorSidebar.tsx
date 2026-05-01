@@ -117,7 +117,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
             title={describeConnection(workspace)}
             onClick={() => void selectDbInspectorWorkspace(dispatch, workspace.id)}
           >
-            <span className="material-icons">database</span>
+            <span className="material-icons">storage</span>
             <span className={styles.treeLabel}>{workspace.name}</span>
           </button>
         ))}

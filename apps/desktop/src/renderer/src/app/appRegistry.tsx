@@ -66,7 +66,7 @@ export const appRegistry: AppModule[] = [
   {
     id: 'db-inspector',
     label: 'DB Inspector',
-    icon: 'database',
+    icon: 'storage',
     Main: DbInspectorApp,
     Sidebar: DbInspectorSidebar,
     Runtime: DbInspectorRuntime,
