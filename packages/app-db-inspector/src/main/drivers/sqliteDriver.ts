@@ -7,6 +7,8 @@ import type {
   DatabaseSchemaSnapshot,
   DatabaseTable,
   DbInspectorConnection,
+  ExplainQueryRequest,
+  ExplainQueryResult,
   ExecuteQueryRequest,
   LoadTablePageRequest,
   QueryExecutionResult,
@@ -14,6 +16,7 @@ import type {
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { assertSingleStatement, isMutatingSql } from '@tnet/app-db-inspector/shared/sqlModel';
 import type { DatabaseDriver } from './databaseDriver';
+import { sqliteExplainRowsToNodes, type SqliteExplainPlanRow } from './explainPlanModel';
 
 interface SqliteTableRow {
   name: string;
@@ -230,6 +233,31 @@ export class SqliteDriver implements DatabaseDriver {
         columns: [],
         rows: [],
         affectedRows: Number(result.changes),
+        durationMs: Math.round(performance.now() - startedAt)
+      };
+    } finally {
+      database.close();
+    }
+  }
+
+  async explainQuery(
+    connection: DbInspectorConnection,
+    request: ExplainQueryRequest
+  ): Promise<ExplainQueryResult> {
+    assertSingleStatement(request.sqlText);
+    if (isMutatingSql(request.sqlText)) {
+      throw new Error('EXPLAIN is only available for read-only SQL statements.');
+    }
+
+    const database = openSqlite(connection);
+    const startedAt = performance.now();
+    try {
+      const rows = database
+        .prepare(`EXPLAIN QUERY PLAN ${request.sqlText}`)
+        .all() as SqliteExplainPlanRow[];
+      return {
+        nodes: sqliteExplainRowsToNodes(rows),
+        rawText: rows.map((row) => `${row.id}|${row.parent}|${row.detail}`).join('\n'),
         durationMs: Math.round(performance.now() - startedAt)
       };
     } finally {

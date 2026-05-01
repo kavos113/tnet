@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorWorkspace,
+  ExplainQueryResult,
   QueryExecutionResult,
   QueryHistoryEntry,
   QueryTab,
@@ -26,6 +27,7 @@ interface DbInspectorState {
   activeQueryTabId?: string;
   queryHistory: QueryHistoryEntry[];
   queryResult?: QueryExecutionResult;
+  explainResult?: ExplainQueryResult;
   queryError?: string;
   settings: DbInspectorWorkspaceSettings;
   globalSettings: DbInspectorGlobalSettings;
@@ -90,6 +92,7 @@ const dbInspectorSlice = createSlice({
       state.activeQueryTabId = action.payload.queryTabs?.[0]?.id;
       state.queryHistory = action.payload.queryHistory ?? [];
       state.queryResult = undefined;
+      state.explainResult = undefined;
       state.queryError = undefined;
       state.settings = action.payload.settings ?? defaultDbInspectorWorkspaceSettings();
       state.isRestored = true;
@@ -121,9 +124,16 @@ const dbInspectorSlice = createSlice({
       state.queryResult = action.payload;
       if (action.payload) state.queryError = undefined;
     },
+    setDbInspectorExplainResult: (state, action: PayloadAction<ExplainQueryResult | undefined>) => {
+      state.explainResult = action.payload;
+      if (action.payload) state.queryError = undefined;
+    },
     setDbInspectorQueryError: (state, action: PayloadAction<string | undefined>) => {
       state.queryError = action.payload;
-      if (action.payload) state.queryResult = undefined;
+      if (action.payload) {
+        state.queryResult = undefined;
+        state.explainResult = undefined;
+      }
     },
     setDbInspectorLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
@@ -148,6 +158,7 @@ export const {
   setActiveDbInspectorQueryTab,
   setDbInspectorActiveTable,
   setDbInspectorError,
+  setDbInspectorExplainResult,
   setDbInspectorGlobalSettings,
   setDbInspectorLoading,
   setDbInspectorQueryError,

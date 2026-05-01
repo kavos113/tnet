@@ -2,6 +2,8 @@ import mysql, { type RowDataPacket } from 'mysql2/promise';
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorConnection,
+  ExplainQueryRequest,
+  ExplainQueryResult,
   ExecuteQueryRequest,
   LoadTablePageRequest,
   QueryExecutionResult,
@@ -10,6 +12,7 @@ import type {
 import { assertSingleStatement, isMutatingSql } from '@tnet/app-db-inspector/shared/sqlModel';
 import type { DbInspectorSecretStore } from '../service/secretStore';
 import type { DatabaseDriver } from './databaseDriver';
+import { mysqlJsonPlanToNodes } from './explainPlanModel';
 import { limitedQueryResult, tablePage } from './sqlDriverUtils';
 
 export class MysqlDriver implements DatabaseDriver {
@@ -163,6 +166,42 @@ export class MysqlDriver implements DatabaseDriver {
             affectedRows,
             durationMs: Math.round(performance.now() - startedAt)
           };
+    } finally {
+      await client.end();
+    }
+  }
+
+  async explainQuery(
+    connection: DbInspectorConnection,
+    request: ExplainQueryRequest
+  ): Promise<ExplainQueryResult> {
+    assertSingleStatement(request.sqlText);
+    if (isMutatingSql(request.sqlText)) {
+      throw new Error('EXPLAIN is only available for read-only SQL statements.');
+    }
+    const client = await this.open(connection);
+    const startedAt = performance.now();
+    try {
+      try {
+        const [jsonRows] = await client.query<Array<{ EXPLAIN: string } & RowDataPacket>>(
+          `EXPLAIN FORMAT=JSON ${request.sqlText}`
+        );
+        const rawJson = JSON.parse(jsonRows[0]?.EXPLAIN ?? '{}') as unknown;
+        return {
+          nodes: mysqlJsonPlanToNodes(rawJson),
+          rawJson,
+          durationMs: Math.round(performance.now() - startedAt)
+        };
+      } catch {
+        const [rows] = await client.query<Array<Record<string, unknown> & RowDataPacket>>(
+          `EXPLAIN ${request.sqlText}`
+        );
+        return {
+          nodes: [],
+          rawText: rows.map((row) => JSON.stringify(row)).join('\n'),
+          durationMs: Math.round(performance.now() - startedAt)
+        };
+      }
     } finally {
       await client.end();
     }

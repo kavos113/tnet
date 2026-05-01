@@ -86,4 +86,24 @@ describe('SqliteDriver', () => {
       )
     ).rejects.toThrow(/Read-only mode/);
   });
+
+  it('explains read-only queries with SQLite query plan rows', async () => {
+    const result = await new SqliteDriver().explainQuery(connection, {
+      workspaceId: 'workspace-1',
+      sqlText: 'SELECT * FROM papers WHERE author_id = 1'
+    });
+
+    expect(result.nodes.length).toBeGreaterThan(0);
+    expect(result.rawText).toContain('papers');
+    expect(result.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('rejects mutating query explain requests', async () => {
+    await expect(
+      new SqliteDriver().explainQuery(connection, {
+        workspaceId: 'workspace-1',
+        sqlText: "DELETE FROM authors WHERE name = 'Ada'"
+      })
+    ).rejects.toThrow(/read-only SQL/);
+  });
 });

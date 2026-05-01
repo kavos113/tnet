@@ -8,6 +8,8 @@ import {
   naturalBaseScale,
   zoomAroundPoint
 } from './mermaidViewportMath';
+import { serializeMermaidSvg, svgMarkupToPngBase64 } from './mermaidExport';
+import { dbInspectorTnetApi } from '../dbInspectorTnetApi';
 import appStyles from '../DbInspectorApp.module.css';
 import styles from './MermaidDiagramView.module.css';
 
@@ -29,6 +31,7 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
   const [baseScale, setBaseScale] = useState(1);
   const [pan, setPan] = useState<Point>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [exportMessage, setExportMessage] = useState<string>();
 
   useEffect(() => {
     const container = containerRef.current;
@@ -102,6 +105,49 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
   const resetDiagram = (): void => {
     setZoom(1);
     centerDiagram(1);
+  };
+
+  const currentSvgMarkup = (): string | undefined => {
+    const svg = containerRef.current?.querySelector('svg');
+    return svg ? serializeMermaidSvg(svg) : undefined;
+  };
+
+  const saveSvg = (): void => {
+    const markup = currentSvgMarkup();
+    if (!markup) {
+      setExportMessage('No Mermaid SVG is available.');
+      return;
+    }
+    void dbInspectorTnetApi.dbInspector.files
+      .saveTextFile({
+        defaultPath: 'er-diagram.svg',
+        content: markup,
+        filters: [{ name: 'SVG', extensions: ['svg'] }]
+      })
+      .then((result) => setExportMessage(result ? `Saved SVG: ${result.path}` : undefined))
+      .catch((saveError) =>
+        setExportMessage(saveError instanceof Error ? saveError.message : String(saveError))
+      );
+  };
+
+  const savePng = (): void => {
+    const markup = currentSvgMarkup();
+    if (!markup) {
+      setExportMessage('No Mermaid SVG is available.');
+      return;
+    }
+    void svgMarkupToPngBase64(markup)
+      .then((base64Content) =>
+        dbInspectorTnetApi.dbInspector.files.saveBinaryFile({
+          defaultPath: 'er-diagram.png',
+          base64Content,
+          filters: [{ name: 'PNG', extensions: ['png'] }]
+        })
+      )
+      .then((result) => setExportMessage(result ? `Saved PNG: ${result.path}` : undefined))
+      .catch((saveError) =>
+        setExportMessage(saveError instanceof Error ? saveError.message : String(saveError))
+      );
   };
 
   const updateZoom = (nextZoom: number, anchor?: Point): void => {
@@ -186,8 +232,15 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
         <button className={appStyles.button} type="button" onClick={resetDiagram}>
           100%
         </button>
+        <button className={appStyles.button} type="button" onClick={saveSvg}>
+          Save SVG
+        </button>
+        <button className={appStyles.button} type="button" onClick={savePng}>
+          Save PNG
+        </button>
       </div>
       {error ? <div className={appStyles.error}>Mermaid render failed: {error}</div> : null}
+      {exportMessage ? <div className={styles.exportMessage}>{exportMessage}</div> : null}
       <div
         ref={viewportRef}
         className={`${styles.mermaidViewport} ${isDragging ? styles.mermaidViewportDragging : ''}`}

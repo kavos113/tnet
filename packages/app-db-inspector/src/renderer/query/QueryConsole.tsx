@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import type {
   DbInspectorDriverType,
+  ExplainPlanNode,
+  ExplainQueryResult,
   QueryExecutionResult
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { isMutatingSql } from '@tnet/app-db-inspector/shared/sqlModel';
 import {
   cancelDbInspectorQuery,
+  explainDbInspectorQuery,
   executeDbInspectorQuery,
   saveDbInspectorQueryTab
 } from '../dbInspectorActions';
@@ -31,6 +34,7 @@ export const QueryConsole = (): React.JSX.Element => {
     queryError,
     queryHistory,
     queryResult,
+    explainResult,
     schema,
     queryTabs,
     workspaces,
@@ -43,6 +47,7 @@ export const QueryConsole = (): React.JSX.Element => {
   const [sqlText, setSqlText] = useState(activeTab?.sqlText ?? 'SELECT * FROM ');
   const [title, setTitle] = useState(activeTab?.title ?? 'Query');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeResultTab, setActiveResultTab] = useState<'result' | 'plan'>('result');
   const activeWorkspace = useMemo(
     () => workspaces.find((workspace) => workspace.id === activeWorkspaceId),
     [activeWorkspaceId, workspaces]
@@ -74,6 +79,16 @@ export const QueryConsole = (): React.JSX.Element => {
       workspaceId: activeWorkspaceId,
       sqlText,
       maxRows: globalSettings.defaultPageSize || 500
+    });
+    setActiveResultTab('result');
+  };
+
+  const explain = (): void => {
+    void explainDbInspectorQuery(dispatch, {
+      workspaceId: activeWorkspaceId,
+      sqlText
+    }).then((result) => {
+      if (result) setActiveResultTab('plan');
     });
   };
 
@@ -118,6 +133,14 @@ export const QueryConsole = (): React.JSX.Element => {
           <button
             className={appStyles.button}
             type="button"
+            disabled={!activeWorkspaceId || isLoading}
+            onClick={explain}
+          >
+            Explain
+          </button>
+          <button
+            className={appStyles.button}
+            type="button"
             disabled={!isLoading}
             onClick={() => cancelDbInspectorQuery(dispatch)}
           >
@@ -155,11 +178,14 @@ export const QueryConsole = (): React.JSX.Element => {
           </div>
           <div className={styles.queryResultPane}>
             {queryError ? <div className={appStyles.error}>{queryError}</div> : null}
-            {queryResult ? (
-              <QueryResultTable
-                result={queryResult}
-                dialect={activeWorkspace?.driver ?? 'sqlite'}
+            {queryResult || explainResult ? (
+              <QueryOutputPane
+                activeTab={activeResultTab}
                 defaultTableName={activeTableName}
+                dialect={activeWorkspace?.driver ?? 'sqlite'}
+                explainResult={explainResult}
+                queryResult={queryResult}
+                onSelectTab={setActiveResultTab}
               />
             ) : null}
           </div>
@@ -202,6 +228,88 @@ export const QueryConsole = (): React.JSX.Element => {
     </section>
   );
 };
+
+const QueryOutputPane = ({
+  activeTab,
+  defaultTableName,
+  dialect,
+  explainResult,
+  queryResult,
+  onSelectTab
+}: {
+  activeTab: 'result' | 'plan';
+  defaultTableName?: string;
+  dialect: DbInspectorDriverType;
+  explainResult?: ExplainQueryResult;
+  queryResult?: QueryExecutionResult;
+  onSelectTab: (tab: 'result' | 'plan') => void;
+}): React.JSX.Element => (
+  <div className={styles.queryOutputPane}>
+    <div className={appStyles.segmentedControl} aria-label="Query output">
+      <button
+        type="button"
+        className={activeTab === 'result' ? appStyles.segmentedButtonActive : ''}
+        disabled={!queryResult}
+        onClick={() => onSelectTab('result')}
+      >
+        Result
+      </button>
+      <button
+        type="button"
+        className={activeTab === 'plan' ? appStyles.segmentedButtonActive : ''}
+        disabled={!explainResult}
+        onClick={() => onSelectTab('plan')}
+      >
+        Plan
+      </button>
+    </div>
+    {activeTab === 'plan' && explainResult ? (
+      <ExplainPlanView result={explainResult} />
+    ) : queryResult ? (
+      <QueryResultTable
+        result={queryResult}
+        dialect={dialect}
+        defaultTableName={defaultTableName}
+      />
+    ) : null}
+  </div>
+);
+
+const ExplainPlanView = ({ result }: { result: ExplainQueryResult }): React.JSX.Element => (
+  <div className={styles.explainPlan}>
+    <div className={styles.queryMeta}>Plan generated in {result.durationMs} ms</div>
+    {result.nodes.length > 0 ? (
+      <ul className={styles.planTree}>
+        {result.nodes.map((node) => (
+          <ExplainPlanNodeView key={node.id} node={node} />
+        ))}
+      </ul>
+    ) : null}
+    {result.rawJson !== undefined ? (
+      <pre className={styles.planRaw}>{JSON.stringify(result.rawJson, null, 2)}</pre>
+    ) : result.rawText ? (
+      <pre className={styles.planRaw}>{result.rawText}</pre>
+    ) : null}
+  </div>
+);
+
+const ExplainPlanNodeView = ({ node }: { node: ExplainPlanNode }): React.JSX.Element => (
+  <li>
+    <div className={styles.planNode}>
+      <strong>{node.label}</strong>
+      {node.detail ? <span>{node.detail}</span> : null}
+      {node.cost ? <span>cost: {node.cost}</span> : null}
+      {node.rows ? <span>rows: {node.rows}</span> : null}
+    </div>
+    {node.children && node.children.length > 0 ? (
+      <ul>
+        {node.children.map((child) => (
+          <ExplainPlanNodeView key={child.id} node={child} />
+        ))}
+      </ul>
+    ) : null}
+  </li>
+);
 
 const QueryResultTable = ({
   defaultTableName,

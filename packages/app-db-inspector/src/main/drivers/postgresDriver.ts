@@ -2,6 +2,8 @@ import { Client } from 'pg';
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorConnection,
+  ExplainQueryRequest,
+  ExplainQueryResult,
   ExecuteQueryRequest,
   LoadTablePageRequest,
   QueryExecutionResult,
@@ -10,6 +12,7 @@ import type {
 import { assertSingleStatement, isMutatingSql } from '@tnet/app-db-inspector/shared/sqlModel';
 import type { DbInspectorSecretStore } from '../service/secretStore';
 import type { DatabaseDriver } from './databaseDriver';
+import { postgresJsonPlanToNodes } from './explainPlanModel';
 import { limitedQueryResult, tablePage } from './sqlDriverUtils';
 
 export class PostgresDriver implements DatabaseDriver {
@@ -221,6 +224,38 @@ export class PostgresDriver implements DatabaseDriver {
             affectedRows: result.rowCount ?? 0,
             durationMs: Math.round(performance.now() - startedAt)
           };
+    } finally {
+      await client.end();
+    }
+  }
+
+  async explainQuery(
+    connection: DbInspectorConnection,
+    request: ExplainQueryRequest
+  ): Promise<ExplainQueryResult> {
+    assertSingleStatement(request.sqlText);
+    if (isMutatingSql(request.sqlText)) {
+      throw new Error('EXPLAIN is only available for read-only SQL statements.');
+    }
+    const client = await this.open(connection);
+    const startedAt = performance.now();
+    try {
+      const result = await client.query<{ 'QUERY PLAN': unknown }>(
+        `EXPLAIN (FORMAT JSON) ${request.sqlText}`
+      );
+      const rawJson = result.rows[0]?.['QUERY PLAN'];
+      return {
+        nodes: postgresJsonPlanToNodes(rawJson),
+        rawJson,
+        durationMs: Math.round(performance.now() - startedAt)
+      };
+    } catch {
+      const textResult = await client.query<{ 'QUERY PLAN': string }>(`EXPLAIN ${request.sqlText}`);
+      return {
+        nodes: [],
+        rawText: textResult.rows.map((row) => row['QUERY PLAN']).join('\n'),
+        durationMs: Math.round(performance.now() - startedAt)
+      };
     } finally {
       await client.end();
     }

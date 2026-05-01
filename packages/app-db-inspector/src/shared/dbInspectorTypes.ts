@@ -117,12 +117,33 @@ export interface ExecuteQueryRequest {
   maxRows?: number;
 }
 
+export interface ExplainQueryRequest {
+  workspaceId: string;
+  sqlText: string;
+}
+
 export interface QueryExecutionResult {
   columns: DatabaseColumn[];
   rows: Record<string, unknown>[];
   affectedRows?: number;
   durationMs: number;
   truncated?: boolean;
+}
+
+export interface ExplainPlanNode {
+  id: string;
+  label: string;
+  detail?: string;
+  cost?: string;
+  rows?: string;
+  children?: ExplainPlanNode[];
+}
+
+export interface ExplainQueryResult {
+  nodes: ExplainPlanNode[];
+  rawText?: string;
+  rawJson?: unknown;
+  durationMs: number;
 }
 
 export interface QueryHistoryEntry {

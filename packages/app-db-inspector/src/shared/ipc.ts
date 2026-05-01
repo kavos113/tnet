@@ -1,6 +1,7 @@
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorWorkspace,
+  ExplainQueryResult,
   LoadTablePageRequest,
   QueryExecutionResult,
   QueryHistoryEntry,
@@ -33,6 +34,7 @@ export const dbInspectorIpcChannels = {
   },
   query: {
     execute: 'db-inspector:query:execute',
+    explain: 'db-inspector:query:explain',
     listHistory: 'db-inspector:query:listHistory',
     listTabs: 'db-inspector:query:listTabs',
     saveTab: 'db-inspector:query:saveTab',
@@ -40,7 +42,8 @@ export const dbInspectorIpcChannels = {
   },
   files: {
     selectSqliteDatabase: 'db-inspector:files:selectSqliteDatabase',
-    saveTextFile: 'db-inspector:files:saveTextFile'
+    saveTextFile: 'db-inspector:files:saveTextFile',
+    saveBinaryFile: 'db-inspector:files:saveBinaryFile'
   }
 } as const;
 
@@ -98,6 +101,7 @@ export interface DbInspectorApi {
         sqlText: string;
         maxRows?: number;
       }) => Promise<QueryExecutionResult>;
+      explain: (request: { workspaceId: string; sqlText: string }) => Promise<ExplainQueryResult>;
       listHistory: (request: { workspaceId: string }) => Promise<QueryHistoryEntry[]>;
       listTabs: (request: { workspaceId: string }) => Promise<QueryTab[]>;
       saveTab: (request: SaveQueryTabInput) => Promise<QueryTab>;
@@ -108,6 +112,11 @@ export interface DbInspectorApi {
       saveTextFile: (request: {
         defaultPath: string;
         content: string;
+        filters?: Array<{ name: string; extensions: string[] }>;
+      }) => Promise<{ path: string } | null>;
+      saveBinaryFile: (request: {
+        defaultPath: string;
+        base64Content: string;
         filters?: Array<{ name: string; extensions: string[] }>;
       }) => Promise<{ path: string } | null>;
     };

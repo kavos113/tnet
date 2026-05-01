@@ -2,7 +2,8 @@ import type { UnknownAction } from '@reduxjs/toolkit';
 import type {
   DatabaseTable,
   DbInspectorDriverType,
-  DbInspectorWorkspace
+  DbInspectorWorkspace,
+  ExplainQueryResult
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import type {
   DbInspectorGlobalSettings,
@@ -12,6 +13,7 @@ import { dbInspectorTnetApi } from './dbInspectorTnetApi';
 import {
   setDbInspectorActiveTable,
   setDbInspectorError,
+  setDbInspectorExplainResult,
   setDbInspectorLoading,
   setDbInspectorQueryError,
   setDbInspectorQueryHistory,
@@ -226,6 +228,36 @@ export const executeDbInspectorQuery = async (
     if (requestId !== queryExecutionRequestId) return;
     if (history) dispatch(setDbInspectorQueryHistory(history));
     dispatch(setDbInspectorQueryError(error instanceof Error ? error.message : String(error)));
+  } finally {
+    if (requestId === queryExecutionRequestId) dispatch(setDbInspectorLoading(false));
+  }
+};
+
+export const explainDbInspectorQuery = async (
+  dispatch: DbInspectorDispatch,
+  input: { workspaceId?: string; sqlText: string }
+): Promise<ExplainQueryResult | undefined> => {
+  if (!input.workspaceId) return undefined;
+  const sqlText = input.sqlText.trim();
+  if (!sqlText) {
+    dispatch(setDbInspectorQueryError('SQL text is empty.'));
+    return undefined;
+  }
+
+  const requestId = ++queryExecutionRequestId;
+  dispatch(setDbInspectorLoading(true));
+  try {
+    const result = await dbInspectorTnetApi.dbInspector.query.explain({
+      workspaceId: input.workspaceId,
+      sqlText
+    });
+    if (requestId !== queryExecutionRequestId) return undefined;
+    dispatch(setDbInspectorExplainResult(result));
+    return result;
+  } catch (error) {
+    if (requestId !== queryExecutionRequestId) return undefined;
+    dispatch(setDbInspectorQueryError(error instanceof Error ? error.message : String(error)));
+    return undefined;
   } finally {
     if (requestId === queryExecutionRequestId) dispatch(setDbInspectorLoading(false));
   }

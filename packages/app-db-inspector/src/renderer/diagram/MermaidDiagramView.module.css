@@ -7,11 +7,20 @@
 
 .mermaidToolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   border-bottom: 1px solid var(--color-border);
   padding: 8px;
   background: var(--background);
+}
+
+.exportMessage {
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 8px;
+  color: var(--foreground-muted);
+  background: var(--background);
+  font-size: 12px;
 }
 
 .zoomInput {

@@ -1,6 +1,8 @@
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorConnection,
+  ExplainQueryRequest,
+  ExplainQueryResult,
   ExecuteQueryRequest,
   LoadTablePageRequest,
   QueryExecutionResult,
@@ -92,6 +94,19 @@ export class DbInspectorService {
         errorCode: 'query_failed',
         errorMessage: error instanceof Error ? error.message : String(error)
       });
+      throw normalizeDbInspectorError(error);
+    }
+  }
+
+  async explainQuery(request: ExplainQueryRequest): Promise<ExplainQueryResult> {
+    const workspace = this.getWorkspaceOrThrow(request.workspaceId);
+    const settings = this.workspaceRepository.getSettings(request.workspaceId);
+    try {
+      return await withQueryTimeout(
+        this.driverFor(workspace.connection).explainQuery(workspace.connection, request),
+        settings.queryTimeoutMs
+      );
+    } catch (error) {
       throw normalizeDbInspectorError(error);
     }
   }

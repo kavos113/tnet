@@ -28,6 +28,7 @@ export const dbInspectorTnetApi: DbInspectorApi = {
     },
     query: {
       execute: (request) => getApi().dbInspector.query.execute(request),
+      explain: (request) => getApi().dbInspector.query.explain(request),
       listHistory: (request) => getApi().dbInspector.query.listHistory(request),
       listTabs: (request) => getApi().dbInspector.query.listTabs(request),
       saveTab: (request) => getApi().dbInspector.query.saveTab(request),
@@ -35,7 +36,8 @@ export const dbInspectorTnetApi: DbInspectorApi = {
     },
     files: {
       selectSqliteDatabase: () => getApi().dbInspector.files.selectSqliteDatabase(),
-      saveTextFile: (request) => getApi().dbInspector.files.saveTextFile(request)
+      saveTextFile: (request) => getApi().dbInspector.files.saveTextFile(request),
+      saveBinaryFile: (request) => getApi().dbInspector.files.saveBinaryFile(request)
     }
   }
 };

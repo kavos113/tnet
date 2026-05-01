@@ -36,3 +36,23 @@ export const saveTextFile = async ({
   fs.writeFileSync(result.filePath, content, 'utf8');
   return { path: result.filePath };
 };
+
+export interface SaveBinaryFileRequest {
+  defaultPath: string;
+  base64Content: string;
+  filters?: Array<{ name: string; extensions: string[] }>;
+}
+
+export const saveBinaryFile = async ({
+  base64Content,
+  defaultPath,
+  filters
+}: SaveBinaryFileRequest): Promise<{ path: string } | null> => {
+  const result = await dialog.showSaveDialog({
+    defaultPath,
+    filters: filters ?? [{ name: 'Binary', extensions: ['bin'] }]
+  });
+  if (result.canceled || !result.filePath) return null;
+  fs.writeFileSync(result.filePath, Buffer.from(base64Content, 'base64'));
+  return { path: result.filePath };
+};

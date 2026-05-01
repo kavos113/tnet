@@ -93,6 +93,13 @@
   gap: 6px;
 }
 
+.queryOutputPane {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 6px;
+}
+
 .queryResultToolbar {
   display: flex;
   gap: 8px;
@@ -131,4 +138,49 @@
   background: var(--background-dark);
   text-align: left;
   font-weight: 600;
+}
+
+.explainPlan {
+  display: grid;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, auto) minmax(0, 1fr);
+  gap: 6px;
+  overflow: auto;
+}
+
+.planTree {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.planTree ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.planNode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: var(--background);
+  font-size: 12px;
+}
+
+.planNode span {
+  color: var(--foreground-muted);
+}
+
+.planRaw {
+  min-height: 0;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 6px;
+  overflow: auto;
+  background: var(--background-dark);
+  font-family: var(--db-inspector-query-font-family, monospace);
+  font-size: var(--db-inspector-query-font-size, 12px);
 }

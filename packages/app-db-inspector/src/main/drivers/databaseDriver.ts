@@ -1,6 +1,8 @@
 import type {
   DatabaseSchemaSnapshot,
   DbInspectorConnection,
+  ExplainQueryRequest,
+  ExplainQueryResult,
   ExecuteQueryRequest,
   LoadTablePageRequest,
   QueryExecutionResult,
@@ -19,4 +21,8 @@ export interface DatabaseDriver {
     request: ExecuteQueryRequest,
     readOnlyMode: boolean
   ): Promise<QueryExecutionResult>;
+  explainQuery(
+    connection: DbInspectorConnection,
+    request: ExplainQueryRequest
+  ): Promise<ExplainQueryResult>;
 }
