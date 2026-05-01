@@ -12,6 +12,7 @@ import { JsonTextEditor } from './JsonTextEditor';
 import { RequesterKeyValueTable } from './RequesterKeyValueTable';
 import { RequesterVariableSuggestions } from './RequesterVariableSuggestions';
 import type { GraphqlSchemaTypeSummary } from './requesterAppHelpers';
+import styles from './RequesterEditor.module.css';
 
 const httpMethods: RequesterHttpMethod[] = [
   'GET',
@@ -142,10 +143,10 @@ export const RequesterEditor = ({
   onSend,
   onIntrospectGraphql
 }: RequesterEditorProps): React.JSX.Element => (
-  <section className="requester-editor" aria-label="API request editor">
-    <header className="requester-editor-header">
+  <section className={styles.root} aria-label="API request editor">
+    <header className={styles.header}>
       <input
-        className="requester-name-input"
+        className={styles.nameInput}
         aria-label="Request name"
         value={name}
         onChange={(event) => onNameChange(event.target.value)}
@@ -154,7 +155,7 @@ export const RequesterEditor = ({
         Save
       </button>
     </header>
-    <div className="requester-url-row">
+    <div className={styles.urlRow}>
       <select
         aria-label="Request type"
         value={requestType}
@@ -186,10 +187,10 @@ export const RequesterEditor = ({
         Send
       </button>
     </div>
-    <section className="requester-body-editor">
+    <section className={styles.bodyEditor}>
       {requestType === 'grpc' ? (
-        <section className="requester-grpc-section" aria-label="gRPC request settings">
-          <div className="requester-grpc-proto-row">
+        <section className={styles.grpcSection} aria-label="gRPC request settings">
+          <div className={styles.grpcProtoRow}>
             <input
               aria-label="gRPC proto file"
               placeholder="Path to .proto"
@@ -200,7 +201,7 @@ export const RequesterEditor = ({
               Select Proto
             </button>
           </div>
-          <div className="requester-grpc-method-grid">
+          <div className={styles.grpcMethodGrid}>
             <input
               aria-label="gRPC package"
               placeholder="package, e.g. tnet.papers.v1"
@@ -227,7 +228,7 @@ export const RequesterEditor = ({
           />
         </section>
       ) : (
-        <section className="requester-auth-section" aria-label="Auth">
+        <section className={styles.authSection} aria-label="Auth">
           <label>
             Auth
             <select
@@ -243,7 +244,7 @@ export const RequesterEditor = ({
             </select>
           </label>
           {authType === 'basic' ? (
-            <div className="requester-auth-fields">
+            <div className={styles.authFields}>
               <input
                 aria-label="Auth username"
                 placeholder="Username"
@@ -267,7 +268,7 @@ export const RequesterEditor = ({
               onChange={(event) => onAuthTokenChange(event.target.value)}
             />
           ) : authType === 'api-key-header' || authType === 'api-key-query' ? (
-            <div className="requester-auth-fields">
+            <div className={styles.authFields}>
               <input
                 aria-label="API key name"
                 placeholder="Key"
@@ -286,7 +287,7 @@ export const RequesterEditor = ({
         </section>
       )}
       {requestType === 'grpc' ? null : (
-        <div className="requester-kv-grid">
+        <div className={styles.kvGrid}>
           <RequesterKeyValueTable
             label="Query Params"
             rows={queryParams}
@@ -315,7 +316,7 @@ export const RequesterEditor = ({
         </label>
       )}
       {requestType !== 'grpc' && bodyMode === 'graphql' ? (
-        <div className="requester-graphql-fields">
+        <div className={styles.graphqlFields}>
           <input
             aria-label="GraphQL operation name"
             placeholder="Operation name"
@@ -327,16 +328,17 @@ export const RequesterEditor = ({
           </button>
           <JsonTextEditor
             ariaLabel="GraphQL variables"
+            className={styles.jsonEditor}
             value={graphqlVariablesText}
             onChange={onGraphqlVariablesTextChange}
             minHeight={84}
           />
           {graphqlSchemaTypes.length > 0 ? (
-            <details className="requester-graphql-schema" open>
+            <details className={styles.graphqlSchema} open>
               <summary>Schema types</summary>
-              <div className="requester-graphql-schema-grid">
+              <div className={styles.graphqlSchemaGrid}>
                 {graphqlSchemaTypes.map((type) => (
-                  <div className="requester-graphql-schema-row" key={`${type.kind}:${type.name}`}>
+                  <div className={styles.graphqlSchemaRow} key={`${type.kind}:${type.name}`}>
                     <span>{type.name}</span>
                     <span>{type.kind}</span>
                     <span>{type.fieldCount}</span>
@@ -348,7 +350,12 @@ export const RequesterEditor = ({
         </div>
       ) : null}
       {requestType === 'grpc' || bodyMode === 'json' ? (
-        <JsonTextEditor ariaLabel="Request body" value={bodyText} onChange={onBodyTextChange} />
+        <JsonTextEditor
+          ariaLabel="Request body"
+          className={styles.jsonEditor}
+          value={bodyText}
+          onChange={onBodyTextChange}
+        />
       ) : (
         <textarea
           aria-label="Request body"
@@ -358,7 +365,7 @@ export const RequesterEditor = ({
         />
       )}
       {requestType !== 'grpc' && bodyMode === 'binary-file' ? (
-        <div className="requester-binary-body-row">
+        <div className={styles.binaryBodyRow}>
           <input aria-label="Binary body file" value={binaryFilePath} readOnly />
           <button type="button" className="open-folder-button" onClick={onBinaryFilePathSelect}>
             Select File
@@ -367,6 +374,6 @@ export const RequesterEditor = ({
       ) : null}
       <RequesterExtractionRulesEditor rules={extractionRules} onChange={onExtractionRulesChange} />
     </section>
-    {error ? <p className="requester-error">{error}</p> : null}
+    {error ? <p className={styles.error}>{error}</p> : null}
   </section>
 );

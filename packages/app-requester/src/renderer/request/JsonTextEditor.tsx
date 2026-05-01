@@ -9,6 +9,7 @@ interface JsonTextEditorProps {
   ariaLabel: string;
   value: string;
   onChange: (value: string) => void;
+  className?: string;
   minHeight?: number;
 }
 
@@ -16,6 +17,7 @@ export const JsonTextEditor = ({
   ariaLabel,
   value,
   onChange,
+  className,
   minHeight = 160
 }: JsonTextEditorProps): React.JSX.Element => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -104,5 +106,5 @@ export const JsonTextEditor = ({
     });
   }, [value]);
 
-  return <div className="requester-json-editor" ref={containerRef} />;
+  return <div className={className} ref={containerRef} />;
 };
