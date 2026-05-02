@@ -298,6 +298,7 @@ describe('ExplorerPanel', () => {
           tasks: {},
           papers: {},
           requester: {},
+          rss: {},
           'db-inspector': {},
           'pdf-viewer': {},
           code: {}
@@ -352,6 +353,7 @@ describe('ExplorerPanel', () => {
           tasks: {},
           papers: {},
           requester: {},
+          rss: {},
           'db-inspector': {},
           'pdf-viewer': {},
           code: {}
@@ -425,6 +427,7 @@ describe('ExplorerPanel', () => {
           tasks: {},
           papers: {},
           requester: {},
+          rss: {},
           'db-inspector': {},
           'pdf-viewer': {},
           code: {}

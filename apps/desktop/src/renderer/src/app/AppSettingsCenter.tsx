@@ -18,6 +18,7 @@ import {
   PdfViewerGlobalSettingsPage,
   PdfViewerWorkspaceSettingsPage
 } from '@tnet/app-pdf-viewer/renderer';
+import { RssGlobalSettingsPage } from '@tnet/app-rss/renderer';
 import { SettingsCenterDialog, type SettingsCenterPage } from '@tnet/ui/settings';
 import { useAppSelector } from './hooks';
 
@@ -103,6 +104,15 @@ export const AppSettingsCenter = ({
         scopeLabel: 'Workspace',
         title: requesterWorkspaceId ? 'Requester Workspace' : 'Requester Workspace',
         content: <RequesterWorkspaceSettingsPage onClose={onClose} />
+      },
+      {
+        id: 'rss-global',
+        appId: 'rss',
+        appLabel: 'RSS',
+        appIcon: 'rss_feed',
+        scopeLabel: 'Global',
+        title: 'RSS Global',
+        content: <RssGlobalSettingsPage onClose={onClose} />
       },
       {
         id: 'db-inspector-global',
@@ -194,6 +204,7 @@ const getInitialPageId = (appId: AppId, hasWorkspace: boolean): string => {
   if (appId === 'tasks') return 'tasks-global';
   if (appId === 'papers') return hasWorkspace ? 'papers-workspace' : 'papers-global';
   if (appId === 'requester') return hasWorkspace ? 'requester-workspace' : 'requester-global';
+  if (appId === 'rss') return 'rss-global';
   if (appId === 'db-inspector') {
     return hasWorkspace ? 'db-inspector-workspace' : 'db-inspector-global';
   }

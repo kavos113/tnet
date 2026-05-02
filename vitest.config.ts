@@ -14,6 +14,7 @@ export default defineConfig({
       '@tnet/app-markdown': resolve(__dirname, 'packages/app-markdown/src'),
       '@tnet/app-requester': resolve(__dirname, 'packages/app-requester/src'),
       '@tnet/app-tasks': resolve(__dirname, 'packages/app-tasks/src'),
+      '@tnet/app-rss': resolve(__dirname, 'packages/app-rss/src'),
       '@tnet/app-pdf-viewer': resolve(__dirname, 'packages/app-pdf-viewer/src'),
       '@tnet/app-db-inspector': resolve(__dirname, 'packages/app-db-inspector/src'),
       '@tnet/main-core': resolve(__dirname, 'packages/main-core/src'),

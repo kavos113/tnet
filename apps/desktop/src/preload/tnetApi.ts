@@ -7,6 +7,7 @@ import { requesterIpcChannels, type RequesterApi } from '@tnet/app-requester/sha
 import { dbInspectorIpcChannels, type DbInspectorApi } from '@tnet/app-db-inspector/shared/ipc';
 import { tasksIpcChannels, type TasksApi } from '@tnet/app-tasks/shared/ipc';
 import { pdfViewerIpcChannels, type PdfViewerApi } from '@tnet/app-pdf-viewer/shared/ipc';
+import { rssIpcChannels, type RssApi } from '@tnet/app-rss/shared/ipc';
 
 export type DesktopTnetApi = TnetApi &
   MarkdownApi &
@@ -14,6 +15,7 @@ export type DesktopTnetApi = TnetApi &
   RequesterApi &
   DbInspectorApi &
   TasksApi &
+  RssApi &
   PdfViewerApi;
 
 export const tnetApi: DesktopTnetApi = {
@@ -87,6 +89,37 @@ export const tnetApi: DesktopTnetApi = {
     pdf: {
       loadBytes: (request) => ipcRenderer.invoke(pdfViewerIpcChannels.pdf.loadBytes, request),
       openExternal: (request) => ipcRenderer.invoke(pdfViewerIpcChannels.pdf.openExternal, request)
+    }
+  },
+  rss: {
+    config: {
+      loadGlobal: () => ipcRenderer.invoke(rssIpcChannels.config.loadGlobal),
+      saveGlobal: (config) => ipcRenderer.invoke(rssIpcChannels.config.saveGlobal, config)
+    },
+    folders: {
+      list: () => ipcRenderer.invoke(rssIpcChannels.folders.list),
+      listTree: () => ipcRenderer.invoke(rssIpcChannels.folders.listTree),
+      create: (request) => ipcRenderer.invoke(rssIpcChannels.folders.create, request),
+      rename: (request) => ipcRenderer.invoke(rssIpcChannels.folders.rename, request),
+      move: (request) => ipcRenderer.invoke(rssIpcChannels.folders.move, request),
+      remove: (request) => ipcRenderer.invoke(rssIpcChannels.folders.remove, request)
+    },
+    feeds: {
+      list: () => ipcRenderer.invoke(rssIpcChannels.feeds.list),
+      create: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.create, request),
+      update: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.update, request),
+      move: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.move, request),
+      remove: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.remove, request),
+      sync: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.sync, request)
+    },
+    items: {
+      list: (request) => ipcRenderer.invoke(rssIpcChannels.items.list, request),
+      get: (request) => ipcRenderer.invoke(rssIpcChannels.items.get, request),
+      markRead: (request) => ipcRenderer.invoke(rssIpcChannels.items.markRead, request),
+      markUnread: (request) => ipcRenderer.invoke(rssIpcChannels.items.markUnread, request),
+      markAllRead: (request) => ipcRenderer.invoke(rssIpcChannels.items.markAllRead, request),
+      setStarred: (request) => ipcRenderer.invoke(rssIpcChannels.items.setStarred, request),
+      archive: (request) => ipcRenderer.invoke(rssIpcChannels.items.archive, request)
     }
   },
   markdown: {

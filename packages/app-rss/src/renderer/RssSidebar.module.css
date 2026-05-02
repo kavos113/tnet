@@ -1,0 +1,86 @@
+.root {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f4f6f6;
+  border-right: 1px solid #d7dde2;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #dfe4e8;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.button {
+  border: 1px solid #c4ccd3;
+  border-radius: 6px;
+  background: #ffffff;
+  min-height: 30px;
+  padding: 0 8px;
+  font: inherit;
+}
+
+.tree {
+  overflow: auto;
+  padding: 8px;
+}
+
+.node,
+.systemNode {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  min-height: 30px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  color: #253039;
+  font: inherit;
+}
+
+.node:hover,
+.systemNode:hover,
+.active {
+  background: #e2ece8;
+}
+
+.folder {
+  margin-top: 8px;
+}
+
+.folderLabel {
+  padding: 6px 8px;
+  color: #5c6872;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.children {
+  margin-left: 12px;
+}
+
+.count {
+  margin-left: auto;
+  color: #63717b;
+  font-size: 12px;
+}
+
+.errorDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #bc3c3c;
+}

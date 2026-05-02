@@ -6,11 +6,13 @@ import { requesterReducer } from '@tnet/app-requester/renderer';
 import { dbInspectorReducer } from '@tnet/app-db-inspector/renderer';
 import { tasksReducer } from '@tnet/app-tasks/renderer';
 import { pdfViewerReducer } from '@tnet/app-pdf-viewer/renderer';
+import { rssReducer } from '@tnet/app-rss/renderer';
 
 export interface RootState {
   app: ReturnType<typeof appReducer>;
   tasks: ReturnType<typeof tasksReducer>;
   pdfViewer: ReturnType<typeof pdfViewerReducer>;
+  rss: ReturnType<typeof rssReducer>;
   workspace: ReturnType<typeof workspaceReducer>;
   explorer: ReturnType<typeof explorerReducer>;
   editor: ReturnType<typeof editorReducer>;
@@ -26,6 +28,7 @@ export const createAppStore = (): EnhancedStore<RootState> =>
       app: appReducer,
       tasks: tasksReducer,
       pdfViewer: pdfViewerReducer,
+      rss: rssReducer,
       workspace: workspaceReducer,
       explorer: explorerReducer,
       editor: editorReducer,

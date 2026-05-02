@@ -23,7 +23,17 @@ $process = Start-Process `
 function Stop-DevProcessTree {
     param([int]$RootProcessId)
 
-    taskkill.exe /PID $RootProcessId /T /F 1>$null 2>$null
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        taskkill.exe /PID $RootProcessId /T /F 1>$null 2>$null
+        if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 128) {
+            throw "Failed to stop dev process tree for PID $RootProcessId."
+        }
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
 }
 
 try {

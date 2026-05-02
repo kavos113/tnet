@@ -1,0 +1,23 @@
+{
+  "name": "@tnet/app-rss",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./renderer": "./src/renderer/index.ts",
+    "./main": "./src/main/index.ts",
+    "./shared/*": "./src/shared/*",
+    "./renderer/*": "./src/renderer/*",
+    "./main/*": "./src/main/*"
+  },
+  "dependencies": {
+    "@tnet/main-core": "workspace:*",
+    "@tnet/renderer-core": "workspace:*",
+    "@tnet/shared": "workspace:*",
+    "@tnet/ui": "workspace:*",
+    "better-sqlite3": "catalog:"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "catalog:"
+  }
+}

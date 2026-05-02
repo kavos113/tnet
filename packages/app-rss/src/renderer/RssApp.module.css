@@ -1,0 +1,156 @@
+.root {
+  display: grid;
+  grid-template-columns: minmax(260px, 34%) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  color: #202428;
+  background: #f6f7f8;
+}
+
+.listPane {
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid #d8dde3;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #e3e7eb;
+}
+
+.toolbar h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+  flex: 1;
+}
+
+.button,
+.secondaryButton,
+.iconButton {
+  border: 1px solid #c7ced6;
+  background: #ffffff;
+  color: #202428;
+  border-radius: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  font: inherit;
+}
+
+.button {
+  background: #166a55;
+  color: #ffffff;
+  border-color: #166a55;
+}
+
+.iconButton {
+  width: 32px;
+  padding: 0;
+}
+
+.itemList {
+  overflow: auto;
+  min-height: 0;
+}
+
+.itemRow {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid #edf0f2;
+  background: #ffffff;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.itemRow:hover,
+.itemRowActive {
+  background: #eef6f2;
+}
+
+.itemRowRead {
+  color: #68727d;
+}
+
+.itemTitle {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.itemMeta,
+.itemSummary,
+.empty,
+.error {
+  font-size: 12px;
+  color: #69737d;
+}
+
+.detailPane {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+}
+
+.detailHeader {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.detailHeader h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.content {
+  line-height: 1.65;
+  max-width: 820px;
+}
+
+.form {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #e3e7eb;
+}
+
+.input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #c7ced6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+}
+
+.error {
+  padding: 8px 12px;
+  color: #9b1c1c;
+}
+
+@media (max-width: 860px) {
+  .root {
+    grid-template-columns: 1fr;
+  }
+
+  .listPane {
+    min-height: 42vh;
+    border-right: 0;
+    border-bottom: 1px solid #d8dde3;
+  }
+}

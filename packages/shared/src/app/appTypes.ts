@@ -3,6 +3,7 @@ export type AppId =
   | 'markdown'
   | 'papers'
   | 'requester'
+  | 'rss'
   | 'db-inspector'
   | 'pdf-viewer'
   | 'code';
@@ -14,6 +15,7 @@ export const isAppId = (value: string | undefined): value is AppId =>
   value === 'markdown' ||
   value === 'papers' ||
   value === 'requester' ||
+  value === 'rss' ||
   value === 'db-inspector' ||
   value === 'pdf-viewer' ||
   value === 'code';

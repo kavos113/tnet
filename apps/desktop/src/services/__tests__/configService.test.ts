@@ -43,6 +43,7 @@ describe('config services', () => {
         },
         papers: {},
         requester: {},
+        rss: {},
         'db-inspector': {},
         'pdf-viewer': {},
         code: {}

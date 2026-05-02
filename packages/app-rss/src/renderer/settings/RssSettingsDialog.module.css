@@ -1,0 +1,35 @@
+.root {
+  display: grid;
+  gap: 18px;
+}
+
+.section {
+  display: grid;
+  gap: 12px;
+}
+
+.section h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.field,
+.check {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.check {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.field input,
+.field select {
+  border: 1px solid #c6ced6;
+  border-radius: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  font: inherit;
+}

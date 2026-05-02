@@ -12,6 +12,7 @@ export const defaultGlobalConfig = (): GlobalConfig => ({
     markdown: {},
     papers: {},
     requester: {},
+    rss: {},
     'db-inspector': {},
     'pdf-viewer': {},
     code: {}
