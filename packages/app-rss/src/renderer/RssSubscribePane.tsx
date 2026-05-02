@@ -69,9 +69,14 @@ export const RssSubscribePane = ({
     if (!feedUrl.trim()) return;
     const discovered = await rssTnetApi.rss.feeds.discover({ url: feedUrl });
     if (discovered[0]) {
-      setFeedTitle(discovered[0].title ?? feedTitle);
+      if (!feedTitle.trim()) setFeedTitle(discovered[0].title ?? '');
       setFeedUrl(discovered[0].url);
     }
+  };
+
+  const autoFillTitle = async (): Promise<void> => {
+    if (!feedUrl.trim() || feedTitle.trim()) return;
+    await discoverFeeds();
   };
 
   const reportError = (error: unknown): void => {
@@ -106,6 +111,7 @@ export const RssSubscribePane = ({
             className={styles.input}
             value={feedUrl}
             onChange={(event) => setFeedUrl(event.target.value)}
+            onBlur={() => autoFillTitle().catch(reportError)}
             placeholder="https://example.com/feed.xml"
             aria-label="Feed URL"
           />

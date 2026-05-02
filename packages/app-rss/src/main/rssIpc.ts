@@ -13,6 +13,7 @@ import {
 import { FeedFetchService } from './service/feedFetchService';
 import { FeedDiscoveryService } from './service/feedDiscoveryService';
 import { FeedSyncService } from './service/feedSyncService';
+import { fetchRemoteFeedTitle, readLocalFeedTitle } from './service/feedTitleService';
 
 export interface RegisterRssIpcOptions {
   userDataDir: string;
@@ -47,15 +48,22 @@ export const registerRssIpc = ({ userDataDir }: RegisterRssIpcOptions): void => 
   });
 
   ipcMain.handle(rssIpcChannels.feeds.list, async () => feedRepository.list());
-  ipcMain.handle(rssIpcChannels.feeds.create, async (_event, request) =>
-    feedRepository.create(request)
-  );
+  ipcMain.handle(rssIpcChannels.feeds.create, async (_event, request) => {
+    const config = await loadRssGlobalConfig(userDataDir);
+    const title =
+      request.title?.trim() ||
+      (await fetchRemoteFeedTitle(request.url, {
+        timeoutSeconds: config.settings.fetchTimeoutSeconds
+      }));
+    return feedRepository.create({ ...request, title });
+  });
   ipcMain.handle(rssIpcChannels.feeds.update, async (_event, request) =>
     feedRepository.update(request)
   );
-  ipcMain.handle(rssIpcChannels.feeds.importLocalXml, async (_event, request) =>
-    feedRepository.importLocalXml(request)
-  );
+  ipcMain.handle(rssIpcChannels.feeds.importLocalXml, async (_event, request) => {
+    const title = request.title?.trim() || (await readLocalFeedTitle(request.filePath));
+    return feedRepository.importLocalXml({ ...request, title });
+  });
   ipcMain.handle(rssIpcChannels.feeds.discover, async (_event, request) => {
     const config = await loadRssGlobalConfig(userDataDir);
     return new FeedDiscoveryService({

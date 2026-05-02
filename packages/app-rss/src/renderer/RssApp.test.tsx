@@ -22,6 +22,7 @@ vi.mock('./rssTnetApi', () => ({
         update: vi.fn(),
         move: vi.fn(),
         remove: vi.fn(),
+        discover: vi.fn(),
         list: vi.fn(),
         sync: vi.fn()
       },
@@ -150,6 +151,9 @@ describe('RssApp', () => {
       syncedFeedIds: ['feed-1'],
       failedFeedIds: []
     });
+    vi.mocked(rssTnetApi.rss.feeds.discover).mockResolvedValue([
+      { title: 'Discovered Feed', url: 'https://example.com/feed.xml' }
+    ]);
     vi.mocked(rssTnetApi.rss.folders.listTree).mockResolvedValue({ folders: [], feeds: [] });
   });
 
@@ -241,6 +245,29 @@ describe('RssApp', () => {
 
     expect(screen.getByRole('heading', { name: 'Subscribe Feed' })).toBeInTheDocument();
     expect(screen.getByLabelText('Feed URL')).toBeInTheDocument();
+  });
+
+  it('auto-fills the feed title from discovery when the URL field blurs', async () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+    renderApp();
+
+    const urlInput = screen.getByLabelText('Feed URL');
+    fireEvent.change(urlInput, { target: { value: 'https://example.com/feed.xml' } });
+    fireEvent.blur(urlInput);
+
+    expect(await screen.findByDisplayValue('Discovered Feed')).toBeInTheDocument();
+    expect(rssTnetApi.rss.feeds.discover).toHaveBeenCalledWith({
+      url: 'https://example.com/feed.xml'
+    });
   });
 
   const renderApp = (): void => {

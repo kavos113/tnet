@@ -1,5 +1,6 @@
 import { discoverFeedLinks } from '@tnet/app-rss/shared/feedDiscovery';
 import { normalizeRssUrl } from '@tnet/app-rss/shared/rssUrl';
+import { parseFeedXml } from './feedParser';
 
 export class FeedDiscoveryService {
   constructor(
@@ -18,11 +19,18 @@ export class FeedDiscoveryService {
         signal: abortController.signal,
         headers: {
           'user-agent': this.options.userAgent ?? 'tnet-rss/1.0',
-          accept: 'text/html, application/xhtml+xml;q=0.9, */*;q=0.8'
+          accept:
+            'text/html, application/xhtml+xml, application/rss+xml, application/atom+xml, application/feed+json, application/json, application/xml, text/xml;q=0.9, */*;q=0.8'
         }
       });
       if (!response.ok) throw new Error(`Feed discovery failed with HTTP ${response.status}.`);
-      return discoverFeedLinks(await response.text(), pageUrl);
+      const body = await response.text();
+      try {
+        const parsed = parseFeedXml(body);
+        return [{ title: parsed.title, url: pageUrl }];
+      } catch {
+        return discoverFeedLinks(body, pageUrl);
+      }
     } finally {
       clearTimeout(timeout);
     }
