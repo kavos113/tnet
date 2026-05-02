@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PdfZoomMode } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { normalizeColumns } from '@tnet/app-pdf-viewer/shared/config';
+import { createPdfLinkHref, workspaceNameForRoot } from '@tnet/app-pdf-viewer/shared/pdfLink';
 import { TabBar } from '@tnet/ui';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { PdfDocumentViewer } from './components/viewer/PdfDocumentViewer';
@@ -154,6 +155,18 @@ export const PdfViewerApp = (): React.JSX.Element => {
       });
   };
 
+  const copyPdfLink = (): void => {
+    if (!rootPath || !activePath) return;
+    const href = createPdfLinkHref(workspaceNameForRoot(rootPath), activePath);
+    navigator.clipboard
+      .writeText(href)
+      .then(() => dispatch(setPdfViewerError(undefined)))
+      .catch((copyError: unknown) => {
+        console.error('Failed to copy PDF link', copyError);
+        dispatch(setPdfViewerError('Failed to copy PDF link.'));
+      });
+  };
+
   return (
     <main className={styles.root} aria-label="PDF Viewer">
       <div className={styles.toolbar}>
@@ -216,6 +229,15 @@ export const PdfViewerApp = (): React.JSX.Element => {
           }
         >
           Apply
+        </button>
+        <button
+          type="button"
+          className={`${styles.iconButton} material-icons-round`}
+          aria-label="Copy PDF link"
+          disabled={!activePath}
+          onClick={copyPdfLink}
+        >
+          content_copy
         </button>
         <button
           type="button"

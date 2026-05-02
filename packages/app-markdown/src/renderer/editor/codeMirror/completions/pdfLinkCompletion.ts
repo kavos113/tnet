@@ -1,4 +1,10 @@
-import type { CompletionContext, CompletionResult } from '@codemirror/autocomplete';
+import {
+  startCompletion,
+  type Completion,
+  type CompletionContext,
+  type CompletionResult
+} from '@codemirror/autocomplete';
+import type { EditorView } from '@codemirror/view';
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import type { FileItem } from '@tnet/shared/types/file';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
@@ -14,6 +20,7 @@ import { tnetApi } from '@tnet/renderer-core/tnetApi';
 export interface PdfLinkCompletionWorkspace {
   workspaceName: string;
   rootPath: string;
+  directories?: string[];
   files: string[];
 }
 
@@ -52,7 +59,7 @@ export const pdfLinkCompletion =
           .map((workspace) => ({
             label: workspace.workspaceName,
             detail: workspace.rootPath,
-            apply: `${encodePdfLinkPart(workspace.workspaceName)}/`,
+            apply: applyPdfDirectoryCompletion(`${encodePdfLinkPart(workspace.workspaceName)}/`),
             type: 'folder' as const
           })),
         validFor: /^[^\s\])]*$/
@@ -70,19 +77,28 @@ export const pdfLinkCompletion =
     const matchingWorkspaces = index.filter(
       (workspace) => workspace.workspaceName === typedWorkspace
     );
+    const pathFrom = match.from + 'pdf:'.length + slashIndex + 1;
 
     return {
-      from: match.from + 'pdf:'.length,
-      options: matchingWorkspaces.flatMap((workspace) =>
-        workspace.files
+      from: pathFrom,
+      options: matchingWorkspaces.flatMap((workspace) => [
+        ...(workspace.directories ?? [])
+          .filter((directoryPath) => directoryPath.toLowerCase().startsWith(typedPath))
+          .map((directoryPath) => ({
+            label: `${directoryPath}/`,
+            detail: workspace.rootPath,
+            apply: applyPdfDirectoryCompletion(`${encodePdfRelativePath(directoryPath)}/`),
+            type: 'folder' as const
+          })),
+        ...workspace.files
           .filter((filePath) => filePath.toLowerCase().startsWith(typedPath))
           .map((filePath) => ({
             label: filePath,
             detail: workspace.rootPath,
-            apply: `${encodePdfLinkPart(workspace.workspaceName)}/${encodePdfRelativePath(filePath)}`,
+            apply: encodePdfRelativePath(filePath),
             type: 'file' as const
           }))
-      ),
+      ]),
       validFor: /^[^\s\])]*$/
     };
   };
@@ -94,10 +110,12 @@ const loadPdfLinkCompletionIndex = async (): Promise<PdfLinkCompletionWorkspace[
     settings.workspaceRoots.map(async (rootPath) => {
       try {
         const fileTree = await tnetApi.workspace.getFileTree(rootPath);
+        const entries = collectPdfLinkEntries(fileTree, rootPath);
         return {
           workspaceName: workspaceNameForRoot(rootPath),
           rootPath,
-          files: collectPdfFiles(fileTree, rootPath)
+          directories: entries.directories,
+          files: entries.files
         };
       } catch (error: unknown) {
         console.error('Failed to load PDF link completion index', error);
@@ -113,12 +131,40 @@ const loadPdfLinkCompletionIndex = async (): Promise<PdfLinkCompletionWorkspace[
   return workspaces;
 };
 
-const collectPdfFiles = (items: FileItem[], rootPath: string): string[] =>
-  items.flatMap((item) => {
-    if (item.isDirectory) return collectPdfFiles(item.children ?? [], rootPath);
-    if (!item.name.toLowerCase().endsWith('.pdf')) return [];
-    return normalizePdfRelativePath(toWorkspaceRelativePath(rootPath, item.path));
-  });
+const collectPdfLinkEntries = (
+  items: FileItem[],
+  rootPath: string
+): { directories: string[]; files: string[] } => {
+  const entries = items.flatMap((item) => collectPdfLinkEntry(item, rootPath));
+  return {
+    directories: entries.flatMap((entry) => entry.directories),
+    files: entries.flatMap((entry) => entry.files)
+  };
+};
+
+const collectPdfLinkEntry = (
+  item: FileItem,
+  rootPath: string
+): { directories: string[]; files: string[] } => {
+  if (!item.isDirectory) {
+    return {
+      directories: [],
+      files: item.name.toLowerCase().endsWith('.pdf')
+        ? [normalizePdfRelativePath(toWorkspaceRelativePath(rootPath, item.path))]
+        : []
+    };
+  }
+
+  const childEntries = collectPdfLinkEntries(item.children ?? [], rootPath);
+  const directoryPath = normalizePdfRelativePath(toWorkspaceRelativePath(rootPath, item.path));
+  return {
+    directories:
+      childEntries.files.length > 0 && directoryPath
+        ? [directoryPath, ...childEntries.directories]
+        : childEntries.directories,
+    files: childEntries.files
+  };
+};
 
 const decodePdfCompletionPart = (value: string): string => {
   try {
@@ -127,3 +173,13 @@ const decodePdfCompletionPart = (value: string): string => {
     return value;
   }
 };
+
+export const applyPdfDirectoryCompletion =
+  (insertText: string) =>
+  (view: EditorView, _completion: Completion, from: number, to: number): void => {
+    view.dispatch({
+      changes: { from, to, insert: insertText },
+      selection: { anchor: from + insertText.length }
+    });
+    startCompletion(view);
+  };

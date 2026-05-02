@@ -1,4 +1,5 @@
 export const closestPdfLink = (target: EventTarget | null): HTMLAnchorElement | null => {
-  if (!(target instanceof Element)) return null;
-  return target.closest<HTMLAnchorElement>('a[data-pdf-link="true"]');
+  const element =
+    target instanceof Element ? target : target instanceof Text ? target.parentElement : null;
+  return element?.closest<HTMLAnchorElement>('a[data-pdf-link="true"]') ?? null;
 };

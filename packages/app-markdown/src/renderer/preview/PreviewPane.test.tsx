@@ -188,6 +188,22 @@ describe('PreviewPane', () => {
     expect(openInternalLink).not.toHaveBeenCalled();
   });
 
+  it('opens a PDF link when the click target is the link text node', async () => {
+    renderPreviewPane('Open [0407](pdf:slides/0407.pdf).');
+
+    const link = await screen.findByRole('link', { name: '0407' });
+    const textNode = link.firstChild;
+    expect(textNode).not.toBeNull();
+
+    act(() => {
+      textNode?.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      expect(openPdfLink).toHaveBeenCalledWith('pdf:slides/0407.pdf');
+    });
+  });
+
   it('renders a right-side outline from preview headings', async () => {
     renderPreviewPane(['# Title', '', '## Section', '', '### Detail'].join('\n'));
 

@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import pdfViewerReducer, { openPdf, setWorkspace } from './state/pdfViewerSlice';
 import { PdfViewerApp } from './PdfViewerApp';
 
@@ -17,6 +17,19 @@ const createStore = () =>
   });
 
 describe('PdfViewerApp', () => {
+  const writeText = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText
+      },
+      configurable: true
+    });
+    writeText.mockResolvedValue(undefined);
+  });
+
   afterEach(() => cleanup());
 
   it('closes the active PDF tab with Ctrl+W', () => {
@@ -132,5 +145,21 @@ describe('PdfViewerApp', () => {
     fireEvent.keyDown(viewer, { key: 'Tab', ctrlKey: true });
 
     expect(store.getState().pdfViewer.activeIndex).toBe(1);
+  });
+
+  it('copies the active PDF link URL', () => {
+    const store = createStore();
+    store.dispatch(setWorkspace({ rootPath: 'C:/workspace/slides', fileTree: [] }));
+    store.dispatch(openPdf({ path: 'nested/0407.pdf' }));
+
+    render(
+      <Provider store={store}>
+        <PdfViewerApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy PDF link' }));
+
+    expect(writeText).toHaveBeenCalledWith('pdf:slides/nested/0407.pdf');
   });
 });

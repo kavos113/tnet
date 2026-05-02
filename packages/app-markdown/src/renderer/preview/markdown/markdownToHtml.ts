@@ -4,6 +4,7 @@ import {
 } from '@tnet/markdown-editor/renderer';
 import { rehypeAiChat } from './rehypeAiChat';
 import { rehypeKeyword } from './rehypeKeyword';
+import { rehypePdfLinks } from './rehypePdfLinks';
 import { remarkInternalLinks } from './remarkInternalLinks';
 
 export type { MarkdownToHtmlOptions };
@@ -16,6 +17,7 @@ export const markdownToHtml = async (
     ...options,
     remarkPlugins: [remarkInternalLinks, ...(options.remarkPlugins ?? [])],
     rehypePlugins: [
+      rehypePdfLinks,
       rehypeAiChat(markdown),
       rehypeKeyword(markdown),
       ...(options.rehypePlugins ?? [])
