@@ -18,6 +18,7 @@ import {
 } from '@tnet/app-tasks/shared/config';
 import { useTasksDispatch, useTasksSelector } from '../state/storeHooks';
 import { setTasksError, setTasksSettings } from '../state/tasksSlice';
+import { TasksCategoryColorSettings } from './TasksCategoryColorSettings';
 import { TasksSourceSettings } from './TasksSourceSettings';
 
 interface TasksSettingsDialogProps {
@@ -46,6 +47,7 @@ export const TasksSettingsDialog = ({
 export const TasksGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.JSX.Element => {
   const dispatch = useTasksDispatch();
   const currentSettings = useTasksSelector((state) => state.tasks.settings);
+  const categories = useTasksSelector((state) => state.tasks.categories);
   const [draft, setDraft] = useState<TasksGlobalSettings>(currentSettings);
 
   useEffect(() => {
@@ -94,6 +96,7 @@ export const TasksGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.J
         fields={syncFields}
         onFieldChange={updateDraft}
       />
+      <TasksCategoryColorSettings categories={categories} draft={draft} onChange={setDraft} />
       <TasksSourceSettings />
       <SettingsActions>
         <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>

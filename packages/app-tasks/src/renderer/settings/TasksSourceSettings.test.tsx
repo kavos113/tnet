@@ -69,6 +69,7 @@ describe('TasksSourceSettings', () => {
         itemKind: request.itemKind ?? 'event',
         purpose: request.purpose ?? 'calendar',
         uri: request.uri,
+        color: request.color,
         authType: request.authType ?? 'none',
         username: request.username,
         passwordSecretId: request.password ? 'secret-1' : request.passwordSecretId
@@ -121,6 +122,7 @@ describe('TasksSourceSettings', () => {
     fireEvent.change(screen.getByLabelText('Authentication'), { target: { value: 'basic' } });
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'user' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
+    fireEvent.change(screen.getByLabelText('Color color'), { target: { value: '#ff5500' } });
     fireEvent.change(screen.getByLabelText('Items'), { target: { value: 'task' } });
     fireEvent.change(screen.getByLabelText('Purpose'), { target: { value: 'holiday' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Subscription' }));
@@ -133,6 +135,7 @@ describe('TasksSourceSettings', () => {
           itemKind: 'event',
           purpose: 'holiday',
           uri: 'https://calendar.example/private.ics',
+          color: '#ff5500',
           authType: 'basic',
           username: 'user',
           password: 'secret'
@@ -159,21 +162,15 @@ describe('TasksSourceSettings', () => {
       uri: 'primary'
     });
     listSources.mockResolvedValue([googleSource]);
-    Object.defineProperty(window, 'prompt', {
-      value: vi.fn(() => 'auth-code'),
-      configurable: true
+    authorizeGoogle.mockResolvedValueOnce({
+      source: source({
+        id: 'google-source',
+        name: 'Google',
+        type: 'google-calendar',
+        uri: 'primary',
+        googleTokenSecretId: 'google-token'
+      })
     });
-    authorizeGoogle
-      .mockResolvedValueOnce({ authUrl: 'https://accounts.google.test/auth' })
-      .mockResolvedValueOnce({
-        source: source({
-          id: 'google-source',
-          name: 'Google',
-          type: 'google-calendar',
-          uri: 'primary',
-          googleTokenSecretId: 'google-token'
-        })
-      });
     const store = createStore();
     store.dispatch(
       restoreTasks({
@@ -190,10 +187,7 @@ describe('TasksSourceSettings', () => {
     fireEvent.click(await screen.findByLabelText('Authorize Google'));
 
     await waitFor(() =>
-      expect(authorizeGoogle).toHaveBeenLastCalledWith({
-        sourceId: 'google-source',
-        code: 'auth-code'
-      })
+      expect(authorizeGoogle).toHaveBeenLastCalledWith({ sourceId: 'google-source' })
     );
     expect(store.getState().tasks.calendarSources[0].googleTokenSecretId).toBe('google-token');
   });

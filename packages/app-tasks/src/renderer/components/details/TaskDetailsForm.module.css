@@ -34,6 +34,20 @@
   gap: 10px;
 }
 
+.categoryField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.categorySwatch {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

@@ -87,9 +87,11 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
         source: await googleCalendarService.completeAuth(request.sourceId, request.code)
       };
     }
-    const authUrl = googleCalendarService.createAuthUrl(request.sourceId);
-    await shell.openExternal(authUrl);
-    return { authUrl };
+    return {
+      source: await googleCalendarService.authorizeWithLocalCallback(request.sourceId, (authUrl) =>
+        shell.openExternal(authUrl)
+      )
+    };
   });
   ipcMain.handle(tasksIpcChannels.calendarOccurrences.list, async (_event, request) =>
     calendarEventOccurrenceRepository.list(request)

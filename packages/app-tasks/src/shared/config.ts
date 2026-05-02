@@ -20,6 +20,7 @@ export interface TasksGlobalSettings {
   syncIntervalMinutes: number;
   showPortal: boolean;
   categoryCompletionEnabled: boolean;
+  categoryColors: Record<string, string>;
 }
 
 export const defaultTasksGlobalConfig = (): TasksGlobalConfig => ({});
@@ -32,7 +33,8 @@ export const defaultTasksGlobalSettings = (): TasksGlobalSettings => ({
   completedTaskScope: 'all',
   syncIntervalMinutes: 60,
   showPortal: true,
-  categoryCompletionEnabled: true
+  categoryCompletionEnabled: true,
+  categoryColors: {}
 });
 
 export const getTasksGlobalConfig = (config: GlobalConfig): TasksGlobalConfig => ({
@@ -107,9 +109,25 @@ export const normalizeTasksGlobalSettings = (
         : defaults.syncIntervalMinutes,
     showPortal: settings.showPortal ?? defaults.showPortal,
     categoryCompletionEnabled:
-      settings.categoryCompletionEnabled ?? defaults.categoryCompletionEnabled
+      settings.categoryCompletionEnabled ?? defaults.categoryCompletionEnabled,
+    categoryColors: normalizeCategoryColors(settings.categoryColors)
   };
 };
 
 const isValidWeekStartDay = (value: number): boolean =>
   Number.isInteger(value) && value >= 0 && value <= 6;
+
+const normalizeCategoryColors = (colors: unknown): Record<string, string> => {
+  if (!colors || typeof colors !== 'object' || Array.isArray(colors)) return {};
+
+  return Object.entries(colors).reduce<Record<string, string>>((result, [category, color]) => {
+    const normalizedCategory = category.trim();
+    if (!normalizedCategory || typeof color !== 'string') return result;
+
+    const normalizedColor = color.trim().toLowerCase();
+    if (!/^#[0-9a-f]{6}$/.test(normalizedColor)) return result;
+
+    result[normalizedCategory] = normalizedColor;
+    return result;
+  }, {});
+};

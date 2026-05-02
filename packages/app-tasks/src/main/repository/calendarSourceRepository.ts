@@ -191,4 +191,22 @@ export class CalendarSourceRepository {
     if (!source) throw new Error(`Calendar source not found: ${sourceId}`);
     return source;
   }
+
+  clearSyncError(sourceId: string): CalendarSource {
+    const now = new Date().toISOString();
+    this.database
+      .prepare(
+        `UPDATE calendar_sources
+         SET last_sync_error = NULL,
+             updated_at = @updatedAt
+         WHERE id = @id`
+      )
+      .run({
+        id: sourceId,
+        updatedAt: now
+      });
+    const source = this.get(sourceId);
+    if (!source) throw new Error(`Calendar source not found: ${sourceId}`);
+    return source;
+  }
 }

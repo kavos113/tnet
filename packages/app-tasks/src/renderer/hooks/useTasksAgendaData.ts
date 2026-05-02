@@ -122,9 +122,18 @@ export const useTasksAgendaData = ({
       visibleRange.startDate
     ]
   );
+  const sourceColors = useMemo(
+    () =>
+      calendarSources.reduce<Record<string, string>>((colors, source) => {
+        if (source.color) colors[source.id] = source.color;
+        return colors;
+      }, {}),
+    [calendarSources]
+  );
 
   return {
     calendarItems,
+    sourceColors,
     todayEvents,
     todaySubscribedTasks,
     todayTasks,

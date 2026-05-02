@@ -10,7 +10,7 @@
 
 .sourceRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) repeat(4, auto);
   gap: 8px;
   align-items: center;
   padding: 8px;
@@ -40,6 +40,22 @@
 
 .error {
   color: var(--color-danger);
+}
+
+.googleAuthPanel {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  background: var(--background-light);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.googleAuthPanel span {
+  color: var(--foreground-muted);
+  font-size: 13px;
 }
 
 .formGrid {

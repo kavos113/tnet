@@ -16,6 +16,7 @@ import type {
 import { tasksTnetApi } from '../api/tasksTnetApi';
 import { useTasksDispatch, useTasksSelector } from '../state/storeHooks';
 import { setTasksCalendarSources, setTasksError } from '../state/tasksSlice';
+import { ColorPickerField } from './ColorPickerField';
 import styles from './TasksSourceSettings.module.css';
 
 interface SourceDraft {
@@ -46,10 +47,15 @@ const emptyDraft = (): SourceDraft => ({
   password: ''
 });
 
+interface GoogleAuthorizationDraft {
+  sourceId: string;
+}
+
 export const TasksSourceSettings = (): React.JSX.Element => {
   const dispatch = useTasksDispatch();
   const sources = useTasksSelector((state) => state.tasks.calendarSources);
   const [draft, setDraft] = useState<SourceDraft>(emptyDraft);
+  const [googleAuthorization, setGoogleAuthorization] = useState<GoogleAuthorizationDraft>();
 
   useEffect(() => {
     tasksTnetApi.tasks.calendarSources
@@ -92,23 +98,22 @@ export const TasksSourceSettings = (): React.JSX.Element => {
   const removeSource = async (sourceId: string): Promise<void> => {
     await tasksTnetApi.tasks.calendarSources.remove({ sourceId });
     dispatch(setTasksCalendarSources(sources.filter((source) => source.id !== sourceId)));
+    if (googleAuthorization?.sourceId === sourceId) setGoogleAuthorization(undefined);
   };
 
-  const authorizeGoogle = async (sourceId: string): Promise<void> => {
-    await tasksTnetApi.tasks.calendarSources.authorizeGoogle({ sourceId });
-    const code = window.prompt('Paste the Google authorization code.');
-    if (!code?.trim()) return;
-    const result = await tasksTnetApi.tasks.calendarSources.authorizeGoogle({
-      sourceId,
-      code: code.trim()
-    });
-    if (result.source) {
-      dispatch(
-        setTasksCalendarSources([
-          ...sources.filter((source) => source.id !== result.source?.id),
-          result.source
-        ])
-      );
+  const startGoogleAuthorization = async (sourceId: string): Promise<void> => {
+    try {
+      const result = await tasksTnetApi.tasks.calendarSources.authorizeGoogle({ sourceId });
+      if (result.source) {
+        dispatch(
+          setTasksCalendarSources([
+            ...sources.filter((source) => source.id !== result.source?.id),
+            result.source
+          ])
+        );
+      }
+    } finally {
+      setGoogleAuthorization(undefined);
     }
   };
 
@@ -127,9 +132,15 @@ export const TasksSourceSettings = (): React.JSX.Element => {
             {sources.map((source) => (
               <SourceRow
                 key={source.id}
+                googleAuthorization={
+                  googleAuthorization?.sourceId === source.id ? googleAuthorization : undefined
+                }
                 source={source}
                 onEdit={() => setDraft(draftFromSource(source))}
-                onGoogleAuthorize={() => runAction(() => authorizeGoogle(source.id))}
+                onGoogleAuthorize={() => {
+                  setGoogleAuthorization({ sourceId: source.id });
+                  runAction(() => startGoogleAuthorization(source.id));
+                }}
                 onRemove={() => runAction(() => removeSource(source.id))}
                 onSync={() => runAction(() => syncSource(source.id))}
               />
@@ -151,12 +162,14 @@ export const TasksSourceSettings = (): React.JSX.Element => {
 };
 
 const SourceRow = ({
+  googleAuthorization,
   source,
   onEdit,
   onGoogleAuthorize,
   onRemove,
   onSync
 }: {
+  googleAuthorization?: GoogleAuthorizationDraft;
   source: CalendarSource;
   onEdit: () => void;
   onGoogleAuthorize: () => void;
@@ -204,6 +217,11 @@ const SourceRow = ({
     >
       delete
     </SettingsIconButton>
+    {googleAuthorization ? (
+      <div className={styles.googleAuthPanel}>
+        <span>Authorizing with Google...</span>
+      </div>
+    ) : null}
   </div>
 );
 
@@ -280,10 +298,11 @@ const SourceForm = ({
             onChange={(event) => update('uri', event.target.value)}
           />
         </label>
-        <label>
-          Color
-          <input value={draft.color} onChange={(event) => update('color', event.target.value)} />
-        </label>
+        <ColorPickerField
+          label="Color"
+          value={draft.color || undefined}
+          onChange={(color) => update('color', color ?? '')}
+        />
         <label>
           Authentication
           <select

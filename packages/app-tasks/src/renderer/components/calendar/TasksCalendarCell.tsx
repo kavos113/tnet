@@ -5,11 +5,18 @@ import type {
   LocalEvent,
   TaskItem
 } from '@tnet/app-tasks/shared/tasksTypes';
+import {
+  accentColorStyle,
+  getSubscribedEventAccentColor,
+  getTaskAccentColor
+} from '../../utils/taskColors';
 import styles from './TasksCalendar.module.css';
 
 export const TasksCalendarCell = ({
+  categoryColors,
   currentDate,
   day,
+  sourceColors,
   showCurrentTime,
   onDateSelect,
   onEventSelect,
@@ -17,8 +24,10 @@ export const TasksCalendarCell = ({
   onRescheduleTask,
   onTaskSelect
 }: {
+  categoryColors: Record<string, string>;
   currentDate: string;
   day: CalendarDayItems;
+  sourceColors: Record<string, string>;
   showCurrentTime: boolean;
   onDateSelect: (date: string) => void;
   onEventSelect: (event: CalendarEventOccurrence) => void;
@@ -63,7 +72,12 @@ export const TasksCalendarCell = ({
       ) : null}
       <div className={styles.items}>
         {day.tasks.map((task) => (
-          <TaskCalendarItem key={task.id} task={task} onTaskSelect={onTaskSelect} />
+          <TaskCalendarItem
+            key={task.id}
+            task={task}
+            accentColor={getTaskAccentColor(task, categoryColors, sourceColors)}
+            onTaskSelect={onTaskSelect}
+          />
         ))}
         {day.localEvents.map((event) => (
           <button
@@ -85,6 +99,7 @@ export const TasksCalendarCell = ({
             type="button"
             className={`${styles.calendarItem} ${styles.event}`}
             key={event.id}
+            style={accentColorStyle(getSubscribedEventAccentColor(event, sourceColors))}
             title={event.title}
             onClick={(clickEvent) => {
               clickEvent.stopPropagation();
@@ -105,9 +120,11 @@ export const TasksCalendarCell = ({
 
 const TaskCalendarItem = ({
   task,
+  accentColor,
   onTaskSelect
 }: {
   task: TaskItem;
+  accentColor?: string;
   onTaskSelect: (task: TaskItem) => void;
 }): React.JSX.Element => {
   const isReadOnly = isSubscribedTask(task.id);
@@ -117,6 +134,7 @@ const TaskCalendarItem = ({
       type="button"
       className={`${styles.calendarItem} ${isReadOnly ? styles.readOnlyItem : ''}`}
       draggable={!isReadOnly}
+      style={accentColorStyle(accentColor)}
       title={task.title}
       onClick={(event) => {
         event.stopPropagation();

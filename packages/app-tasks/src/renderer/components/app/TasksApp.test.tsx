@@ -348,13 +348,19 @@ describe('TasksApp', () => {
   });
 
   it('opens calendar tasks as read-only details and edits from the detail panel', async () => {
-    listTasks.mockResolvedValue([task()]);
+    const coloredTask = task({ category: 'Work' });
+    listTasks.mockResolvedValue([coloredTask]);
     const store = createStore();
     store.dispatch(
       restoreTasks({
-        tasks: [task()],
-        categories: [],
-        settings: defaultTasksGlobalSettings()
+        tasks: [coloredTask],
+        categories: ['Work'],
+        settings: {
+          ...defaultTasksGlobalSettings(),
+          categoryColors: {
+            Work: '#00aa88'
+          }
+        }
       })
     );
     store.dispatch(setTasksCurrentDate('2026-05-02'));
@@ -366,10 +372,16 @@ describe('TasksApp', () => {
     );
 
     await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
-    fireEvent.click(screen.getByRole('button', { name: 'Write report' }));
+    const calendarTask = screen.getByRole('button', { name: 'Write report' });
+    expect(calendarTask.getAttribute('style')).toContain('--task-accent-color: #00aa88');
+    expect(screen.getByRole('region', { name: 'Today Tasks' }).innerHTML).toContain(
+      '--task-accent-color: #00aa88'
+    );
+    fireEvent.click(calendarTask);
 
     let panel = await screen.findByRole('dialog', { name: 'Task Details' });
     expect(panel).toHaveTextContent('Write report');
+    expect(panel.innerHTML).toContain('--task-accent-color: #00aa88');
     expect(within(panel).queryByLabelText('Detail task title')).not.toBeInTheDocument();
 
     fireEvent.click(within(panel).getByRole('button', { name: 'Edit' }));
@@ -543,6 +555,22 @@ describe('TasksApp', () => {
       restoreTasks({
         tasks: [],
         categories: [],
+        calendarSources: [
+          {
+            id: 'source-1',
+            name: 'Source',
+            type: 'ics-url',
+            itemKind: 'task',
+            purpose: 'calendar',
+            uri: 'https://calendar.example/tasks.ics',
+            color: '#ff5500',
+            enabled: true,
+            writeBackEnabled: false,
+            authType: 'none',
+            createdAt: '2026-05-01T00:00:00.000Z',
+            updatedAt: '2026-05-01T00:00:00.000Z'
+          }
+        ],
         settings: defaultTasksGlobalSettings()
       })
     );
@@ -558,9 +586,13 @@ describe('TasksApp', () => {
       name: '10:00 Read-only deadline'
     });
     expect(subscribedTask.className).toContain('readOnlyItem');
+    expect(subscribedTask.getAttribute('style')).toContain('--task-accent-color: #ff5500');
     expect(subscribedTask).toHaveAttribute('draggable', 'false');
     expect(screen.getByRole('region', { name: 'Today Tasks' })).toHaveTextContent(
       'Read-only deadline'
+    );
+    expect(screen.getByRole('region', { name: 'Today Tasks' }).innerHTML).toContain(
+      '--task-accent-color: #ff5500'
     );
     expect(screen.getByRole('region', { name: 'Upcoming Deadlines' })).toHaveTextContent(
       'Read-only deadline'
@@ -588,6 +620,22 @@ describe('TasksApp', () => {
       restoreTasks({
         tasks: [],
         categories: [],
+        calendarSources: [
+          {
+            id: 'source-1',
+            name: 'Source',
+            type: 'ics-url',
+            itemKind: 'event',
+            purpose: 'calendar',
+            uri: 'https://calendar.example/events.ics',
+            color: '#7755cc',
+            enabled: true,
+            writeBackEnabled: false,
+            authType: 'none',
+            createdAt: '2026-05-01T00:00:00.000Z',
+            updatedAt: '2026-05-01T00:00:00.000Z'
+          }
+        ],
         settings: defaultTasksGlobalSettings()
       })
     );
@@ -599,9 +647,12 @@ describe('TasksApp', () => {
       </Provider>
     );
 
-    fireEvent.click(await screen.findByRole('button', { name: '11:00 Subscribed meeting' }));
+    const eventButton = await screen.findByRole('button', { name: '11:00 Subscribed meeting' });
+    expect(eventButton.getAttribute('style')).toContain('--task-accent-color: #7755cc');
+    fireEvent.click(eventButton);
 
     const panel = await screen.findByRole('dialog', { name: 'Subscribed Event' });
+    expect(panel.innerHTML).toContain('--task-accent-color: #7755cc');
     expect(panel).toHaveTextContent('Room A');
     expect(panel).toHaveTextContent('Read-only event');
     expect(screen.getByRole('region', { name: 'Today Events' })).toHaveTextContent(

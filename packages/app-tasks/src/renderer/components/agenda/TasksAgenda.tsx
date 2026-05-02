@@ -8,7 +8,9 @@ import { DeadlineSection, EventSection, TaskSection } from './TasksAgendaSection
 import styles from './TasksAgenda.module.css';
 
 export interface TasksAgendaProps {
+  categoryColors: Record<string, string>;
   completedTasks: TaskItem[];
+  sourceColors: Record<string, string>;
   todayEvents: Array<LocalEvent | CalendarEventOccurrence>;
   todaySubscribedTasks: SubscribedTaskOccurrence[];
   todayTasks: TaskItem[];
@@ -24,6 +26,8 @@ export interface TasksAgendaProps {
 
 export const TasksAgenda = ({
   completedTasks,
+  categoryColors,
+  sourceColors,
   todayEvents,
   todaySubscribedTasks,
   todayTasks,
@@ -41,22 +45,33 @@ export const TasksAgenda = ({
       title="Today Tasks"
       tasks={todayTasks}
       readOnlyTasks={todaySubscribedTasks}
+      categoryColors={categoryColors}
+      sourceColors={sourceColors}
       onComplete={onComplete}
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
       onTaskOpen={onTaskOpen}
     />
-    <EventSection title="Today Events" events={todayEvents} onEventOpen={onEventOpen} />
+    <EventSection
+      title="Today Events"
+      events={todayEvents}
+      sourceColors={sourceColors}
+      onEventOpen={onEventOpen}
+    />
     <DeadlineSection
       title="Upcoming Deadlines"
       items={upcomingDeadlines}
+      categoryColors={categoryColors}
+      sourceColors={sourceColors}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
       onTaskOpen={onTaskOpen}
     />
     <TaskSection
       title="No Deadline"
       tasks={undatedTasks}
+      categoryColors={categoryColors}
+      sourceColors={sourceColors}
       onComplete={onComplete}
       onDelete={onDelete}
       onEdit={onEdit}
@@ -66,6 +81,8 @@ export const TasksAgenda = ({
     <TaskSection
       title="Completed Tasks"
       tasks={completedTasks}
+      categoryColors={categoryColors}
+      sourceColors={sourceColors}
       onComplete={onComplete}
       onDelete={onDelete}
       onEdit={onEdit}

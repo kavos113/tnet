@@ -127,13 +127,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   background: var(--background);
-  border: 1px solid var(--main-light);
+  border: 1px solid
+    color-mix(in srgb, var(--task-accent-color, var(--main-light)) 72%, var(--main-light));
+  border-left-width: 4px;
   border-radius: 4px;
 }
 
 .event {
   cursor: pointer;
-  border-color: var(--gray);
+  border-color: color-mix(in srgb, var(--task-accent-color, var(--gray)) 72%, var(--gray));
 }
 
 .localEvent {
@@ -143,7 +145,7 @@
 
 .readOnlyItem {
   cursor: default;
-  border-color: var(--gray);
+  border-color: color-mix(in srgb, var(--task-accent-color, var(--gray)) 72%, var(--gray));
   opacity: 0.78;
 }
 

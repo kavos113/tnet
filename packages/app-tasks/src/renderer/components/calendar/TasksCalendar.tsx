@@ -9,10 +9,12 @@ import { TasksCalendarCell } from './TasksCalendarCell';
 import styles from './TasksCalendar.module.css';
 
 export interface TasksCalendarProps {
+  categoryColors: Record<string, string>;
   currentDate: string;
   endDate: string;
   focusDate: string;
   items: CalendarDayItems[];
+  sourceColors: Record<string, string>;
   showCurrentTime: boolean;
   startDate: string;
   view: TasksDefaultView;
@@ -26,10 +28,12 @@ export interface TasksCalendarProps {
 }
 
 export const TasksCalendar = ({
+  categoryColors,
   currentDate,
   endDate,
   focusDate,
   items,
+  sourceColors,
   showCurrentTime,
   startDate,
   view,
@@ -74,7 +78,9 @@ export const TasksCalendar = ({
           <TasksCalendarCell
             key={day.date}
             currentDate={currentDate}
+            categoryColors={categoryColors}
             day={day}
+            sourceColors={sourceColors}
             showCurrentTime={showCurrentTime}
             onDateSelect={onDateSelect}
             onEventSelect={onSubscribedEventSelect}

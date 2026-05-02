@@ -1,4 +1,5 @@
 import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import { accentColorStyle } from '../../utils/taskColors';
 import styles from './TasksAgenda.module.css';
 
 export const SectionHeader = ({
@@ -16,12 +17,14 @@ export const SectionHeader = ({
 
 export const TaskRow = ({
   task,
+  accentColor,
   onComplete,
   onDelete,
   onEdit,
   onOpen
 }: {
   task: TaskItem;
+  accentColor?: string;
   onComplete: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
@@ -29,6 +32,7 @@ export const TaskRow = ({
 }): React.JSX.Element => (
   <li
     className={styles.item}
+    style={accentColorStyle(accentColor)}
     draggable
     onDragStart={(event) => event.dataTransfer.setData('text/plain', task.id)}
   >
@@ -73,12 +77,14 @@ export const TaskRow = ({
 
 export const ReadOnlyTaskRow = ({
   task,
+  accentColor,
   onOpen
 }: {
   task: SubscribedTaskOccurrence;
+  accentColor?: string;
   onOpen: (task: SubscribedTaskOccurrence) => void;
 }): React.JSX.Element => (
-  <li className={`${styles.item} ${styles.readOnlyItem}`}>
+  <li className={`${styles.item} ${styles.readOnlyItem}`} style={accentColorStyle(accentColor)}>
     <button type="button" className={styles.rowButton} onClick={() => onOpen(task)}>
       <div className={styles.body}>
         <span className={styles.title}>{task.title}</span>

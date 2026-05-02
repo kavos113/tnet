@@ -1,6 +1,7 @@
 import type { CalendarDateRange, CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
 import type {
   CalendarEventOccurrence,
+  CalendarSource,
   LocalEvent,
   SubscribedTaskOccurrence,
   TaskItem
@@ -18,6 +19,7 @@ import styles from './TasksApp.module.css';
 export interface TasksWorkspaceProps {
   calendarItems: CalendarDayItems[];
   calendarTasks: TaskItem[];
+  categoryColors: Record<string, string>;
   completedTasks: TaskItem[];
   currentDate: string;
   focusDate: string;
@@ -27,6 +29,7 @@ export interface TasksWorkspaceProps {
   tasks: TaskItem[];
   undatedTasks: TaskItem[];
   upcomingDeadlines: Array<TaskItem | SubscribedTaskOccurrence>;
+  sourceColors: Record<CalendarSource['id'], string>;
   view: TasksDefaultView;
   visibleRange: CalendarDateRange;
   onCompleteTask: (taskId: string, completed: boolean) => void;
@@ -42,6 +45,7 @@ export interface TasksWorkspaceProps {
 export const TasksWorkspace = ({
   calendarItems,
   calendarTasks,
+  categoryColors,
   completedTasks,
   currentDate,
   focusDate,
@@ -51,6 +55,7 @@ export const TasksWorkspace = ({
   tasks,
   undatedTasks,
   upcomingDeadlines,
+  sourceColors,
   view,
   visibleRange,
   onCompleteTask,
@@ -65,6 +70,8 @@ export const TasksWorkspace = ({
   <div className={styles.content}>
     <TasksAgenda
       completedTasks={completedTasks}
+      categoryColors={categoryColors}
+      sourceColors={sourceColors}
       todayEvents={todayEvents}
       todaySubscribedTasks={todaySubscribedTasks}
       todayTasks={todayTasks}
@@ -79,9 +86,11 @@ export const TasksWorkspace = ({
     />
     <TasksCalendar
       currentDate={currentDate}
+      categoryColors={categoryColors}
       endDate={visibleRange.endDate}
       focusDate={focusDate}
       items={calendarItems}
+      sourceColors={sourceColors}
       showCurrentTime={view !== 'month'}
       startDate={visibleRange.startDate}
       view={view}

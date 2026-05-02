@@ -5,13 +5,14 @@ import type {
   TaskItem,
   SubscribedTaskOccurrence
 } from '@tnet/app-tasks/shared/tasksTypes';
+import { accentColorStyle } from '../../utils/taskColors';
 import styles from './TasksDetailsPanel.module.css';
 
 export type TasksDetailsPanelReadOnlyItem =
-  | { type: 'task'; task: TaskItem; onEdit?: () => void }
+  | { type: 'task'; task: TaskItem; accentColor?: string; onEdit?: () => void }
   | { type: 'event'; event: LocalEvent; onEdit?: () => void }
-  | { type: 'subscription-event'; event: CalendarEventOccurrence }
-  | { type: 'subscription-task'; task: SubscribedTaskOccurrence };
+  | { type: 'subscription-event'; event: CalendarEventOccurrence; accentColor?: string }
+  | { type: 'subscription-task'; task: SubscribedTaskOccurrence; accentColor?: string };
 
 export interface TasksDetailsPanelProps {
   children?: React.ReactNode;
@@ -72,7 +73,7 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
   if (item.type === 'task') {
     const task = item.task;
     return (
-      <div className={styles.readOnly}>
+      <div className={styles.readOnly} style={accentColorStyle(item.accentColor)}>
         <h3>{task.title}</h3>
         <p className={styles.meta}>
           {formatTaskDeadline(task)}
@@ -111,7 +112,7 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
   if (item.type === 'subscription-task') {
     const task = item.task;
     return (
-      <div className={styles.readOnly}>
+      <div className={styles.readOnly} style={accentColorStyle(item.accentColor)}>
         <h3>{task.title}</h3>
         <p className={styles.meta}>
           {task.deadlineDate}
@@ -124,7 +125,7 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
 
   const event = item.event;
   return (
-    <div className={styles.readOnly}>
+    <div className={styles.readOnly} style={accentColorStyle(item.accentColor)}>
       <h3>{event.title}</h3>
       <p className={styles.meta}>
         {event.allDay ? 'All day' : `${event.startsAt} - ${event.endsAt}`} read-only

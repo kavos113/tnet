@@ -52,6 +52,7 @@
   padding: 8px;
   background: var(--background);
   border: 1px solid var(--background-dark);
+  border-left: 4px solid var(--task-accent-color, var(--background-dark));
   border-radius: 6px;
 }
 
@@ -109,7 +110,11 @@
 .categoryPill {
   padding: 1px 6px;
   color: var(--foreground);
-  background: var(--background-light);
+  background: color-mix(
+    in srgb,
+    var(--task-accent-color, var(--background-light)) 22%,
+    var(--background-light)
+  );
   border-radius: 4px;
 }
 

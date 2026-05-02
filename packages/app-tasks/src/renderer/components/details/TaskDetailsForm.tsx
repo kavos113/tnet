@@ -3,6 +3,7 @@ import styles from './TaskDetailsForm.module.css';
 
 export interface TaskDetailsFormProps {
   categories: string[];
+  categoryColor?: string;
   draft: TaskDraft;
   isCategoryCompletionEnabled: boolean;
   onCancel: () => void;
@@ -13,6 +14,7 @@ export interface TaskDetailsFormProps {
 
 export const TaskDetailsForm = ({
   categories,
+  categoryColor,
   draft,
   isCategoryCompletionEnabled,
   onCancel,
@@ -68,11 +70,20 @@ export const TaskDetailsForm = ({
       </div>
       <label>
         Category
-        <input
-          list={isCategoryCompletionEnabled ? 'tasks-detail-category-suggestions' : undefined}
-          value={draft.category}
-          onChange={(event) => updateDraft('category', event.target.value)}
-        />
+        <span className={styles.categoryField}>
+          <input
+            list={isCategoryCompletionEnabled ? 'tasks-detail-category-suggestions' : undefined}
+            value={draft.category}
+            onChange={(event) => updateDraft('category', event.target.value)}
+          />
+          {categoryColor ? (
+            <span
+              className={styles.categorySwatch}
+              style={{ backgroundColor: categoryColor }}
+              aria-label={`${draft.category} color`}
+            />
+          ) : null}
+        </span>
       </label>
       <label>
         Reminder minutes

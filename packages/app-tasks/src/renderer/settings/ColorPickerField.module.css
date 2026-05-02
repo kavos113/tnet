@@ -1,0 +1,41 @@
+.field {
+  display: grid;
+  gap: 4px;
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.picker {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 32px;
+  padding: 2px;
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.value {
+  min-width: 72px;
+  color: var(--foreground-muted);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.clearButton {
+  height: 28px;
+  padding: 0 10px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}

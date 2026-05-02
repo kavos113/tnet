@@ -5,12 +5,20 @@ import type {
   TaskItem
 } from '@tnet/app-tasks/shared/tasksTypes';
 import { DeadlineBody, ReadOnlyTaskRow, SectionHeader, TaskRow } from './TasksAgendaRows';
+import {
+  accentColorStyle,
+  getSubscribedEventAccentColor,
+  getSubscribedTaskAccentColor,
+  getTaskAccentColor
+} from '../../utils/taskColors';
 import styles from './TasksAgenda.module.css';
 
 export const TaskSection = ({
   title,
   tasks,
   readOnlyTasks = [],
+  categoryColors,
+  sourceColors,
   onComplete,
   onDelete,
   onEdit,
@@ -20,6 +28,8 @@ export const TaskSection = ({
   title: string;
   tasks: TaskItem[];
   readOnlyTasks?: SubscribedTaskOccurrence[];
+  categoryColors: Record<string, string>;
+  sourceColors: Record<string, string>;
   onComplete: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
@@ -34,6 +44,7 @@ export const TaskSection = ({
           <TaskRow
             key={task.id}
             task={task}
+            accentColor={getTaskAccentColor(task, categoryColors, sourceColors)}
             onComplete={onComplete}
             onDelete={onDelete}
             onEdit={onEdit}
@@ -41,7 +52,12 @@ export const TaskSection = ({
           />
         ))}
         {readOnlyTasks.map((task) => (
-          <ReadOnlyTaskRow key={task.id} task={task} onOpen={onReadOnlyTaskOpen} />
+          <ReadOnlyTaskRow
+            key={task.id}
+            task={task}
+            accentColor={getSubscribedTaskAccentColor(task, sourceColors)}
+            onOpen={onReadOnlyTaskOpen}
+          />
         ))}
       </ul>
     ) : (
@@ -53,10 +69,12 @@ export const TaskSection = ({
 export const EventSection = ({
   title,
   events,
+  sourceColors,
   onEventOpen
 }: {
   title: string;
   events: Array<LocalEvent | CalendarEventOccurrence>;
+  sourceColors: Record<string, string>;
   onEventOpen: (event: LocalEvent | CalendarEventOccurrence) => void;
 }): React.JSX.Element => (
   <section className={styles.section} aria-label={title}>
@@ -64,7 +82,13 @@ export const EventSection = ({
     {events.length > 0 ? (
       <ul className={styles.list}>
         {events.map((event) => (
-          <li key={event.id} className={`${styles.item} ${styles.readOnlyItem}`}>
+          <li
+            key={event.id}
+            className={`${styles.item} ${styles.readOnlyItem}`}
+            style={accentColorStyle(
+              'sourceId' in event ? getSubscribedEventAccentColor(event, sourceColors) : undefined
+            )}
+          >
             <button type="button" className={styles.rowButton} onClick={() => onEventOpen(event)}>
               <div className={styles.body}>
                 <span className={styles.title}>{event.title}</span>
@@ -88,11 +112,15 @@ export const EventSection = ({
 export const DeadlineSection = ({
   title,
   items,
+  categoryColors,
+  sourceColors,
   onReadOnlyTaskOpen,
   onTaskOpen
 }: {
   title: string;
   items: Array<TaskItem | SubscribedTaskOccurrence>;
+  categoryColors: Record<string, string>;
+  sourceColors: Record<string, string>;
   onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
   onTaskOpen: (task: TaskItem) => void;
 }): React.JSX.Element => (
@@ -101,7 +129,15 @@ export const DeadlineSection = ({
     {items.length > 0 ? (
       <ul className={styles.list}>
         {items.map((item) => (
-          <li key={item.id} className={`${styles.item} ${styles.readOnlyItem}`}>
+          <li
+            key={item.id}
+            className={`${styles.item} ${styles.readOnlyItem}`}
+            style={accentColorStyle(
+              'sourceId' in item
+                ? getSubscribedTaskAccentColor(item, sourceColors)
+                : getTaskAccentColor(item, categoryColors, sourceColors)
+            )}
+          >
             {'sourceId' in item ? (
               <button
                 type="button"

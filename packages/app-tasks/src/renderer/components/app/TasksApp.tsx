@@ -73,6 +73,7 @@ export const TasksApp = ({
 
   const {
     calendarItems,
+    sourceColors,
     todayEvents,
     todaySubscribedTasks,
     todayTasks,
@@ -179,6 +180,7 @@ export const TasksApp = ({
       <TasksWorkspace
         calendarItems={calendarItems}
         calendarTasks={calendarTasks}
+        categoryColors={settings.categoryColors}
         completedTasks={visibleCompletedTasks}
         currentDate={currentDate}
         focusDate={calendarFocusDate}
@@ -188,6 +190,7 @@ export const TasksApp = ({
         tasks={tasks}
         undatedTasks={undatedTasks}
         upcomingDeadlines={upcomingDeadlines}
+        sourceColors={sourceColors}
         view={view}
         visibleRange={visibleRange}
         onCompleteTask={(taskId, completed) => runAction(() => completeTask(taskId, completed))}
@@ -210,6 +213,8 @@ export const TasksApp = ({
           draft={draft}
           eventDraft={eventDraft}
           isCategoryCompletionEnabled={settings.categoryCompletionEnabled}
+          categoryColors={settings.categoryColors}
+          sourceColors={sourceColors}
           selectedQuickDate={selectedQuickDate}
           tasks={tasks}
           onClose={() => {

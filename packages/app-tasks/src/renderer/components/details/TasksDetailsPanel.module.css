@@ -65,6 +65,8 @@
 .readOnly {
   display: grid;
   gap: 12px;
+  padding-left: 12px;
+  border-left: 4px solid var(--task-accent-color, transparent);
 }
 
 .readOnly h3 {

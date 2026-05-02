@@ -19,7 +19,12 @@ describe('Tasks config', () => {
           completedTaskScope: 'today',
           syncIntervalMinutes: 15,
           showPortal: false,
-          categoryCompletionEnabled: false
+          categoryCompletionEnabled: false,
+          categoryColors: {
+            Work: '#FF0000',
+            ' Home ': '#00aa88',
+            Invalid: 'blue'
+          }
         },
         expected: {
           weekStartsOn: 0,
@@ -29,7 +34,11 @@ describe('Tasks config', () => {
           completedTaskScope: 'today',
           syncIntervalMinutes: 15,
           showPortal: false,
-          categoryCompletionEnabled: false
+          categoryCompletionEnabled: false,
+          categoryColors: {
+            Home: '#00aa88',
+            Work: '#ff0000'
+          }
         }
       },
       {

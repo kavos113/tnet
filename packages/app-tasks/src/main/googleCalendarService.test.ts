@@ -1,5 +1,6 @@
 // @vitest-environment node
 import fs from 'fs/promises';
+import http from 'http';
 import os from 'os';
 import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +9,18 @@ import { openTasksDatabase } from './repository/tasksDb';
 import { createTasksSecretStore } from './tasksSecretStore';
 import { GoogleCalendarService } from './googleCalendarService';
 
-const generateAuthUrl = vi.hoisted(() => vi.fn(() => 'https://accounts.google.test/auth'));
+const generateAuthUrl = vi.hoisted(() =>
+  vi.fn(
+    (options: { redirect_uri?: string; state?: string } = {}) =>
+      `https://accounts.google.test/auth?redirect_uri=${encodeURIComponent(options.redirect_uri ?? '')}&state=${options.state ?? ''}`
+  )
+);
+const generateCodeVerifierAsync = vi.hoisted(() =>
+  vi.fn(async () => ({
+    codeVerifier: 'code-verifier',
+    codeChallenge: 'code-challenge'
+  }))
+);
 const getToken = vi.hoisted(() =>
   vi.fn(async () => ({
     tokens: {
@@ -40,6 +52,7 @@ vi.mock('googleapis', () => ({
       OAuth2: vi.fn(function OAuth2() {
         return {
           generateAuthUrl,
+          generateCodeVerifierAsync,
           getToken,
           setCredentials
         };
@@ -88,14 +101,52 @@ describe('GoogleCalendarService', () => {
       type: 'google-calendar',
       uri: 'primary'
     });
+    sourceRepository.saveSyncResult(source.id, 'Google Calendar source is not authorized.');
     const service = new GoogleCalendarService(sourceRepository, secretStore, {
       credentialsPath
     });
 
-    expect(service.createAuthUrl(source.id)).toBe('https://accounts.google.test/auth');
+    expect(service.createAuthUrl(source.id)).toContain('https://accounts.google.test/auth');
     const authorized = await service.completeAuth(source.id, 'auth-code');
 
     expect(getToken).toHaveBeenCalledWith('auth-code');
+    expect(authorized.googleTokenSecretId).toBeTruthy();
+    expect(authorized.lastSyncError).toBeUndefined();
+    expect(secretStore.getSecret(authorized.googleTokenSecretId)).toContain('refresh-token');
+    database.close();
+  });
+
+  it('authorizes Google Calendar sources through a loopback callback server', async () => {
+    const userDataDir = await tempDir('callback-auth');
+    const credentialsPath = await writeCredentials(userDataDir);
+    const database = openTasksDatabase(userDataDir);
+    const sourceRepository = new CalendarSourceRepository(database);
+    const secretStore = createTasksSecretStore(userDataDir);
+    const source = sourceRepository.save({
+      name: 'Google',
+      type: 'google-calendar',
+      uri: 'primary'
+    });
+    const service = new GoogleCalendarService(sourceRepository, secretStore, {
+      authTimeoutMs: 1000,
+      credentialsPath
+    });
+
+    const authorized = await service.authorizeWithLocalCallback(source.id, async () => {
+      const options = generateAuthUrl.mock.calls.at(-1)?.[0] as {
+        redirect_uri: string;
+        state: string;
+      };
+      await requestCallback(`${options.redirect_uri}?code=auth-code&state=${options.state}`);
+    });
+
+    expect(getToken).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'auth-code',
+        codeVerifier: 'code-verifier',
+        redirect_uri: expect.stringMatching(/^http:\/\/localhost:\d+\//)
+      })
+    );
     expect(authorized.googleTokenSecretId).toBeTruthy();
     expect(secretStore.getSecret(authorized.googleTokenSecretId)).toContain('refresh-token');
     database.close();
@@ -158,3 +209,19 @@ describe('GoogleCalendarService', () => {
     database.close();
   });
 });
+
+const requestCallback = async (url: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    http
+      .get(url, (response) => {
+        response.resume();
+        response.on('end', () => {
+          if (response.statusCode && response.statusCode >= 400) {
+            reject(new Error(`Callback failed with status ${response.statusCode}`));
+            return;
+          }
+          resolve();
+        });
+      })
+      .on('error', reject);
+  });

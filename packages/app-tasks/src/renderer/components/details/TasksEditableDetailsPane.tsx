@@ -17,11 +17,13 @@ import styles from '../app/TasksApp.module.css';
 export interface TasksEditableDetailsPaneProps {
   calendarTasks: TaskItem[];
   categories: string[];
+  categoryColors: Record<string, string>;
   detailsPanel: TasksDetailsPanelState;
   draft: TaskDraft;
   eventDraft?: LocalEventDraft;
   isCategoryCompletionEnabled: boolean;
   selectedQuickDate: string;
+  sourceColors: Record<string, string>;
   tasks: TaskItem[];
   onClose: () => void;
   onDeleteEvent: (eventId: string) => void;
@@ -36,11 +38,13 @@ export interface TasksEditableDetailsPaneProps {
 export const TasksEditableDetailsPane = ({
   calendarTasks,
   categories,
+  categoryColors,
   detailsPanel,
   draft,
   eventDraft,
   isCategoryCompletionEnabled,
   selectedQuickDate,
+  sourceColors,
   tasks,
   onClose,
   onDeleteEvent,
@@ -59,7 +63,9 @@ export const TasksEditableDetailsPane = ({
       calendarTasks,
       onDraftChange,
       onEventDraftChange,
-      onPanelChange
+      onPanelChange,
+      categoryColors,
+      sourceColors
     })}
     onClose={onClose}
   >
@@ -76,6 +82,7 @@ export const TasksEditableDetailsPane = ({
         />
         <TaskDetailsForm
           categories={categories}
+          categoryColor={draft.category ? categoryColors[draft.category] : undefined}
           draft={draft}
           isCategoryCompletionEnabled={isCategoryCompletionEnabled}
           onCancel={() => {
@@ -120,7 +127,9 @@ const getReadOnlyItem = ({
   calendarTasks,
   onDraftChange,
   onEventDraftChange,
-  onPanelChange
+  onPanelChange,
+  categoryColors,
+  sourceColors
 }: {
   detailsPanel: TasksDetailsPanelState;
   tasks: TaskItem[];
@@ -128,11 +137,20 @@ const getReadOnlyItem = ({
   onDraftChange: (draft: TaskDraft) => void;
   onEventDraftChange: (draft: LocalEventDraft | undefined) => void;
   onPanelChange: (state: TasksDetailsPanelState | undefined) => void;
+  categoryColors: Record<string, string>;
+  sourceColors: Record<string, string>;
 }): React.ComponentProps<typeof TasksDetailsPanel>['readOnlyItem'] => {
   if (detailsPanel.type === 'task-detail') {
     return {
       type: 'task',
       task: detailsPanel.task,
+      accentColor: detailsPanel.task.id.startsWith('subscribed:')
+        ? detailsPanel.task.sourceUrl
+          ? sourceColors[detailsPanel.task.sourceUrl]
+          : undefined
+        : detailsPanel.task.category
+          ? categoryColors[detailsPanel.task.category]
+          : undefined,
       onEdit: createTaskEditHandler(
         detailsPanel.task,
         tasks,
@@ -152,8 +170,17 @@ const getReadOnlyItem = ({
       }
     };
   }
-  if (detailsPanel.type === 'subscription-event' || detailsPanel.type === 'subscription-task') {
-    return detailsPanel;
+  if (detailsPanel.type === 'subscription-event') {
+    return {
+      ...detailsPanel,
+      accentColor: sourceColors[detailsPanel.event.sourceId]
+    };
+  }
+  if (detailsPanel.type === 'subscription-task') {
+    return {
+      ...detailsPanel,
+      accentColor: sourceColors[detailsPanel.task.sourceId]
+    };
   }
   return undefined;
 };
