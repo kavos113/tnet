@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { TasksDefaultView, TasksGlobalSettings } from '@tnet/app-tasks/shared/config';
 import { getVisibleCalendarRange } from '@tnet/app-tasks/shared/calendarView';
-import type { TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import { addLocalDays } from '@tnet/app-tasks/shared/dateHelpers';
+import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
 import {
   setTasks,
   setTasksCalendarOccurrences,
@@ -13,23 +14,29 @@ import { tasksTnetApi } from '../api/tasksTnetApi';
 import { useTasksDispatch } from '../state/storeHooks';
 
 export const useTasksVisibleRangeData = ({
+  agendaDate,
   categoryFilter,
   currentDate,
   isRestored,
   settings,
   view
 }: {
+  agendaDate: string;
   categoryFilter?: string;
   currentDate: string;
   isRestored: boolean;
   settings: TasksGlobalSettings;
   view: TasksDefaultView;
 }): {
+  agendaSubscribedTaskOccurrences: SubscribedTaskOccurrence[];
   calendarTasks: TaskItem[];
   setCalendarTasks: React.Dispatch<React.SetStateAction<TaskItem[]>>;
   visibleRange: ReturnType<typeof getVisibleCalendarRange>;
 } => {
   const dispatch = useTasksDispatch();
+  const [agendaSubscribedTaskOccurrences, setAgendaSubscribedTaskOccurrences] = useState<
+    SubscribedTaskOccurrence[]
+  >([]);
   const [calendarTasks, setCalendarTasks] = useState<TaskItem[]>([]);
   const visibleRange = useMemo(
     () => getVisibleCalendarRange(currentDate, view, settings.weekStartsOn),
@@ -88,7 +95,29 @@ export const useTasksVisibleRangeData = ({
     };
   }, [categoryFilter, dispatch, isRestored, visibleRange.endDate, visibleRange.startDate]);
 
-  return { calendarTasks, setCalendarTasks, visibleRange };
+  useEffect(() => {
+    if (!isRestored) return;
+    let canceled = false;
+
+    const loadAgendaSubscriptions = async (): Promise<void> => {
+      const subscribedTasks = await tasksTnetApi.tasks.subscribedTaskOccurrences.list({
+        startDate: agendaDate,
+        endDate: addLocalDays(agendaDate, 365)
+      });
+      if (!canceled) setAgendaSubscribedTaskOccurrences(subscribedTasks);
+    };
+
+    loadAgendaSubscriptions().catch((error: unknown) => {
+      console.error('Failed to load tasks agenda subscriptions', error);
+      if (!canceled) dispatch(setTasksError('Failed to load subscribed task deadlines.'));
+    });
+
+    return () => {
+      canceled = true;
+    };
+  }, [agendaDate, dispatch, isRestored]);
+
+  return { agendaSubscribedTaskOccurrences, calendarTasks, setCalendarTasks, visibleRange };
 };
 
 const mergeTaskLists = (primary: TaskItem[], secondary: TaskItem[]): TaskItem[] => {

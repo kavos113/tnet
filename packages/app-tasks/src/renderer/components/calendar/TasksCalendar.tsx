@@ -1,4 +1,5 @@
 import type { CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
+import type { TasksDefaultView } from '@tnet/app-tasks/shared/config';
 import type {
   CalendarEventOccurrence,
   LocalEvent,
@@ -10,9 +11,11 @@ import styles from './TasksCalendar.module.css';
 export interface TasksCalendarProps {
   currentDate: string;
   endDate: string;
+  focusDate: string;
   items: CalendarDayItems[];
   showCurrentTime: boolean;
   startDate: string;
+  view: TasksDefaultView;
   onDateSelect: (date: string) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
   onSubscribedEventSelect: (event: CalendarEventOccurrence) => void;
@@ -25,9 +28,11 @@ export interface TasksCalendarProps {
 export const TasksCalendar = ({
   currentDate,
   endDate,
+  focusDate,
   items,
   showCurrentTime,
   startDate,
+  view,
   onDateSelect,
   onLocalEventSelect,
   onSubscribedEventSelect,
@@ -41,7 +46,7 @@ export const TasksCalendar = ({
   return (
     <section className={styles.pane} aria-label="Calendar">
       <header className={styles.header}>
-        <h2 className={styles.title}>{formatCalendarTitle(startDate, endDate)}</h2>
+        <h2 className={styles.title}>{formatCalendarTitle(startDate, endDate, focusDate, view)}</h2>
         <div className={styles.controls}>
           <button
             type="button"
@@ -83,5 +88,17 @@ export const TasksCalendar = ({
   );
 };
 
-const formatCalendarTitle = (startDate: string, endDate: string): string =>
-  startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+const formatCalendarTitle = (
+  startDate: string,
+  endDate: string,
+  focusDate: string,
+  view: TasksDefaultView
+): string => {
+  if (view === 'month') {
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'long',
+      year: 'numeric'
+    }).format(new Date(`${focusDate}T00:00:00`));
+  }
+  return startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+};

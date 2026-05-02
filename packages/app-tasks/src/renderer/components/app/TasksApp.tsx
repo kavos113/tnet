@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AppId } from '@tnet/shared/app/appTypes';
+import { addLocalDays, toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import { TasksAppHeader } from './TasksAppHeader';
 import { TasksEditableDetailsPane } from '../details/TasksEditableDetailsPane';
 import { TasksQuickAddForm, type QuickAddKind } from '../forms/TasksQuickAddForm';
@@ -52,13 +53,16 @@ export const TasksApp = ({
   const [detailsPanel, setDetailsPanel] = useState<TasksDetailsPanelState>();
   const [selectedQuickDate, setSelectedQuickDate] = useState<string>(currentDate);
   const [eventDraft, setEventDraft] = useState<LocalEventDraft>();
-  const { calendarTasks, setCalendarTasks, visibleRange } = useTasksVisibleRangeData({
-    categoryFilter,
-    currentDate,
-    isRestored,
-    settings,
-    view
-  });
+  const [calendarFocusDate, setCalendarFocusDate] = useState<string>(currentDate);
+  const { agendaSubscribedTaskOccurrences, calendarTasks, setCalendarTasks, visibleRange } =
+    useTasksVisibleRangeData({
+      agendaDate: currentDate,
+      categoryFilter,
+      currentDate: calendarFocusDate,
+      isRestored,
+      settings,
+      view
+    });
 
   useTaskReminderNotifications(tasks);
 
@@ -80,6 +84,8 @@ export const TasksApp = ({
     calendarSources,
     calendarTasks,
     categoryFilter,
+    calendarFocusDate,
+    agendaSubscribedTaskOccurrences,
     currentDate,
     localEvents,
     settings,
@@ -116,6 +122,12 @@ export const TasksApp = ({
     setSelectedQuickDate(date);
     setDraft((current) => ({ ...current, deadlineDate: date }));
     setQuickEventDraft((current) => ({ ...current, date }));
+  };
+
+  const moveCalendarRange = (days: number): void => {
+    setCalendarFocusDate((date) =>
+      view === 'month' ? addLocalMonths(date, days > 0 ? 1 : -1) : addLocalDays(date, days)
+    );
   };
 
   if (!isRestored) {
@@ -169,6 +181,7 @@ export const TasksApp = ({
         calendarTasks={calendarTasks}
         completedTasks={visibleCompletedTasks}
         currentDate={currentDate}
+        focusDate={calendarFocusDate}
         todayEvents={todayEvents}
         todaySubscribedTasks={todaySubscribedTasks}
         todayTasks={todayTasks}
@@ -177,16 +190,17 @@ export const TasksApp = ({
         upcomingDeadlines={upcomingDeadlines}
         view={view}
         visibleRange={visibleRange}
-        dispatch={dispatch}
         onCompleteTask={(taskId, completed) => runAction(() => completeTask(taskId, completed))}
         onDeleteTask={(taskId) => runAction(() => deleteTask(taskId))}
         onEditTask={(task) => {
           setDraft(draftFromTask(task));
           setDetailsPanel({ type: 'task' });
         }}
+        onMoveRange={moveCalendarRange}
         onRescheduleTask={(taskId, date) => runAction(() => rescheduleTask(taskId, date))}
         onSelectQuickDate={setQuickInputDate}
         onSetDetailsPanel={setDetailsPanel}
+        onToday={() => setCalendarFocusDate(toLocalDateString())}
       />
       {detailsPanel ? (
         <TasksEditableDetailsPane
@@ -213,4 +227,10 @@ export const TasksApp = ({
       ) : null}
     </main>
   );
+};
+
+const addLocalMonths = (date: string, months: number): string => {
+  const parsed = new Date(`${date.slice(0, 7)}-01T00:00:00`);
+  parsed.setMonth(parsed.getMonth() + months);
+  return toLocalDateString(parsed);
 };

@@ -436,6 +436,7 @@ describe('TasksApp', () => {
 
     await screen.findByRole('gridcell', { name: 'Calendar day 2026-04-27' });
 
+    expect(screen.getByRole('heading', { name: /5月/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Month' }).className).toContain('viewButtonActive');
     expect(screen.getAllByRole('gridcell')).toHaveLength(42);
     expect(screen.getByRole('gridcell', { name: 'Calendar day 2026-04-27' }).className).toContain(
@@ -453,6 +454,23 @@ describe('TasksApp', () => {
   });
 
   it('reloads the visible range when moving the calendar range', async () => {
+    listSubscribedTasks.mockImplementation(async (request) =>
+      request.startDate === '2026-05-02' || request.startDate === '2026-06-01'
+        ? [
+            {
+              id: 'subscribed-task-june',
+              sourceId: 'source-1',
+              uid: 'uid-june',
+              title: 'June iCal deadline',
+              deadlineDate: '2026-06-10',
+              deadlineTime: '09:00',
+              allDay: false,
+              createdAt: '2026-06-01T00:00:00.000Z',
+              updatedAt: '2026-06-01T00:00:00.000Z'
+            }
+          ]
+        : []
+    );
     const store = createStore();
     store.dispatch(
       restoreTasks({
@@ -488,10 +506,22 @@ describe('TasksApp', () => {
       startDate: '2026-06-01',
       endDate: '2026-07-12'
     });
+    expect(listSubscribedTasks).toHaveBeenCalledWith({
+      startDate: '2026-05-02',
+      endDate: '2027-05-02'
+    });
     expect(listLocalEvents).toHaveBeenLastCalledWith({
       startDate: '2026-06-01',
       endDate: '2026-07-12'
     });
+    expect(screen.getByRole('heading', { name: /6月/ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: '09:00 June iCal deadline' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Upcoming Deadlines' })).toHaveTextContent(
+      'June iCal deadline'
+    );
+    expect(store.getState().tasks.currentDate).toBe('2026-05-02');
   });
 
   it('shows subscribed task occurrences as read-only calendar items', async () => {

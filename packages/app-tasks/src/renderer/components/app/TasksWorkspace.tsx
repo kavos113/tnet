@@ -1,4 +1,3 @@
-import { addLocalDays, toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import type { CalendarDateRange, CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
 import type {
   CalendarEventOccurrence,
@@ -14,8 +13,6 @@ import {
   openEventDetails,
   type TasksDetailsPanelState
 } from '../../state/tasksDetailsState';
-import type { useTasksDispatch } from '../../state/storeHooks';
-import { setTasksCurrentDate } from '../../state/tasksSlice';
 import styles from './TasksApp.module.css';
 
 export interface TasksWorkspaceProps {
@@ -23,6 +20,7 @@ export interface TasksWorkspaceProps {
   calendarTasks: TaskItem[];
   completedTasks: TaskItem[];
   currentDate: string;
+  focusDate: string;
   todayEvents: Array<LocalEvent | CalendarEventOccurrence>;
   todaySubscribedTasks: SubscribedTaskOccurrence[];
   todayTasks: TaskItem[];
@@ -31,13 +29,14 @@ export interface TasksWorkspaceProps {
   upcomingDeadlines: Array<TaskItem | SubscribedTaskOccurrence>;
   view: TasksDefaultView;
   visibleRange: CalendarDateRange;
-  dispatch: ReturnType<typeof useTasksDispatch>;
   onCompleteTask: (taskId: string, completed: boolean) => void;
   onDeleteTask: (taskId: string) => void;
   onEditTask: (task: TaskItem) => void;
+  onMoveRange: (days: number) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
   onSelectQuickDate: (date: string) => void;
   onSetDetailsPanel: (state: TasksDetailsPanelState) => void;
+  onToday: () => void;
 }
 
 export const TasksWorkspace = ({
@@ -45,6 +44,7 @@ export const TasksWorkspace = ({
   calendarTasks,
   completedTasks,
   currentDate,
+  focusDate,
   todayEvents,
   todaySubscribedTasks,
   todayTasks,
@@ -53,13 +53,14 @@ export const TasksWorkspace = ({
   upcomingDeadlines,
   view,
   visibleRange,
-  dispatch,
   onCompleteTask,
   onDeleteTask,
   onEditTask,
+  onMoveRange,
   onRescheduleTask,
   onSelectQuickDate,
-  onSetDetailsPanel
+  onSetDetailsPanel,
+  onToday
 }: TasksWorkspaceProps): React.JSX.Element => (
   <div className={styles.content}>
     <TasksAgenda
@@ -79,16 +80,18 @@ export const TasksWorkspace = ({
     <TasksCalendar
       currentDate={currentDate}
       endDate={visibleRange.endDate}
+      focusDate={focusDate}
       items={calendarItems}
       showCurrentTime={view !== 'month'}
       startDate={visibleRange.startDate}
+      view={view}
       onDateSelect={onSelectQuickDate}
       onLocalEventSelect={(event) => onSetDetailsPanel({ type: 'event-detail', event })}
       onSubscribedEventSelect={(event) => onSetDetailsPanel({ type: 'subscription-event', event })}
       onTaskSelect={(task) => onSetDetailsPanel(createTaskDetailsState(task, tasks, calendarTasks))}
-      onMoveRange={(days) => dispatch(setTasksCurrentDate(addLocalDays(currentDate, days)))}
+      onMoveRange={onMoveRange}
       onRescheduleTask={onRescheduleTask}
-      onToday={() => dispatch(setTasksCurrentDate(toLocalDateString()))}
+      onToday={onToday}
     />
   </div>
 );

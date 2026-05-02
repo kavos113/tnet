@@ -18,6 +18,8 @@ export const useTasksAgendaData = ({
   calendarSources,
   calendarTasks,
   categoryFilter,
+  calendarFocusDate,
+  agendaSubscribedTaskOccurrences,
   currentDate,
   localEvents,
   settings,
@@ -29,6 +31,8 @@ export const useTasksAgendaData = ({
   calendarSources: CalendarSource[];
   calendarTasks: TaskItem[];
   categoryFilter?: string;
+  calendarFocusDate: string;
+  agendaSubscribedTaskOccurrences: SubscribedTaskOccurrence[];
   currentDate: string;
   localEvents: LocalEvent[];
   settings: TasksGlobalSettings;
@@ -65,10 +69,10 @@ export const useTasksAgendaData = ({
   );
   const todaySubscribedTasks = useMemo(
     () =>
-      subscribedTaskOccurrences
+      agendaSubscribedTaskOccurrences
         .filter((task) => task.deadlineDate === currentDate)
         .sort(compareSubscribedTaskDeadlines),
-    [currentDate, subscribedTaskOccurrences]
+    [agendaSubscribedTaskOccurrences, currentDate]
   );
   const todayEvents = useMemo(
     () =>
@@ -82,12 +86,12 @@ export const useTasksAgendaData = ({
   );
   const upcomingDeadlines = useMemo(
     () =>
-      [...visibleOpenTasks, ...subscribedTaskOccurrences]
+      [...visibleOpenTasks, ...agendaSubscribedTaskOccurrences]
         .filter((item) => Boolean(item.deadlineDate))
         .filter((item) => (item.deadlineDate ?? '') >= currentDate)
         .sort(compareAgendaDeadlineItems)
         .slice(0, 8),
-    [currentDate, subscribedTaskOccurrences, visibleOpenTasks]
+    [agendaSubscribedTaskOccurrences, currentDate, visibleOpenTasks]
   );
   const undatedTasks = useMemo(
     () => visibleOpenTasks.filter((task) => !task.deadlineDate).sort(compareUndatedTasks),
@@ -97,7 +101,7 @@ export const useTasksAgendaData = ({
     () =>
       buildVisibleCalendarItems({
         dates: visibleRange.dates,
-        currentDate,
+        currentDate: calendarFocusDate,
         startDate: visibleRange.startDate,
         endDate: visibleRange.endDate,
         tasks: [...calendarTasks].sort(compareTaskDeadlines),
@@ -110,7 +114,7 @@ export const useTasksAgendaData = ({
       calendarOccurrences,
       calendarSources,
       calendarTasks,
-      currentDate,
+      calendarFocusDate,
       localEvents,
       subscribedTaskOccurrences,
       visibleRange.dates,
