@@ -88,7 +88,7 @@ const rssSlice = createSlice({
       state.selectedFeedId = undefined;
       state.selectedFolderId = undefined;
       state.selectedItemId = undefined;
-      state.isSubscribeOpen = true;
+      state.isSubscribeOpen = false;
     },
     selectRssFeed: (state, action: PayloadAction<string>) => {
       state.selectedFeedId = action.payload;
@@ -102,7 +102,7 @@ const rssSlice = createSlice({
       state.selectedFeedId = undefined;
       state.selectedView = 'all';
       state.selectedItemId = undefined;
-      state.isSubscribeOpen = true;
+      state.isSubscribeOpen = false;
     },
     selectRssItem: (state, action: PayloadAction<string | undefined>) => {
       state.selectedItemId = action.payload;

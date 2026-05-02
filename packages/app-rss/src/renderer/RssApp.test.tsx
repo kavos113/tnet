@@ -19,6 +19,9 @@ vi.mock('./rssTnetApi', () => ({
       },
       feeds: {
         create: vi.fn(),
+        update: vi.fn(),
+        move: vi.fn(),
+        remove: vi.fn(),
         list: vi.fn(),
         sync: vi.fn()
       },
@@ -34,6 +37,14 @@ describe('RssApp', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    Object.defineProperty(window, 'prompt', {
+      configurable: true,
+      value: vi.fn()
+    });
+    Object.defineProperty(window, 'confirm', {
+      configurable: true,
+      value: vi.fn()
+    });
     store = configureStore({ reducer: { rss: rssReducer } });
     store.dispatch(
       restoreRss({
@@ -111,6 +122,35 @@ describe('RssApp', () => {
       starred: true,
       fetchedAt: '2026-05-01T00:00:00.000Z'
     });
+    vi.mocked(rssTnetApi.rss.feeds.list).mockResolvedValue([
+      {
+        id: 'feed-1',
+        title: 'Example Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 1
+      }
+    ]);
+    vi.mocked(rssTnetApi.rss.feeds.sync).mockResolvedValue({
+      feeds: [
+        {
+          id: 'feed-1',
+          title: 'Example Feed',
+          url: 'https://example.com/feed.xml',
+          sortOrder: 1,
+          enabled: true,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+          unreadCount: 1
+        }
+      ],
+      syncedFeedIds: ['feed-1'],
+      failedFeedIds: []
+    });
+    vi.mocked(rssTnetApi.rss.folders.listTree).mockResolvedValue({ folders: [], feeds: [] });
   });
 
   afterEach(() => {
@@ -125,7 +165,7 @@ describe('RssApp', () => {
     await waitFor(() =>
       expect(rssTnetApi.rss.items.markRead).toHaveBeenCalledWith({ itemId: 'item-1' })
     );
-    expect(screen.getByText(/Example Feed/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Example Feed/).length).toBeGreaterThan(0);
     expect(screen.getByText('Open Link')).toBeInTheDocument();
   });
 
@@ -165,6 +205,24 @@ describe('RssApp', () => {
       )
     );
     expect(await screen.findByText('Second item')).toBeInTheDocument();
+  });
+
+  it('shows selected feed actions above the item list', async () => {
+    vi.spyOn(window, 'prompt').mockReturnValueOnce('Renamed Feed');
+    renderApp();
+
+    fireEvent.click(await screen.findByTitle('Sync selected feed'));
+    await waitFor(() =>
+      expect(rssTnetApi.rss.feeds.sync).toHaveBeenCalledWith({ feedId: 'feed-1' })
+    );
+
+    fireEvent.click(screen.getByTitle('Rename selected feed'));
+    await waitFor(() =>
+      expect(rssTnetApi.rss.feeds.update).toHaveBeenCalledWith({
+        feedId: 'feed-1',
+        title: 'Renamed Feed'
+      })
+    );
   });
 
   it('shows the subscribe form when no feed is selected', () => {

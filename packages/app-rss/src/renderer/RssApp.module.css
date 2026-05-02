@@ -1,14 +1,22 @@
 .root {
+  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: minmax(260px, 34%) minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
   height: 100%;
   min-height: 0;
   color: #202428;
   background: #f6f7f8;
+  font-family: var(--rss-font-family);
+  font-size: var(--rss-font-size);
+  line-height: var(--rss-line-height);
 }
 
 .listPane {
-  min-width: 0;
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
   min-height: 0;
   border-right: 1px solid #d8dde3;
   background: #ffffff;
@@ -22,6 +30,7 @@
   align-items: center;
   padding: 12px;
   border-bottom: 1px solid #e3e7eb;
+  min-width: 0;
 }
 
 .toolbar h2 {
@@ -29,6 +38,17 @@
   font-size: 16px;
   font-weight: 650;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  align-items: center;
 }
 
 .button,
@@ -92,9 +112,17 @@
   color: #69737d;
 }
 
+.itemSummary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--rss-summary-lines);
+}
+
 .detailPane {
   min-width: 0;
   min-height: 0;
+  width: 100%;
   overflow: auto;
   padding: 20px;
 }
@@ -119,7 +147,7 @@
 
 .content {
   line-height: 1.65;
-  max-width: 820px;
+  width: 100%;
 }
 
 .form {
@@ -187,6 +215,9 @@
   }
 
   .listPane {
+    width: auto;
+    min-width: 0;
+    max-width: none;
     min-height: 42vh;
     border-right: 0;
     border-bottom: 1px solid #d8dde3;

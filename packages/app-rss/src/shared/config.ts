@@ -10,6 +10,10 @@ export interface RssGlobalSettings {
   defaultFilter: RssDefaultFilter;
   markReadOnOpen: boolean;
   confirmExternalLinks: boolean;
+  itemSummaryLineClamp: number;
+  fontFamily: string;
+  fontSizePx: number;
+  lineHeight: number;
 }
 
 export interface RssGlobalConfig {
@@ -23,7 +27,11 @@ export const defaultRssGlobalSettings = (): RssGlobalSettings => ({
   retentionDays: 180,
   defaultFilter: 'unread',
   markReadOnOpen: true,
-  confirmExternalLinks: false
+  confirmExternalLinks: false,
+  itemSummaryLineClamp: 3,
+  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  fontSizePx: 14,
+  lineHeight: 1.5
 });
 
 export const defaultRssGlobalConfig = (): RssGlobalConfig => ({
@@ -51,7 +59,16 @@ export const normalizeRssGlobalSettings = (
     retentionDays: normalizeInteger(settings?.retentionDays, 1, 3650, defaults.retentionDays),
     defaultFilter: settings?.defaultFilter === 'all' ? 'all' : defaults.defaultFilter,
     markReadOnOpen: settings?.markReadOnOpen ?? defaults.markReadOnOpen,
-    confirmExternalLinks: settings?.confirmExternalLinks ?? defaults.confirmExternalLinks
+    confirmExternalLinks: settings?.confirmExternalLinks ?? defaults.confirmExternalLinks,
+    itemSummaryLineClamp: normalizeInteger(
+      settings?.itemSummaryLineClamp,
+      1,
+      8,
+      defaults.itemSummaryLineClamp
+    ),
+    fontFamily: normalizeString(settings?.fontFamily, defaults.fontFamily),
+    fontSizePx: normalizeInteger(settings?.fontSizePx, 11, 22, defaults.fontSizePx),
+    lineHeight: normalizeNumber(settings?.lineHeight, 1.2, 2, defaults.lineHeight)
   };
 };
 
@@ -89,4 +106,19 @@ const normalizeInteger = (
 ): number => {
   if (value === undefined || !Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, Math.floor(value)));
+};
+
+const normalizeNumber = (
+  value: number | undefined,
+  min: number,
+  max: number,
+  fallback: number
+): number => {
+  if (value === undefined || !Number.isFinite(value)) return fallback;
+  return Math.min(max, Math.max(min, value));
+};
+
+const normalizeString = (value: string | undefined, fallback: string): string => {
+  const normalized = value?.trim();
+  return normalized ? normalized : fallback;
 };

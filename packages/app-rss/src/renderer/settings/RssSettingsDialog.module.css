@@ -29,6 +29,8 @@
 .field select {
   border: 1px solid #c6ced6;
   border-radius: 6px;
+  width: 100%;
+  min-width: 0;
   min-height: 32px;
   padding: 4px 8px;
   font: inherit;

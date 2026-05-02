@@ -8,13 +8,22 @@ describe('normalizeRssGlobalSettings', () => {
       fetchTimeoutSeconds: 999,
       retentionDays: Number.NaN,
       defaultFilter: 'all',
-      syncOnStartup: false
+      syncOnStartup: false,
+      itemSummaryLineClamp: 99,
+      fontFamily: '  ',
+      fontSizePx: 4,
+      lineHeight: 9
     });
 
+    const defaults = defaultRssGlobalSettings();
     expect(settings.syncIntervalMinutes).toBe(5);
     expect(settings.fetchTimeoutSeconds).toBe(120);
-    expect(settings.retentionDays).toBe(defaultRssGlobalSettings().retentionDays);
+    expect(settings.retentionDays).toBe(defaults.retentionDays);
     expect(settings.defaultFilter).toBe('all');
     expect(settings.syncOnStartup).toBe(false);
+    expect(settings.itemSummaryLineClamp).toBe(8);
+    expect(settings.fontFamily).toBe(defaults.fontFamily);
+    expect(settings.fontSizePx).toBe(11);
+    expect(settings.lineHeight).toBe(2);
   });
 });

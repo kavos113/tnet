@@ -1,3 +1,9 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { FileItem } from '@tnet/shared/types/file';
+import {
+  WorkspaceFileTree,
+  type WorkspaceNewEntryState
+} from '@tnet/ui/workspace/WorkspaceFileTree';
 import { rssTnetApi } from './rssTnetApi';
 import {
   openRssSubscribe,
@@ -6,30 +12,37 @@ import {
   selectRssSystemView,
   setRssFeeds,
   setRssFolders,
-  setRssSyncing,
   setRssTree
 } from './rssSlice';
 import { useRssDispatch, useRssSelector } from './storeHooks';
-import type { RssTreeFolderNode } from '@tnet/app-rss/shared/rssTypes';
+import type { RssTreeFeedNode, RssTreeFolderNode } from '@tnet/app-rss/shared/rssTypes';
 import styles from './RssSidebar.module.css';
+
+const rssFeedPathPrefix = 'rss-feed:';
+
+const emptyNewFolder: WorkspaceNewEntryState = {
+  isActive: false,
+  mode: 'directory',
+  parentPath: null,
+  name: ''
+};
 
 export const RssSidebar = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
+  const rootInputRef = useRef<HTMLInputElement | null>(null);
+  const [expandedFolderIds, setExpandedFolderIds] = useState<string[]>([]);
+  const [newFolder, setNewFolder] = useState<WorkspaceNewEntryState>(emptyNewFolder);
   const { tree, selectedView, selectedFeedId, selectedFolderId } = useRssSelector(
     (state) => state.rss
   );
+  const feedTree = useMemo(() => toTreeItems(tree.folders, tree.feeds), [tree.feeds, tree.folders]);
+  const shouldShowNewFolderAtRoot = newFolder.isActive && newFolder.parentPath === null;
 
-  const createFolder = async (): Promise<void> => {
-    const name = window.prompt('Folder name');
-    if (!name) return;
-    await rssTnetApi.rss.folders.create({ name });
-    const [folders, nextTree] = await Promise.all([
-      rssTnetApi.rss.folders.list(),
-      rssTnetApi.rss.folders.listTree()
-    ]);
-    dispatch(setRssFolders(folders));
-    dispatch(setRssTree(nextTree));
-  };
+  useEffect(() => {
+    if (!shouldShowNewFolderAtRoot) return;
+    rootInputRef.current?.focus();
+    rootInputRef.current?.select();
+  }, [shouldShowNewFolderAtRoot]);
 
   const refreshTree = async (): Promise<void> => {
     const [folders, feeds, nextTree] = await Promise.all([
@@ -41,12 +54,76 @@ export const RssSidebar = (): React.JSX.Element => {
     dispatch(setRssFeeds(feeds));
     dispatch(setRssTree(nextTree));
   };
+
+  const startNewFolder = (): void => {
+    if (selectedFolderId) {
+      setExpandedFolderIds((current) =>
+        current.includes(selectedFolderId) ? current : [...current, selectedFolderId]
+      );
+    }
+    setNewFolder({
+      isActive: true,
+      mode: 'directory',
+      parentPath: selectedFolderId ?? null,
+      name: 'New Folder'
+    });
+  };
+
+  const cancelNewFolder = (): void => {
+    setNewFolder(emptyNewFolder);
+  };
+
+  const confirmNewFolder = async (): Promise<void> => {
+    if (!newFolder.isActive) return;
+    const name = newFolder.name.trim();
+    if (!name) {
+      cancelNewFolder();
+      return;
+    }
+    const folder = await rssTnetApi.rss.folders.create({
+      parentId: newFolder.parentPath ?? undefined,
+      name
+    });
+    await refreshTree();
+    dispatch(selectRssFolder(folder.id));
+    setExpandedFolderIds((current) =>
+      newFolder.parentPath && !current.includes(newFolder.parentPath)
+        ? [...current, newFolder.parentPath]
+        : current
+    );
+    cancelNewFolder();
+  };
+
+  const activateTreeItem = (item: FileItem): void => {
+    if (item.isDirectory) {
+      dispatch(selectRssFolder(item.path));
+      setExpandedFolderIds((current) =>
+        current.includes(item.path)
+          ? current.filter((candidate) => candidate !== item.path)
+          : [...current, item.path]
+      );
+      return;
+    }
+    const feedId = feedIdFromPath(item.path);
+    if (feedId) dispatch(selectRssFeed(feedId));
+  };
+
+  const onRootNewFolderKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      confirmNewFolder().catch((error: unknown) => {
+        console.error('Failed to create RSS folder', error);
+      });
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelNewFolder();
+    }
+  };
+
   const handleDropOnRoot = async (event: React.DragEvent): Promise<void> => {
     event.preventDefault();
     const feedId = event.dataTransfer.getData('application/x-rss-feed-id');
-    const folderId = event.dataTransfer.getData('application/x-rss-folder-id');
     if (feedId) await rssTnetApi.rss.feeds.move({ feedId });
-    if (folderId) await rssTnetApi.rss.folders.move({ folderId });
     await refreshTree();
   };
 
@@ -62,7 +139,7 @@ export const RssSidebar = (): React.JSX.Element => {
           >
             New Feed
           </button>
-          <button className={styles.button} type="button" onClick={() => createFolder()}>
+          <button className={styles.button} type="button" onClick={startNewFolder}>
             New Folder
           </button>
         </div>
@@ -85,213 +162,80 @@ export const RssSidebar = (): React.JSX.Element => {
             {viewLabel(view)}
           </button>
         ))}
-        {tree.folders.map((folder) => (
-          <FolderNode
-            key={folder.id}
-            folder={folder}
-            activeFolderId={selectedFolderId}
-            activeFeedId={selectedFeedId}
-            onRefresh={refreshTree}
-          />
-        ))}
-        {tree.feeds.map((feed) => (
-          <FeedNode
-            key={feed.id}
-            feed={feed}
-            activeFeedId={selectedFeedId}
-            onRefresh={refreshTree}
-          />
-        ))}
+        <section className={styles.directorySection} aria-label="RSS folders">
+          <ul className={styles.fileList}>
+            {shouldShowNewFolderAtRoot ? (
+              <li className={styles.newItem}>
+                <div className={styles.treeItem}>
+                  <span
+                    className={`material-icons-round ${styles.chevron} ${styles.iconPlaceholder}`}
+                  >
+                    chevron_right
+                  </span>
+                  <span className={`material-icons ${styles.folderIcon}`}>folder</span>
+                  <input
+                    ref={rootInputRef}
+                    className={styles.newInput}
+                    value={newFolder.name}
+                    onChange={(event) =>
+                      setNewFolder((current) => ({
+                        ...current,
+                        name: event.target.value
+                      }))
+                    }
+                    onKeyDown={onRootNewFolderKeyDown}
+                    onBlur={cancelNewFolder}
+                  />
+                </div>
+              </li>
+            ) : null}
+            <WorkspaceFileTree
+              items={feedTree}
+              selectedPath={selectedFeedId ? feedPath(selectedFeedId) : selectedFolderId}
+              expandedPaths={expandedFolderIds}
+              onActivateItem={activateTreeItem}
+              newEntry={newFolder}
+              onNewEntryNameChange={(name) =>
+                setNewFolder((current) => ({
+                  ...current,
+                  name
+                }))
+              }
+              onConfirmNewEntry={confirmNewFolder}
+              onCancelNewEntry={cancelNewFolder}
+              getItemIcon={(item, isExpanded) =>
+                item.isDirectory ? (isExpanded ? 'folder_open' : 'folder') : 'rss_feed'
+              }
+            />
+          </ul>
+        </section>
       </div>
     </aside>
   );
 };
 
-const FolderNode = ({
-  folder,
-  activeFolderId,
-  activeFeedId,
-  onRefresh
-}: {
-  folder: RssTreeFolderNode;
-  activeFolderId?: string;
-  activeFeedId?: string;
-  onRefresh: () => Promise<void>;
-}): React.JSX.Element => {
-  const dispatch = useRssDispatch();
-  const renameFolder = async (): Promise<void> => {
-    const name = window.prompt('Folder name', folder.name);
-    if (!name) return;
-    await rssTnetApi.rss.folders.rename({ folderId: folder.id, name });
-    await onRefresh();
-  };
-  const moveFolder = async (): Promise<void> => {
-    const parentId = window.prompt('Move to folder id. Leave empty for root.', '');
-    if (parentId === null) return;
-    await rssTnetApi.rss.folders.move({ folderId: folder.id, parentId: parentId || undefined });
-    await onRefresh();
-  };
-  const deleteFolder = async (): Promise<void> => {
-    if (
-      !window.confirm(
-        `Delete folder "${folder.name}" and all nested feeds? This also deletes cached items.`
-      )
-    ) {
-      return;
-    }
-    await rssTnetApi.rss.folders.remove({ folderId: folder.id });
-    await onRefresh();
-  };
-  return (
-    <div className={styles.folder}>
-      <div className={styles.nodeRow}>
-        <button
-          type="button"
-          draggable
-          className={[styles.node, folder.id === activeFolderId ? styles.active : ''].join(' ')}
-          onDragStart={(event) =>
-            event.dataTransfer.setData('application/x-rss-folder-id', folder.id)
-          }
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={async (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const feedId = event.dataTransfer.getData('application/x-rss-feed-id');
-            const droppedFolderId = event.dataTransfer.getData('application/x-rss-folder-id');
-            if (feedId) await rssTnetApi.rss.feeds.move({ feedId, folderId: folder.id });
-            if (droppedFolderId && droppedFolderId !== folder.id) {
-              await rssTnetApi.rss.folders.move({
-                folderId: droppedFolderId,
-                parentId: folder.id
-              });
-            }
-            await onRefresh();
-          }}
-          onClick={() => dispatch(selectRssFolder(folder.id))}
-        >
-          <span className={styles.folderLabel}>{folder.name}</span>
-        </button>
-        <button
-          className={styles.iconButton}
-          type="button"
-          title="Rename folder"
-          onClick={renameFolder}
-        >
-          edit
-        </button>
-        <button
-          className={styles.iconButton}
-          type="button"
-          title="Move folder"
-          onClick={moveFolder}
-        >
-          drive_file_move
-        </button>
-        <button
-          className={styles.iconButton}
-          type="button"
-          title="Delete folder"
-          onClick={deleteFolder}
-        >
-          delete
-        </button>
-      </div>
-      <div className={styles.children}>
-        {folder.folders.map((child) => (
-          <FolderNode
-            key={child.id}
-            folder={child}
-            activeFolderId={activeFolderId}
-            activeFeedId={activeFeedId}
-            onRefresh={onRefresh}
-          />
-        ))}
-        {folder.feeds.map((feed) => (
-          <FeedNode key={feed.id} feed={feed} activeFeedId={activeFeedId} onRefresh={onRefresh} />
-        ))}
-      </div>
-    </div>
-  );
-};
+const toTreeItems = (folders: RssTreeFolderNode[], feeds: RssTreeFeedNode[]): FileItem[] => [
+  ...folders.map(toFolderItem),
+  ...feeds.map(toFeedItem)
+];
 
-const FeedNode = ({
-  feed,
-  activeFeedId,
-  onRefresh
-}: {
-  feed: {
-    id: string;
-    title: string;
-    unreadCount: number;
-    lastSyncedAt?: string;
-    lastSyncError?: string;
-  };
-  activeFeedId?: string;
-  onRefresh: () => Promise<void>;
-}): React.JSX.Element => {
-  const dispatch = useRssDispatch();
-  const renameFeed = async (): Promise<void> => {
-    const title = window.prompt('Feed title', feed.title);
-    if (!title) return;
-    await rssTnetApi.rss.feeds.update({ feedId: feed.id, title });
-    await onRefresh();
-  };
-  const moveFeed = async (): Promise<void> => {
-    const folderId = window.prompt('Move to folder id. Leave empty for root.', '');
-    if (folderId === null) return;
-    await rssTnetApi.rss.feeds.move({ feedId: feed.id, folderId: folderId || undefined });
-    await onRefresh();
-  };
-  const deleteFeed = async (): Promise<void> => {
-    if (!window.confirm(`Delete feed "${feed.title}" and cached items?`)) return;
-    await rssTnetApi.rss.feeds.remove({ feedId: feed.id });
-    await onRefresh();
-  };
-  const syncFeed = async (): Promise<void> => {
-    dispatch(setRssSyncing(true));
-    try {
-      const result = await rssTnetApi.rss.feeds.sync({ feedId: feed.id });
-      dispatch(setRssFeeds(result.feeds));
-      await onRefresh();
-    } finally {
-      dispatch(setRssSyncing(false));
-    }
-  };
-  return (
-    <div className={styles.nodeRow}>
-      <button
-        type="button"
-        draggable
-        className={[styles.node, feed.id === activeFeedId ? styles.active : ''].join(' ')}
-        onDragStart={(event) => event.dataTransfer.setData('application/x-rss-feed-id', feed.id)}
-        onClick={() => dispatch(selectRssFeed(feed.id))}
-      >
-        <span>{feed.title}</span>
-        {feed.lastSyncError ? (
-          <span className={styles.errorDot} title={feed.lastSyncError} />
-        ) : null}
-        {feed.lastSyncedAt ? (
-          <span className={styles.syncTime} title={`Last synced ${feed.lastSyncedAt}`}>
-            synced
-          </span>
-        ) : null}
-        <span className={styles.count}>{feed.unreadCount}</span>
-      </button>
-      <button className={styles.iconButton} type="button" title="Sync feed" onClick={syncFeed}>
-        sync
-      </button>
-      <button className={styles.iconButton} type="button" title="Rename feed" onClick={renameFeed}>
-        edit
-      </button>
-      <button className={styles.iconButton} type="button" title="Move feed" onClick={moveFeed}>
-        drive_file_move
-      </button>
-      <button className={styles.iconButton} type="button" title="Delete feed" onClick={deleteFeed}>
-        delete
-      </button>
-    </div>
-  );
-};
+const toFolderItem = (folder: RssTreeFolderNode): FileItem => ({
+  name: folder.name,
+  path: folder.id,
+  isDirectory: true,
+  children: toTreeItems(folder.folders, folder.feeds)
+});
+
+const toFeedItem = (feed: RssTreeFeedNode): FileItem => ({
+  name: feed.unreadCount > 0 ? `${feed.title} (${feed.unreadCount})` : feed.title,
+  path: feedPath(feed.id),
+  isDirectory: false
+});
+
+const feedPath = (feedId: string): string => `${rssFeedPathPrefix}${feedId}`;
+
+const feedIdFromPath = (path: string): string | undefined =>
+  path.startsWith(rssFeedPathPrefix) ? path.slice(rssFeedPathPrefix.length) : undefined;
 
 const viewLabel = (view: 'all' | 'unread' | 'starred' | 'archived'): string => {
   if (view === 'all') return 'All';

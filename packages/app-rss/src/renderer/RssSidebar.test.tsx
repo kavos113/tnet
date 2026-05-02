@@ -82,6 +82,13 @@ describe('RssSidebar', () => {
     vi.mocked(rssTnetApi.rss.folders.list).mockResolvedValue([]);
     vi.mocked(rssTnetApi.rss.feeds.list).mockResolvedValue([]);
     vi.mocked(rssTnetApi.rss.folders.listTree).mockResolvedValue(tree);
+    vi.mocked(rssTnetApi.rss.folders.create).mockResolvedValue({
+      id: 'folder-2',
+      name: 'Created Folder',
+      sortOrder: 2,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z'
+    });
     vi.mocked(rssTnetApi.rss.feeds.sync).mockResolvedValue({
       feeds: [],
       syncedFeedIds: ['feed-1'],
@@ -93,41 +100,32 @@ describe('RssSidebar', () => {
     cleanup();
   });
 
-  it('renames and deletes folder nodes with confirmation', async () => {
-    vi.spyOn(window, 'prompt').mockReturnValueOnce('Renamed');
-    vi.spyOn(window, 'confirm').mockReturnValueOnce(true);
+  it('creates folders with the shared directory tree entry', async () => {
     renderSidebar();
 
-    fireEvent.click(screen.getByTitle('Rename folder'));
+    fireEvent.click(screen.getByText('New Folder'));
+    const input = screen.getByDisplayValue('New Folder');
+    fireEvent.change(input, { target: { value: 'Created Folder' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
     await waitFor(() =>
-      expect(rssTnetApi.rss.folders.rename).toHaveBeenCalledWith({
-        folderId: 'folder-1',
-        name: 'Renamed'
+      expect(rssTnetApi.rss.folders.create).toHaveBeenCalledWith({
+        name: 'Created Folder',
+        parentId: undefined
       })
     );
-
-    fireEvent.click(screen.getByTitle('Delete folder'));
-    await waitFor(() =>
-      expect(rssTnetApi.rss.folders.remove).toHaveBeenCalledWith({ folderId: 'folder-1' })
-    );
+    expect(store.getState().rss.selectedFolderId).toBe('folder-2');
   });
 
-  it('syncs and renames feed nodes', async () => {
-    vi.spyOn(window, 'prompt').mockReturnValueOnce('Renamed Feed');
+  it('selects feed nodes without inline feed action buttons', () => {
     renderSidebar();
 
-    fireEvent.click(screen.getByTitle('Sync feed'));
-    await waitFor(() =>
-      expect(rssTnetApi.rss.feeds.sync).toHaveBeenCalledWith({ feedId: 'feed-1' })
-    );
+    fireEvent.click(screen.getByText('Folder'));
+    fireEvent.click(screen.getByText('Feed (3)'));
 
-    fireEvent.click(screen.getByTitle('Rename feed'));
-    await waitFor(() =>
-      expect(rssTnetApi.rss.feeds.update).toHaveBeenCalledWith({
-        feedId: 'feed-1',
-        title: 'Renamed Feed'
-      })
-    );
+    expect(store.getState().rss.selectedFeedId).toBe('feed-1');
+    expect(screen.queryByTitle('Sync feed')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Rename feed')).not.toBeInTheDocument();
   });
 
   it('opens the subscribe screen from the new feed button', () => {

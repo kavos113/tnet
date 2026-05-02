@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { rssTnetApi } from './rssTnetApi';
 import {
   appendRssItems,
+  openRssSubscribe,
   selectRssItem,
   selectRssFeed,
   setRssError,
@@ -19,6 +20,7 @@ import styles from './RssApp.module.css';
 export const RssApp = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
   const {
+    feeds,
     items,
     nextCursor,
     selectedFeedId,
@@ -37,7 +39,20 @@ export const RssApp = (): React.JSX.Element => {
     () => items.find((item) => item.id === selectedItemId),
     [items, selectedItemId]
   );
-  const shouldShowSubscribe = isSubscribeOpen || !selectedFeedId;
+  const selectedFeed = useMemo(
+    () => feeds.find((feed) => feed.id === selectedFeedId),
+    [feeds, selectedFeedId]
+  );
+  const shouldShowSubscribe = isSubscribeOpen;
+  const displayStyle = useMemo<RssDisplayStyle>(
+    () => ({
+      '--rss-summary-lines': String(settings.itemSummaryLineClamp),
+      '--rss-font-family': settings.fontFamily,
+      '--rss-font-size': `${settings.fontSizePx}px`,
+      '--rss-line-height': String(settings.lineHeight)
+    }),
+    [settings.fontFamily, settings.fontSizePx, settings.itemSummaryLineClamp, settings.lineHeight]
+  );
 
   useEffect(() => {
     rssTnetApi.rss.items
@@ -134,6 +149,42 @@ export const RssApp = (): React.JSX.Element => {
     }
   };
 
+  const refreshNavigation = async (): Promise<void> => {
+    const [feeds, tree] = await Promise.all([
+      rssTnetApi.rss.feeds.list(),
+      rssTnetApi.rss.folders.listTree()
+    ]);
+    dispatch(setRssFeeds(feeds));
+    dispatch(setRssTree(tree));
+  };
+
+  const renameSelectedFeed = async (): Promise<void> => {
+    if (!selectedFeed) return;
+    const title = window.prompt('Feed title', selectedFeed.title);
+    if (!title) return;
+    await rssTnetApi.rss.feeds.update({ feedId: selectedFeed.id, title });
+    await refreshNavigation();
+  };
+
+  const moveSelectedFeed = async (): Promise<void> => {
+    if (!selectedFeed) return;
+    const folderId = window.prompt('Move to folder id. Leave empty for root.', '');
+    if (folderId === null) return;
+    await rssTnetApi.rss.feeds.move({
+      feedId: selectedFeed.id,
+      folderId: folderId || undefined
+    });
+    await refreshNavigation();
+  };
+
+  const deleteSelectedFeed = async (): Promise<void> => {
+    if (!selectedFeed) return;
+    if (!window.confirm(`Delete feed "${selectedFeed.title}" and cached items?`)) return;
+    await rssTnetApi.rss.feeds.remove({ feedId: selectedFeed.id });
+    await refreshNavigation();
+    dispatch(openRssSubscribe());
+  };
+
   const openItem = async (itemId: string): Promise<void> => {
     dispatch(selectRssItem(itemId));
     if (!settings.markReadOnOpen) return;
@@ -154,10 +205,70 @@ export const RssApp = (): React.JSX.Element => {
   };
 
   return (
-    <main className={styles.root}>
+    <main className={styles.root} style={displayStyle}>
       <section className={styles.listPane} aria-label="RSS items">
         <div className={styles.toolbar}>
-          <h2>RSS</h2>
+          <h2 title={selectedFeed?.title}>{selectedFeed?.title ?? 'RSS'}</h2>
+          {selectedFeed ? (
+            <div className={styles.feedActions} aria-label="Selected feed actions">
+              <button
+                className={styles.iconButton}
+                type="button"
+                title="Sync selected feed"
+                onClick={() => sync(selectedFeed.id)}
+              >
+                sync
+              </button>
+              <button
+                className={styles.iconButton}
+                type="button"
+                title="Rename selected feed"
+                onClick={() =>
+                  renameSelectedFeed().catch((renameError: unknown) =>
+                    dispatch(
+                      setRssError(
+                        renameError instanceof Error ? renameError.message : String(renameError)
+                      )
+                    )
+                  )
+                }
+              >
+                edit
+              </button>
+              <button
+                className={styles.iconButton}
+                type="button"
+                title="Move selected feed"
+                onClick={() =>
+                  moveSelectedFeed().catch((moveError: unknown) =>
+                    dispatch(
+                      setRssError(
+                        moveError instanceof Error ? moveError.message : String(moveError)
+                      )
+                    )
+                  )
+                }
+              >
+                drive_file_move
+              </button>
+              <button
+                className={styles.iconButton}
+                type="button"
+                title="Delete selected feed"
+                onClick={() =>
+                  deleteSelectedFeed().catch((deleteError: unknown) =>
+                    dispatch(
+                      setRssError(
+                        deleteError instanceof Error ? deleteError.message : String(deleteError)
+                      )
+                    )
+                  )
+                }
+              >
+                delete
+              </button>
+            </div>
+          ) : null}
           <button className={styles.secondaryButton} type="button" onClick={() => sync()}>
             {isSyncing ? 'Syncing' : 'Sync All'}
           </button>
@@ -271,6 +382,12 @@ export const RssApp = (): React.JSX.Element => {
     </main>
   );
 };
+
+type RssDisplayStyle = CSSProperties &
+  Record<
+    '--rss-summary-lines' | '--rss-font-family' | '--rss-font-size' | '--rss-line-height',
+    string
+  >;
 
 const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element | null => {
   const dispatch = useRssDispatch();

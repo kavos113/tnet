@@ -143,6 +143,47 @@ export const RssGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.JSX
           <span>Confirm before opening external links</span>
         </label>
       </section>
+      <section className={styles.section}>
+        <h3>Display</h3>
+        <label className={styles.field}>
+          <span>Summary lines</span>
+          <input
+            type="number"
+            min={1}
+            max={8}
+            value={draft.itemSummaryLineClamp}
+            onChange={(event) => update('itemSummaryLineClamp', Number(event.target.value))}
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Font family</span>
+          <input
+            value={draft.fontFamily}
+            onChange={(event) => update('fontFamily', event.target.value)}
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Font size px</span>
+          <input
+            type="number"
+            min={11}
+            max={22}
+            value={draft.fontSizePx}
+            onChange={(event) => update('fontSizePx', Number(event.target.value))}
+          />
+        </label>
+        <label className={styles.field}>
+          <span>Line height</span>
+          <input
+            type="number"
+            min={1.2}
+            max={2}
+            step={0.05}
+            value={draft.lineHeight}
+            onChange={(event) => update('lineHeight', Number(event.target.value))}
+          />
+        </label>
+      </section>
       <SettingsActions>
         <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
         <SettingsPrimaryButton
