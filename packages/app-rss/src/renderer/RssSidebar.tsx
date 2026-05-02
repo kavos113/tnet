@@ -15,10 +15,8 @@ import {
   setRssTree
 } from './rssSlice';
 import { useRssDispatch, useRssSelector } from './storeHooks';
-import type { RssTreeFeedNode, RssTreeFolderNode } from '@tnet/app-rss/shared/rssTypes';
+import { feedIdFromPath, feedPath, toRssTreeFileItems } from './rssTreeFileItems';
 import styles from './RssSidebar.module.css';
-
-const rssFeedPathPrefix = 'rss-feed:';
 
 const emptyNewFolder: WorkspaceNewEntryState = {
   isActive: false,
@@ -35,7 +33,10 @@ export const RssSidebar = (): React.JSX.Element => {
   const { tree, selectedView, selectedFeedId, selectedFolderId } = useRssSelector(
     (state) => state.rss
   );
-  const feedTree = useMemo(() => toTreeItems(tree.folders, tree.feeds), [tree.feeds, tree.folders]);
+  const feedTree = useMemo(
+    () => toRssTreeFileItems(tree.folders, tree.feeds),
+    [tree.feeds, tree.folders]
+  );
   const shouldShowNewFolderAtRoot = newFolder.isActive && newFolder.parentPath === null;
 
   useEffect(() => {
@@ -213,29 +214,6 @@ export const RssSidebar = (): React.JSX.Element => {
     </aside>
   );
 };
-
-const toTreeItems = (folders: RssTreeFolderNode[], feeds: RssTreeFeedNode[]): FileItem[] => [
-  ...folders.map(toFolderItem),
-  ...feeds.map(toFeedItem)
-];
-
-const toFolderItem = (folder: RssTreeFolderNode): FileItem => ({
-  name: folder.name,
-  path: folder.id,
-  isDirectory: true,
-  children: toTreeItems(folder.folders, folder.feeds)
-});
-
-const toFeedItem = (feed: RssTreeFeedNode): FileItem => ({
-  name: feed.unreadCount > 0 ? `${feed.title} (${feed.unreadCount})` : feed.title,
-  path: feedPath(feed.id),
-  isDirectory: false
-});
-
-const feedPath = (feedId: string): string => `${rssFeedPathPrefix}${feedId}`;
-
-const feedIdFromPath = (path: string): string | undefined =>
-  path.startsWith(rssFeedPathPrefix) ? path.slice(rssFeedPathPrefix.length) : undefined;
 
 const viewLabel = (view: 'all' | 'unread' | 'starred' | 'archived'): string => {
   if (view === 'all') return 'All';

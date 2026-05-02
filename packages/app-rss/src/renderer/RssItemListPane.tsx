@@ -1,0 +1,130 @@
+import type { RssFeed, RssItem } from '@tnet/app-rss/shared/rssTypes';
+import { formatRssDate } from './formatRssDate';
+import styles from './RssApp.module.css';
+
+interface RssItemListPaneProps {
+  isSyncing: boolean;
+  items: RssItem[];
+  nextCursor?: string;
+  searchQuery: string;
+  selectedFeed?: RssFeed;
+  selectedItemId?: string;
+  onDeleteSelectedFeed: () => Promise<void>;
+  onLoadMore: () => Promise<void>;
+  onMoveSelectedFeed: () => Promise<void>;
+  onOpenItem: (itemId: string) => Promise<void>;
+  onRenameSelectedFeed: () => Promise<void>;
+  onSearchQueryChange: (query: string) => void;
+  onSyncAll: () => Promise<void>;
+  onSyncSelectedFeed: () => Promise<void>;
+  onError: (error: unknown) => void;
+}
+
+export const RssItemListPane = ({
+  isSyncing,
+  items,
+  nextCursor,
+  searchQuery,
+  selectedFeed,
+  selectedItemId,
+  onDeleteSelectedFeed,
+  onLoadMore,
+  onMoveSelectedFeed,
+  onOpenItem,
+  onRenameSelectedFeed,
+  onSearchQueryChange,
+  onSyncAll,
+  onSyncSelectedFeed,
+  onError
+}: RssItemListPaneProps): React.JSX.Element => (
+  <>
+    <div className={styles.toolbar}>
+      <h2 title={selectedFeed?.title}>{selectedFeed?.title ?? 'RSS'}</h2>
+      {selectedFeed ? (
+        <div className={styles.feedActions} aria-label="Selected feed actions">
+          <button
+            className={styles.iconButton}
+            type="button"
+            title="Sync selected feed"
+            onClick={() => onSyncSelectedFeed().catch(onError)}
+          >
+            sync
+          </button>
+          <button
+            className={styles.iconButton}
+            type="button"
+            title="Rename selected feed"
+            onClick={() => onRenameSelectedFeed().catch(onError)}
+          >
+            edit
+          </button>
+          <button
+            className={styles.iconButton}
+            type="button"
+            title="Move selected feed"
+            onClick={() => onMoveSelectedFeed().catch(onError)}
+          >
+            drive_file_move
+          </button>
+          <button
+            className={styles.iconButton}
+            type="button"
+            title="Delete selected feed"
+            onClick={() => onDeleteSelectedFeed().catch(onError)}
+          >
+            delete
+          </button>
+        </div>
+      ) : null}
+      <button
+        className={styles.secondaryButton}
+        type="button"
+        onClick={() => onSyncAll().catch(onError)}
+      >
+        {isSyncing ? 'Syncing' : 'Sync All'}
+      </button>
+    </div>
+    <div className={styles.form}>
+      <input
+        className={styles.input}
+        value={searchQuery}
+        onChange={(event) => onSearchQueryChange(event.target.value)}
+        placeholder="Search items"
+        aria-label="Search RSS items"
+      />
+    </div>
+    <div className={styles.itemList}>
+      {items.length === 0 ? <div className={styles.empty}>No items.</div> : null}
+      {items.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={[
+            styles.itemRow,
+            item.readAt ? styles.itemRowRead : '',
+            item.id === selectedItemId ? styles.itemRowActive : ''
+          ].join(' ')}
+          onClick={() => onOpenItem(item.id).catch(onError)}
+        >
+          <span className={styles.itemTitle}>
+            {item.starred ? '笘・' : ''}
+            {item.title}
+          </span>
+          <span className={styles.itemMeta}>
+            {formatRssDate(item.publishedAt ?? item.fetchedAt)}
+          </span>
+          {item.summary ? <span className={styles.itemSummary}>{item.summary}</span> : null}
+        </button>
+      ))}
+      {nextCursor ? (
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          onClick={() => onLoadMore().catch(onError)}
+        >
+          Load More
+        </button>
+      ) : null}
+    </div>
+  </>
+);
