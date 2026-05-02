@@ -18,6 +18,7 @@ export interface TasksAgendaProps {
   onEdit: (task: TaskItem) => void;
   onEventOpen: (event: LocalEvent | CalendarEventOccurrence) => void;
   onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
+  onTaskOpen: (task: TaskItem) => void;
 }
 
 export const TasksAgenda = ({
@@ -31,7 +32,8 @@ export const TasksAgenda = ({
   onDelete,
   onEdit,
   onEventOpen,
-  onReadOnlyTaskOpen
+  onReadOnlyTaskOpen,
+  onTaskOpen
 }: TasksAgendaProps): React.JSX.Element => (
   <div className={styles.column}>
     <TaskSection
@@ -42,12 +44,14 @@ export const TasksAgenda = ({
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
+      onTaskOpen={onTaskOpen}
     />
     <EventSection title="Today Events" events={todayEvents} onEventOpen={onEventOpen} />
     <DeadlineSection
       title="Upcoming Deadlines"
       items={upcomingDeadlines}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
+      onTaskOpen={onTaskOpen}
     />
     <TaskSection
       title="No Deadline"
@@ -56,6 +60,7 @@ export const TasksAgenda = ({
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
+      onTaskOpen={onTaskOpen}
     />
     <TaskSection
       title="Completed Tasks"
@@ -64,6 +69,7 @@ export const TasksAgenda = ({
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
+      onTaskOpen={onTaskOpen}
     />
   </div>
 );
@@ -75,7 +81,8 @@ const TaskSection = ({
   onComplete,
   onDelete,
   onEdit,
-  onReadOnlyTaskOpen
+  onReadOnlyTaskOpen,
+  onTaskOpen
 }: {
   title: string;
   tasks: TaskItem[];
@@ -84,6 +91,7 @@ const TaskSection = ({
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
   onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
+  onTaskOpen: (task: TaskItem) => void;
 }): React.JSX.Element => (
   <section className={styles.section} aria-label={title}>
     <SectionHeader count={tasks.length + readOnlyTasks.length} title={title} />
@@ -96,6 +104,7 @@ const TaskSection = ({
             onComplete={onComplete}
             onDelete={onDelete}
             onEdit={onEdit}
+            onOpen={onTaskOpen}
           />
         ))}
         {readOnlyTasks.map((task) => (
@@ -163,11 +172,13 @@ const EventSection = ({
 const DeadlineSection = ({
   title,
   items,
-  onReadOnlyTaskOpen
+  onReadOnlyTaskOpen,
+  onTaskOpen
 }: {
   title: string;
   items: Array<TaskItem | SubscribedTaskOccurrence>;
   onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
+  onTaskOpen: (task: TaskItem) => void;
 }): React.JSX.Element => (
   <section className={styles.section} aria-label={title}>
     <SectionHeader count={items.length} title={title} />
@@ -184,7 +195,9 @@ const DeadlineSection = ({
                 <DeadlineBody item={item} />
               </button>
             ) : (
-              <DeadlineBody item={item} />
+              <button type="button" className={styles.rowButton} onClick={() => onTaskOpen(item)}>
+                <DeadlineBody item={item} />
+              </button>
             )}
           </li>
         ))}
@@ -220,12 +233,14 @@ const TaskRow = ({
   task,
   onComplete,
   onDelete,
-  onEdit
+  onEdit,
+  onOpen
 }: {
   task: TaskItem;
   onComplete: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
+  onOpen: (task: TaskItem) => void;
 }): React.JSX.Element => (
   <li
     className={styles.item}
@@ -239,17 +254,19 @@ const TaskRow = ({
       checked={Boolean(task.completedAt)}
       onChange={(event) => onComplete(task.id, event.target.checked)}
     />
-    <div className={styles.body}>
-      <span className={`${styles.title} ${task.completedAt ? styles.titleDone : ''}`}>
-        {task.title}
-      </span>
-      <span className={styles.meta}>
-        {task.deadlineDate ? <span>{formatTaskDeadline(task)}</span> : null}
-        {task.category ? <span className={styles.categoryPill}>{task.category}</span> : null}
-        {task.recurrenceRule ? <span>recurring</span> : null}
-        {task.linkedEntityId ? <span>{task.linkedEntityId}</span> : null}
-      </span>
-    </div>
+    <button type="button" className={styles.rowButton} onClick={() => onOpen(task)}>
+      <div className={styles.body}>
+        <span className={`${styles.title} ${task.completedAt ? styles.titleDone : ''}`}>
+          {task.title}
+        </span>
+        <span className={styles.meta}>
+          {task.deadlineDate ? <span>{formatTaskDeadline(task)}</span> : null}
+          {task.category ? <span className={styles.categoryPill}>{task.category}</span> : null}
+          {task.recurrenceRule ? <span>recurring</span> : null}
+          {task.linkedEntityId ? <span>{task.linkedEntityId}</span> : null}
+        </span>
+      </div>
+    </button>
     <button
       type="button"
       className={`${styles.iconButton} material-icons-round`}

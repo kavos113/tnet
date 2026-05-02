@@ -1,11 +1,15 @@
 import { useEffect, useRef } from 'react';
 import type {
   CalendarEventOccurrence,
+  LocalEvent,
+  TaskItem,
   SubscribedTaskOccurrence
 } from '@tnet/app-tasks/shared/tasksTypes';
 import styles from './TasksDetailsPanel.module.css';
 
 export type TasksDetailsPanelReadOnlyItem =
+  | { type: 'task'; task: TaskItem; onEdit?: () => void }
+  | { type: 'event'; event: LocalEvent; onEdit?: () => void }
   | { type: 'subscription-event'; event: CalendarEventOccurrence }
   | { type: 'subscription-task'; task: SubscribedTaskOccurrence };
 
@@ -65,6 +69,45 @@ export const TasksDetailsPanel = ({
 };
 
 const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): React.JSX.Element => {
+  if (item.type === 'task') {
+    const task = item.task;
+    return (
+      <div className={styles.readOnly}>
+        <h3>{task.title}</h3>
+        <p className={styles.meta}>
+          {formatTaskDeadline(task)}
+          {task.completedAt ? ' completed' : ''}
+        </p>
+        {task.category ? <p className={styles.meta}>{task.category}</p> : null}
+        {task.notes ? <p className={styles.description}>{task.notes}</p> : null}
+        {item.onEdit ? (
+          <button type="button" className={styles.primaryButton} onClick={item.onEdit}>
+            Edit
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (item.type === 'event') {
+    const event = item.event;
+    return (
+      <div className={styles.readOnly}>
+        <h3>{event.title}</h3>
+        <p className={styles.meta}>
+          {event.allDay ? 'All day' : `${event.startsAt} - ${event.endsAt}`}
+        </p>
+        {event.location ? <p className={styles.meta}>{event.location}</p> : null}
+        {event.description ? <p className={styles.description}>{event.description}</p> : null}
+        {item.onEdit ? (
+          <button type="button" className={styles.primaryButton} onClick={item.onEdit}>
+            Edit
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
   if (item.type === 'subscription-task') {
     const task = item.task;
     return (
@@ -90,4 +133,9 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
       {event.description ? <p className={styles.description}>{event.description}</p> : null}
     </div>
   );
+};
+
+const formatTaskDeadline = (task: TaskItem): string => {
+  if (!task.deadlineDate) return 'No deadline';
+  return task.deadlineTime ? `${task.deadlineDate} ${task.deadlineTime}` : task.deadlineDate;
 };

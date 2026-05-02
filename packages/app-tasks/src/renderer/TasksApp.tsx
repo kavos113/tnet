@@ -395,8 +395,9 @@ export const TasksApp = ({
             setDraft(draftFromTask(task));
             setDetailsPanel({ type: 'task' });
           }}
-          onEventOpen={(event) => openEventDetails(event, setEventDraft, setDetailsPanel)}
+          onEventOpen={(event) => openEventDetails(event, setDetailsPanel)}
           onReadOnlyTaskOpen={(task) => setDetailsPanel({ type: 'subscription-task', task })}
+          onTaskOpen={(task) => setDetailsPanel({ type: 'task-detail', task })}
         />
         <TasksCalendar
           currentDate={currentDate}
@@ -406,11 +407,13 @@ export const TasksApp = ({
           startDate={visibleRange.startDate}
           onDateSelect={setQuickInputDate}
           onLocalEventSelect={(event) => {
-            setEventDraft(localEventDraftFromEvent(event));
-            setDetailsPanel({ type: 'event' });
+            setDetailsPanel({ type: 'event-detail', event });
           }}
           onSubscribedEventSelect={(event) =>
             setDetailsPanel({ type: 'subscription-event', event })
+          }
+          onTaskSelect={(task) =>
+            setDetailsPanel(createTaskDetailsState(task, tasks, calendarTasks))
           }
           onMoveRange={(days) => dispatch(setTasksCurrentDate(addLocalDays(currentDate, days)))}
           onRescheduleTask={(taskId, date) => runAction(() => rescheduleTask(taskId, date))}
@@ -421,9 +424,31 @@ export const TasksApp = ({
         <TasksDetailsPanel
           title={getDetailsPanelTitle(detailsPanel)}
           readOnlyItem={
-            detailsPanel.type === 'subscription-event' || detailsPanel.type === 'subscription-task'
-              ? detailsPanel
-              : undefined
+            detailsPanel.type === 'task-detail'
+              ? {
+                  type: 'task',
+                  task: detailsPanel.task,
+                  onEdit: createTaskEditHandler(
+                    detailsPanel.task,
+                    tasks,
+                    calendarTasks,
+                    setDraft,
+                    setDetailsPanel
+                  )
+                }
+              : detailsPanel.type === 'event-detail'
+                ? {
+                    type: 'event',
+                    event: detailsPanel.event,
+                    onEdit: () => {
+                      setEventDraft(localEventDraftFromEvent(detailsPanel.event));
+                      setDetailsPanel({ type: 'event' });
+                    }
+                  }
+                : detailsPanel.type === 'subscription-event' ||
+                    detailsPanel.type === 'subscription-task'
+                  ? detailsPanel
+                  : undefined
           }
           onClose={() => {
             setDetailsPanel(undefined);
@@ -491,6 +516,8 @@ export const TasksApp = ({
 type TasksDetailsPanelState =
   | { type: 'task' }
   | { type: 'event' }
+  | { type: 'task-detail'; task: TaskItem }
+  | { type: 'event-detail'; event: LocalEvent }
   | { type: 'subscription-event'; event: CalendarEventOccurrence }
   | { type: 'subscription-task'; task: SubscribedTaskOccurrence };
 
@@ -546,6 +573,48 @@ const createEventDeleteHandler = (
   onDelete: (eventId: string) => void
 ): (() => void) | undefined => (eventId ? () => onDelete(eventId) : undefined);
 
+const createTaskDetailsState = (
+  task: TaskItem,
+  tasks: TaskItem[],
+  calendarTasks: TaskItem[]
+): TasksDetailsPanelState => {
+  if (task.id.startsWith('subscribed:')) {
+    return { type: 'task-detail', task };
+  }
+  return {
+    type: 'task-detail',
+    task: findBaseTask(task, tasks, calendarTasks) ?? task
+  };
+};
+
+const createTaskEditHandler = (
+  task: TaskItem,
+  tasks: TaskItem[],
+  calendarTasks: TaskItem[],
+  setDraft: (draft: TaskDraft) => void,
+  setDetailsPanel: (state: TasksDetailsPanelState) => void
+): (() => void) | undefined => {
+  if (task.id.startsWith('subscribed:')) return undefined;
+  return () => {
+    setDraft(draftFromTask(findBaseTask(task, tasks, calendarTasks) ?? task));
+    setDetailsPanel({ type: 'task' });
+  };
+};
+
+const findBaseTask = (
+  task: TaskItem,
+  tasks: TaskItem[],
+  calendarTasks: TaskItem[]
+): TaskItem | undefined => {
+  const baseId = task.id.split(':')[0];
+  return (
+    tasks.find((item) => item.id === baseId) ??
+    calendarTasks.find((item) => item.id === baseId) ??
+    tasks.find((item) => item.id === task.id) ??
+    calendarTasks.find((item) => item.id === task.id)
+  );
+};
+
 const eventDraftFromTaskDraft = (draft: TaskDraft, fallbackDate: string): LocalEventDraft => ({
   ...emptyLocalEventDraft(draft.deadlineDate || fallbackDate),
   title: draft.title,
@@ -561,20 +630,18 @@ const taskDraftFromEventDraft = (draft: LocalEventDraft): TaskDraft => ({
 
 const openEventDetails = (
   event: LocalEvent | CalendarEventOccurrence,
-  setEventDraft: (draft: LocalEventDraft) => void,
   setDetailsPanel: (state: TasksDetailsPanelState) => void
 ): void => {
   if ('sourceId' in event) {
     setDetailsPanel({ type: 'subscription-event', event });
     return;
   }
-  setEventDraft(localEventDraftFromEvent(event));
-  setDetailsPanel({ type: 'event' });
+  setDetailsPanel({ type: 'event-detail', event });
 };
 
 const getDetailsPanelTitle = (state: TasksDetailsPanelState): string => {
-  if (state.type === 'task') return 'Task Details';
-  if (state.type === 'event') return 'Event Details';
+  if (state.type === 'task' || state.type === 'task-detail') return 'Task Details';
+  if (state.type === 'event' || state.type === 'event-detail') return 'Event Details';
   if (state.type === 'subscription-task') return 'Subscribed Task';
   return 'Subscribed Event';
 };

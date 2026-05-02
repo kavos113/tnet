@@ -347,6 +347,37 @@ describe('TasksApp', () => {
     );
   });
 
+  it('opens calendar tasks as read-only details and edits from the detail panel', async () => {
+    listTasks.mockResolvedValue([task()]);
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [task()],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole('button', { name: 'Write report' }));
+
+    let panel = await screen.findByRole('dialog', { name: 'Task Details' });
+    expect(panel).toHaveTextContent('Write report');
+    expect(within(panel).queryByLabelText('Detail task title')).not.toBeInTheDocument();
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Edit' }));
+
+    panel = await screen.findByRole('dialog', { name: 'Task Details' });
+    expect(within(panel).getByLabelText('Detail task title')).toHaveValue('Write report');
+  });
+
   it('prefills the quick-add deadline when a calendar day is selected', async () => {
     const store = createStore();
     store.dispatch(
@@ -830,6 +861,13 @@ describe('TasksApp', () => {
     expect(eventButton.className).toContain('localEvent');
     fireEvent.click(eventButton);
 
+    let panel = await screen.findByRole('dialog', { name: 'Event Details' });
+    expect(panel).toHaveTextContent('Owned planning');
+    expect(panel).toHaveTextContent('Desk');
+    expect(within(panel).queryByRole('region', { name: 'Event editor' })).not.toBeInTheDocument();
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Edit' }));
+
     expect(await screen.findByRole('region', { name: 'Event editor' })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Event title'), {
       target: { value: 'Owned planning updated' }
@@ -846,6 +884,8 @@ describe('TasksApp', () => {
     );
 
     fireEvent.click(await screen.findByRole('button', { name: '14:00 Owned planning updated' }));
+    panel = await screen.findByRole('dialog', { name: 'Event Details' });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Edit' }));
     fireEvent.click(screen.getByRole('button', { name: 'Delete event' }));
 
     await waitFor(() =>

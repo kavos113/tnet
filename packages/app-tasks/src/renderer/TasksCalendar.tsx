@@ -1,6 +1,10 @@
 import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import type { CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
-import type { CalendarEventOccurrence, LocalEvent } from '@tnet/app-tasks/shared/tasksTypes';
+import type {
+  CalendarEventOccurrence,
+  LocalEvent,
+  TaskItem
+} from '@tnet/app-tasks/shared/tasksTypes';
 import styles from './TasksCalendar.module.css';
 
 export interface TasksCalendarProps {
@@ -12,6 +16,7 @@ export interface TasksCalendarProps {
   onDateSelect: (date: string) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
   onSubscribedEventSelect: (event: CalendarEventOccurrence) => void;
+  onTaskSelect: (task: TaskItem) => void;
   onMoveRange: (days: number) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
   onToday: () => void;
@@ -26,6 +31,7 @@ export const TasksCalendar = ({
   onDateSelect,
   onLocalEventSelect,
   onSubscribedEventSelect,
+  onTaskSelect,
   onMoveRange,
   onRescheduleTask,
   onToday
@@ -69,6 +75,7 @@ export const TasksCalendar = ({
             onEventSelect={onSubscribedEventSelect}
             onLocalEventSelect={onLocalEventSelect}
             onRescheduleTask={onRescheduleTask}
+            onTaskSelect={onTaskSelect}
           />
         ))}
       </div>
@@ -83,7 +90,8 @@ const CalendarCell = ({
   onDateSelect,
   onEventSelect,
   onLocalEventSelect,
-  onRescheduleTask
+  onRescheduleTask,
+  onTaskSelect
 }: {
   currentDate: string;
   day: CalendarDayItems;
@@ -92,6 +100,7 @@ const CalendarCell = ({
   onEventSelect: (event: CalendarEventOccurrence) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
+  onTaskSelect: (task: TaskItem) => void;
 }): React.JSX.Element => {
   const today = toLocalDateString();
   const isToday = day.date === today;
@@ -138,7 +147,10 @@ const CalendarCell = ({
             draggable={!isSubscribedTask(task.id)}
             key={task.id}
             title={task.title}
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onTaskSelect(task);
+            }}
             onDragStart={(event) => {
               if (isSubscribedTask(task.id)) return;
               event.dataTransfer.setData('text/plain', task.id.split(':')[0]);
