@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { PdfZoomMode } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { normalizeColumns } from '@tnet/app-pdf-viewer/shared/config';
 import { TabBar } from '@tnet/ui';
+import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import { PdfDocumentViewer } from './components/viewer/PdfDocumentViewer';
 import { pdfViewerTnetApi } from './pdfViewerTnetApi';
 import { usePdfViewerDispatch, usePdfViewerSelector } from './state/storeHooks';
@@ -21,6 +22,17 @@ export const PdfViewerApp = (): React.JSX.Element => {
   const activePath = tabs[activeIndex];
   const activeDocument = activePath ? documentsByPath[activePath] : undefined;
   const activeViewState = activePath ? viewStateByPath[activePath] : undefined;
+
+  useShortcut({
+    key: 'w',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: activeIndex >= 0,
+    onTrigger: () => {
+      dispatch(closePdf(activeIndex));
+    }
+  });
 
   const onPageCountChange = useCallback(
     (pageCount: number) => {

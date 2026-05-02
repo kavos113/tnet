@@ -63,7 +63,8 @@ describe('PdfDocumentViewer', () => {
       expect.objectContaining({
         cMapPacked: true,
         cMapUrl: expect.stringContaining('pdfjs/cmaps/'),
-        standardFontDataUrl: expect.stringContaining('pdfjs/standard_fonts/')
+        standardFontDataUrl: expect.stringContaining('pdfjs/standard_fonts/'),
+        useSystemFonts: true
       })
     );
   });

@@ -75,6 +75,7 @@ export const PdfDocumentViewer = ({
         loadingTaskRef.current = getDocument({
           data: new Uint8Array(bytes),
           cMapPacked: true,
+          useSystemFonts: true,
           ...pdfJsAssetUrls()
         });
         loadedDocument = await loadingTaskRef.current.promise;

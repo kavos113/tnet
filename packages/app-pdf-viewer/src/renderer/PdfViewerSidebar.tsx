@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { basename, joinPath, toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import type { FileItem } from '@tnet/shared/types/file';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
@@ -18,7 +19,11 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
   );
   const activePdfPath =
     rootPath && tabs[activeIndex] ? joinPath(rootPath, tabs[activeIndex]) : null;
-  const expandedPaths = collectDirectoryPaths(fileTree);
+  const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
+
+  useEffect(() => {
+    setExpandedPaths([]);
+  }, [rootPath]);
 
   const openWorkspace = (): void => {
     pdfViewerTnetApi.workspace
@@ -95,7 +100,15 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
               selectedPath={activePdfPath}
               expandedPaths={expandedPaths}
               onActivateItem={(item) => {
-                if (item.isDirectory || !isPdfItem(item)) return;
+                if (item.isDirectory) {
+                  setExpandedPaths((current) =>
+                    current.includes(item.path)
+                      ? current.filter((path) => path !== item.path)
+                      : [...current, item.path]
+                  );
+                  return;
+                }
+                if (!isPdfItem(item)) return;
                 dispatch(openPdf({ path: toWorkspaceRelativePath(rootPath, item.path) }));
               }}
               isItemDisabled={(item) => !item.isDirectory && !isPdfItem(item)}
@@ -115,11 +128,6 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
 
 const isPdfItem = (item: FileItem): boolean =>
   !item.isDirectory && item.name.toLowerCase().endsWith('.pdf');
-
-const collectDirectoryPaths = (items: FileItem[]): string[] =>
-  items.flatMap((item) =>
-    item.isDirectory ? [item.path, ...collectDirectoryPaths(item.children ?? [])] : []
-  );
 
 const persistWorkspaceRoots = async (
   workspaceRoots: string[],
