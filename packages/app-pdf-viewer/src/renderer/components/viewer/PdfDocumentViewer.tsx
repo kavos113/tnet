@@ -46,6 +46,8 @@ export const PdfDocumentViewer = ({
 }): React.JSX.Element => {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const restoredScrollKeyRef = useRef('');
+  const scrollSaveTimeoutRef = useRef<number | null>(null);
+  const lastReportedActivePageRef = useRef(1);
   const [pdfDocument, setPdfDocument] = useState<PDFDocumentProxy | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [firstPageSize, setFirstPageSize] = useState<ViewportSize | null>(null);
@@ -67,6 +69,13 @@ export const PdfDocumentViewer = ({
     observer.observe(viewport);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(
+    () => () => {
+      if (scrollSaveTimeoutRef.current) window.clearTimeout(scrollSaveTimeoutRef.current);
+    },
+    []
+  );
 
   useEffect(() => {
     let canceled = false;
@@ -102,6 +111,7 @@ export const PdfDocumentViewer = ({
         setPdfDocument(loaded.pdfDocument);
         setPageCount(loaded.pdfDocument.numPages);
         onPageCountChange(loaded.pdfDocument.numPages);
+        lastReportedActivePageRef.current = 1;
         onActivePageChange(1);
       } catch (loadError) {
         console.error('Failed to load PDF', loadError);
@@ -191,6 +201,26 @@ export const PdfDocumentViewer = ({
     [estimatedRowHeight, pageCount, viewState.columns]
   );
 
+  const reportActivePage = useCallback(
+    (pageNumber: number): void => {
+      if (lastReportedActivePageRef.current === pageNumber) return;
+      lastReportedActivePageRef.current = pageNumber;
+      onActivePageChange(pageNumber);
+    },
+    [onActivePageChange]
+  );
+
+  const scheduleScrollStateSave = useCallback(
+    (nextScrollTop: number): void => {
+      if (scrollSaveTimeoutRef.current) window.clearTimeout(scrollSaveTimeoutRef.current);
+      scrollSaveTimeoutRef.current = window.setTimeout(() => {
+        onViewStateChange({ scrollTop: nextScrollTop });
+        scrollSaveTimeoutRef.current = null;
+      }, 120);
+    },
+    [onViewStateChange]
+  );
+
   useEffect(() => {
     const viewport = viewportRef.current;
     if (
@@ -210,15 +240,19 @@ export const PdfDocumentViewer = ({
     });
     viewport.scrollTop = nextScrollTop;
     setScrollTop(nextScrollTop);
+    if (scrollSaveTimeoutRef.current) {
+      window.clearTimeout(scrollSaveTimeoutRef.current);
+      scrollSaveTimeoutRef.current = null;
+    }
     onViewStateChange({ scrollTop: nextScrollTop });
-    onActivePageChange(getActivePage(nextScrollTop));
+    reportActivePage(getActivePage(nextScrollTop));
   }, [
     estimatedRowHeight,
     filePath,
     getActivePage,
     navigationRequest,
-    onActivePageChange,
     onViewStateChange,
+    reportActivePage,
     viewState.columns
   ]);
 
@@ -229,8 +263,8 @@ export const PdfDocumentViewer = ({
       onScroll={(event) => {
         const nextScrollTop = event.currentTarget.scrollTop;
         setScrollTop(nextScrollTop);
-        onViewStateChange({ scrollTop: nextScrollTop });
-        onActivePageChange(getActivePage(nextScrollTop));
+        scheduleScrollStateSave(nextScrollTop);
+        reportActivePage(getActivePage(nextScrollTop));
       }}
     >
       {isLoading ? <div className={styles.empty}>Loading PDF...</div> : null}

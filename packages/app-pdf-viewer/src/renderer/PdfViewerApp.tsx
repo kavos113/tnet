@@ -154,6 +154,20 @@ export const PdfViewerApp = (): React.JSX.Element => {
     [activePath, dispatch]
   );
 
+  const onActivePageChange = useCallback(
+    (pageNumber: number) => {
+      if (activePath) dispatch(setActivePage({ path: activePath, pageNumber }));
+    },
+    [activePath, dispatch]
+  );
+
+  const onViewStateChange = useCallback(
+    (viewState: Parameters<typeof updateActiveViewState>[0]) => {
+      dispatch(updateActiveViewState(viewState));
+    },
+    [dispatch]
+  );
+
   const openExternal = (): void => {
     if (!rootPath || !activePath) return;
     pdfViewerTnetApi.pdfViewer.pdf
@@ -274,10 +288,8 @@ export const PdfViewerApp = (): React.JSX.Element => {
           overscanPages={settings.overscanPages}
           navigationRequest={navigationRequest}
           onPageCountChange={onPageCountChange}
-          onActivePageChange={(pageNumber) =>
-            dispatch(setActivePage({ path: activePath, pageNumber }))
-          }
-          onViewStateChange={(viewState) => dispatch(updateActiveViewState(viewState))}
+          onActivePageChange={onActivePageChange}
+          onViewStateChange={onViewStateChange}
         />
       ) : (
         <div className={styles.empty}>Open a PDF from the sidebar.</div>
