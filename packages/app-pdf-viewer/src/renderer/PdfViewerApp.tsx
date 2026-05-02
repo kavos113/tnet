@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { PdfZoomMode } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { normalizeColumns } from '@tnet/app-pdf-viewer/shared/config';
 import { TabBar } from '@tnet/ui';
@@ -22,6 +22,11 @@ export const PdfViewerApp = (): React.JSX.Element => {
   const activePath = tabs[activeIndex];
   const activeDocument = activePath ? documentsByPath[activePath] : undefined;
   const activeViewState = activePath ? viewStateByPath[activePath] : undefined;
+  const [pendingColumns, setPendingColumns] = useState(String(activeViewState?.columns ?? 1));
+
+  useEffect(() => {
+    setPendingColumns(String(activeViewState?.columns ?? 1));
+  }, [activePath, activeViewState?.columns]);
 
   useShortcut({
     key: 'w',
@@ -31,6 +36,30 @@ export const PdfViewerApp = (): React.JSX.Element => {
     enabled: activeIndex >= 0,
     onTrigger: () => {
       dispatch(closePdf(activeIndex));
+    }
+  });
+
+  useShortcut({
+    key: '7',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: Boolean(activeViewState),
+    onTrigger: () => {
+      if (!activeViewState) return;
+      dispatch(updateActiveViewState({ columns: normalizeColumns(activeViewState.columns - 1) }));
+    }
+  });
+
+  useShortcut({
+    key: '8',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: Boolean(activeViewState),
+    onTrigger: () => {
+      if (!activeViewState) return;
+      dispatch(updateActiveViewState({ columns: normalizeColumns(activeViewState.columns + 1) }));
     }
   });
 
@@ -95,15 +124,25 @@ export const PdfViewerApp = (): React.JSX.Element => {
             type="number"
             min={1}
             max={24}
-            value={activeViewState?.columns ?? 1}
+            value={pendingColumns}
             disabled={!activePath}
-            onChange={(event) =>
-              dispatch(
-                updateActiveViewState({ columns: normalizeColumns(Number(event.target.value)) })
-              )
-            }
+            onChange={(event) => setPendingColumns(event.target.value)}
           />
         </label>
+        <button
+          type="button"
+          className={styles.applyButton}
+          disabled={
+            !activePath ||
+            !activeViewState ||
+            normalizeColumns(Number(pendingColumns)) === activeViewState.columns
+          }
+          onClick={() =>
+            dispatch(updateActiveViewState({ columns: normalizeColumns(Number(pendingColumns)) }))
+          }
+        >
+          Apply
+        </button>
         <button
           type="button"
           className={`${styles.iconButton} material-icons-round`}

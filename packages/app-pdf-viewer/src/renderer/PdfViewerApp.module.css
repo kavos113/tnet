@@ -57,7 +57,26 @@
   cursor: pointer;
 }
 
+.applyButton {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #2f363d;
+  cursor: pointer;
+}
+
+.applyButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
 .iconButton:hover {
+  background: #eef2f7;
+}
+
+.applyButton:not(:disabled):hover {
   background: #eef2f7;
 }
 

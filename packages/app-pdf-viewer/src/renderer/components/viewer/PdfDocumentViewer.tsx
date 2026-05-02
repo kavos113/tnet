@@ -10,6 +10,7 @@ import type { PdfDocumentViewState } from '@tnet/app-pdf-viewer/shared/pdfViewer
 import { pdfViewerTnetApi } from '../../pdfViewerTnetApi';
 import { PdfPageCanvas } from './PdfPageCanvas';
 import { pdfJsAssetUrls } from './pdfJsAssets';
+import { PdfViewerCMapReaderFactory, PdfViewerStandardFontDataFactory } from './pdfJsFactories';
 import { groupPdfPages } from './pdfViewerLayout';
 import styles from './PdfDocumentViewer.module.css';
 
@@ -74,8 +75,12 @@ export const PdfDocumentViewer = ({
         if (canceled) return;
         loadingTaskRef.current = getDocument({
           data: new Uint8Array(bytes),
+          CMapReaderFactory: PdfViewerCMapReaderFactory,
+          StandardFontDataFactory: PdfViewerStandardFontDataFactory,
           cMapPacked: true,
+          disableFontFace: false,
           useSystemFonts: true,
+          useWorkerFetch: false,
           ...pdfJsAssetUrls()
         });
         loadedDocument = await loadingTaskRef.current.promise;

@@ -39,4 +39,47 @@ describe('PdfViewerApp', () => {
     expect(store.getState().pdfViewer.tabs).toEqual(['first.pdf']);
     expect(store.getState().pdfViewer.activeIndex).toBe(0);
   });
+
+  it('applies column changes only after Apply is clicked', () => {
+    const store = createStore();
+    store.dispatch(setWorkspace({ rootPath: '/workspace', fileTree: [] }));
+    store.dispatch(openPdf({ path: 'paper.pdf' }));
+
+    render(
+      <Provider store={store}>
+        <PdfViewerApp />
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'PDF columns' }), {
+      target: { value: '4' }
+    });
+
+    expect(store.getState().pdfViewer.viewStateByPath['paper.pdf'].columns).toBe(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    expect(store.getState().pdfViewer.viewStateByPath['paper.pdf'].columns).toBe(4);
+  });
+
+  it('changes columns with Ctrl+7 and Ctrl+8 shortcuts', () => {
+    const store = createStore();
+    store.dispatch(setWorkspace({ rootPath: '/workspace', fileTree: [] }));
+    store.dispatch(openPdf({ path: 'paper.pdf', viewState: { columns: 2 } }));
+
+    render(
+      <Provider store={store}>
+        <PdfViewerApp />
+      </Provider>
+    );
+
+    const viewer = screen.getByTestId('pdf-document-viewer');
+    fireEvent.keyDown(viewer, { key: '7', ctrlKey: true });
+
+    expect(store.getState().pdfViewer.viewStateByPath['paper.pdf'].columns).toBe(1);
+
+    fireEvent.keyDown(viewer, { key: '8', ctrlKey: true });
+
+    expect(store.getState().pdfViewer.viewStateByPath['paper.pdf'].columns).toBe(2);
+  });
 });

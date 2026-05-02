@@ -106,10 +106,15 @@ export default defineConfig({
       react(),
       viteStaticCopy({
         targets: [
-          { src: normalizePath(join(pdfjsDistDir, 'cmaps', '*')), dest: 'pdfjs/cmaps' },
+          {
+            src: normalizePath(join(pdfjsDistDir, 'cmaps', '*')),
+            dest: 'pdfjs/cmaps',
+            rename: { stripBase: true }
+          },
           {
             src: normalizePath(join(pdfjsDistDir, 'standard_fonts', '*')),
-            dest: 'pdfjs/standard_fonts'
+            dest: 'pdfjs/standard_fonts',
+            rename: { stripBase: true }
           }
         ]
       }),

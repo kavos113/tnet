@@ -51,8 +51,8 @@ export const PdfPageCanvas = ({
         const context = canvas.getContext('2d');
         if (!context) throw new Error('Canvas 2D context is not available.');
 
-        canvas.width = Math.floor(viewport.width * pixelRatio);
-        canvas.height = Math.floor(viewport.height * pixelRatio);
+        canvas.width = Math.ceil(viewport.width * pixelRatio);
+        canvas.height = Math.ceil(viewport.height * pixelRatio);
         canvas.style.width = `${viewport.width}px`;
         canvas.style.height = `${viewport.height}px`;
 
