@@ -154,7 +154,12 @@ export const tnetApi: DesktopTnetApi = {
       translatePdf: (request) => ipcRenderer.invoke(papersIpcChannels.ai.translatePdf, request),
       translateText: (request) => ipcRenderer.invoke(papersIpcChannels.ai.translateText, request),
       summarizePdf: (request) => ipcRenderer.invoke(papersIpcChannels.ai.summarizePdf, request),
-      summarizeText: (request) => ipcRenderer.invoke(papersIpcChannels.ai.summarizeText, request)
+      summarizeText: (request) => ipcRenderer.invoke(papersIpcChannels.ai.summarizeText, request),
+      onStreamEvent: (listener) => {
+        const handler = (_event, streamEvent): void => listener(streamEvent);
+        ipcRenderer.on(papersIpcChannels.ai.streamEvent, handler);
+        return () => ipcRenderer.off(papersIpcChannels.ai.streamEvent, handler);
+      }
     }
   },
   requester: {

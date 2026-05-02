@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import {
   defaultPapersGlobalSettings,
   type PapersGlobalSettings
@@ -7,6 +8,8 @@ import { papersIpcChannels } from '@tnet/app-papers/shared/ipc';
 import { openPdfExternal, selectPdfForImport } from './papersFileService';
 import { createPaperAiService } from './papersAiService';
 import type { PapersServerClient } from './serverClient/papersServerClient';
+
+type PaperAiHandlerRequest = Parameters<ReturnType<typeof createPaperAiService>['run']>[0];
 
 export const registerPapersDataIpc = (
   serverClient: PapersServerClient,
@@ -73,16 +76,52 @@ export const registerPapersDataIpc = (
     openPdfExternal(request.libraryRoot, request.pdfPath)
   );
 
-  ipcMain.handle(papersIpcChannels.ai.translatePdf, async (_event, request) =>
-    aiService.run({ ...request, operation: 'translate', inputMode: 'pdf-direct' })
+  const runAi = async (
+    event: IpcMainInvokeEvent,
+    request: PaperAiHandlerRequest
+  ): Promise<Awaited<ReturnType<typeof aiService.run>>> => {
+    const streamRequestId = request.streamRequestId;
+    try {
+      const output = await aiService.run(request, {
+        onDelta: streamRequestId
+          ? (delta) =>
+              event.sender.send(papersIpcChannels.ai.streamEvent, {
+                requestId: streamRequestId,
+                type: 'delta',
+                delta
+              })
+          : undefined
+      });
+      if (streamRequestId) {
+        event.sender.send(papersIpcChannels.ai.streamEvent, {
+          requestId: streamRequestId,
+          type: 'done',
+          content: output.content
+        });
+      }
+      return output;
+    } catch (error) {
+      if (streamRequestId) {
+        event.sender.send(papersIpcChannels.ai.streamEvent, {
+          requestId: streamRequestId,
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Failed to generate paper AI output.'
+        });
+      }
+      throw error;
+    }
+  };
+
+  ipcMain.handle(papersIpcChannels.ai.translatePdf, async (event, request) =>
+    runAi(event, { ...request, operation: 'translate', inputMode: 'pdf-direct' })
   );
-  ipcMain.handle(papersIpcChannels.ai.translateText, async (_event, request) =>
-    aiService.run({ ...request, operation: 'translate', inputMode: 'text' })
+  ipcMain.handle(papersIpcChannels.ai.translateText, async (event, request) =>
+    runAi(event, { ...request, operation: 'translate', inputMode: 'text' })
   );
-  ipcMain.handle(papersIpcChannels.ai.summarizePdf, async (_event, request) =>
-    aiService.run({ ...request, operation: 'summary', inputMode: 'pdf-direct' })
+  ipcMain.handle(papersIpcChannels.ai.summarizePdf, async (event, request) =>
+    runAi(event, { ...request, operation: 'summary', inputMode: 'pdf-direct' })
   );
-  ipcMain.handle(papersIpcChannels.ai.summarizeText, async (_event, request) =>
-    aiService.run({ ...request, operation: 'summary', inputMode: 'text' })
+  ipcMain.handle(papersIpcChannels.ai.summarizeText, async (event, request) =>
+    runAi(event, { ...request, operation: 'summary', inputMode: 'text' })
   );
 };

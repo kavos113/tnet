@@ -192,4 +192,31 @@ describe('PaperDetailPane', () => {
     expect(onSaveNote).toHaveBeenCalledWith('# Updated note');
     vi.useRealTimers();
   });
+
+  it('toggles note view between split PDF and full panel', () => {
+    render(
+      <PaperDetailPane
+        activeLibraryRoot="/papers/library"
+        selectedPaperId="paper-1"
+        detail={detail}
+        tags={[]}
+        activeDetailTab="note"
+        isLoading={false}
+        widthPercent={60}
+        noteSettings={{ ...noteSettings, noteEditorMode: 'editor' }}
+        onNoteSettingsChange={vi.fn()}
+        onSelectTab={vi.fn()}
+        onCreateTag={vi.fn()}
+        onAttachTag={vi.fn()}
+        onDetachTag={vi.fn()}
+        onSaveNote={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Full panel' }));
+    expect(screen.queryByTestId('pdf-viewer')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Split PDF' }));
+    expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument();
+  });
 });

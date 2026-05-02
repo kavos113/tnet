@@ -7,8 +7,17 @@ import type { PaperAiOutput } from '@tnet/app-papers/shared/paperTypes';
 import type { PapersServerClient } from './serverClient/papersServerClient';
 
 export interface PaperAiService {
-  run: (request: PaperAiRequest) => Promise<PaperAiOutput>;
+  run: (request: PaperAiRequest, options?: PaperAiRunOptions) => Promise<PaperAiOutput>;
 }
+
+export interface PaperAiRunOptions {
+  onDelta?: (delta: string) => void;
+}
+
+type OpenAiTextDeltaEvent = {
+  type: string;
+  delta?: string;
+};
 
 export const createPaperAiService = ({
   serverClient,
@@ -17,7 +26,7 @@ export const createPaperAiService = ({
   serverClient: PapersServerClient;
   settingsLoader: () => Promise<PapersGlobalSettings>;
 }): PaperAiService => ({
-  run: async (request) => {
+  run: async (request, options) => {
     const settings = await settingsLoader();
     const pdfBytes = await serverClient.loadPdfBytes({
       libraryRoot: request.libraryRoot,
@@ -25,8 +34,8 @@ export const createPaperAiService = ({
     });
     const content =
       request.inputMode === 'pdf-direct'
-        ? await runPdfDirect(request, settings, pdfBytes)
-        : await runTextBased(request, settings, pdfBytes);
+        ? await runPdfDirect(request, settings, pdfBytes, options?.onDelta)
+        : await runTextBased(request, settings, pdfBytes, options?.onDelta);
     return serverClient.savePaperAiOutput({
       libraryRoot: request.libraryRoot,
       output: {
@@ -46,9 +55,10 @@ export const createPaperAiService = ({
 const runPdfDirect = async (
   request: PaperAiRequest,
   settings: PapersGlobalSettings,
-  pdfBytes: ArrayBuffer
+  pdfBytes: ArrayBuffer,
+  onDelta?: (delta: string) => void
 ): Promise<string> => {
-  if (settings.aiProvider === 'mock') return mockPaperAiResponse(request);
+  if (settings.aiProvider === 'mock') return mockPaperAiResponse(request, '', onDelta);
   const prompt = buildPaperAiPrompt(request);
   const base64Pdf = Buffer.from(pdfBytes).toString('base64');
   if (settings.aiProvider === 'openai-sdk') {
@@ -58,6 +68,31 @@ const runPdfDirect = async (
       maxRetries: 0,
       timeout: settings.aiTimeoutMs
     });
+    if (onDelta) {
+      return streamOpenAiResponse(
+        client,
+        {
+          model: settings.aiModel,
+          instructions: paperAiInstructions,
+          input: [
+            {
+              role: 'user',
+              content: [
+                { type: 'input_text', text: prompt },
+                {
+                  type: 'input_file',
+                  filename: 'paper.pdf',
+                  file_data: `data:application/pdf;base64,${base64Pdf}`
+                }
+              ]
+            }
+          ],
+          max_output_tokens: settings.aiMaxOutputTokens,
+          stream: true
+        },
+        onDelta
+      );
+    }
     const response = await client.responses.create({
       model: settings.aiModel,
       instructions: paperAiInstructions,
@@ -86,6 +121,20 @@ const runPdfDirect = async (
         timeout: settings.aiTimeoutMs
       }
     });
+    if (onDelta) {
+      return streamGeminiContent(
+        ai,
+        {
+          model: settings.aiModel,
+          contents: [prompt, createPartFromBase64(base64Pdf, 'application/pdf')],
+          config: {
+            systemInstruction: paperAiInstructions,
+            maxOutputTokens: settings.aiMaxOutputTokens
+          }
+        },
+        onDelta
+      );
+    }
     const response = await ai.models.generateContent({
       model: settings.aiModel,
       contents: [prompt, createPartFromBase64(base64Pdf, 'application/pdf')],
@@ -102,15 +151,20 @@ const runPdfDirect = async (
 const runTextBased = async (
   request: PaperAiRequest,
   settings: PapersGlobalSettings,
-  pdfBytes: ArrayBuffer
+  pdfBytes: ArrayBuffer,
+  onDelta?: (delta: string) => void
 ): Promise<string> => {
   const text = await extractPdfText(pdfBytes);
-  if (settings.aiProvider === 'mock') return mockPaperAiResponse(request, text);
+  if (settings.aiProvider === 'mock') return mockPaperAiResponse(request, text, onDelta);
   const chunks = chunkText(text, settings.aiTextChunkChars);
   const partials: string[] = [];
   for (const [index, chunk] of chunks.entries()) {
-    partials.push(await runTextPrompt(request, settings, chunk, chunks.length, index + 1));
+    partials.push(
+      await runTextPrompt(request, settings, chunk, chunks.length, index + 1, undefined, onDelta)
+    );
+    if (onDelta && index < chunks.length - 1) onDelta('\n\n');
   }
+  if (onDelta) return partials.join('\n\n');
   if (partials.length === 1) return partials[0];
   return runTextPrompt(
     request,
@@ -128,7 +182,8 @@ const runTextPrompt = async (
   text: string,
   totalChunks: number,
   chunkIndex: number,
-  overrideInstruction?: string
+  overrideInstruction?: string,
+  onDelta?: (delta: string) => void
 ): Promise<string> => {
   const prompt = [
     overrideInstruction ?? buildPaperAiPrompt(request),
@@ -144,6 +199,19 @@ const runTextPrompt = async (
       maxRetries: 0,
       timeout: settings.aiTimeoutMs
     });
+    if (onDelta) {
+      return streamOpenAiResponse(
+        client,
+        {
+          model: settings.aiModel,
+          instructions: paperAiInstructions,
+          input: prompt,
+          max_output_tokens: settings.aiMaxOutputTokens,
+          stream: true
+        },
+        onDelta
+      );
+    }
     const response = await client.responses.create({
       model: settings.aiModel,
       instructions: paperAiInstructions,
@@ -160,6 +228,20 @@ const runTextPrompt = async (
         timeout: settings.aiTimeoutMs
       }
     });
+    if (onDelta) {
+      return streamGeminiContent(
+        ai,
+        {
+          model: settings.aiModel,
+          contents: prompt,
+          config: {
+            systemInstruction: paperAiInstructions,
+            maxOutputTokens: settings.aiMaxOutputTokens
+          }
+        },
+        onDelta
+      );
+    }
     const response = await ai.models.generateContent({
       model: settings.aiModel,
       contents: prompt,
@@ -171,6 +253,41 @@ const runTextPrompt = async (
     return (response.text ?? '').trim();
   }
   throw new Error(`Unsupported paper AI provider: ${settings.aiProvider}`);
+};
+
+const streamOpenAiResponse = async (
+  client: OpenAI,
+  params: Parameters<typeof client.responses.create>[0],
+  onDelta: (delta: string) => void
+): Promise<string> => {
+  const stream = (await client.responses.create(
+    params
+  )) as unknown as AsyncIterable<OpenAiTextDeltaEvent>;
+  let content = '';
+  for await (const event of stream) {
+    if (event.type !== 'response.output_text.delta') continue;
+    const delta = event.delta;
+    if (!delta) continue;
+    content += delta;
+    onDelta(delta);
+  }
+  return content.trim();
+};
+
+const streamGeminiContent = async (
+  ai: GoogleGenAI,
+  params: Parameters<typeof ai.models.generateContentStream>[0],
+  onDelta: (delta: string) => void
+): Promise<string> => {
+  const stream = await ai.models.generateContentStream(params);
+  let content = '';
+  for await (const response of stream) {
+    const delta = response.text ?? '';
+    if (!delta) continue;
+    content += delta;
+    onDelta(delta);
+  }
+  return content.trim();
 };
 
 export const extractPdfText = async (pdfBytes: ArrayBuffer): Promise<string> => {
@@ -214,10 +331,17 @@ const chunkText = (text: string, chunkChars: number): string[] => {
   return chunks.length > 0 ? chunks : [''];
 };
 
-const mockPaperAiResponse = (request: PaperAiRequest, text = ''): string =>
-  `Mock ${request.operation} (${request.inputMode}) for ${request.targetLanguage || 'Japanese'}.${
-    text ? `\n\n${text.slice(0, 200)}` : ''
-  }`;
+const mockPaperAiResponse = (
+  request: PaperAiRequest,
+  text = '',
+  onDelta?: (delta: string) => void
+): string => {
+  const content = `Mock ${request.operation} (${request.inputMode}) for ${
+    request.targetLanguage || 'Japanese'
+  }.${text ? `\n\n${text.slice(0, 200)}` : ''}`;
+  onDelta?.(content);
+  return content;
+};
 
 const requirePdfPath = (pdfPath?: string): string => {
   if (!pdfPath) throw new Error('PDF path is required.');

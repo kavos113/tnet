@@ -62,7 +62,8 @@ export const papersTnetApi: PapersTnetApi = {
       translatePdf: (request) => getPapersApi().papers.ai.translatePdf(request),
       translateText: (request) => getPapersApi().papers.ai.translateText(request),
       summarizePdf: (request) => getPapersApi().papers.ai.summarizePdf(request),
-      summarizeText: (request) => getPapersApi().papers.ai.summarizeText(request)
+      summarizeText: (request) => getPapersApi().papers.ai.summarizeText(request),
+      onStreamEvent: (listener) => getPapersApi().papers.ai.onStreamEvent(listener)
     }
   }
 };

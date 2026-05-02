@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   PaperAiInputMode,
   PaperAiOperation,
@@ -29,7 +29,9 @@ export const PaperAiPanel = ({
   const [inputMode, setInputMode] = useState<PaperAiInputMode>('pdf-direct');
   const [targetLanguage, setTargetLanguage] = useState(defaultTargetLanguage || 'Japanese');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [streamedContent, setStreamedContent] = useState('');
   const [error, setError] = useState('');
+  const streamRequestIdRef = useRef('');
   const selectedOutput = useMemo(
     () =>
       outputs.find(
@@ -42,11 +44,31 @@ export const PaperAiPanel = ({
   );
   const title = operation === 'translate' ? 'Translate' : 'Summary';
   const canGenerate = Boolean(libraryRoot && paperId && pdfPath && targetLanguage.trim());
+  const visibleContent = isGenerating
+    ? streamedContent || 'Waiting for the first chunk...'
+    : (selectedOutput?.content ?? 'Generate a result to display it here.');
+
+  useEffect(
+    () =>
+      papersTnetApi.papers.ai.onStreamEvent((streamEvent) => {
+        if (streamEvent.requestId !== streamRequestIdRef.current) return;
+        if (streamEvent.type === 'delta') {
+          setStreamedContent((current) => `${current}${streamEvent.delta ?? ''}`);
+        }
+        if (streamEvent.type === 'error') {
+          setError(streamEvent.message ?? `Failed to generate ${title.toLowerCase()}.`);
+        }
+      }),
+    [title]
+  );
 
   const generate = async (): Promise<void> => {
     if (!canGenerate) return;
     setIsGenerating(true);
+    setStreamedContent('');
     setError('');
+    const streamRequestId = createStreamRequestId();
+    streamRequestIdRef.current = streamRequestId;
     try {
       const request = {
         libraryRoot,
@@ -54,7 +76,8 @@ export const PaperAiPanel = ({
         pdfPath,
         targetLanguage,
         operation,
-        inputMode
+        inputMode,
+        streamRequestId
       };
       const output =
         operation === 'translate'
@@ -65,11 +88,13 @@ export const PaperAiPanel = ({
             ? await papersTnetApi.papers.ai.summarizePdf(request)
             : await papersTnetApi.papers.ai.summarizeText(request);
       onGenerated(output);
+      setStreamedContent(output.content);
     } catch (generateError) {
       console.error(`Failed to generate paper ${operation}`, generateError);
       setError(`Failed to generate ${title.toLowerCase()}.`);
     } finally {
       setIsGenerating(false);
+      streamRequestIdRef.current = '';
     }
   };
 
@@ -122,7 +147,9 @@ export const PaperAiPanel = ({
       </div>
       <div className={styles.meta} aria-live="polite">
         {isGenerating
-          ? 'Generating...'
+          ? streamedContent
+            ? 'Generating...'
+            : 'Starting generation...'
           : selectedOutput
             ? `${selectedOutput.provider} / ${selectedOutput.model} / ${selectedOutput.updatedAt}`
             : pdfPath
@@ -130,9 +157,10 @@ export const PaperAiPanel = ({
               : 'No PDF registered.'}
       </div>
       {error ? <div className={styles.error}>{error}</div> : null}
-      <div className={styles.content}>
-        {selectedOutput?.content ?? 'Generate a result to display it here.'}
-      </div>
+      <div className={styles.content}>{visibleContent}</div>
     </section>
   );
 };
+
+const createStreamRequestId = (): string =>
+  globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;

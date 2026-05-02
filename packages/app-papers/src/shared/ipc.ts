@@ -62,6 +62,15 @@ export interface PaperAiRequest {
   targetLanguage: string;
   operation: PaperAiOperation;
   inputMode: PaperAiInputMode;
+  streamRequestId?: string;
+}
+
+export interface PaperAiStreamEvent {
+  requestId: string;
+  type: 'delta' | 'done' | 'error';
+  delta?: string;
+  content?: string;
+  message?: string;
 }
 
 export const papersIpcChannels = {
@@ -98,7 +107,8 @@ export const papersIpcChannels = {
     translatePdf: 'papers:ai:translatePdf',
     translateText: 'papers:ai:translateText',
     summarizePdf: 'papers:ai:summarizePdf',
-    summarizeText: 'papers:ai:summarizeText'
+    summarizeText: 'papers:ai:summarizeText',
+    streamEvent: 'papers:ai:streamEvent'
   }
 } as const;
 
@@ -156,6 +166,7 @@ export interface PapersApi {
       translateText: (request: PaperAiRequest) => Promise<PaperAiOutput>;
       summarizePdf: (request: PaperAiRequest) => Promise<PaperAiOutput>;
       summarizeText: (request: PaperAiRequest) => Promise<PaperAiOutput>;
+      onStreamEvent: (listener: (event: PaperAiStreamEvent) => void) => () => void;
     };
   };
 }
