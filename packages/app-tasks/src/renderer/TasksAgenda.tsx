@@ -16,6 +16,8 @@ export interface TasksAgendaProps {
   onComplete: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
+  onEventOpen: (event: LocalEvent | CalendarEventOccurrence) => void;
+  onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
 }
 
 export const TasksAgenda = ({
@@ -27,7 +29,9 @@ export const TasksAgenda = ({
   upcomingDeadlines,
   onComplete,
   onDelete,
-  onEdit
+  onEdit,
+  onEventOpen,
+  onReadOnlyTaskOpen
 }: TasksAgendaProps): React.JSX.Element => (
   <div className={styles.column}>
     <TaskSection
@@ -37,15 +41,21 @@ export const TasksAgenda = ({
       onComplete={onComplete}
       onDelete={onDelete}
       onEdit={onEdit}
+      onReadOnlyTaskOpen={onReadOnlyTaskOpen}
     />
-    <EventSection title="Today Events" events={todayEvents} />
-    <DeadlineSection title="Upcoming Deadlines" items={upcomingDeadlines} />
+    <EventSection title="Today Events" events={todayEvents} onEventOpen={onEventOpen} />
+    <DeadlineSection
+      title="Upcoming Deadlines"
+      items={upcomingDeadlines}
+      onReadOnlyTaskOpen={onReadOnlyTaskOpen}
+    />
     <TaskSection
       title="No Deadline"
       tasks={undatedTasks}
       onComplete={onComplete}
       onDelete={onDelete}
       onEdit={onEdit}
+      onReadOnlyTaskOpen={onReadOnlyTaskOpen}
     />
     <TaskSection
       title="Completed Tasks"
@@ -53,6 +63,7 @@ export const TasksAgenda = ({
       onComplete={onComplete}
       onDelete={onDelete}
       onEdit={onEdit}
+      onReadOnlyTaskOpen={onReadOnlyTaskOpen}
     />
   </div>
 );
@@ -63,7 +74,8 @@ const TaskSection = ({
   readOnlyTasks = [],
   onComplete,
   onDelete,
-  onEdit
+  onEdit,
+  onReadOnlyTaskOpen
 }: {
   title: string;
   tasks: TaskItem[];
@@ -71,6 +83,7 @@ const TaskSection = ({
   onComplete: (taskId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
+  onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
 }): React.JSX.Element => (
   <section className={styles.section} aria-label={title}>
     <SectionHeader count={tasks.length + readOnlyTasks.length} title={title} />
@@ -86,7 +99,7 @@ const TaskSection = ({
           />
         ))}
         {readOnlyTasks.map((task) => (
-          <ReadOnlyTaskRow key={task.id} task={task} />
+          <ReadOnlyTaskRow key={task.id} task={task} onOpen={onReadOnlyTaskOpen} />
         ))}
       </ul>
     ) : (
@@ -95,21 +108,31 @@ const TaskSection = ({
   </section>
 );
 
-const ReadOnlyTaskRow = ({ task }: { task: SubscribedTaskOccurrence }): React.JSX.Element => (
+const ReadOnlyTaskRow = ({
+  task,
+  onOpen
+}: {
+  task: SubscribedTaskOccurrence;
+  onOpen: (task: SubscribedTaskOccurrence) => void;
+}): React.JSX.Element => (
   <li className={`${styles.item} ${styles.readOnlyItem}`}>
-    <div className={styles.body}>
-      <span className={styles.title}>{task.title}</span>
-      <span className={styles.meta}>{formatSubscribedTaskDeadline(task)} read-only</span>
-    </div>
+    <button type="button" className={styles.rowButton} onClick={() => onOpen(task)}>
+      <div className={styles.body}>
+        <span className={styles.title}>{task.title}</span>
+        <span className={styles.meta}>{formatSubscribedTaskDeadline(task)} read-only</span>
+      </div>
+    </button>
   </li>
 );
 
 const EventSection = ({
   title,
-  events
+  events,
+  onEventOpen
 }: {
   title: string;
   events: Array<LocalEvent | CalendarEventOccurrence>;
+  onEventOpen: (event: LocalEvent | CalendarEventOccurrence) => void;
 }): React.JSX.Element => (
   <section className={styles.section} aria-label={title}>
     <SectionHeader count={events.length} title={title} />
@@ -117,15 +140,17 @@ const EventSection = ({
       <ul className={styles.list}>
         {events.map((event) => (
           <li key={event.id} className={`${styles.item} ${styles.readOnlyItem}`}>
-            <div className={styles.body}>
-              <span className={styles.title}>{event.title}</span>
-              <span className={styles.meta}>
-                {event.allDay
-                  ? 'All day'
-                  : `${event.startsAt.slice(11, 16)}-${event.endsAt.slice(11, 16)}`}
-                {'sourceId' in event ? ' subscribed' : ' local'}
-              </span>
-            </div>
+            <button type="button" className={styles.rowButton} onClick={() => onEventOpen(event)}>
+              <div className={styles.body}>
+                <span className={styles.title}>{event.title}</span>
+                <span className={styles.meta}>
+                  {event.allDay
+                    ? 'All day'
+                    : `${event.startsAt.slice(11, 16)}-${event.endsAt.slice(11, 16)}`}
+                  {'sourceId' in event ? ' subscribed' : ' local'}
+                </span>
+              </div>
+            </button>
           </li>
         ))}
       </ul>
@@ -137,10 +162,12 @@ const EventSection = ({
 
 const DeadlineSection = ({
   title,
-  items
+  items,
+  onReadOnlyTaskOpen
 }: {
   title: string;
   items: Array<TaskItem | SubscribedTaskOccurrence>;
+  onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
 }): React.JSX.Element => (
   <section className={styles.section} aria-label={title}>
     <SectionHeader count={items.length} title={title} />
@@ -148,13 +175,17 @@ const DeadlineSection = ({
       <ul className={styles.list}>
         {items.map((item) => (
           <li key={item.id} className={`${styles.item} ${styles.readOnlyItem}`}>
-            <div className={styles.body}>
-              <span className={styles.title}>{item.title}</span>
-              <span className={styles.meta}>
-                {formatDeadlineItem(item)}
-                {'sourceId' in item ? ' read-only' : ''}
-              </span>
-            </div>
+            {'sourceId' in item ? (
+              <button
+                type="button"
+                className={styles.rowButton}
+                onClick={() => onReadOnlyTaskOpen(item)}
+              >
+                <DeadlineBody item={item} />
+              </button>
+            ) : (
+              <DeadlineBody item={item} />
+            )}
           </li>
         ))}
       </ul>
@@ -162,6 +193,20 @@ const DeadlineSection = ({
       <p className={styles.emptyMessage}>No upcoming deadlines.</p>
     )}
   </section>
+);
+
+const DeadlineBody = ({
+  item
+}: {
+  item: TaskItem | SubscribedTaskOccurrence;
+}): React.JSX.Element => (
+  <div className={styles.body}>
+    <span className={styles.title}>{item.title}</span>
+    <span className={styles.meta}>
+      {formatDeadlineItem(item)}
+      {'sourceId' in item ? ' read-only' : ''}
+    </span>
+  </div>
 );
 
 const SectionHeader = ({ count, title }: { count: number; title: string }): React.JSX.Element => (

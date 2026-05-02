@@ -9,6 +9,7 @@
 }
 
 .secondaryButton {
+  min-width: 86px;
   height: 28px;
   padding: 0 10px;
   color: var(--foreground-muted);

@@ -106,9 +106,11 @@ describe('Tasks repositories', () => {
       name: 'Holidays',
       type: 'ics-url',
       itemKind: 'event',
+      purpose: 'holiday',
       uri: 'https://example.test/calendar.ics',
       color: '#3874d8'
     });
+    expect(source.purpose).toBe('holiday');
     const occurrences: CalendarEventOccurrence[] = [
       {
         id: 'event-1',

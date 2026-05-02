@@ -10,6 +10,7 @@ import type {
   CalendarSource,
   CalendarSourceAuthType,
   CalendarSourceItemKind,
+  CalendarSourcePurpose,
   CalendarSourceType
 } from '@tnet/app-tasks/shared/tasksTypes';
 import { setTasksCalendarSources, setTasksError } from '../tasksSlice';
@@ -22,6 +23,7 @@ interface SourceDraft {
   name: string;
   type: CalendarSourceType;
   itemKind: CalendarSourceItemKind;
+  purpose: CalendarSourcePurpose;
   uri: string;
   color: string;
   enabled: boolean;
@@ -35,6 +37,7 @@ const emptyDraft = (): SourceDraft => ({
   name: '',
   type: 'ics-url',
   itemKind: 'event',
+  purpose: 'calendar',
   uri: '',
   color: '',
   enabled: true,
@@ -61,11 +64,13 @@ export const TasksSourceSettings = (): React.JSX.Element => {
     if (!draft.name.trim()) return;
     const uri = draft.type === 'google-calendar' ? draft.uri.trim() || 'primary' : draft.uri;
     if (!uri.trim()) return;
+    const itemKind = draft.purpose === 'holiday' ? 'event' : draft.itemKind;
     const source = await tasksTnetApi.tasks.calendarSources.save({
       id: draft.id,
       name: draft.name,
       type: draft.type,
-      itemKind: draft.itemKind,
+      itemKind,
+      purpose: draft.purpose,
       uri,
       color: draft.color || undefined,
       enabled: draft.enabled,
@@ -165,6 +170,7 @@ const SourceRow = ({
         {source.type} - {source.uri}
         {' - '}
         {source.itemKind === 'task' ? 'Task calendar' : 'Event calendar'}
+        {source.purpose === 'holiday' ? ' - Holiday source' : ''}
       </span>
       {source.lastSyncError ? <span className={styles.error}>{source.lastSyncError}</span> : null}
     </div>
@@ -215,7 +221,9 @@ const SourceForm = ({
   onSyncAll: () => void;
 }): React.JSX.Element => {
   const update = <Key extends keyof SourceDraft>(key: Key, value: SourceDraft[Key]): void => {
-    onChange({ ...draft, [key]: value });
+    const next = { ...draft, [key]: value };
+    if (key === 'purpose' && value === 'holiday') next.itemKind = 'event';
+    onChange(next);
   };
 
   return (
@@ -242,9 +250,20 @@ const SourceForm = ({
           <select
             value={draft.itemKind}
             onChange={(event) => update('itemKind', event.target.value as CalendarSourceItemKind)}
+            disabled={draft.purpose === 'holiday'}
           >
             <option value="event">Event calendar</option>
             <option value="task">Task calendar</option>
+          </select>
+        </label>
+        <label>
+          Purpose
+          <select
+            value={draft.purpose}
+            onChange={(event) => update('purpose', event.target.value as CalendarSourcePurpose)}
+          >
+            <option value="calendar">Calendar</option>
+            <option value="holiday">Holiday</option>
           </select>
         </label>
         <label>
@@ -322,6 +341,7 @@ const draftFromSource = (source: CalendarSource): SourceDraft => ({
   name: source.name,
   type: source.type,
   itemKind: source.itemKind,
+  purpose: source.purpose,
   uri: source.uri,
   color: source.color ?? '',
   enabled: source.enabled,

@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS calendar_sources (
   name TEXT NOT NULL,
   type TEXT NOT NULL,
   item_kind TEXT NOT NULL DEFAULT 'event',
+  purpose TEXT NOT NULL DEFAULT 'calendar',
   uri TEXT NOT NULL,
   color TEXT,
   enabled INTEGER NOT NULL,
@@ -137,6 +138,7 @@ const ensureCurrentSchema = (database: TasksDatabase): void => {
     'item_kind',
     "item_kind TEXT NOT NULL DEFAULT 'event'"
   );
+  ensureColumn(database, 'calendar_sources', 'purpose', "purpose TEXT NOT NULL DEFAULT 'calendar'");
   ensureColumn(
     database,
     'calendar_sources',

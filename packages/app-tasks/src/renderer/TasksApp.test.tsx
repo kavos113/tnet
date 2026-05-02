@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -154,7 +154,11 @@ describe('TasksApp', () => {
     fireEvent.change(screen.getByLabelText('Task title'), {
       target: { value: 'Inbox item' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.click(
+      within(screen.getByRole('form', { name: 'Quick add' })).getByRole('button', {
+        name: 'Add Task'
+      })
+    );
 
     await waitFor(() =>
       expect(saveTask).toHaveBeenCalledWith(
@@ -177,7 +181,11 @@ describe('TasksApp', () => {
     fireEvent.change(screen.getByLabelText('Category'), {
       target: { value: 'Work' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.click(
+      within(screen.getByRole('form', { name: 'Quick add' })).getByRole('button', {
+        name: 'Add Task'
+      })
+    );
 
     await waitFor(() =>
       expect(saveTask).toHaveBeenLastCalledWith(
@@ -200,7 +208,11 @@ describe('TasksApp', () => {
     fireEvent.change(screen.getByLabelText('Deadline time'), {
       target: { value: '09:30' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.click(
+      within(screen.getByRole('form', { name: 'Quick add' })).getByRole('button', {
+        name: 'Add Task'
+      })
+    );
 
     await waitFor(() =>
       expect(saveTask).toHaveBeenLastCalledWith(
@@ -266,10 +278,12 @@ describe('TasksApp', () => {
 
     await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
     fireEvent.click(await screen.findByLabelText('Edit Write report'));
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    const taskPanel = await screen.findByRole('dialog', { name: 'Task Details' });
+    expect(screen.getByRole('form', { name: 'Quick add' })).toBeInTheDocument();
+    fireEvent.change(within(taskPanel).getByLabelText('Detail task title'), {
       target: { value: 'Write final report' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    fireEvent.click(within(taskPanel).getByRole('button', { name: 'Save Task' }));
 
     await waitFor(() =>
       expect(saveTask).toHaveBeenCalledWith(
@@ -351,12 +365,16 @@ describe('TasksApp', () => {
     );
 
     await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
+    expect(
+      screen.queryByRole('toolbar', { name: 'Calendar date actions' })
+    ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-03' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Add task' }));
-    fireEvent.change(screen.getByLabelText('Task title'), {
+    const quickAddForm = screen.getByRole('form', { name: 'Quick add' });
+    expect(within(quickAddForm).getByLabelText('Deadline date')).toHaveValue('2026-05-03');
+    fireEvent.change(within(quickAddForm).getByLabelText('Task title'), {
       target: { value: 'Plan from calendar' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+    fireEvent.submit(quickAddForm);
 
     await waitFor(() =>
       expect(saveTask).toHaveBeenCalledWith(
@@ -403,6 +421,48 @@ describe('TasksApp', () => {
     );
   });
 
+  it('reloads the visible range when moving the calendar range', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    await waitFor(() =>
+      expect(listOccurrences).toHaveBeenLastCalledWith({
+        startDate: '2026-04-27',
+        endDate: '2026-06-07'
+      })
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next range' }));
+
+    await waitFor(() =>
+      expect(listOccurrences).toHaveBeenLastCalledWith({
+        startDate: '2026-06-01',
+        endDate: '2026-07-12'
+      })
+    );
+    expect(listSubscribedTasks).toHaveBeenLastCalledWith({
+      startDate: '2026-06-01',
+      endDate: '2026-07-12'
+    });
+    expect(listLocalEvents).toHaveBeenLastCalledWith({
+      startDate: '2026-06-01',
+      endDate: '2026-07-12'
+    });
+  });
+
   it('shows subscribed task occurrences as read-only calendar items', async () => {
     listSubscribedTasks.mockResolvedValue([
       {
@@ -446,7 +506,7 @@ describe('TasksApp', () => {
     );
   });
 
-  it('opens subscribed calendar events in a read-only popover', async () => {
+  it('opens subscribed calendar events in a read-only details panel', async () => {
     listOccurrences.mockResolvedValue([
       {
         id: 'occurrence-1',
@@ -480,13 +540,136 @@ describe('TasksApp', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: '11:00 Subscribed meeting' }));
 
-    const popover = await screen.findByRole('complementary', { name: 'Calendar event' });
-    expect(popover).toHaveTextContent('Room A');
-    expect(popover).toHaveTextContent('Read-only event');
+    const panel = await screen.findByRole('dialog', { name: 'Subscribed Event' });
+    expect(panel).toHaveTextContent('Room A');
+    expect(panel).toHaveTextContent('Read-only event');
     expect(screen.getByRole('region', { name: 'Today Events' })).toHaveTextContent(
       'Subscribed meeting'
     );
-    expect(screen.queryByRole('button', { name: 'Save event' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save Event' })).not.toBeInTheDocument();
+  });
+
+  it('closes the details panel with Escape', async () => {
+    listTasks.mockResolvedValue([task()]);
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [task()],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByLabelText('Edit Write report'));
+    expect(await screen.findByRole('dialog', { name: 'Task Details' })).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Task Details' })).not.toBeInTheDocument()
+    );
+  });
+
+  it('switches editable details between task and event fields', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByLabelText('Task title'), {
+      target: { value: 'Convertible item' }
+    });
+    fireEvent.click(screen.getByLabelText('Open task details'));
+
+    let panel = await screen.findByRole('dialog', { name: 'Task Details' });
+    expect(within(panel).getByLabelText('Detail task title')).toHaveValue('Convertible item');
+
+    fireEvent.change(within(panel).getByLabelText('Detail item type'), {
+      target: { value: 'event' }
+    });
+
+    panel = await screen.findByRole('dialog', { name: 'Event Details' });
+    expect(within(panel).getByLabelText('Event title')).toHaveValue('Convertible item');
+    expect(within(panel).getByLabelText('Event date')).toBeInTheDocument();
+
+    fireEvent.change(within(panel).getByLabelText('Detail item type'), {
+      target: { value: 'task' }
+    });
+
+    panel = await screen.findByRole('dialog', { name: 'Task Details' });
+    expect(within(panel).getByLabelText('Detail task title')).toHaveValue('Convertible item');
+    expect(within(panel).getByLabelText('Deadline date')).toBeInTheDocument();
+  });
+
+  it('renders holiday source all-day events as holiday labels', async () => {
+    listOccurrences.mockResolvedValue([
+      {
+        id: 'holiday-1',
+        sourceId: 'holiday-source',
+        uid: 'holiday-uid',
+        title: 'Constitution Day',
+        startsAt: '2026-05-02T00:00:00.000',
+        endsAt: '2026-05-02T23:59:59.999',
+        allDay: true,
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ]);
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        calendarSources: [
+          {
+            id: 'holiday-source',
+            name: 'Holidays',
+            type: 'ics-url',
+            itemKind: 'event',
+            purpose: 'holiday',
+            uri: 'https://example.test/holidays.ics',
+            enabled: true,
+            writeBackEnabled: false,
+            authType: 'none',
+            createdAt: '2026-05-01T00:00:00.000Z',
+            updatedAt: '2026-05-01T00:00:00.000Z'
+          }
+        ],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    const holidayCell = await screen.findByRole('gridcell', {
+      name: 'Calendar day 2026-05-02'
+    });
+    expect(holidayCell.className).toContain('cellHoliday');
+    expect(holidayCell).toHaveTextContent('Constitution Day');
+    expect(screen.queryByRole('button', { name: 'Constitution Day' })).not.toBeInTheDocument();
   });
 
   it('shows upcoming and completed local tasks in the agenda', async () => {
@@ -529,6 +712,44 @@ describe('TasksApp', () => {
     );
   });
 
+  it('limits completed agenda tasks to tasks completed today when configured', async () => {
+    const todayCompleted = task({
+      id: 'task-completed-today',
+      title: 'Finished today',
+      completedAt: '2026-05-02T01:00:00.000Z'
+    });
+    const olderCompleted = task({
+      id: 'task-completed-old',
+      title: 'Finished earlier',
+      completedAt: '2026-05-01T23:00:00.000Z'
+    });
+    listTasks.mockResolvedValue([todayCompleted, olderCompleted]);
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [todayCompleted, olderCompleted],
+        categories: [],
+        settings: {
+          ...defaultTasksGlobalSettings(),
+          completedTaskScope: 'today'
+        }
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
+
+    const completedRegion = screen.getByRole('region', { name: 'Completed Tasks' });
+    expect(completedRegion).toHaveTextContent('Finished today');
+    expect(completedRegion).not.toHaveTextContent('Finished earlier');
+  });
+
   it('creates local events from a calendar day selection', async () => {
     const store = createStore();
     store.dispatch(
@@ -546,14 +767,18 @@ describe('TasksApp', () => {
       </Provider>
     );
 
+    const quickAddForm = screen.getByRole('form', { name: 'Quick add' });
+    fireEvent.change(within(quickAddForm).getByLabelText('Item type'), {
+      target: { value: 'event' }
+    });
     fireEvent.click(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-03' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Add event' }));
-    fireEvent.change(screen.getByLabelText('Event title'), {
+    expect(within(quickAddForm).getByLabelText('Event date')).toHaveValue('2026-05-03');
+    fireEvent.change(within(quickAddForm).getByLabelText('Event title'), {
       target: { value: 'New planning' }
     });
-    fireEvent.change(screen.getByLabelText('Start'), { target: { value: '13:00' } });
-    fireEvent.change(screen.getByLabelText('End'), { target: { value: '14:00' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Create event' }));
+    fireEvent.change(within(quickAddForm).getByLabelText('Start'), { target: { value: '13:00' } });
+    fireEvent.change(within(quickAddForm).getByLabelText('End'), { target: { value: '14:00' } });
+    fireEvent.click(within(quickAddForm).getByRole('button', { name: 'Add Event' }));
 
     await waitFor(() =>
       expect(saveLocalEvent).toHaveBeenCalledWith(
@@ -609,7 +834,7 @@ describe('TasksApp', () => {
     fireEvent.change(screen.getByLabelText('Event title'), {
       target: { value: 'Owned planning updated' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Event' }));
 
     await waitFor(() =>
       expect(saveLocalEvent).toHaveBeenCalledWith(

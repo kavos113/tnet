@@ -107,6 +107,25 @@
   color: var(--color-danger);
 }
 
+.detailsKind {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 12px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detailsKind select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
 @media (max-width: 1040px) {
   .content {
     grid-template-columns: 1fr;

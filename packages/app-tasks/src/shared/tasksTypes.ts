@@ -1,6 +1,7 @@
 export type CalendarSourceType = 'ics-file' | 'ics-url' | 'caldav' | 'google-calendar';
 export type CalendarSourceAuthType = 'none' | 'basic';
 export type CalendarSourceItemKind = 'event' | 'task';
+export type CalendarSourcePurpose = 'calendar' | 'holiday';
 
 export interface TaskItem {
   id: string;
@@ -44,6 +45,7 @@ export interface CalendarSource {
   name: string;
   type: CalendarSourceType;
   itemKind: CalendarSourceItemKind;
+  purpose: CalendarSourcePurpose;
   uri: string;
   color?: string;
   enabled: boolean;
@@ -63,6 +65,7 @@ export interface SaveCalendarSourceInput {
   name: string;
   type: CalendarSourceType;
   itemKind?: CalendarSourceItemKind;
+  purpose?: CalendarSourcePurpose;
   uri: string;
   color?: string;
   enabled?: boolean;

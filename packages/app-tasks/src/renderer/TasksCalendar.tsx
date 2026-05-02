@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import type { CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
 import type { CalendarEventOccurrence, LocalEvent } from '@tnet/app-tasks/shared/tasksTypes';
@@ -12,15 +11,10 @@ export interface TasksCalendarProps {
   startDate: string;
   onDateSelect: (date: string) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
+  onSubscribedEventSelect: (event: CalendarEventOccurrence) => void;
   onMoveRange: (days: number) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
   onToday: () => void;
-}
-
-interface PopoverState {
-  event: CalendarEventOccurrence;
-  x: number;
-  y: number;
 }
 
 export const TasksCalendar = ({
@@ -31,12 +25,12 @@ export const TasksCalendar = ({
   startDate,
   onDateSelect,
   onLocalEventSelect,
+  onSubscribedEventSelect,
   onMoveRange,
   onRescheduleTask,
   onToday
 }: TasksCalendarProps): React.JSX.Element => {
-  const [popover, setPopover] = useState<PopoverState>();
-  const moveSize = items.length > 8 ? 28 : 7;
+  const moveSize = items.length > 8 ? 31 : 7;
 
   return (
     <section className={styles.pane} aria-label="Calendar">
@@ -72,20 +66,12 @@ export const TasksCalendar = ({
             day={day}
             showCurrentTime={showCurrentTime}
             onDateSelect={onDateSelect}
-            onEventSelect={(event, x, y) => setPopover({ event, x, y })}
+            onEventSelect={onSubscribedEventSelect}
             onLocalEventSelect={onLocalEventSelect}
             onRescheduleTask={onRescheduleTask}
           />
         ))}
       </div>
-      {popover ? (
-        <ReadOnlyEventPopover
-          event={popover.event}
-          x={popover.x}
-          y={popover.y}
-          onClose={() => setPopover(undefined)}
-        />
-      ) : null}
     </section>
   );
 };
@@ -103,7 +89,7 @@ const CalendarCell = ({
   day: CalendarDayItems;
   showCurrentTime: boolean;
   onDateSelect: (date: string) => void;
-  onEventSelect: (event: CalendarEventOccurrence, x: number, y: number) => void;
+  onEventSelect: (event: CalendarEventOccurrence) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
 }): React.JSX.Element => {
@@ -139,6 +125,9 @@ const CalendarCell = ({
         <span>{formatShortWeekday(day.date)}</span>
         <span>{Number(day.date.slice(8, 10))}</span>
       </div>
+      {day.holidayNames.length > 0 ? (
+        <div className={styles.holidayNames}>{day.holidayNames.join(', ')}</div>
+      ) : null}
       <div className={styles.items}>
         {day.tasks.map((task) => (
           <button
@@ -182,7 +171,7 @@ const CalendarCell = ({
             title={event.title}
             onClick={(clickEvent) => {
               clickEvent.stopPropagation();
-              onEventSelect(event, clickEvent.clientX, clickEvent.clientY);
+              onEventSelect(event);
             }}
           >
             {event.allDay ? '' : `${event.startsAt.slice(11, 16)} `}
@@ -196,37 +185,6 @@ const CalendarCell = ({
     </div>
   );
 };
-
-const ReadOnlyEventPopover = ({
-  event,
-  x,
-  y,
-  onClose
-}: {
-  event: CalendarEventOccurrence;
-  x: number;
-  y: number;
-  onClose: () => void;
-}): React.JSX.Element => (
-  <aside
-    className={styles.popover}
-    style={{
-      left: Math.max(8, Math.min(x, window.innerWidth - 340)),
-      top: Math.max(8, Math.min(y, window.innerHeight - 220))
-    }}
-    aria-label="Calendar event"
-  >
-    <h3>{event.title}</h3>
-    <p className={styles.popoverMeta}>
-      {event.startsAt} - {event.endsAt}
-    </p>
-    {event.location ? <p>{event.location}</p> : null}
-    {event.description ? <p>{event.description}</p> : null}
-    <button type="button" className={styles.navButton} onClick={onClose}>
-      Close
-    </button>
-  </aside>
-);
 
 const formatCalendarTitle = (startDate: string, endDate: string): string =>
   startDate === endDate ? startDate : `${startDate} - ${endDate}`;

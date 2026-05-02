@@ -11,13 +11,13 @@ export const CalendarDateActions = ({
   onAddEvent,
   onAddTask
 }: CalendarDateActionsProps): React.JSX.Element => (
-  <div className={styles.bar} aria-label="Calendar date actions">
+  <div className={styles.bar} role="toolbar" aria-label="Calendar date actions">
     <span>{date}</span>
     <button type="button" className={styles.secondaryButton} onClick={onAddTask}>
-      Add task
+      Add Task
     </button>
     <button type="button" className={styles.secondaryButton} onClick={onAddEvent}>
-      Add event
+      Add Event
     </button>
   </div>
 );

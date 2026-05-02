@@ -28,6 +28,7 @@ const source = (overrides: Partial<CalendarSource> = {}): CalendarSource => ({
   name: 'Work',
   type: 'ics-url',
   itemKind: 'event',
+  purpose: 'calendar',
   uri: 'https://calendar.example/work.ics',
   enabled: true,
   writeBackEnabled: false,
@@ -66,6 +67,7 @@ describe('TasksSourceSettings', () => {
         name: request.name,
         type: request.type,
         itemKind: request.itemKind ?? 'event',
+        purpose: request.purpose ?? 'calendar',
         uri: request.uri,
         authType: request.authType ?? 'none',
         username: request.username,
@@ -93,7 +95,8 @@ describe('TasksSourceSettings', () => {
         source({
           id: 'source-saved',
           name: 'Private',
-          itemKind: 'task',
+          itemKind: 'event',
+          purpose: 'holiday',
           authType: 'basic',
           passwordSecretId: 'secret-1'
         })
@@ -119,6 +122,7 @@ describe('TasksSourceSettings', () => {
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'user' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
     fireEvent.change(screen.getByLabelText('Items'), { target: { value: 'task' } });
+    fireEvent.change(screen.getByLabelText('Purpose'), { target: { value: 'holiday' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Subscription' }));
 
     await waitFor(() =>
@@ -126,7 +130,8 @@ describe('TasksSourceSettings', () => {
         expect.objectContaining({
           name: 'Private',
           type: 'ics-url',
-          itemKind: 'task',
+          itemKind: 'event',
+          purpose: 'holiday',
           uri: 'https://calendar.example/private.ics',
           authType: 'basic',
           username: 'user',
@@ -138,7 +143,8 @@ describe('TasksSourceSettings', () => {
     expect(store.getState().tasks.calendarSources).toEqual([
       expect.objectContaining({
         id: 'source-saved',
-        itemKind: 'task',
+        itemKind: 'event',
+        purpose: 'holiday',
         authType: 'basic',
         passwordSecretId: 'secret-1'
       })

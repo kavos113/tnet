@@ -4,7 +4,13 @@ import {
   toLocalDateString
 } from '@tnet/app-tasks/shared/dateHelpers';
 import type { TasksDefaultView } from './config';
-import type { CalendarEventOccurrence, LocalEvent, TaskItem } from './tasksTypes';
+import type {
+  CalendarEventOccurrence,
+  CalendarSource,
+  LocalEvent,
+  SubscribedTaskOccurrence,
+  TaskItem
+} from './tasksTypes';
 
 export interface CalendarDateRange {
   startDate: string;
@@ -23,6 +29,18 @@ export interface CalendarDayItems {
   tasks: TaskItem[];
   localEvents: LocalEvent[];
   events: CalendarEventOccurrence[];
+}
+
+export interface BuildVisibleCalendarItemsInput {
+  dates: string[];
+  currentDate: string;
+  startDate: string;
+  endDate: string;
+  tasks: TaskItem[];
+  subscribedTasks?: SubscribedTaskOccurrence[];
+  localEvents?: LocalEvent[];
+  events: CalendarEventOccurrence[];
+  sources?: CalendarSource[];
 }
 
 export const getVisibleCalendarRange = (
@@ -57,30 +75,82 @@ export const groupVisibleCalendarItems = ({
   currentDate,
   tasks,
   localEvents = [],
-  events
+  events,
+  sources = []
 }: {
   dates: string[];
   currentDate: string;
   tasks: TaskItem[];
   localEvents?: LocalEvent[];
   events: CalendarEventOccurrence[];
-}): CalendarDayItems[] =>
-  dates.map((date) => ({
-    date,
-    holidayNames: [],
-    isHoliday: false,
-    isOutsideCurrentMonth: date.slice(0, 7) !== currentDate.slice(0, 7),
-    isSaturday: getLocalDayOfWeek(date) === 6,
-    isSunday: getLocalDayOfWeek(date) === 0,
-    isWeekend: isWeekendDate(date),
-    tasks: tasks.filter((task) => task.deadlineDate === date),
-    localEvents: localEvents.filter((event) =>
-      doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+  sources?: CalendarSource[];
+}): CalendarDayItems[] => {
+  const holidaySourceIds = new Set(
+    sources.filter((source) => source.purpose === 'holiday').map((source) => source.id)
+  );
+
+  return dates.map((date) => {
+    const holidayEvents = events.filter(
+      (event) =>
+        event.allDay &&
+        holidaySourceIds.has(event.sourceId) &&
+        doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+    );
+    return {
+      date,
+      holidayNames: holidayEvents.map((event) => event.title),
+      isHoliday: holidayEvents.length > 0,
+      isOutsideCurrentMonth: date.slice(0, 7) !== currentDate.slice(0, 7),
+      isSaturday: getLocalDayOfWeek(date) === 6,
+      isSunday: getLocalDayOfWeek(date) === 0,
+      isWeekend: isWeekendDate(date),
+      tasks: tasks.filter((task) => task.deadlineDate === date),
+      localEvents: localEvents.filter((event) =>
+        doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+      ),
+      events: events.filter(
+        (event) =>
+          !holidaySourceIds.has(event.sourceId) &&
+          doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+      )
+    };
+  });
+};
+
+export const buildVisibleCalendarItems = ({
+  dates,
+  currentDate,
+  startDate,
+  endDate,
+  tasks,
+  subscribedTasks = [],
+  localEvents = [],
+  events,
+  sources = []
+}: BuildVisibleCalendarItemsInput): CalendarDayItems[] =>
+  groupVisibleCalendarItems({
+    dates,
+    currentDate,
+    tasks: expandRecurringTasksForRange(
+      [...tasks, ...subscribedTasks.map(subscribedTaskOccurrenceToTaskItem)],
+      startDate,
+      endDate
     ),
-    events: events.filter((event) =>
-      doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
-    )
-  }));
+    localEvents,
+    events,
+    sources
+  });
+
+export const subscribedTaskOccurrenceToTaskItem = (task: SubscribedTaskOccurrence): TaskItem => ({
+  id: `subscribed:${task.id}`,
+  title: task.title,
+  notes: task.description ?? '',
+  deadlineDate: task.deadlineDate,
+  deadlineTime: task.deadlineTime,
+  sourceUrl: task.sourceId,
+  createdAt: task.createdAt,
+  updatedAt: task.updatedAt
+});
 
 export const isWeekendDate = (date: string): boolean => {
   const day = getLocalDayOfWeek(date);

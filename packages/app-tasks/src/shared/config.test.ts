@@ -16,6 +16,7 @@ describe('Tasks config', () => {
           timeFormat: '12h',
           defaultView: 'month',
           clockSize: 'compact',
+          completedTaskScope: 'today',
           syncIntervalMinutes: 15,
           showPortal: false,
           categoryCompletionEnabled: false
@@ -25,6 +26,7 @@ describe('Tasks config', () => {
           timeFormat: '12h',
           defaultView: 'month',
           clockSize: 'compact',
+          completedTaskScope: 'today',
           syncIntervalMinutes: 15,
           showPortal: false,
           categoryCompletionEnabled: false
@@ -37,6 +39,7 @@ describe('Tasks config', () => {
           timeFormat: 'bad',
           defaultView: 'agenda',
           clockSize: 'huge',
+          completedTaskScope: 'week',
           syncIntervalMinutes: -1
         },
         expected: defaultTasksGlobalSettings()

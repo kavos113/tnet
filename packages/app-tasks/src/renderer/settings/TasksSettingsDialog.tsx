@@ -160,6 +160,16 @@ const calendarFields: ReadonlyArray<SettingsFieldConfig<TasksGlobalSettings>> = 
     ]
   },
   {
+    id: 'tasks-completed-task-scope',
+    label: 'Completed tasks',
+    key: 'completedTaskScope',
+    type: 'select',
+    options: [
+      { value: 'today', label: 'Today completed' },
+      { value: 'all', label: 'All completed' }
+    ]
+  },
+  {
     id: 'tasks-show-portal',
     label: 'Show portal shortcuts',
     key: 'showPortal',

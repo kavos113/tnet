@@ -4,6 +4,7 @@ import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 export type TasksDefaultView = 'today' | 'week' | 'month';
 export type TasksTimeFormat = '12h' | '24h';
 export type TasksClockSize = 'compact' | 'large';
+export type TasksCompletedTaskScope = 'today' | 'all';
 export type TasksWeekStartDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface TasksGlobalConfig {
@@ -15,6 +16,7 @@ export interface TasksGlobalSettings {
   timeFormat: TasksTimeFormat;
   defaultView: TasksDefaultView;
   clockSize: TasksClockSize;
+  completedTaskScope: TasksCompletedTaskScope;
   syncIntervalMinutes: number;
   showPortal: boolean;
   categoryCompletionEnabled: boolean;
@@ -27,6 +29,7 @@ export const defaultTasksGlobalSettings = (): TasksGlobalSettings => ({
   timeFormat: '24h',
   defaultView: 'month',
   clockSize: 'large',
+  completedTaskScope: 'all',
   syncIntervalMinutes: 60,
   showPortal: true,
   categoryCompletionEnabled: true
@@ -94,6 +97,10 @@ export const normalizeTasksGlobalSettings = (
       settings.clockSize === 'compact' || settings.clockSize === 'large'
         ? settings.clockSize
         : defaults.clockSize,
+    completedTaskScope:
+      settings.completedTaskScope === 'today' || settings.completedTaskScope === 'all'
+        ? settings.completedTaskScope
+        : defaults.completedTaskScope,
     syncIntervalMinutes:
       Number.isFinite(syncIntervalMinutes) && syncIntervalMinutes > 0
         ? Math.min(1440, Math.max(5, Math.floor(syncIntervalMinutes)))

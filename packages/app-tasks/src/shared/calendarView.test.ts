@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { CalendarEventOccurrence, LocalEvent, TaskItem } from './tasksTypes';
+import type {
+  CalendarEventOccurrence,
+  LocalEvent,
+  SubscribedTaskOccurrence,
+  TaskItem
+} from './tasksTypes';
 import {
+  buildVisibleCalendarItems,
   expandRecurringTasksForRange,
   getOccurrenceCacheRange,
   getVisibleCalendarRange,
@@ -41,6 +47,22 @@ const localEvent = (id: string, startsAt: string, endsAt: string = startsAt): Lo
   allDay: false,
   createdAt: '2026-05-01T00:00:00.000Z',
   updatedAt: '2026-05-01T00:00:00.000Z'
+});
+
+const subscribedTask = (
+  id: string,
+  deadlineDate: string,
+  overrides: Partial<SubscribedTaskOccurrence> = {}
+): SubscribedTaskOccurrence => ({
+  id,
+  sourceId: 'task-source',
+  uid: id,
+  title: id,
+  deadlineDate,
+  allDay: true,
+  createdAt: '2026-05-01T00:00:00.000Z',
+  updatedAt: '2026-05-01T00:00:00.000Z',
+  ...overrides
 });
 
 describe('calendar view helpers', () => {
@@ -90,6 +112,46 @@ describe('calendar view helpers', () => {
     expect(grouped[1].localEvents.map((item) => item.id)).toEqual(['owned-multi']);
     expect(grouped[0].events.map((item) => item.id)).toEqual(['single', 'multi']);
     expect(grouped[1].events.map((item) => item.id)).toEqual(['multi']);
+  });
+
+  it('derives holidays from holiday subscription all-day events', () => {
+    const grouped = groupVisibleCalendarItems({
+      dates: ['2026-05-02'],
+      currentDate: '2026-05-02',
+      tasks: [],
+      sources: [
+        {
+          id: 'holiday-source',
+          name: 'Holidays',
+          type: 'ics-url',
+          itemKind: 'event',
+          purpose: 'holiday',
+          uri: 'https://example.test/holidays.ics',
+          enabled: true,
+          writeBackEnabled: false,
+          authType: 'none',
+          createdAt: '2026-05-01T00:00:00.000Z',
+          updatedAt: '2026-05-01T00:00:00.000Z'
+        }
+      ],
+      events: [
+        {
+          ...event('holiday', '2026-05-02T00:00:00.000', '2026-05-02T23:59:59.999'),
+          sourceId: 'holiday-source',
+          title: 'Constitution Day',
+          allDay: true
+        },
+        event('regular', '2026-05-02T10:00:00.000', '2026-05-02T11:00:00.000')
+      ]
+    });
+
+    expect(grouped[0]).toEqual(
+      expect.objectContaining({
+        holidayNames: ['Constitution Day'],
+        isHoliday: true
+      })
+    );
+    expect(grouped[0].events.map((item) => item.id)).toEqual(['regular']);
   });
 
   it('marks month grid dates outside the current month', () => {
@@ -165,5 +227,28 @@ describe('calendar view helpers', () => {
         '2026-05-04'
       ).map((item) => item.deadlineDate)
     ).toEqual(['2026-05-02', '2026-05-03', '2026-05-04']);
+  });
+
+  it('builds calendar day items from recurring local tasks and subscribed tasks', () => {
+    const grouped = buildVisibleCalendarItems({
+      dates: ['2026-05-02', '2026-05-03'],
+      currentDate: '2026-05-02',
+      startDate: '2026-05-02',
+      endDate: '2026-05-03',
+      tasks: [
+        {
+          ...task('daily', '2026-05-01'),
+          recurrenceRule: 'FREQ=DAILY'
+        }
+      ],
+      subscribedTasks: [subscribedTask('external', '2026-05-03')],
+      events: []
+    });
+
+    expect(grouped[0].tasks.map((item) => item.id)).toEqual(['daily:2026-05-02']);
+    expect(grouped[1].tasks.map((item) => item.id)).toEqual([
+      'daily:2026-05-03',
+      'subscribed:external'
+    ]);
   });
 });

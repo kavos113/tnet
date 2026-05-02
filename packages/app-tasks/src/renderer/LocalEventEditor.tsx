@@ -89,7 +89,7 @@ export const LocalEventEditor = ({
           </button>
         ) : null}
         <button type="button" className={styles.secondaryButton} onClick={onSave}>
-          {draft.id ? 'Save event' : 'Create event'}
+          {draft.id ? 'Save Event' : 'Add Event'}
         </button>
       </div>
     </section>

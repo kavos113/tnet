@@ -1,19 +1,19 @@
-.editor {
+.form {
   display: grid;
   gap: 12px;
 }
 
-.editor label {
+.form label {
   display: grid;
   gap: 5px;
-  min-width: 0;
   color: var(--foreground-muted);
   font-size: 12px;
   font-weight: 600;
 }
 
-.editor input,
-.editor textarea {
+.form input,
+.form select,
+.form textarea {
   width: 100%;
   min-width: 0;
   padding: 8px 9px;
@@ -23,38 +23,46 @@
   border-radius: 4px;
 }
 
-.editor textarea {
+.form textarea {
   min-height: 88px;
   resize: vertical;
 }
 
-.checkboxLabel {
-  display: flex !important;
-  gap: 6px;
-  align-items: center;
-  height: 34px;
-}
-
-.checkboxLabel input {
-  width: 14px;
-  height: 14px;
-  padding: 0;
+.row {
+  display: grid;
+  grid-template-columns: 1fr 112px;
+  gap: 10px;
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 8px;
   padding-top: 6px;
+}
+
+.primaryButton,
+.secondaryButton {
+  height: 34px;
+  padding: 0 14px;
+  cursor: pointer;
+  border: 0;
+  border-radius: 4px;
+}
+
+.primaryButton {
+  min-width: 86px;
+  color: var(--color-text-inverse);
+  background: var(--main-dark);
 }
 
 .secondaryButton {
   min-width: 86px;
-  height: 34px;
-  padding: 0 14px;
   color: var(--foreground);
-  cursor: pointer;
   background: var(--gray);
-  border: 0;
-  border-radius: 4px;
+}
+
+.primaryButton:disabled {
+  cursor: default;
+  opacity: 0.45;
 }

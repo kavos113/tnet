@@ -8,17 +8,22 @@ import {
   toLocalDateString
 } from '@tnet/app-tasks/shared/dateHelpers';
 import {
-  expandRecurringTasksForRange,
-  getVisibleCalendarRange,
-  groupVisibleCalendarItems
+  buildVisibleCalendarItems,
+  getVisibleCalendarRange
 } from '@tnet/app-tasks/shared/calendarView';
-import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
-import { CalendarDateActions } from './CalendarDateActions';
+import type {
+  CalendarEventOccurrence,
+  LocalEvent,
+  SubscribedTaskOccurrence,
+  TaskItem
+} from '@tnet/app-tasks/shared/tasksTypes';
 import { LocalEventEditor } from './LocalEventEditor';
 import { TasksAgenda } from './TasksAgenda';
 import { TasksCalendar } from './TasksCalendar';
+import { TasksDetailsPanel } from './TasksDetailsPanel';
 import { TasksPortal, type TasksPortalShortcut } from './TasksPortal';
-import { TasksQuickAddForm } from './TasksQuickAddForm';
+import { TasksQuickAddForm, type QuickAddKind } from './TasksQuickAddForm';
+import { TaskDetailsForm } from './TaskDetailsForm';
 import {
   emptyLocalEventDraft,
   localEventDraftFromEvent,
@@ -62,6 +67,7 @@ export const TasksApp = ({
 }: TasksAppProps): React.JSX.Element => {
   const dispatch = useTasksDispatch();
   const tasks = useTasksSelector((state) => state.tasks.tasks);
+  const calendarSources = useTasksSelector((state) => state.tasks.calendarSources);
   const calendarOccurrences = useTasksSelector((state) => state.tasks.calendarOccurrences);
   const subscribedTaskOccurrences = useTasksSelector(
     (state) => state.tasks.subscribedTaskOccurrences
@@ -76,7 +82,12 @@ export const TasksApp = ({
   const view = useTasksSelector((state) => state.tasks.view);
   const [clock, setClock] = useState(() => new Date());
   const [draft, setDraft] = useState<TaskDraft>(emptyTaskDraft);
-  const [dateActionDate, setDateActionDate] = useState<string>();
+  const [quickAddKind, setQuickAddKind] = useState<QuickAddKind>('task');
+  const [quickEventDraft, setQuickEventDraft] = useState<LocalEventDraft>(() =>
+    emptyLocalEventDraft(currentDate)
+  );
+  const [detailsPanel, setDetailsPanel] = useState<TasksDetailsPanelState>();
+  const [selectedQuickDate, setSelectedQuickDate] = useState<string>(currentDate);
   const [eventDraft, setEventDraft] = useState<LocalEventDraft>();
   const [calendarTasks, setCalendarTasks] = useState<TaskItem[]>([]);
   const visibleRange = useMemo(
@@ -150,14 +161,19 @@ export const TasksApp = ({
         .filter((task) => !task.completedAt),
     [categoryFilter, tasks]
   );
-  const visibleCompletedTasks = useMemo(
-    () =>
-      tasks
-        .filter((task) => !categoryFilter || task.category === categoryFilter)
-        .filter((task) => task.completedAt)
-        .sort((left, right) => (right.completedAt ?? '').localeCompare(left.completedAt ?? '')),
-    [categoryFilter, tasks]
-  );
+  const visibleCompletedTasks = useMemo(() => {
+    const completedTasks = tasks
+      .filter((task) => !categoryFilter || task.category === categoryFilter)
+      .filter((task) => task.completedAt);
+    const scopedTasks =
+      settings.completedTaskScope === 'today'
+        ? completedTasks.filter((task) => task.completedAt?.slice(0, 10) === currentDate)
+        : completedTasks;
+
+    return scopedTasks.sort((left, right) =>
+      (right.completedAt ?? '').localeCompare(left.completedAt ?? '')
+    );
+  }, [categoryFilter, currentDate, settings.completedTaskScope, tasks]);
   const todayTasks = useMemo(
     () =>
       visibleOpenTasks
@@ -197,19 +213,20 @@ export const TasksApp = ({
   );
   const calendarItems = useMemo(
     () =>
-      groupVisibleCalendarItems({
+      buildVisibleCalendarItems({
         dates: visibleRange.dates,
         currentDate,
-        tasks: expandRecurringTasksForRange(
-          [...calendarTasks, ...subscribedTaskOccurrences.map(subscribedTaskToTaskItem)],
-          visibleRange.startDate,
-          visibleRange.endDate
-        ).sort(compareTaskDeadlines),
+        startDate: visibleRange.startDate,
+        endDate: visibleRange.endDate,
+        tasks: [...calendarTasks].sort(compareTaskDeadlines),
+        subscribedTasks: subscribedTaskOccurrences,
         localEvents,
-        events: calendarOccurrences
+        events: calendarOccurrences,
+        sources: calendarSources
       }),
     [
       calendarOccurrences,
+      calendarSources,
       calendarTasks,
       currentDate,
       localEvents,
@@ -231,7 +248,18 @@ export const TasksApp = ({
     dispatch(upsertTask(task));
     setCalendarTasks((current) => upsertTaskInList(current, task));
     setDraft(emptyTaskDraft());
+    setDetailsPanel(undefined);
     await reloadCategories();
+  };
+
+  const saveQuickAdd = async (): Promise<void> => {
+    if (quickAddKind === 'task') {
+      await saveDraft();
+      return;
+    }
+    if (!quickEventDraft.title.trim()) return;
+    await saveLocalEventDraft(quickEventDraft);
+    setQuickEventDraft(emptyLocalEventDraft(selectedQuickDate));
   };
 
   const completeTask = async (taskId: string, completed: boolean): Promise<void> => {
@@ -244,6 +272,7 @@ export const TasksApp = ({
     await tasksTnetApi.tasks.tasks.remove({ taskId });
     dispatch(removeTask(taskId));
     setCalendarTasks((current) => current.filter((task) => task.id !== taskId));
+    setDetailsPanel(undefined);
     await reloadCategories();
   };
 
@@ -261,13 +290,18 @@ export const TasksApp = ({
 
   const saveEventDraft = async (): Promise<void> => {
     if (!eventDraft?.title.trim()) return;
-    await tasksTnetApi.tasks.localEvents.save(localEventInputFromDraft(eventDraft));
+    await saveLocalEventDraft(eventDraft);
+    setEventDraft(undefined);
+    setDetailsPanel(undefined);
+  };
+
+  const saveLocalEventDraft = async (draft: LocalEventDraft): Promise<void> => {
+    await tasksTnetApi.tasks.localEvents.save(localEventInputFromDraft(draft));
     const refreshed = await tasksTnetApi.tasks.localEvents.list({
       startDate: visibleRange.startDate,
       endDate: visibleRange.endDate
     });
     dispatch(setTasksLocalEvents(refreshed));
-    setEventDraft(undefined);
   };
 
   const deleteLocalEvent = async (eventId: string): Promise<void> => {
@@ -278,6 +312,7 @@ export const TasksApp = ({
     });
     dispatch(setTasksLocalEvents(refreshed));
     setEventDraft(undefined);
+    setDetailsPanel(undefined);
   };
 
   const runAction = (action: () => Promise<void>): void => {
@@ -285,6 +320,12 @@ export const TasksApp = ({
       console.error('Tasks action failed', error);
       dispatch(setTasksError(error instanceof Error ? error.message : String(error)));
     });
+  };
+
+  const setQuickInputDate = (date: string): void => {
+    setSelectedQuickDate(date);
+    setDraft((current) => ({ ...current, deadlineDate: date }));
+    setQuickEventDraft((current) => ({ ...current, date }));
   };
 
   if (!isRestored) {
@@ -321,36 +362,24 @@ export const TasksApp = ({
       </div>
       <TasksQuickAddForm
         categories={categories}
+        eventDraft={quickEventDraft}
         draft={draft}
         isCategoryCompletionEnabled={settings.categoryCompletionEnabled}
+        kind={quickAddKind}
         onCancelEdit={() => setDraft(emptyTaskDraft())}
         onDraftChange={setDraft}
-        onSubmit={() => runAction(saveDraft)}
+        onEventDraftChange={setQuickEventDraft}
+        onKindChange={setQuickAddKind}
+        onOpenDetails={() => {
+          if (quickAddKind === 'task') {
+            setDetailsPanel({ type: 'task' });
+            return;
+          }
+          setEventDraft(quickEventDraft);
+          setDetailsPanel({ type: 'event' });
+        }}
+        onSubmit={() => runAction(saveQuickAdd)}
       />
-      {dateActionDate ? (
-        <CalendarDateActions
-          date={dateActionDate}
-          onAddEvent={() => {
-            setEventDraft(emptyLocalEventDraft(dateActionDate));
-            setDateActionDate(undefined);
-          }}
-          onAddTask={() => {
-            setDraft((current) => ({ ...current, deadlineDate: dateActionDate }));
-            setDateActionDate(undefined);
-          }}
-        />
-      ) : null}
-      {eventDraft ? (
-        <LocalEventEditor
-          draft={eventDraft}
-          onCancel={() => setEventDraft(undefined)}
-          onChange={setEventDraft}
-          onDelete={createEventDeleteHandler(eventDraft.id, (eventId) =>
-            runAction(() => deleteLocalEvent(eventId))
-          )}
-          onSave={() => runAction(saveEventDraft)}
-        />
-      ) : null}
       {error ? <p className={styles.error}>{error}</p> : null}
       <div className={styles.content}>
         <TasksAgenda
@@ -362,7 +391,12 @@ export const TasksApp = ({
           upcomingDeadlines={upcomingDeadlines}
           onComplete={(taskId, completed) => runAction(() => completeTask(taskId, completed))}
           onDelete={(taskId) => runAction(() => deleteTask(taskId))}
-          onEdit={(task) => setDraft(draftFromTask(task))}
+          onEdit={(task) => {
+            setDraft(draftFromTask(task));
+            setDetailsPanel({ type: 'task' });
+          }}
+          onEventOpen={(event) => openEventDetails(event, setEventDraft, setDetailsPanel)}
+          onReadOnlyTaskOpen={(task) => setDetailsPanel({ type: 'subscription-task', task })}
         />
         <TasksCalendar
           currentDate={currentDate}
@@ -370,16 +404,95 @@ export const TasksApp = ({
           items={calendarItems}
           showCurrentTime={view !== 'month'}
           startDate={visibleRange.startDate}
-          onDateSelect={(date) => setDateActionDate(date)}
-          onLocalEventSelect={(event) => setEventDraft(localEventDraftFromEvent(event))}
+          onDateSelect={setQuickInputDate}
+          onLocalEventSelect={(event) => {
+            setEventDraft(localEventDraftFromEvent(event));
+            setDetailsPanel({ type: 'event' });
+          }}
+          onSubscribedEventSelect={(event) =>
+            setDetailsPanel({ type: 'subscription-event', event })
+          }
           onMoveRange={(days) => dispatch(setTasksCurrentDate(addLocalDays(currentDate, days)))}
           onRescheduleTask={(taskId, date) => runAction(() => rescheduleTask(taskId, date))}
           onToday={() => dispatch(setTasksCurrentDate(toLocalDateString()))}
         />
       </div>
+      {detailsPanel ? (
+        <TasksDetailsPanel
+          title={getDetailsPanelTitle(detailsPanel)}
+          readOnlyItem={
+            detailsPanel.type === 'subscription-event' || detailsPanel.type === 'subscription-task'
+              ? detailsPanel
+              : undefined
+          }
+          onClose={() => {
+            setDetailsPanel(undefined);
+            if (detailsPanel.type === 'event') setEventDraft(undefined);
+          }}
+        >
+          {detailsPanel.type === 'task' ? (
+            <>
+              <DetailsKindSelect
+                value="task"
+                onChange={(kind) => {
+                  if (kind === 'event') {
+                    setEventDraft(eventDraftFromTaskDraft(draft, selectedQuickDate));
+                    setDetailsPanel({ type: 'event' });
+                  }
+                }}
+              />
+              <TaskDetailsForm
+                categories={categories}
+                draft={draft}
+                isCategoryCompletionEnabled={settings.categoryCompletionEnabled}
+                onCancel={() => {
+                  setDraft(emptyTaskDraft());
+                  setDetailsPanel(undefined);
+                }}
+                onChange={setDraft}
+                onDelete={
+                  draft.id ? () => runAction(() => deleteTask(draft.id as string)) : undefined
+                }
+                onSave={() => runAction(saveDraft)}
+              />
+            </>
+          ) : null}
+          {detailsPanel.type === 'event' && eventDraft ? (
+            <>
+              <DetailsKindSelect
+                value="event"
+                onChange={(kind) => {
+                  if (kind === 'task') {
+                    setDraft(taskDraftFromEventDraft(eventDraft));
+                    setDetailsPanel({ type: 'task' });
+                  }
+                }}
+              />
+              <LocalEventEditor
+                draft={eventDraft}
+                onCancel={() => {
+                  setEventDraft(undefined);
+                  setDetailsPanel(undefined);
+                }}
+                onChange={setEventDraft}
+                onDelete={createEventDeleteHandler(eventDraft.id, (eventId) =>
+                  runAction(() => deleteLocalEvent(eventId))
+                )}
+                onSave={() => runAction(saveEventDraft)}
+              />
+            </>
+          ) : null}
+        </TasksDetailsPanel>
+      ) : null}
     </main>
   );
 };
+
+type TasksDetailsPanelState =
+  | { type: 'task' }
+  | { type: 'event' }
+  | { type: 'subscription-event'; event: CalendarEventOccurrence }
+  | { type: 'subscription-task'; task: SubscribedTaskOccurrence };
 
 const ViewControls = ({
   view,
@@ -402,6 +515,26 @@ const ViewControls = ({
   </div>
 );
 
+const DetailsKindSelect = ({
+  value,
+  onChange
+}: {
+  value: QuickAddKind;
+  onChange: (kind: QuickAddKind) => void;
+}): React.JSX.Element => (
+  <label className={styles.detailsKind}>
+    Type
+    <select
+      aria-label="Detail item type"
+      value={value}
+      onChange={(event) => onChange(event.target.value as QuickAddKind)}
+    >
+      <option value="task">Task</option>
+      <option value="event">Event</option>
+    </select>
+  </label>
+);
+
 const upsertTaskInList = (tasks: TaskItem[], task: TaskItem): TaskItem[] => {
   const index = tasks.findIndex((item) => item.id === task.id);
   if (index < 0) return [...tasks, task];
@@ -413,21 +546,43 @@ const createEventDeleteHandler = (
   onDelete: (eventId: string) => void
 ): (() => void) | undefined => (eventId ? () => onDelete(eventId) : undefined);
 
+const eventDraftFromTaskDraft = (draft: TaskDraft, fallbackDate: string): LocalEventDraft => ({
+  ...emptyLocalEventDraft(draft.deadlineDate || fallbackDate),
+  title: draft.title,
+  startTime: draft.deadlineTime || '09:00'
+});
+
+const taskDraftFromEventDraft = (draft: LocalEventDraft): TaskDraft => ({
+  ...emptyTaskDraft(),
+  title: draft.title,
+  deadlineDate: draft.date,
+  deadlineTime: draft.allDay ? '' : draft.startTime
+});
+
+const openEventDetails = (
+  event: LocalEvent | CalendarEventOccurrence,
+  setEventDraft: (draft: LocalEventDraft) => void,
+  setDetailsPanel: (state: TasksDetailsPanelState) => void
+): void => {
+  if ('sourceId' in event) {
+    setDetailsPanel({ type: 'subscription-event', event });
+    return;
+  }
+  setEventDraft(localEventDraftFromEvent(event));
+  setDetailsPanel({ type: 'event' });
+};
+
+const getDetailsPanelTitle = (state: TasksDetailsPanelState): string => {
+  if (state.type === 'task') return 'Task Details';
+  if (state.type === 'event') return 'Event Details';
+  if (state.type === 'subscription-task') return 'Subscribed Task';
+  return 'Subscribed Event';
+};
+
 const mergeTaskLists = (primary: TaskItem[], secondary: TaskItem[]): TaskItem[] => {
   const existingIds = new Set(primary.map((task) => task.id));
   return [...primary, ...secondary.filter((task) => !existingIds.has(task.id))];
 };
-
-const subscribedTaskToTaskItem = (task: SubscribedTaskOccurrence): TaskItem => ({
-  id: `subscribed:${task.id}`,
-  title: task.title,
-  notes: task.description ?? '',
-  deadlineDate: task.deadlineDate,
-  deadlineTime: task.deadlineTime,
-  sourceUrl: task.sourceId,
-  createdAt: task.createdAt,
-  updatedAt: task.updatedAt
-});
 
 const compareSubscribedTaskDeadlines = (
   left: SubscribedTaskOccurrence,
