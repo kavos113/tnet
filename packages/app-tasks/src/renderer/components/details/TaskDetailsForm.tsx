@@ -1,4 +1,4 @@
-import type { TaskDraft } from './tasksDraft';
+import type { TaskDraft } from '../../state/tasksDraft';
 import styles from './TaskDetailsForm.module.css';
 
 export interface TaskDetailsFormProps {

@@ -9,9 +9,9 @@ import {
   setTasksError,
   setTasksLocalEvents,
   setTasksSubscribedTaskOccurrences
-} from './tasksSlice';
-import { tasksTnetApi } from './tasksTnetApi';
-import { useTasksDispatch } from './storeHooks';
+} from '../../state/tasksSlice';
+import { tasksTnetApi } from '../../api/tasksTnetApi';
+import { useTasksDispatch } from '../../state/storeHooks';
 
 export const TasksRuntime = (): null => {
   const dispatch = useTasksDispatch();

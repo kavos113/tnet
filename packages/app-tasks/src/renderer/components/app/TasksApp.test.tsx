@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
 import { defaultTasksGlobalSettings } from '@tnet/app-tasks/shared/config';
 import { TasksApp } from './TasksApp';
-import tasksReducer, { restoreTasks, setTasksCurrentDate } from './tasksSlice';
+import tasksReducer, { restoreTasks, setTasksCurrentDate } from '../../state/tasksSlice';
 
 const saveTask = vi.fn();
 const completeTask = vi.fn();

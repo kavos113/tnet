@@ -1,5 +1,5 @@
-import type { LocalEventDraft } from './localEventDraft';
-import type { TaskDraft } from './tasksDraft';
+import type { LocalEventDraft } from '../../state/localEventDraft';
+import type { TaskDraft } from '../../state/tasksDraft';
 import styles from './TasksQuickAddForm.module.css';
 
 export type QuickAddKind = 'task' | 'event';

@@ -16,8 +16,8 @@ import {
   normalizeTasksGlobalSettings,
   withTasksGlobalSettings
 } from '@tnet/app-tasks/shared/config';
-import { setTasksError, setTasksSettings } from '../tasksSlice';
-import { useTasksDispatch, useTasksSelector } from '../storeHooks';
+import { useTasksDispatch, useTasksSelector } from '../state/storeHooks';
+import { setTasksError, setTasksSettings } from '../state/tasksSlice';
 import { TasksSourceSettings } from './TasksSourceSettings';
 
 interface TasksSettingsDialogProps {

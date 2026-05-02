@@ -1,4 +1,4 @@
-import type { LocalEventDraft } from './localEventDraft';
+import type { LocalEventDraft } from '../../state/localEventDraft';
 import styles from './LocalEventEditor.module.css';
 
 export interface LocalEventEditorProps {

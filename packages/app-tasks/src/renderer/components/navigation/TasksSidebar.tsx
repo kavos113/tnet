@@ -1,5 +1,5 @@
-import { setTasksCategoryFilter } from './tasksSlice';
-import { useTasksDispatch, useTasksSelector } from './storeHooks';
+import { useTasksDispatch, useTasksSelector } from '../../state/storeHooks';
+import { setTasksCategoryFilter } from '../../state/tasksSlice';
 import styles from './TasksSidebar.module.css';
 
 export const TasksSidebar = (): React.JSX.Element => {

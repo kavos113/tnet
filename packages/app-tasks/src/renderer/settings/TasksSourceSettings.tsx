@@ -13,9 +13,9 @@ import type {
   CalendarSourcePurpose,
   CalendarSourceType
 } from '@tnet/app-tasks/shared/tasksTypes';
-import { setTasksCalendarSources, setTasksError } from '../tasksSlice';
-import { tasksTnetApi } from '../tasksTnetApi';
-import { useTasksDispatch, useTasksSelector } from '../storeHooks';
+import { tasksTnetApi } from '../api/tasksTnetApi';
+import { useTasksDispatch, useTasksSelector } from '../state/storeHooks';
+import { setTasksCalendarSources, setTasksError } from '../state/tasksSlice';
 import styles from './TasksSourceSettings.module.css';
 
 interface SourceDraft {

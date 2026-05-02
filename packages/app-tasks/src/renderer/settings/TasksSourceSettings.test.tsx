@@ -3,7 +3,7 @@ import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CalendarSource } from '@tnet/app-tasks/shared/tasksTypes';
-import tasksReducer, { restoreTasks } from '../tasksSlice';
+import tasksReducer, { restoreTasks } from '../state/tasksSlice';
 import { TasksSourceSettings } from './TasksSourceSettings';
 
 const listSources = vi.fn();

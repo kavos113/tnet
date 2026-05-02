@@ -7,83 +7,7 @@ import type {
 } from '@tnet/app-tasks/shared/tasksTypes';
 import styles from './TasksCalendar.module.css';
 
-export interface TasksCalendarProps {
-  currentDate: string;
-  endDate: string;
-  items: CalendarDayItems[];
-  showCurrentTime: boolean;
-  startDate: string;
-  onDateSelect: (date: string) => void;
-  onLocalEventSelect: (event: LocalEvent) => void;
-  onSubscribedEventSelect: (event: CalendarEventOccurrence) => void;
-  onTaskSelect: (task: TaskItem) => void;
-  onMoveRange: (days: number) => void;
-  onRescheduleTask: (taskId: string, date: string) => void;
-  onToday: () => void;
-}
-
-export const TasksCalendar = ({
-  currentDate,
-  endDate,
-  items,
-  showCurrentTime,
-  startDate,
-  onDateSelect,
-  onLocalEventSelect,
-  onSubscribedEventSelect,
-  onTaskSelect,
-  onMoveRange,
-  onRescheduleTask,
-  onToday
-}: TasksCalendarProps): React.JSX.Element => {
-  const moveSize = items.length > 8 ? 31 : 7;
-
-  return (
-    <section className={styles.pane} aria-label="Calendar">
-      <header className={styles.header}>
-        <h2 className={styles.title}>{formatCalendarTitle(startDate, endDate)}</h2>
-        <div className={styles.controls}>
-          <button
-            type="button"
-            className={`${styles.iconButton} material-icons-round`}
-            aria-label="Previous range"
-            onClick={() => onMoveRange(-moveSize)}
-          >
-            chevron_left
-          </button>
-          <button type="button" className={styles.navButton} onClick={onToday}>
-            Today
-          </button>
-          <button
-            type="button"
-            className={`${styles.iconButton} material-icons-round`}
-            aria-label="Next range"
-            onClick={() => onMoveRange(moveSize)}
-          >
-            chevron_right
-          </button>
-        </div>
-      </header>
-      <div className={styles.grid} role="grid" aria-label="Calendar days">
-        {items.map((day) => (
-          <CalendarCell
-            key={day.date}
-            currentDate={currentDate}
-            day={day}
-            showCurrentTime={showCurrentTime}
-            onDateSelect={onDateSelect}
-            onEventSelect={onSubscribedEventSelect}
-            onLocalEventSelect={onLocalEventSelect}
-            onRescheduleTask={onRescheduleTask}
-            onTaskSelect={onTaskSelect}
-          />
-        ))}
-      </div>
-    </section>
-  );
-};
-
-const CalendarCell = ({
+export const TasksCalendarCell = ({
   currentDate,
   day,
   showCurrentTime,
@@ -139,26 +63,7 @@ const CalendarCell = ({
       ) : null}
       <div className={styles.items}>
         {day.tasks.map((task) => (
-          <button
-            type="button"
-            className={`${styles.calendarItem} ${
-              isSubscribedTask(task.id) ? styles.readOnlyItem : ''
-            }`}
-            draggable={!isSubscribedTask(task.id)}
-            key={task.id}
-            title={task.title}
-            onClick={(event) => {
-              event.stopPropagation();
-              onTaskSelect(task);
-            }}
-            onDragStart={(event) => {
-              if (isSubscribedTask(task.id)) return;
-              event.dataTransfer.setData('text/plain', task.id.split(':')[0]);
-            }}
-          >
-            {task.deadlineTime ? `${task.deadlineTime} ` : ''}
-            {task.title}
-          </button>
+          <TaskCalendarItem key={task.id} task={task} onTaskSelect={onTaskSelect} />
         ))}
         {day.localEvents.map((event) => (
           <button
@@ -198,8 +103,35 @@ const CalendarCell = ({
   );
 };
 
-const formatCalendarTitle = (startDate: string, endDate: string): string =>
-  startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+const TaskCalendarItem = ({
+  task,
+  onTaskSelect
+}: {
+  task: TaskItem;
+  onTaskSelect: (task: TaskItem) => void;
+}): React.JSX.Element => {
+  const isReadOnly = isSubscribedTask(task.id);
+
+  return (
+    <button
+      type="button"
+      className={`${styles.calendarItem} ${isReadOnly ? styles.readOnlyItem : ''}`}
+      draggable={!isReadOnly}
+      title={task.title}
+      onClick={(event) => {
+        event.stopPropagation();
+        onTaskSelect(task);
+      }}
+      onDragStart={(event) => {
+        if (isReadOnly) return;
+        event.dataTransfer.setData('text/plain', task.id.split(':')[0]);
+      }}
+    >
+      {task.deadlineTime ? `${task.deadlineTime} ` : ''}
+      {task.title}
+    </button>
+  );
+};
 
 const formatShortWeekday = (date: string): string =>
   new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(`${date}T00:00:00`));
