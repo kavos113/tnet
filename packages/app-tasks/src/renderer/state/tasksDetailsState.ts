@@ -20,9 +20,6 @@ export const createTaskDetailsState = (
   tasks: TaskItem[],
   calendarTasks: TaskItem[]
 ): TasksDetailsPanelState => {
-  if (task.id.startsWith('subscribed:')) {
-    return { type: 'task-detail', task };
-  }
   return {
     type: 'task-detail',
     task: findBaseTask(task, tasks, calendarTasks) ?? task
@@ -36,7 +33,6 @@ export const createTaskEditHandler = (
   setDraft: (draft: TaskDraft) => void,
   setDetailsPanel: (state: TasksDetailsPanelState) => void
 ): (() => void) | undefined => {
-  if (task.id.startsWith('subscribed:')) return undefined;
   return () => {
     setDraft(draftFromTask(findBaseTask(task, tasks, calendarTasks) ?? task));
     setDetailsPanel({ type: 'task' });

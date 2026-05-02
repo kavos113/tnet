@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import type { CalendarTaskItem } from '@tnet/app-tasks/shared/calendarView';
 import type {
   CalendarEventOccurrence,
   CalendarSource,
@@ -17,12 +18,19 @@ export const buildSourceColorMap = (sources: CalendarSource[]): SourceColorMap =
 
 export const getTaskAccentColor = (
   task: TaskItem,
-  categoryColors: CategoryColorMap,
-  sourceColors: SourceColorMap = {}
+  categoryColors: CategoryColorMap
 ): string | undefined => {
-  if (task.id.startsWith('subscribed:') && task.sourceUrl) return sourceColors[task.sourceUrl];
   return task.category ? categoryColors[task.category] : undefined;
 };
+
+export const getCalendarTaskAccentColor = (
+  item: CalendarTaskItem,
+  categoryColors: CategoryColorMap,
+  sourceColors: SourceColorMap
+): string | undefined =>
+  item.kind === 'subscribed-task'
+    ? getSubscribedTaskAccentColor(item.task, sourceColors)
+    : getTaskAccentColor(item.task, categoryColors);
 
 export const getSubscribedTaskAccentColor = (
   task: SubscribedTaskOccurrence,

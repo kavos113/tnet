@@ -1,14 +1,10 @@
 import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
-import type { CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
-import type {
-  CalendarEventOccurrence,
-  LocalEvent,
-  TaskItem
-} from '@tnet/app-tasks/shared/tasksTypes';
+import type { CalendarDayItems, CalendarTaskItem } from '@tnet/app-tasks/shared/calendarView';
+import type { CalendarEventOccurrence, LocalEvent } from '@tnet/app-tasks/shared/tasksTypes';
 import {
   accentColorStyle,
-  getSubscribedEventAccentColor,
-  getTaskAccentColor
+  getCalendarTaskAccentColor,
+  getSubscribedEventAccentColor
 } from '../../utils/taskColors';
 import styles from './TasksCalendar.module.css';
 
@@ -33,7 +29,7 @@ export const TasksCalendarCell = ({
   onEventSelect: (event: CalendarEventOccurrence) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
-  onTaskSelect: (task: TaskItem) => void;
+  onTaskSelect: (task: CalendarTaskItem) => void;
 }): React.JSX.Element => {
   const today = toLocalDateString();
   const isToday = day.date === today;
@@ -75,7 +71,7 @@ export const TasksCalendarCell = ({
           <TaskCalendarItem
             key={task.id}
             task={task}
-            accentColor={getTaskAccentColor(task, categoryColors, sourceColors)}
+            accentColor={getCalendarTaskAccentColor(task, categoryColors, sourceColors)}
             onTaskSelect={onTaskSelect}
           />
         ))}
@@ -123,11 +119,11 @@ const TaskCalendarItem = ({
   accentColor,
   onTaskSelect
 }: {
-  task: TaskItem;
+  task: CalendarTaskItem;
   accentColor?: string;
-  onTaskSelect: (task: TaskItem) => void;
+  onTaskSelect: (task: CalendarTaskItem) => void;
 }): React.JSX.Element => {
-  const isReadOnly = isSubscribedTask(task.id);
+  const isReadOnly = task.kind === 'subscribed-task';
 
   return (
     <button
@@ -142,7 +138,7 @@ const TaskCalendarItem = ({
       }}
       onDragStart={(event) => {
         if (isReadOnly) return;
-        event.dataTransfer.setData('text/plain', task.id.split(':')[0]);
+        event.dataTransfer.setData('text/plain', task.task.id.split(':')[0]);
       }}
     >
       {task.deadlineTime ? `${task.deadlineTime} ` : ''}
@@ -153,8 +149,6 @@ const TaskCalendarItem = ({
 
 const formatShortWeekday = (date: string): string =>
   new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(`${date}T00:00:00`));
-
-const isSubscribedTask = (taskId: string): boolean => taskId.startsWith('subscribed:');
 
 const getCurrentTimeTop = (): number => {
   const now = new Date();

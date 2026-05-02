@@ -104,14 +104,11 @@ export const TasksWorkspace = ({
       onLocalEventSelect={(event) => onSetDetailsPanel({ type: 'event-detail', event })}
       onSubscribedEventSelect={(event) => onSetDetailsPanel({ type: 'subscription-event', event })}
       onTaskSelect={(task) => {
-        if (task.id.startsWith('subscribed:')) {
-          onSetDetailsPanel({
-            type: 'subscription-task',
-            task: subscribedTaskItemToOccurrence(task)
-          });
+        if (task.kind === 'subscribed-task') {
+          onSetDetailsPanel({ type: 'subscription-task', task: task.task });
           return;
         }
-        onSetDetailsPanel(createTaskDetailsState(task, tasks, calendarTasks));
+        onSetDetailsPanel(createTaskDetailsState(task.task, tasks, calendarTasks));
       }}
       onMoveRange={onMoveRange}
       onRescheduleTask={onRescheduleTask}
@@ -119,17 +116,3 @@ export const TasksWorkspace = ({
     />
   </div>
 );
-
-const subscribedTaskItemToOccurrence = (task: TaskItem): SubscribedTaskOccurrence => ({
-  id: task.id.replace(/^subscribed:/, ''),
-  sourceId: task.sourceUrl ?? '',
-  uid: task.id.replace(/^subscribed:/, ''),
-  title: task.title,
-  deadlineDate: task.deadlineDate ?? '',
-  deadlineTime: task.deadlineTime,
-  allDay: !task.deadlineTime,
-  description: task.notes || undefined,
-  completedAt: task.completedAt,
-  createdAt: task.createdAt,
-  updatedAt: task.updatedAt
-});

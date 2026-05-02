@@ -1,10 +1,6 @@
-import type { CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
+import type { CalendarDayItems, CalendarTaskItem } from '@tnet/app-tasks/shared/calendarView';
 import type { TasksDefaultView } from '@tnet/app-tasks/shared/config';
-import type {
-  CalendarEventOccurrence,
-  LocalEvent,
-  TaskItem
-} from '@tnet/app-tasks/shared/tasksTypes';
+import type { CalendarEventOccurrence, LocalEvent } from '@tnet/app-tasks/shared/tasksTypes';
 import { TasksCalendarCell } from './TasksCalendarCell';
 import styles from './TasksCalendar.module.css';
 
@@ -21,7 +17,7 @@ export interface TasksCalendarProps {
   onDateSelect: (date: string) => void;
   onLocalEventSelect: (event: LocalEvent) => void;
   onSubscribedEventSelect: (event: CalendarEventOccurrence) => void;
-  onTaskSelect: (task: TaskItem) => void;
+  onTaskSelect: (task: CalendarTaskItem) => void;
   onMoveRange: (days: number) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
   onToday: () => void;

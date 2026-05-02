@@ -2,6 +2,7 @@
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
+import Database from 'better-sqlite3';
 import { describe, expect, it } from 'vitest';
 import type {
   CalendarEventOccurrence,
@@ -13,6 +14,7 @@ import { LocalEventRepository } from './localEventRepository';
 import { SubscribedTaskOccurrenceRepository } from './subscribedTaskOccurrenceRepository';
 import { TaskRepository } from './taskRepository';
 import { openTasksDatabase } from './tasksDb';
+import { tasksDatabasePath } from '../tasksPaths';
 
 const tempDir = async (name: string): Promise<string> =>
   fs.mkdtemp(path.join(os.tmpdir(), `tnet-tasks-${name}-`));
@@ -42,6 +44,65 @@ const createRepositories = async (
 };
 
 describe('Tasks repositories', () => {
+  it('opens legacy databases and fills compatibility schema gaps', async () => {
+    const userDataDir = await tempDir('legacy-schema');
+    const databasePath = tasksDatabasePath(userDataDir);
+    await fs.mkdir(path.dirname(databasePath), { recursive: true });
+    const legacyDatabase = new Database(databasePath);
+    legacyDatabase.exec(`
+      CREATE TABLE IF NOT EXISTS tasks_schema_migrations (
+        version INTEGER PRIMARY KEY,
+        applied_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        notes TEXT NOT NULL,
+        deadline_date TEXT,
+        deadline_time TEXT,
+        category TEXT,
+        completed_at TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS calendar_sources (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        uri TEXT NOT NULL,
+        color TEXT,
+        enabled INTEGER NOT NULL,
+        last_synced_at TEXT,
+        last_sync_error TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      INSERT OR IGNORE INTO tasks_schema_migrations (version, applied_at)
+      VALUES (1, datetime('now'));
+    `);
+    legacyDatabase.close();
+
+    const database = openTasksDatabase(userDataDir);
+
+    expect(listColumns(database, 'tasks')).toEqual(
+      expect.arrayContaining(['reminder_minutes_before', 'recurrence_rule', 'linked_entity_id'])
+    );
+    expect(listColumns(database, 'calendar_sources')).toEqual(
+      expect.arrayContaining(['item_kind', 'purpose', 'auth_type', 'google_token_secret_id'])
+    );
+    expect(
+      database
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'subscribed_task_completion_overrides'"
+        )
+        .get()
+    ).toBeTruthy();
+    database.close();
+  });
+
   it('creates the database and stores deadline-less, date-only, and date-time tasks', async () => {
     const { database, taskRepository, userDataDir } = await createRepositories('tasks');
     const noDeadline = taskRepository.save({ title: 'Inbox task', category: 'Admin' });
@@ -255,3 +316,10 @@ describe('Tasks repositories', () => {
     database.close();
   });
 });
+
+const listColumns = (database: ReturnType<typeof openTasksDatabase>, table: string): string[] =>
+  (
+    database.prepare(`PRAGMA table_info(${table})`).all() as Array<{
+      name: string;
+    }>
+  ).map((row) => row.name);

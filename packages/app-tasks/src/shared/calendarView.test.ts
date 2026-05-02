@@ -11,7 +11,8 @@ import {
   getOccurrenceCacheRange,
   getVisibleCalendarRange,
   groupVisibleCalendarItems,
-  isWeekendDate
+  isWeekendDate,
+  taskItemToCalendarTaskItem
 } from './calendarView';
 
 const task = (id: string, deadlineDate?: string): TaskItem => ({
@@ -96,7 +97,7 @@ describe('calendar view helpers', () => {
     const grouped = groupVisibleCalendarItems({
       dates: ['2026-05-02', '2026-05-03'],
       currentDate: '2026-05-02',
-      tasks: [task('today', '2026-05-02'), task('undated')],
+      tasks: [task('today', '2026-05-02'), task('undated')].map(taskItemToCalendarTaskItem),
       localEvents: [
         localEvent('owned-single', '2026-05-02T09:00:00.000', '2026-05-02T10:00:00.000'),
         localEvent('owned-multi', '2026-05-02T23:00:00.000', '2026-05-03T01:00:00.000')
@@ -246,9 +247,12 @@ describe('calendar view helpers', () => {
     });
 
     expect(grouped[0].tasks.map((item) => item.id)).toEqual(['daily:2026-05-02']);
-    expect(grouped[1].tasks.map((item) => item.id)).toEqual([
-      'daily:2026-05-03',
-      'subscribed:external'
-    ]);
+    expect(grouped[1].tasks.map((item) => item.id)).toEqual(['daily:2026-05-03', 'external']);
+    expect(grouped[1].tasks.map((item) => item.kind)).toEqual(['local-task', 'subscribed-task']);
+    expect(grouped[1].tasks[1].task).toMatchObject({
+      id: 'external',
+      sourceId: 'task-source',
+      uid: 'external'
+    });
   });
 });

@@ -1,20 +1,18 @@
-import { useEffect, useState } from 'react';
 import type { AppId } from '@tnet/shared/app/appTypes';
-import { addLocalDays, toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
+import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import { TasksAppHeader } from './TasksAppHeader';
 import { TasksEditableDetailsPane } from '../details/TasksEditableDetailsPane';
-import { TasksQuickAddForm, type QuickAddKind } from '../forms/TasksQuickAddForm';
+import { TasksQuickAddForm } from '../forms/TasksQuickAddForm';
 import { TasksPortal, type TasksPortalShortcut } from '../navigation/TasksPortal';
 import { TasksWorkspace } from './TasksWorkspace';
-import { emptyLocalEventDraft, type LocalEventDraft } from '../../state/localEventDraft';
-import { draftFromTask, emptyTaskDraft, type TaskDraft } from '../../state/tasksDraft';
-import { type TasksDetailsPanelState } from '../../state/tasksDetailsState';
+import { draftFromTask, emptyTaskDraft } from '../../state/tasksDraft';
 import { useTasksDispatch } from '../../state/storeHooks';
 import { setTasksView } from '../../state/tasksSlice';
 import { useTaskReminderNotifications } from '../../hooks/useTaskReminderNotifications';
 import { useTasksActions } from '../../hooks/useTasksActions';
 import { useTasksAgendaData } from '../../hooks/useTasksAgendaData';
 import { useTasksAppState } from '../../hooks/useTasksAppState';
+import { useTasksUiState } from '../../hooks/useTasksUiState';
 import { useTasksVisibleRangeData } from '../../hooks/useTasksVisibleRangeData';
 import styles from './TasksApp.module.css';
 
@@ -44,16 +42,24 @@ export const TasksApp = ({
     tasks,
     view
   } = useTasksAppState();
-  const [clock, setClock] = useState(() => new Date());
-  const [draft, setDraft] = useState<TaskDraft>(emptyTaskDraft);
-  const [quickAddKind, setQuickAddKind] = useState<QuickAddKind>('task');
-  const [quickEventDraft, setQuickEventDraft] = useState<LocalEventDraft>(() =>
-    emptyLocalEventDraft(currentDate)
-  );
-  const [detailsPanel, setDetailsPanel] = useState<TasksDetailsPanelState>();
-  const [selectedQuickDate, setSelectedQuickDate] = useState<string>(currentDate);
-  const [eventDraft, setEventDraft] = useState<LocalEventDraft>();
-  const [calendarFocusDate, setCalendarFocusDate] = useState<string>(currentDate);
+  const {
+    calendarFocusDate,
+    clock,
+    detailsPanel,
+    draft,
+    eventDraft,
+    moveCalendarRange,
+    quickAddKind,
+    quickEventDraft,
+    selectedQuickDate,
+    setCalendarFocusDate,
+    setDetailsPanel,
+    setDraft,
+    setEventDraft,
+    setQuickAddKind,
+    setQuickEventDraft,
+    setQuickInputDate
+  } = useTasksUiState(currentDate, view);
   const {
     agendaSubscribedTaskOccurrences,
     calendarTasks,
@@ -70,11 +76,6 @@ export const TasksApp = ({
   });
 
   useTaskReminderNotifications(tasks);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => setClock(new Date()), 30000);
-    return () => window.clearInterval(intervalId);
-  }, []);
 
   const {
     calendarItems,
@@ -128,18 +129,6 @@ export const TasksApp = ({
     setEventDraft,
     setQuickEventDraft
   });
-
-  const setQuickInputDate = (date: string): void => {
-    setSelectedQuickDate(date);
-    setDraft((current) => ({ ...current, deadlineDate: date }));
-    setQuickEventDraft((current) => ({ ...current, date }));
-  };
-
-  const moveCalendarRange = (days: number): void => {
-    setCalendarFocusDate((date) =>
-      view === 'month' ? addLocalMonths(date, days > 0 ? 1 : -1) : addLocalDays(date, days)
-    );
-  };
 
   if (!isRestored) {
     return (
@@ -247,10 +236,4 @@ export const TasksApp = ({
       ) : null}
     </main>
   );
-};
-
-const addLocalMonths = (date: string, months: number): string => {
-  const parsed = new Date(`${date.slice(0, 7)}-01T00:00:00`);
-  parsed.setMonth(parsed.getMonth() + months);
-  return toLocalDateString(parsed);
 };

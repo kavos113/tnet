@@ -149,13 +149,9 @@ const getReadOnlyItem = ({
     return {
       type: 'task',
       task: detailsPanel.task,
-      accentColor: detailsPanel.task.id.startsWith('subscribed:')
-        ? detailsPanel.task.sourceUrl
-          ? sourceColors[detailsPanel.task.sourceUrl]
-          : undefined
-        : detailsPanel.task.category
-          ? categoryColors[detailsPanel.task.category]
-          : undefined,
+      accentColor: detailsPanel.task.category
+        ? categoryColors[detailsPanel.task.category]
+        : undefined,
       sourceName: detailsPanel.task.sourceUrl
         ? sourceNames[detailsPanel.task.sourceUrl]
         : undefined,

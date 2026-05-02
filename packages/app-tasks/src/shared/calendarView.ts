@@ -26,10 +26,30 @@ export interface CalendarDayItems {
   isSaturday: boolean;
   isSunday: boolean;
   isWeekend: boolean;
-  tasks: TaskItem[];
+  tasks: CalendarTaskItem[];
   localEvents: LocalEvent[];
   events: CalendarEventOccurrence[];
 }
+
+export type CalendarTaskItem =
+  | {
+      kind: 'local-task';
+      id: string;
+      title: string;
+      deadlineDate?: string;
+      deadlineTime?: string;
+      completedAt?: string;
+      task: TaskItem;
+    }
+  | {
+      kind: 'subscribed-task';
+      id: string;
+      title: string;
+      deadlineDate: string;
+      deadlineTime?: string;
+      completedAt?: string;
+      task: SubscribedTaskOccurrence;
+    };
 
 export interface BuildVisibleCalendarItemsInput {
   dates: string[];
@@ -80,7 +100,7 @@ export const groupVisibleCalendarItems = ({
 }: {
   dates: string[];
   currentDate: string;
-  tasks: TaskItem[];
+  tasks: CalendarTaskItem[];
   localEvents?: LocalEvent[];
   events: CalendarEventOccurrence[];
   sources?: CalendarSource[];
@@ -131,26 +151,35 @@ export const buildVisibleCalendarItems = ({
   groupVisibleCalendarItems({
     dates,
     currentDate,
-    tasks: expandRecurringTasksForRange(
-      [...tasks, ...subscribedTasks.map(subscribedTaskOccurrenceToTaskItem)],
-      startDate,
-      endDate
-    ),
+    tasks: [
+      ...expandRecurringTasksForRange(tasks, startDate, endDate).map(taskItemToCalendarTaskItem),
+      ...subscribedTasks.map(subscribedTaskOccurrenceToCalendarTaskItem)
+    ],
     localEvents,
     events,
     sources
   });
 
-export const subscribedTaskOccurrenceToTaskItem = (task: SubscribedTaskOccurrence): TaskItem => ({
-  id: `subscribed:${task.id}`,
+export const taskItemToCalendarTaskItem = (task: TaskItem): CalendarTaskItem => ({
+  kind: 'local-task',
+  id: task.id,
   title: task.title,
-  notes: task.description ?? '',
   deadlineDate: task.deadlineDate,
   deadlineTime: task.deadlineTime,
-  sourceUrl: task.sourceId,
   completedAt: task.completedAt,
-  createdAt: task.createdAt,
-  updatedAt: task.updatedAt
+  task
+});
+
+export const subscribedTaskOccurrenceToCalendarTaskItem = (
+  task: SubscribedTaskOccurrence
+): CalendarTaskItem => ({
+  kind: 'subscribed-task',
+  id: task.id,
+  title: task.title,
+  deadlineDate: task.deadlineDate,
+  deadlineTime: task.deadlineTime,
+  completedAt: task.completedAt,
+  task
 });
 
 export const isWeekendDate = (date: string): boolean => {

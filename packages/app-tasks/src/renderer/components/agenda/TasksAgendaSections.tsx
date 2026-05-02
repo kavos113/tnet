@@ -4,7 +4,7 @@ import type {
   SubscribedTaskOccurrence,
   TaskItem
 } from '@tnet/app-tasks/shared/tasksTypes';
-import { DeadlineRow, ReadOnlyTaskRow, SectionHeader, TaskRow } from './TasksAgendaRows';
+import { DeadlineRow, SectionHeader, SubscribedTaskRow, TaskRow } from './TasksAgendaRows';
 import {
   accentColorStyle,
   getSubscribedEventAccentColor,
@@ -46,7 +46,7 @@ export const TaskSection = ({
           <TaskRow
             key={task.id}
             task={task}
-            accentColor={getTaskAccentColor(task, categoryColors, sourceColors)}
+            accentColor={getTaskAccentColor(task, categoryColors)}
             onComplete={onComplete}
             onDelete={onDelete}
             onEdit={onEdit}
@@ -54,7 +54,7 @@ export const TaskSection = ({
           />
         ))}
         {readOnlyTasks.map((task) => (
-          <ReadOnlyTaskRow
+          <SubscribedTaskRow
             key={task.id}
             task={task}
             accentColor={getSubscribedTaskAccentColor(task, sourceColors)}
@@ -142,7 +142,7 @@ export const DeadlineSection = ({
             accentColor={
               'sourceId' in item
                 ? getSubscribedTaskAccentColor(item, sourceColors)
-                : getTaskAccentColor(item, categoryColors, sourceColors)
+                : getTaskAccentColor(item, categoryColors)
             }
             onComplete={onComplete}
             onCompleteReadOnlyTask={onCompleteReadOnlyTask}
