@@ -50,7 +50,9 @@ export const tnetApi: DesktopTnetApi = {
     calendarSources: {
       list: () => ipcRenderer.invoke(tasksIpcChannels.calendarSources.list),
       save: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarSources.save, request),
-      remove: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarSources.remove, request)
+      remove: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarSources.remove, request),
+      authorizeGoogle: (request) =>
+        ipcRenderer.invoke(tasksIpcChannels.calendarSources.authorizeGoogle, request)
     },
     calendarOccurrences: {
       list: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarOccurrences.list, request)

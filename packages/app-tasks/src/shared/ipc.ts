@@ -31,7 +31,8 @@ export const tasksIpcChannels = {
   calendarSources: {
     list: 'tasks:calendarSources:list',
     save: 'tasks:calendarSources:save',
-    remove: 'tasks:calendarSources:remove'
+    remove: 'tasks:calendarSources:remove',
+    authorizeGoogle: 'tasks:calendarSources:authorizeGoogle'
   },
   calendarOccurrences: {
     list: 'tasks:calendarOccurrences:list'
@@ -72,6 +73,10 @@ export interface TasksApi {
       list: () => Promise<CalendarSource[]>;
       save: (request: SaveCalendarSourceInput) => Promise<CalendarSource>;
       remove: (request: { sourceId: string }) => Promise<void>;
+      authorizeGoogle: (request: { sourceId: string; code?: string }) => Promise<{
+        authUrl?: string;
+        source?: CalendarSource;
+      }>;
     };
     calendarOccurrences: {
       list: (request: ListCalendarOccurrencesRequest) => Promise<CalendarEventOccurrence[]>;

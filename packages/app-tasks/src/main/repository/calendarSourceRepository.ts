@@ -19,6 +19,7 @@ interface CalendarSourceRow {
   auth_type: 'none' | 'basic';
   username: string | null;
   password_secret_id: string | null;
+  google_token_secret_id: string | null;
   last_synced_at: string | null;
   last_sync_error: string | null;
   created_at: string;
@@ -37,6 +38,7 @@ const toCalendarSource = (row: CalendarSourceRow): CalendarSource => ({
   authType: row.auth_type,
   username: row.username ?? undefined,
   passwordSecretId: row.password_secret_id ?? undefined,
+  googleTokenSecretId: row.google_token_secret_id ?? undefined,
   lastSyncedAt: row.last_synced_at ?? undefined,
   lastSyncError: row.last_sync_error ?? undefined,
   createdAt: row.created_at,
@@ -50,8 +52,8 @@ export class CalendarSourceRepository {
     const rows = this.database
       .prepare(
         `SELECT id, name, type, item_kind, uri, color, enabled, write_back_enabled,
-                auth_type, username, password_secret_id, last_synced_at, last_sync_error,
-                created_at, updated_at
+                auth_type, username, password_secret_id, google_token_secret_id, last_synced_at,
+                last_sync_error, created_at, updated_at
          FROM calendar_sources
          ORDER BY lower(name) ASC`
       )
@@ -63,8 +65,8 @@ export class CalendarSourceRepository {
     const row = this.database
       .prepare(
         `SELECT id, name, type, item_kind, uri, color, enabled, write_back_enabled,
-                auth_type, username, password_secret_id, last_synced_at, last_sync_error,
-                created_at, updated_at
+                auth_type, username, password_secret_id, google_token_secret_id, last_synced_at,
+                last_sync_error, created_at, updated_at
          FROM calendar_sources
          WHERE id = ?`
       )
@@ -86,6 +88,7 @@ export class CalendarSourceRepository {
     const username = authType === 'basic' ? input.username?.trim() || undefined : undefined;
     const passwordSecretId =
       authType === 'basic' ? input.passwordSecretId || existing?.passwordSecretId : undefined;
+    const googleTokenSecretId = input.googleTokenSecretId || existing?.googleTokenSecretId;
 
     if (existing) {
       this.database
@@ -101,6 +104,7 @@ export class CalendarSourceRepository {
                auth_type = @authType,
                username = @username,
                password_secret_id = @passwordSecretId,
+               google_token_secret_id = @googleTokenSecretId,
                updated_at = @updatedAt
            WHERE id = @id`
         )
@@ -116,6 +120,7 @@ export class CalendarSourceRepository {
           authType,
           username: username ?? null,
           passwordSecretId: passwordSecretId ?? null,
+          googleTokenSecretId: googleTokenSecretId ?? null,
           updatedAt: now
         });
     } else {
@@ -123,12 +128,12 @@ export class CalendarSourceRepository {
         .prepare(
           `INSERT INTO calendar_sources (
              id, name, type, item_kind, uri, color, enabled, write_back_enabled,
-             auth_type, username, password_secret_id,
+             auth_type, username, password_secret_id, google_token_secret_id,
              created_at, updated_at
            )
            VALUES (
              @id, @name, @type, @itemKind, @uri, @color, @enabled, @writeBackEnabled,
-             @authType, @username, @passwordSecretId,
+             @authType, @username, @passwordSecretId, @googleTokenSecretId,
              @createdAt, @updatedAt
            )`
         )
@@ -144,6 +149,7 @@ export class CalendarSourceRepository {
           authType,
           username: username ?? null,
           passwordSecretId: passwordSecretId ?? null,
+          googleTokenSecretId: googleTokenSecretId ?? null,
           createdAt: now,
           updatedAt: now
         });

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, shell } from 'electron';
 import type { TasksGlobalConfig } from '@tnet/app-tasks/shared/config';
 import { tasksIpcChannels } from '@tnet/app-tasks/shared/ipc';
 import { loadTasksGlobalConfig, saveTasksGlobalConfig } from './tasksConfigService';
@@ -11,6 +11,7 @@ import {
   TaskRepository
 } from './repository';
 import { IcalSyncService } from './icalSyncService';
+import { GoogleCalendarService } from './googleCalendarService';
 import { createTasksSecretStore } from './tasksSecretStore';
 
 export interface RegisterTasksIpcOptions {
@@ -25,11 +26,13 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   const subscribedTaskOccurrenceRepository = new SubscribedTaskOccurrenceRepository(database);
   const localEventRepository = new LocalEventRepository(database);
   const secretStore = createTasksSecretStore(userDataDir);
+  const googleCalendarService = new GoogleCalendarService(calendarSourceRepository, secretStore);
   const syncService = new IcalSyncService(
     calendarSourceRepository,
     calendarEventOccurrenceRepository,
     subscribedTaskOccurrenceRepository,
-    secretStore
+    secretStore,
+    googleCalendarService
   );
 
   ipcMain.handle(tasksIpcChannels.config.loadGlobal, async () =>
@@ -68,6 +71,16 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   });
   ipcMain.handle(tasksIpcChannels.calendarSources.remove, async (_event, request) => {
     calendarSourceRepository.remove(request.sourceId);
+  });
+  ipcMain.handle(tasksIpcChannels.calendarSources.authorizeGoogle, async (_event, request) => {
+    if (request.code) {
+      return {
+        source: await googleCalendarService.completeAuth(request.sourceId, request.code)
+      };
+    }
+    const authUrl = googleCalendarService.createAuthUrl(request.sourceId);
+    await shell.openExternal(authUrl);
+    return { authUrl };
   });
   ipcMain.handle(tasksIpcChannels.calendarOccurrences.list, async (_event, request) =>
     calendarEventOccurrenceRepository.list(request)

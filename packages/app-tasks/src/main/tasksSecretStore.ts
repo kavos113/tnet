@@ -9,6 +9,7 @@ interface SecretSnapshot {
 
 export interface TasksSecretStore {
   saveSecret: (value: string) => string;
+  replaceSecret: (secretId: string | undefined, value: string) => string;
   getSecret: (secretId: string | undefined) => string | undefined;
   hasSecret: (secretId: string | undefined) => boolean;
 }
@@ -36,6 +37,13 @@ export const createTasksSecretStore = (userDataDir: string): TasksSecretStore =>
       snapshot.secrets[secretId] = value;
       save(snapshot);
       return secretId;
+    },
+    replaceSecret: (secretId, value) => {
+      const snapshot = load();
+      const nextSecretId = secretId || randomUUID();
+      snapshot.secrets[nextSecretId] = value;
+      save(snapshot);
+      return nextSecretId;
     },
     getSecret: (secretId) => (secretId ? load().secrets[secretId] : undefined),
     hasSecret: (secretId) => Boolean(secretId && load().secrets[secretId])

@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS calendar_sources (
   auth_type TEXT NOT NULL DEFAULT 'none',
   username TEXT,
   password_secret_id TEXT,
+  google_token_secret_id TEXT,
   last_synced_at TEXT,
   last_sync_error TEXT,
   created_at TEXT NOT NULL,
@@ -145,6 +146,12 @@ const ensureCurrentSchema = (database: TasksDatabase): void => {
   ensureColumn(database, 'calendar_sources', 'auth_type', "auth_type TEXT NOT NULL DEFAULT 'none'");
   ensureColumn(database, 'calendar_sources', 'username', 'username TEXT');
   ensureColumn(database, 'calendar_sources', 'password_secret_id', 'password_secret_id TEXT');
+  ensureColumn(
+    database,
+    'calendar_sources',
+    'google_token_secret_id',
+    'google_token_secret_id TEXT'
+  );
 };
 
 const ensureColumn = (

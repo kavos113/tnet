@@ -8,12 +8,18 @@ import {
   taskToIcalUid
 } from '@tnet/app-tasks/shared/ical';
 import { getOccurrenceCacheRange } from '@tnet/app-tasks/shared/calendarView';
-import type { CalendarSource, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import type {
+  CalendarEventOccurrence,
+  CalendarSource,
+  SubscribedTaskOccurrence,
+  TaskItem
+} from '@tnet/app-tasks/shared/tasksTypes';
 import type {
   CalendarEventOccurrenceRepository,
   CalendarSourceRepository,
   SubscribedTaskOccurrenceRepository
 } from './repository';
+import type { GoogleCalendarEvent, GoogleCalendarService } from './googleCalendarService';
 import type { TasksSecretStore } from './tasksSecretStore';
 
 export interface SyncTasksCalendarsResult {
@@ -27,7 +33,8 @@ export class IcalSyncService {
     private readonly sourceRepository: CalendarSourceRepository,
     private readonly occurrenceRepository: CalendarEventOccurrenceRepository,
     private readonly subscribedTaskRepository: SubscribedTaskOccurrenceRepository,
-    private readonly secretStore: TasksSecretStore
+    private readonly secretStore: TasksSecretStore,
+    private readonly googleCalendarService?: GoogleCalendarService
   ) {}
 
   async sync(sourceId?: string): Promise<SyncTasksCalendarsResult> {
@@ -87,6 +94,12 @@ export class IcalSyncService {
   }
 
   private async syncSource(source: CalendarSource): Promise<void> {
+    if (source.type === 'google-calendar') {
+      await this.syncGoogleCalendarSource(source);
+      this.sourceRepository.saveSyncResult(source.id);
+      return;
+    }
+
     const texts = await this.readSource(source);
     const { startDate, endDate } = getOccurrenceCacheRange();
     const events = texts.flatMap(parseIcalCalendar);
@@ -120,6 +133,27 @@ export class IcalSyncService {
     return [await this.fetchText(source.uri, source)];
   }
 
+  private async syncGoogleCalendarSource(source: CalendarSource): Promise<void> {
+    if (!this.googleCalendarService) throw new Error('Google Calendar service is not configured.');
+    const { startDate, endDate } = getOccurrenceCacheRange();
+    const events = await this.googleCalendarService.listEvents({
+      source,
+      timeMin: `${startDate}T00:00:00.000Z`,
+      timeMax: `${endDate}T23:59:59.999Z`
+    });
+    if (source.itemKind === 'task') {
+      this.subscribedTaskRepository.replaceForSource(
+        source.id,
+        events.flatMap((event) => googleEventToSubscribedTaskOccurrence(event, source.id))
+      );
+    } else {
+      this.occurrenceRepository.replaceForSource(
+        source.id,
+        events.flatMap((event) => googleEventToOccurrence(event, source.id))
+      );
+    }
+  }
+
   private async readCalDavSource(source: CalendarSource): Promise<string[]> {
     const responseText = await this.fetchText(source.uri, source, {
       method: 'REPORT',
@@ -149,6 +183,8 @@ export class IcalSyncService {
     init: RequestInit = {}
   ): Promise<string> {
     const headers = new Headers(init.headers);
+    const userAgent = process.env.TNET_TASKS_USER_AGENT?.trim();
+    if (userAgent) headers.set('User-Agent', userAgent);
     if (source.authType === 'basic') {
       const password = this.secretStore.getSecret(source.passwordSecretId);
       if (!source.username || !password) throw new Error('Missing calendar credentials.');
@@ -202,3 +238,68 @@ const resolveCalDavEventUrl = (collectionUrl: string, uid: string): string =>
   `${collectionUrl.replace(/\/?$/, '/')}${encodeURIComponent(uid)}.ics`;
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const googleEventToOccurrence = (
+  event: GoogleCalendarEvent,
+  sourceId: string
+): CalendarEventOccurrence[] => {
+  const start = googleEventDateTime(event.start);
+  if (!start) return [];
+  const end = googleEventDateTime(event.end) ?? start;
+  const now = new Date().toISOString();
+  return [
+    {
+      id: '',
+      sourceId,
+      uid: event.iCalUID || event.id || start.value,
+      title: event.summary || '(No title)',
+      startsAt: start.value,
+      endsAt: end.value,
+      allDay: start.allDay,
+      description: event.description ?? undefined,
+      location: event.location ?? undefined,
+      recurrenceId: event.recurringEventId ?? undefined,
+      lastModified: event.updated ?? undefined,
+      createdAt: now,
+      updatedAt: now
+    }
+  ];
+};
+
+const googleEventToSubscribedTaskOccurrence = (
+  event: GoogleCalendarEvent,
+  sourceId: string
+): SubscribedTaskOccurrence[] => {
+  const start = googleEventDateTime(event.start);
+  if (!start) return [];
+  const now = new Date().toISOString();
+  return [
+    {
+      id: '',
+      sourceId,
+      uid: event.iCalUID || event.id || start.value,
+      title: event.summary || '(No title)',
+      deadlineDate: start.value.slice(0, 10),
+      deadlineTime: start.allDay ? undefined : start.value.slice(11, 16),
+      allDay: start.allDay,
+      description: event.description ?? undefined,
+      recurrenceId: event.recurringEventId ?? undefined,
+      lastModified: event.updated ?? undefined,
+      createdAt: now,
+      updatedAt: now
+    }
+  ];
+};
+
+const googleEventDateTime = (
+  value: GoogleCalendarEvent['start'] | GoogleCalendarEvent['end']
+): { value: string; allDay: boolean } | undefined => {
+  if (!value) return undefined;
+  if (value.date) return { value: `${value.date}T00:00:00.000`, allDay: true };
+  if (!value.dateTime) return undefined;
+  const date = new Date(value.dateTime);
+  return {
+    value: Number.isNaN(date.getTime()) ? value.dateTime : date.toISOString(),
+    allDay: false
+  };
+};

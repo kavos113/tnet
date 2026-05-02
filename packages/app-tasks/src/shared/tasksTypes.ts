@@ -1,4 +1,4 @@
-export type CalendarSourceType = 'ics-file' | 'ics-url' | 'caldav';
+export type CalendarSourceType = 'ics-file' | 'ics-url' | 'caldav' | 'google-calendar';
 export type CalendarSourceAuthType = 'none' | 'basic';
 export type CalendarSourceItemKind = 'event' | 'task';
 
@@ -51,6 +51,7 @@ export interface CalendarSource {
   authType: CalendarSourceAuthType;
   username?: string;
   passwordSecretId?: string;
+  googleTokenSecretId?: string;
   lastSyncedAt?: string;
   lastSyncError?: string;
   createdAt: string;
@@ -70,6 +71,7 @@ export interface SaveCalendarSourceInput {
   username?: string;
   password?: string;
   passwordSecretId?: string;
+  googleTokenSecretId?: string;
 }
 
 export interface CalendarEventOccurrence {

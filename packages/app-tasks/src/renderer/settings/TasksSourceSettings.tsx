@@ -58,13 +58,15 @@ export const TasksSourceSettings = (): React.JSX.Element => {
   }, [dispatch]);
 
   const saveSource = async (): Promise<void> => {
-    if (!draft.name.trim() || !draft.uri.trim()) return;
+    if (!draft.name.trim()) return;
+    const uri = draft.type === 'google-calendar' ? draft.uri.trim() || 'primary' : draft.uri;
+    if (!uri.trim()) return;
     const source = await tasksTnetApi.tasks.calendarSources.save({
       id: draft.id,
       name: draft.name,
       type: draft.type,
       itemKind: draft.itemKind,
-      uri: draft.uri,
+      uri,
       color: draft.color || undefined,
       enabled: draft.enabled,
       authType: draft.authType,
@@ -88,6 +90,24 @@ export const TasksSourceSettings = (): React.JSX.Element => {
     dispatch(setTasksCalendarSources(sources.filter((source) => source.id !== sourceId)));
   };
 
+  const authorizeGoogle = async (sourceId: string): Promise<void> => {
+    await tasksTnetApi.tasks.calendarSources.authorizeGoogle({ sourceId });
+    const code = window.prompt('Paste the Google authorization code.');
+    if (!code?.trim()) return;
+    const result = await tasksTnetApi.tasks.calendarSources.authorizeGoogle({
+      sourceId,
+      code: code.trim()
+    });
+    if (result.source) {
+      dispatch(
+        setTasksCalendarSources([
+          ...sources.filter((source) => source.id !== result.source?.id),
+          result.source
+        ])
+      );
+    }
+  };
+
   const runAction = (action: () => Promise<void>): void => {
     action().catch((error: unknown) => {
       console.error('Calendar source settings action failed', error);
@@ -105,6 +125,7 @@ export const TasksSourceSettings = (): React.JSX.Element => {
                 key={source.id}
                 source={source}
                 onEdit={() => setDraft(draftFromSource(source))}
+                onGoogleAuthorize={() => runAction(() => authorizeGoogle(source.id))}
                 onRemove={() => runAction(() => removeSource(source.id))}
                 onSync={() => runAction(() => syncSource(source.id))}
               />
@@ -128,11 +149,13 @@ export const TasksSourceSettings = (): React.JSX.Element => {
 const SourceRow = ({
   source,
   onEdit,
+  onGoogleAuthorize,
   onRemove,
   onSync
 }: {
   source: CalendarSource;
   onEdit: () => void;
+  onGoogleAuthorize: () => void;
   onRemove: () => void;
   onSync: () => void;
 }): React.JSX.Element => (
@@ -160,6 +183,15 @@ const SourceRow = ({
     >
       edit
     </SettingsIconButton>
+    {source.type === 'google-calendar' ? (
+      <SettingsIconButton
+        className="material-icons-round"
+        aria-label={`Authorize ${source.name}`}
+        onClick={onGoogleAuthorize}
+      >
+        key
+      </SettingsIconButton>
+    ) : null}
     <SettingsIconButton
       className="material-icons-round"
       aria-label={`Remove ${source.name}`}
@@ -203,6 +235,7 @@ const SourceForm = ({
             <option value="ics-url">iCal URL</option>
             <option value="ics-file">Local .ics file</option>
             <option value="caldav">CalDAV</option>
+            <option value="google-calendar">Google Calendar</option>
           </select>
         </label>
         <label>
@@ -218,7 +251,13 @@ const SourceForm = ({
         <label>
           URI
           <input
-            placeholder={draft.type === 'ics-file' ? 'C:\\calendar\\work.ics' : 'https://...'}
+            placeholder={
+              draft.type === 'ics-file'
+                ? 'C:\\calendar\\work.ics'
+                : draft.type === 'google-calendar'
+                  ? 'primary'
+                  : 'https://...'
+            }
             value={draft.uri}
             onChange={(event) => update('uri', event.target.value)}
           />

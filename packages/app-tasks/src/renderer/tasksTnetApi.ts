@@ -22,7 +22,8 @@ export const tasksTnetApi: TasksApi = {
     calendarSources: {
       list: () => getApi().tasks.calendarSources.list(),
       save: (request) => getApi().tasks.calendarSources.save(request),
-      remove: (request) => getApi().tasks.calendarSources.remove(request)
+      remove: (request) => getApi().tasks.calendarSources.remove(request),
+      authorizeGoogle: (request) => getApi().tasks.calendarSources.authorizeGoogle(request)
     },
     calendarOccurrences: {
       list: (request) => getApi().tasks.calendarOccurrences.list(request)

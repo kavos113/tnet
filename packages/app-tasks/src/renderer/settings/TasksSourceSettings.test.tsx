@@ -9,6 +9,7 @@ import { TasksSourceSettings } from './TasksSourceSettings';
 const listSources = vi.fn();
 const saveSource = vi.fn();
 const removeSource = vi.fn();
+const authorizeGoogle = vi.fn();
 const syncManual = vi.fn();
 
 interface TasksSourceSettingsTestState {
@@ -43,7 +44,8 @@ const installTnetApi = (): void => {
         calendarSources: {
           list: listSources,
           save: saveSource,
-          remove: removeSource
+          remove: removeSource,
+          authorizeGoogle
         },
         sync: {
           manual: syncManual
@@ -71,6 +73,7 @@ describe('TasksSourceSettings', () => {
       })
     );
     removeSource.mockResolvedValue(undefined);
+    authorizeGoogle.mockResolvedValue({});
     syncManual.mockResolvedValue({
       sources: [],
       syncedSourceIds: [],
@@ -81,6 +84,7 @@ describe('TasksSourceSettings', () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('saves authenticated iCal sources through the settings form', async () => {
@@ -125,5 +129,52 @@ describe('TasksSourceSettings', () => {
         passwordSecretId: 'secret-1'
       })
     ]);
+  });
+
+  it('starts Google Calendar authorization for Google sources', async () => {
+    const googleSource = source({
+      id: 'google-source',
+      name: 'Google',
+      type: 'google-calendar',
+      uri: 'primary'
+    });
+    listSources.mockResolvedValue([googleSource]);
+    Object.defineProperty(window, 'prompt', {
+      value: vi.fn(() => 'auth-code'),
+      configurable: true
+    });
+    authorizeGoogle
+      .mockResolvedValueOnce({ authUrl: 'https://accounts.google.test/auth' })
+      .mockResolvedValueOnce({
+        source: source({
+          id: 'google-source',
+          name: 'Google',
+          type: 'google-calendar',
+          uri: 'primary',
+          googleTokenSecretId: 'google-token'
+        })
+      });
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        calendarSources: [googleSource]
+      })
+    );
+
+    render(
+      <Provider store={store}>
+        <TasksSourceSettings />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByLabelText('Authorize Google'));
+
+    await waitFor(() =>
+      expect(authorizeGoogle).toHaveBeenLastCalledWith({
+        sourceId: 'google-source',
+        code: 'auth-code'
+      })
+    );
+    expect(store.getState().tasks.calendarSources[0].googleTokenSecretId).toBe('google-token');
   });
 });

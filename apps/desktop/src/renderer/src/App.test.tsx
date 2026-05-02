@@ -46,7 +46,8 @@ describe('App', () => {
           calendarSources: {
             list: vi.fn().mockResolvedValue([]),
             save: vi.fn(),
-            remove: vi.fn()
+            remove: vi.fn(),
+            authorizeGoogle: vi.fn()
           },
           calendarOccurrences: {
             list: vi.fn().mockResolvedValue([])

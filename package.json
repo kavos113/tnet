@@ -54,6 +54,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "codemirror": "^6.0.2",
     "electron-updater": "^6.3.9",
+    "googleapis": "^170.0.0",
     "highlight.js": "^11.11.1",
     "katex": "^0.16.45",
     "material-icons": "^1.13.14",
