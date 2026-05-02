@@ -1,3 +1,4 @@
+import { DOMParser } from '@xmldom/xmldom';
 import { normalizeFeedDate } from '@tnet/app-rss/shared/rssDate';
 import { normalizeItemExternalId, normalizeLink } from '@tnet/app-rss/shared/rssIdentity';
 
@@ -21,8 +22,13 @@ export interface ParsedFeed {
 
 export const parseFeedXml = (xml: string): ParsedFeed => {
   if (xml.trim().startsWith('{')) return parseJsonFeed(xml);
-  if (/<feed[\s>]/i.test(xml)) return parseAtom(xml);
-  if (/<rss[\s>]/i.test(xml) || /<rdf:RDF[\s>]/i.test(xml)) return parseRss(xml);
+  const document = parseXmlDocument(xml);
+  const rootName = document.documentElement?.localName.toLowerCase();
+  const rootTagName = document.documentElement?.tagName.toLowerCase();
+  if (rootName === 'feed') return parseAtom(document);
+  if (rootName === 'rss' || rootName === 'rdf' || rootTagName === 'rdf:rdf') {
+    return parseRss(document);
+  }
   throw new Error('Unsupported feed format.');
 };
 
@@ -66,22 +72,26 @@ const parseJsonFeed = (json: string): ParsedFeed => {
   };
 };
 
-const parseRss = (xml: string): ParsedFeed => {
-  const channel = firstTag(xml, 'channel') ?? xml;
-  const items = allTags(channel, 'item').map((itemXml) => {
-    const guid = textOf(itemXml, 'guid');
-    const title = textOf(itemXml, 'title') ?? 'Untitled';
-    const link = normalizeLink(textOf(itemXml, 'link'));
-    const publishedAt = normalizeFeedDate(textOf(itemXml, 'pubDate') ?? textOf(itemXml, 'dc:date'));
+const parseRss = (document: Document): ParsedFeed => {
+  const channel = firstElement(document, 'channel') ?? document.documentElement;
+  const items = elements(document, 'item').map((itemElement) => {
+    const guid = textOf(itemElement, 'guid');
+    const title = textOf(itemElement, 'title') ?? 'Untitled';
+    const link = normalizeLink(textOf(itemElement, 'link'));
+    const publishedAt = normalizeFeedDate(
+      textOf(itemElement, 'pubDate') ?? textOf(itemElement, 'dc:date')
+    );
     return {
       externalId: normalizeItemExternalId({ guid, link, title, publishedAt }),
       title,
       link,
-      author: textOf(itemXml, 'author') ?? textOf(itemXml, 'dc:creator'),
-      summary: textOf(itemXml, 'description'),
-      contentHtml: sanitizeHtml(rawOf(itemXml, 'content:encoded') ?? rawOf(itemXml, 'description')),
+      author: textOf(itemElement, 'author') ?? textOf(itemElement, 'dc:creator'),
+      summary: textOf(itemElement, 'description'),
+      contentHtml: sanitizeHtml(
+        rawOf(itemElement, 'content:encoded') ?? rawOf(itemElement, 'description')
+      ),
       publishedAt,
-      updatedAt: normalizeFeedDate(textOf(itemXml, 'updated'))
+      updatedAt: normalizeFeedDate(textOf(itemElement, 'updated'))
     };
   });
   return {
@@ -92,58 +102,79 @@ const parseRss = (xml: string): ParsedFeed => {
   };
 };
 
-const parseAtom = (xml: string): ParsedFeed => {
-  const entries = allTags(xml, 'entry').map((entryXml) => {
-    const id = textOf(entryXml, 'id');
-    const title = textOf(entryXml, 'title') ?? 'Untitled';
-    const link = normalizeLink(atomLink(entryXml));
+const parseAtom = (document: Document): ParsedFeed => {
+  const entries = elements(document, 'entry').map((entryElement) => {
+    const id = textOf(entryElement, 'id');
+    const title = textOf(entryElement, 'title') ?? 'Untitled';
+    const link = normalizeLink(atomLink(entryElement));
     const publishedAt = normalizeFeedDate(
-      textOf(entryXml, 'published') ?? textOf(entryXml, 'updated')
+      textOf(entryElement, 'published') ?? textOf(entryElement, 'updated')
     );
     return {
       externalId: normalizeItemExternalId({ id, link, title, publishedAt }),
       title,
       link,
-      author: textOf(firstTag(entryXml, 'author') ?? '', 'name'),
-      summary: textOf(entryXml, 'summary'),
-      contentHtml: sanitizeHtml(rawOf(entryXml, 'content') ?? rawOf(entryXml, 'summary')),
+      author: textOf(firstElement(entryElement, 'author'), 'name'),
+      summary: textOf(entryElement, 'summary'),
+      contentHtml: sanitizeHtml(rawOf(entryElement, 'content') ?? rawOf(entryElement, 'summary')),
       publishedAt,
-      updatedAt: normalizeFeedDate(textOf(entryXml, 'updated'))
+      updatedAt: normalizeFeedDate(textOf(entryElement, 'updated'))
     };
   });
   return {
-    title: textOf(xml, 'title'),
-    siteUrl: normalizeLink(atomLink(xml)),
-    description: textOf(xml, 'subtitle'),
+    title: textOf(document.documentElement, 'title'),
+    siteUrl: normalizeLink(atomLink(document.documentElement)),
+    description: textOf(document.documentElement, 'subtitle'),
     items: entries
   };
 };
 
-const stripCdata = (xml: string): string => xml.replaceAll(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1');
-
-const allTags = (xml: string, tagName: string): string[] => {
-  const escaped = tagName.replaceAll(':', '\\:');
-  const matcher = new RegExp(`<${escaped}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escaped}>`, 'gi');
-  return [...xml.matchAll(matcher)].map((match) => match[1]);
+const parseXmlDocument = (xml: string): Document => {
+  const errors: string[] = [];
+  const document = new DOMParser({
+    errorHandler: {
+      warning: (message) => errors.push(String(message)),
+      error: (message) => errors.push(String(message)),
+      fatalError: (message) => errors.push(String(message))
+    }
+  }).parseFromString(xml, 'application/xml');
+  if (!document.documentElement || errors.length > 0) {
+    throw new Error(`Invalid feed XML: ${errors.join('; ') || 'missing document element'}`);
+  }
+  return document;
 };
 
-const firstTag = (xml: string, tagName: string): string | undefined => allTags(xml, tagName)[0];
+const elements = (root: Document | Element, tagName: string): Element[] =>
+  Array.from(root.getElementsByTagName(tagName));
 
-const textOf = (xml: string, tagName: string): string | undefined => {
-  const text = decodeEntities(stripTags(firstTag(xml, tagName) ?? '')).trim();
+const firstElement = (
+  root: Document | Element | undefined | null,
+  tagName: string
+): Element | undefined => {
+  if (!root) return undefined;
+  return elements(root, tagName)[0];
+};
+
+const textOf = (
+  root: Document | Element | undefined | null,
+  tagName: string
+): string | undefined => {
+  const text = firstElement(root, tagName)?.textContent?.trim();
   return text || undefined;
 };
 
-const rawOf = (xml: string, tagName: string): string | undefined => {
-  const raw = stripCdata(firstTag(xml, tagName) ?? '').trim();
+const rawOf = (root: Document | Element, tagName: string): string | undefined => {
+  const raw = firstElement(root, tagName)?.textContent?.trim();
   return raw || undefined;
 };
 
-const atomLink = (xml: string): string | undefined => {
-  const alternate = [...xml.matchAll(/<link\s+([^>]*?)\/?>/gi)]
-    .map((match) => match[1])
-    .find((attrs) => !/\brel=["'](self|hub)["']/i.test(attrs));
-  return alternate?.match(/\bhref=["']([^"']+)["']/i)?.[1];
+const atomLink = (element: Element): string | undefined => {
+  const links = elements(element, 'link');
+  const alternate = links.find((link) => {
+    const rel = link.getAttribute('rel');
+    return rel !== 'self' && rel !== 'hub';
+  });
+  return alternate?.getAttribute('href') ?? undefined;
 };
 
 const sanitizeHtml = (html: string | undefined): string | undefined => {
@@ -156,13 +187,3 @@ const sanitizeHtml = (html: string | undefined): string | undefined => {
     .trim();
   return sanitized || undefined;
 };
-
-const stripTags = (value: string): string => value.replaceAll(/<[^>]+>/g, ' ');
-
-const decodeEntities = (value: string): string =>
-  value
-    .replaceAll('&amp;', '&')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#39;', "'");

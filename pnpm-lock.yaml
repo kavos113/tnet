@@ -347,6 +347,9 @@ importers:
       '@tnet/ui':
         specifier: workspace:*
         version: link:../ui
+      '@xmldom/xmldom':
+        specifier: 0.8.13
+        version: 0.8.13
       better-sqlite3:
         specifier: 'catalog:'
         version: 12.9.0

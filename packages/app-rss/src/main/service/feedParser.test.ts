@@ -50,6 +50,36 @@ describe('parseFeedXml', () => {
     });
   });
 
+  it('parses RDF feeds with an XML declaration', () => {
+    const parsed = parseFeedXml(`
+      <?xml version="1.0" encoding="UTF-8"?>
+      <rdf:RDF
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"
+      >
+        <channel rdf:about="https://example.com/">
+          <title>Example RDF</title>
+          <link>https://example.com/</link>
+          <description>RDF feed</description>
+        </channel>
+        <item rdf:about="https://example.com/rdf-item">
+          <title>RDF Item</title>
+          <link>https://example.com/rdf-item</link>
+          <dc:date>2026-05-01T10:00:00Z</dc:date>
+          <description><![CDATA[<p>RDF Summary</p>]]></description>
+        </item>
+      </rdf:RDF>
+    `);
+
+    expect(parsed.title).toBe('Example RDF');
+    expect(parsed.items[0]).toMatchObject({
+      title: 'RDF Item',
+      link: 'https://example.com/rdf-item',
+      publishedAt: '2026-05-01T10:00:00.000Z'
+    });
+    expect(parsed.items[0].contentHtml).toBe('<p>RDF Summary</p>');
+  });
+
   it('parses JSON Feed', () => {
     const parsed = parseFeedXml(
       JSON.stringify({
