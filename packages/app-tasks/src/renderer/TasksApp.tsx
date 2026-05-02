@@ -12,16 +12,19 @@ import {
   getVisibleCalendarRange,
   groupVisibleCalendarItems
 } from '@tnet/app-tasks/shared/calendarView';
-import type {
-  LocalEvent,
-  SaveLocalEventInput,
-  SubscribedTaskOccurrence,
-  TaskItem
-} from '@tnet/app-tasks/shared/tasksTypes';
-import { TaskLists } from './TaskLists';
+import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import { CalendarDateActions } from './CalendarDateActions';
+import { LocalEventEditor } from './LocalEventEditor';
+import { TasksAgenda } from './TasksAgenda';
 import { TasksCalendar } from './TasksCalendar';
 import { TasksPortal, type TasksPortalShortcut } from './TasksPortal';
 import { TasksQuickAddForm } from './TasksQuickAddForm';
+import {
+  emptyLocalEventDraft,
+  localEventDraftFromEvent,
+  localEventInputFromDraft,
+  type LocalEventDraft
+} from './localEventDraft';
 import {
   draftFromTask,
   emptyTaskDraft,
@@ -74,7 +77,7 @@ export const TasksApp = ({
   const [clock, setClock] = useState(() => new Date());
   const [draft, setDraft] = useState<TaskDraft>(emptyTaskDraft);
   const [dateActionDate, setDateActionDate] = useState<string>();
-  const [eventDraft, setEventDraft] = useState<EventDraft>();
+  const [eventDraft, setEventDraft] = useState<LocalEventDraft>();
   const [calendarTasks, setCalendarTasks] = useState<TaskItem[]>([]);
   const visibleRange = useMemo(
     () => getVisibleCalendarRange(currentDate, view, settings.weekStartsOn),
@@ -96,7 +99,7 @@ export const TasksApp = ({
       const [openTasks, rangeTasks, occurrences, subscribedTasks, localEvents] = await Promise.all([
         tasksTnetApi.tasks.tasks.list({
           category: categoryFilter,
-          includeCompleted: false
+          includeCompleted: true
         }),
         tasksTnetApi.tasks.tasks.list({
           category: categoryFilter,
@@ -147,12 +150,46 @@ export const TasksApp = ({
         .filter((task) => !task.completedAt),
     [categoryFilter, tasks]
   );
+  const visibleCompletedTasks = useMemo(
+    () =>
+      tasks
+        .filter((task) => !categoryFilter || task.category === categoryFilter)
+        .filter((task) => task.completedAt)
+        .sort((left, right) => (right.completedAt ?? '').localeCompare(left.completedAt ?? '')),
+    [categoryFilter, tasks]
+  );
   const todayTasks = useMemo(
     () =>
       visibleOpenTasks
         .filter((task) => task.deadlineDate === currentDate)
         .sort(compareTaskDeadlines),
     [currentDate, visibleOpenTasks]
+  );
+  const todaySubscribedTasks = useMemo(
+    () =>
+      subscribedTaskOccurrences
+        .filter((task) => task.deadlineDate === currentDate)
+        .sort(compareSubscribedTaskDeadlines),
+    [currentDate, subscribedTaskOccurrences]
+  );
+  const todayEvents = useMemo(
+    () =>
+      [...localEvents, ...calendarOccurrences]
+        .filter(
+          (event) =>
+            event.startsAt.slice(0, 10) <= currentDate && event.endsAt.slice(0, 10) >= currentDate
+        )
+        .sort((left, right) => left.startsAt.localeCompare(right.startsAt)),
+    [calendarOccurrences, currentDate, localEvents]
+  );
+  const upcomingDeadlines = useMemo(
+    () =>
+      [...visibleOpenTasks, ...subscribedTaskOccurrences]
+        .filter((item) => Boolean(item.deadlineDate))
+        .filter((item) => (item.deadlineDate ?? '') >= currentDate)
+        .sort(compareAgendaDeadlineItems)
+        .slice(0, 8),
+    [currentDate, subscribedTaskOccurrences, visibleOpenTasks]
   );
   const undatedTasks = useMemo(
     () => visibleOpenTasks.filter((task) => !task.deadlineDate).sort(compareUndatedTasks),
@@ -224,7 +261,7 @@ export const TasksApp = ({
 
   const saveEventDraft = async (): Promise<void> => {
     if (!eventDraft?.title.trim()) return;
-    await tasksTnetApi.tasks.localEvents.save(eventInputFromDraft(eventDraft));
+    await tasksTnetApi.tasks.localEvents.save(localEventInputFromDraft(eventDraft));
     const refreshed = await tasksTnetApi.tasks.localEvents.list({
       startDate: visibleRange.startDate,
       endDate: visibleRange.endDate
@@ -291,48 +328,38 @@ export const TasksApp = ({
         onSubmit={() => runAction(saveDraft)}
       />
       {dateActionDate ? (
-        <div className={styles.dateActionBar} aria-label="Calendar date actions">
-          <span>{dateActionDate}</span>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => {
-              setDraft((current) => ({ ...current, deadlineDate: dateActionDate }));
-              setDateActionDate(undefined);
-            }}
-          >
-            Add task
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={() => {
-              setEventDraft(emptyEventDraft(dateActionDate));
-              setDateActionDate(undefined);
-            }}
-          >
-            Add event
-          </button>
-        </div>
+        <CalendarDateActions
+          date={dateActionDate}
+          onAddEvent={() => {
+            setEventDraft(emptyLocalEventDraft(dateActionDate));
+            setDateActionDate(undefined);
+          }}
+          onAddTask={() => {
+            setDraft((current) => ({ ...current, deadlineDate: dateActionDate }));
+            setDateActionDate(undefined);
+          }}
+        />
       ) : null}
       {eventDraft ? (
-        <EventEditor
+        <LocalEventEditor
           draft={eventDraft}
           onCancel={() => setEventDraft(undefined)}
           onChange={setEventDraft}
-          onDelete={
-            eventDraft.id
-              ? () => runAction(() => deleteLocalEvent(eventDraft.id as string))
-              : undefined
-          }
+          onDelete={createEventDeleteHandler(eventDraft.id, (eventId) =>
+            runAction(() => deleteLocalEvent(eventId))
+          )}
           onSave={() => runAction(saveEventDraft)}
         />
       ) : null}
       {error ? <p className={styles.error}>{error}</p> : null}
       <div className={styles.content}>
-        <TaskLists
+        <TasksAgenda
+          completedTasks={visibleCompletedTasks}
+          todayEvents={todayEvents}
+          todaySubscribedTasks={todaySubscribedTasks}
           todayTasks={todayTasks}
           undatedTasks={undatedTasks}
+          upcomingDeadlines={upcomingDeadlines}
           onComplete={(taskId, completed) => runAction(() => completeTask(taskId, completed))}
           onDelete={(taskId) => runAction(() => deleteTask(taskId))}
           onEdit={(task) => setDraft(draftFromTask(task))}
@@ -344,114 +371,13 @@ export const TasksApp = ({
           showCurrentTime={view !== 'month'}
           startDate={visibleRange.startDate}
           onDateSelect={(date) => setDateActionDate(date)}
-          onLocalEventSelect={(event) => setEventDraft(eventDraftFromLocalEvent(event))}
+          onLocalEventSelect={(event) => setEventDraft(localEventDraftFromEvent(event))}
           onMoveRange={(days) => dispatch(setTasksCurrentDate(addLocalDays(currentDate, days)))}
           onRescheduleTask={(taskId, date) => runAction(() => rescheduleTask(taskId, date))}
           onToday={() => dispatch(setTasksCurrentDate(toLocalDateString()))}
         />
       </div>
     </main>
-  );
-};
-
-interface EventDraft {
-  id?: string;
-  title: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  allDay: boolean;
-  location: string;
-  description: string;
-}
-
-const EventEditor = ({
-  draft,
-  onCancel,
-  onChange,
-  onDelete,
-  onSave
-}: {
-  draft: EventDraft;
-  onCancel: () => void;
-  onChange: (draft: EventDraft) => void;
-  onDelete?: () => void;
-  onSave: () => void;
-}): React.JSX.Element => {
-  const update = <Key extends keyof EventDraft>(key: Key, value: EventDraft[Key]): void => {
-    onChange({ ...draft, [key]: value });
-  };
-
-  return (
-    <section className={styles.eventEditor} aria-label="Event editor">
-      <label>
-        Event title
-        <input value={draft.title} onChange={(event) => update('title', event.target.value)} />
-      </label>
-      <label>
-        Event date
-        <input
-          type="date"
-          value={draft.date}
-          onChange={(event) => update('date', event.target.value)}
-        />
-      </label>
-      <label className={styles.checkboxLabel}>
-        <input
-          type="checkbox"
-          checked={draft.allDay}
-          onChange={(event) => update('allDay', event.target.checked)}
-        />
-        All day
-      </label>
-      {!draft.allDay ? (
-        <>
-          <label>
-            Start
-            <input
-              type="time"
-              value={draft.startTime}
-              onChange={(event) => update('startTime', event.target.value)}
-            />
-          </label>
-          <label>
-            End
-            <input
-              type="time"
-              value={draft.endTime}
-              onChange={(event) => update('endTime', event.target.value)}
-            />
-          </label>
-        </>
-      ) : null}
-      <label>
-        Location
-        <input
-          value={draft.location}
-          onChange={(event) => update('location', event.target.value)}
-        />
-      </label>
-      <label>
-        Description
-        <textarea
-          value={draft.description}
-          onChange={(event) => update('description', event.target.value)}
-        />
-      </label>
-      <div className={styles.eventActions}>
-        <button type="button" className={styles.secondaryButton} onClick={onCancel}>
-          Cancel
-        </button>
-        {onDelete ? (
-          <button type="button" className={styles.secondaryButton} onClick={onDelete}>
-            Delete event
-          </button>
-        ) : null}
-        <button type="button" className={styles.secondaryButton} onClick={onSave}>
-          {draft.id ? 'Save event' : 'Create event'}
-        </button>
-      </div>
-    </section>
   );
 };
 
@@ -482,6 +408,11 @@ const upsertTaskInList = (tasks: TaskItem[], task: TaskItem): TaskItem[] => {
   return tasks.map((item) => (item.id === task.id ? task : item));
 };
 
+const createEventDeleteHandler = (
+  eventId: string | undefined,
+  onDelete: (eventId: string) => void
+): (() => void) | undefined => (eventId ? () => onDelete(eventId) : undefined);
+
 const mergeTaskLists = (primary: TaskItem[], secondary: TaskItem[]): TaskItem[] => {
   const existingIds = new Set(primary.map((task) => task.id));
   return [...primary, ...secondary.filter((task) => !existingIds.has(task.id))];
@@ -498,36 +429,21 @@ const subscribedTaskToTaskItem = (task: SubscribedTaskOccurrence): TaskItem => (
   updatedAt: task.updatedAt
 });
 
-const emptyEventDraft = (date: string): EventDraft => ({
-  title: '',
-  date,
-  startTime: '09:00',
-  endTime: '10:00',
-  allDay: false,
-  location: '',
-  description: ''
-});
+const compareSubscribedTaskDeadlines = (
+  left: SubscribedTaskOccurrence,
+  right: SubscribedTaskOccurrence
+): number =>
+  `${left.deadlineDate}T${left.deadlineTime ?? '00:00'}`.localeCompare(
+    `${right.deadlineDate}T${right.deadlineTime ?? '00:00'}`
+  ) || left.title.localeCompare(right.title);
 
-const eventDraftFromLocalEvent = (event: LocalEvent): EventDraft => ({
-  id: event.id,
-  title: event.title,
-  date: event.startsAt.slice(0, 10),
-  startTime: event.allDay ? '09:00' : event.startsAt.slice(11, 16),
-  endTime: event.allDay ? '10:00' : event.endsAt.slice(11, 16),
-  allDay: event.allDay,
-  location: event.location ?? '',
-  description: event.description ?? ''
-});
-
-const eventInputFromDraft = (draft: EventDraft): SaveLocalEventInput => ({
-  id: draft.id,
-  title: draft.title,
-  startsAt: draft.allDay ? `${draft.date}T00:00:00.000` : `${draft.date}T${draft.startTime}:00.000`,
-  endsAt: draft.allDay ? `${draft.date}T23:59:59.999` : `${draft.date}T${draft.endTime}:00.000`,
-  allDay: draft.allDay,
-  location: draft.location.trim() || undefined,
-  description: draft.description.trim() || undefined
-});
+const compareAgendaDeadlineItems = (
+  left: TaskItem | SubscribedTaskOccurrence,
+  right: TaskItem | SubscribedTaskOccurrence
+): number =>
+  `${left.deadlineDate ?? ''}T${left.deadlineTime ?? '00:00'}`.localeCompare(
+    `${right.deadlineDate ?? ''}T${right.deadlineTime ?? '00:00'}`
+  ) || left.title.localeCompare(right.title);
 
 const viewLabels: Record<TasksDefaultView, string> = {
   today: 'Today',

@@ -88,63 +88,6 @@
   background: var(--background-light);
 }
 
-.dateActionBar {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 24px;
-  color: var(--foreground-muted);
-  font-size: 12px;
-  border-bottom: 1px solid var(--background-dark);
-}
-
-.eventEditor {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) 150px 100px 100px minmax(160px, 1fr);
-  gap: 8px;
-  align-items: end;
-  padding: 10px 24px;
-  border-bottom: 1px solid var(--background-dark);
-}
-
-.eventEditor label {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  color: var(--foreground-muted);
-  font-size: 12px;
-}
-
-.eventEditor input,
-.eventEditor textarea {
-  min-width: 0;
-  height: 30px;
-  padding: 0 8px;
-  color: var(--foreground);
-  background: var(--background);
-  border: 1px solid var(--gray);
-  border-radius: 4px;
-}
-
-.eventEditor textarea {
-  height: 30px;
-  padding-top: 6px;
-  resize: vertical;
-}
-
-.checkboxLabel {
-  display: flex !important;
-  gap: 6px;
-  align-items: center;
-  height: 30px;
-}
-
-.eventActions {
-  display: flex;
-  gap: 6px;
-  align-items: end;
-}
-
 .content {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
@@ -167,9 +110,5 @@
 @media (max-width: 1040px) {
   .content {
     grid-template-columns: 1fr;
-  }
-
-  .eventEditor {
-    grid-template-columns: 1fr 1fr;
   }
 }

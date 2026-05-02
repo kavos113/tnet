@@ -15,6 +15,7 @@ export interface CalendarDateRange {
 export interface CalendarDayItems {
   date: string;
   isOutsideCurrentMonth: boolean;
+  isWeekend: boolean;
   tasks: TaskItem[];
   localEvents: LocalEvent[];
   events: CalendarEventOccurrence[];
@@ -63,6 +64,7 @@ export const groupVisibleCalendarItems = ({
   dates.map((date) => ({
     date,
     isOutsideCurrentMonth: date.slice(0, 7) !== currentDate.slice(0, 7),
+    isWeekend: isWeekendDate(date),
     tasks: tasks.filter((task) => task.deadlineDate === date),
     localEvents: localEvents.filter((event) =>
       doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
@@ -71,6 +73,11 @@ export const groupVisibleCalendarItems = ({
       doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
     )
   }));
+
+export const isWeekendDate = (date: string): boolean => {
+  const day = new Date(`${date}T00:00:00`).getDay();
+  return day === 0 || day === 6;
+};
 
 export const expandRecurringTasksForRange = (
   tasks: TaskItem[],

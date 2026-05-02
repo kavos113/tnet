@@ -1,0 +1,24 @@
+.bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 24px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.secondaryButton {
+  height: 28px;
+  padding: 0 10px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.secondaryButton:hover {
+  color: var(--foreground);
+  background: var(--background-light);
+}

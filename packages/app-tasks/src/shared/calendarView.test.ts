@@ -4,7 +4,8 @@ import {
   expandRecurringTasksForRange,
   getOccurrenceCacheRange,
   getVisibleCalendarRange,
-  groupVisibleCalendarItems
+  groupVisibleCalendarItems,
+  isWeekendDate
 } from './calendarView';
 
 const task = (id: string, deadlineDate?: string): TaskItem => ({
@@ -100,6 +101,12 @@ describe('calendar view helpers', () => {
     });
 
     expect(grouped.map((day) => day.isOutsideCurrentMonth)).toEqual([true, false, true]);
+  });
+
+  it('marks weekend dates', () => {
+    expect(isWeekendDate('2026-05-02')).toBe(true);
+    expect(isWeekendDate('2026-05-03')).toBe(true);
+    expect(isWeekendDate('2026-05-04')).toBe(false);
   });
 
   it('uses six months before and twelve months after for occurrence cache range', () => {

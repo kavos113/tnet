@@ -74,6 +74,10 @@
   background: color-mix(in srgb, var(--main-light) 26%, var(--background));
 }
 
+.cellWeekend .dayLabel {
+  color: var(--color-danger);
+}
+
 .cellOutsideMonth {
   color: var(--foreground-muted);
   background: color-mix(in srgb, var(--background-light) 45%, var(--background));

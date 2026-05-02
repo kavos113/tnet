@@ -395,6 +395,9 @@ describe('TasksApp', () => {
     expect(
       screen.getByRole('gridcell', { name: 'Calendar day 2026-05-02' }).className
     ).not.toContain('cellOutsideMonth');
+    expect(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-02' }).className).toContain(
+      'cellWeekend'
+    );
   });
 
   it('shows subscribed task occurrences as read-only calendar items', async () => {
@@ -432,6 +435,12 @@ describe('TasksApp', () => {
     });
     expect(subscribedTask.className).toContain('readOnlyItem');
     expect(subscribedTask).toHaveAttribute('draggable', 'false');
+    expect(screen.getByRole('region', { name: 'Today Tasks' })).toHaveTextContent(
+      'Read-only deadline'
+    );
+    expect(screen.getByRole('region', { name: 'Upcoming Deadlines' })).toHaveTextContent(
+      'Read-only deadline'
+    );
   });
 
   it('opens subscribed calendar events in a read-only popover', async () => {
@@ -471,7 +480,50 @@ describe('TasksApp', () => {
     const popover = await screen.findByRole('complementary', { name: 'Calendar event' });
     expect(popover).toHaveTextContent('Room A');
     expect(popover).toHaveTextContent('Read-only event');
+    expect(screen.getByRole('region', { name: 'Today Events' })).toHaveTextContent(
+      'Subscribed meeting'
+    );
     expect(screen.queryByRole('button', { name: 'Save event' })).not.toBeInTheDocument();
+  });
+
+  it('shows upcoming and completed local tasks in the agenda', async () => {
+    const completed = task({
+      id: 'task-completed',
+      title: 'Finished report',
+      completedAt: '2026-05-02T01:00:00.000Z'
+    });
+    const future = task({
+      id: 'task-future',
+      title: 'Future report',
+      deadlineDate: '2026-05-04'
+    });
+    listTasks.mockImplementation(async (request) =>
+      request?.startDate ? [future] : [completed, future]
+    );
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [completed, future],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
+
+    expect(screen.getByRole('region', { name: 'Upcoming Deadlines' })).toHaveTextContent(
+      'Future report'
+    );
+    expect(screen.getByRole('region', { name: 'Completed Tasks' })).toHaveTextContent(
+      'Finished report'
+    );
   });
 
   it('creates local events from a calendar day selection', async () => {
