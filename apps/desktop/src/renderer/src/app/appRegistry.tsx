@@ -64,6 +64,15 @@ export const appRegistry: AppModule[] = [
     Settings: TasksSettingsDialog
   },
   {
+    id: 'rss',
+    label: 'RSS',
+    icon: 'rss_feed',
+    Main: RssApp,
+    Sidebar: RssSidebar,
+    Runtime: RssRuntime,
+    Settings: RssSettingsDialog
+  },
+  {
     id: 'markdown',
     label: 'Markdown',
     icon: 'edit_note',
@@ -89,15 +98,6 @@ export const appRegistry: AppModule[] = [
     Sidebar: RequesterSidebar,
     Runtime: RequesterRuntime,
     Settings: RequesterSettingsDialog
-  },
-  {
-    id: 'rss',
-    label: 'RSS',
-    icon: 'rss_feed',
-    Main: RssApp,
-    Sidebar: RssSidebar,
-    Runtime: RssRuntime,
-    Settings: RssSettingsDialog
   },
   {
     id: 'db-inspector',
