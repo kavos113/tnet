@@ -28,13 +28,18 @@ export interface SyncTasksCalendarsResult {
   failedSourceIds: string[];
 }
 
+export interface IcalSyncServiceOptions {
+  calendarHttpUserAgent?: string;
+}
+
 export class IcalSyncService {
   constructor(
     private readonly sourceRepository: CalendarSourceRepository,
     private readonly occurrenceRepository: CalendarEventOccurrenceRepository,
     private readonly subscribedTaskRepository: SubscribedTaskOccurrenceRepository,
     private readonly secretStore: TasksSecretStore,
-    private readonly googleCalendarService?: GoogleCalendarService
+    private readonly googleCalendarService?: GoogleCalendarService,
+    private readonly options: IcalSyncServiceOptions = {}
   ) {}
 
   async sync(sourceId?: string): Promise<SyncTasksCalendarsResult> {
@@ -183,7 +188,7 @@ export class IcalSyncService {
     init: RequestInit = {}
   ): Promise<string> {
     const headers = new Headers(init.headers);
-    const userAgent = process.env.TNET_TASKS_USER_AGENT?.trim();
+    const userAgent = this.options.calendarHttpUserAgent?.trim();
     if (userAgent) headers.set('User-Agent', userAgent);
     if (source.authType === 'basic') {
       const password = this.secretStore.getSecret(source.passwordSecretId);

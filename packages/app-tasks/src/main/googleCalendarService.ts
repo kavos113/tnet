@@ -5,9 +5,13 @@ import type { CalendarSourceRepository } from './repository';
 import type { TasksSecretStore } from './tasksSecretStore';
 
 const googleCalendarScope = 'https://www.googleapis.com/auth/calendar.readonly';
-const credentialsPathEnv = 'TNET_GOOGLE_CALENDAR_CREDENTIALS_PATH';
 
 export type GoogleCalendarEvent = calendar_v3.Schema$Event;
+
+export interface GoogleCalendarServiceOptions {
+  credentialsPath?: string;
+  runtimeConfigPath?: string;
+}
 
 interface GoogleDesktopCredentials {
   installed?: {
@@ -20,12 +24,13 @@ interface GoogleDesktopCredentials {
 export class GoogleCalendarService {
   constructor(
     private readonly sourceRepository: CalendarSourceRepository,
-    private readonly secretStore: TasksSecretStore
+    private readonly secretStore: TasksSecretStore,
+    private readonly options: GoogleCalendarServiceOptions = {}
   ) {}
 
   createAuthUrl(sourceId: string): string {
     this.requireGoogleSource(sourceId);
-    return createOAuthClient().generateAuthUrl({
+    return createOAuthClient(this.options).generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
       scope: [googleCalendarScope]
@@ -34,7 +39,7 @@ export class GoogleCalendarService {
 
   async completeAuth(sourceId: string, code: string): Promise<CalendarSource> {
     const source = this.requireGoogleSource(sourceId);
-    const client = createOAuthClient();
+    const client = createOAuthClient(this.options);
     const { tokens } = await client.getToken(code);
     const secretId = this.secretStore.replaceSecret(
       source.googleTokenSecretId,
@@ -55,7 +60,7 @@ export class GoogleCalendarService {
     timeMin: string;
     timeMax: string;
   }): Promise<GoogleCalendarEvent[]> {
-    const client = createOAuthClient();
+    const client = createOAuthClient(this.options);
     const tokenText = this.secretStore.getSecret(source.googleTokenSecretId);
     if (!tokenText) throw new Error('Google Calendar source is not authorized.');
     client.setCredentials(JSON.parse(tokenText));
@@ -80,8 +85,8 @@ export class GoogleCalendarService {
   }
 }
 
-const createOAuthClient = () => {
-  const credentials = loadGoogleDesktopCredentials();
+const createOAuthClient = (options: GoogleCalendarServiceOptions) => {
+  const credentials = loadGoogleDesktopCredentials(options);
   return new google.auth.OAuth2(
     credentials.clientId,
     credentials.clientSecret,
@@ -89,14 +94,20 @@ const createOAuthClient = () => {
   );
 };
 
-const loadGoogleDesktopCredentials = (): {
+const loadGoogleDesktopCredentials = (
+  options: GoogleCalendarServiceOptions
+): {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
 } => {
-  const credentialsPath = process.env[credentialsPathEnv];
+  const credentialsPath = options.credentialsPath;
   if (!credentialsPath) {
-    throw new Error(`${credentialsPathEnv} is not set.`);
+    throw new Error(
+      `Google Calendar credentials path is not configured. Set googleCalendarCredentialsPath in ${
+        options.runtimeConfigPath ?? 'the Tasks runtime config'
+      }.`
+    );
   }
   const credentials = JSON.parse(
     fs.readFileSync(credentialsPath, 'utf-8')

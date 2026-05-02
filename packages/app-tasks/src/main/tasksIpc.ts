@@ -12,6 +12,7 @@ import {
 } from './repository';
 import { IcalSyncService } from './icalSyncService';
 import { GoogleCalendarService } from './googleCalendarService';
+import { describeTasksRuntimeConfigPath, loadTasksRuntimeConfig } from './tasksRuntimeConfig';
 import { createTasksSecretStore } from './tasksSecretStore';
 
 export interface RegisterTasksIpcOptions {
@@ -26,13 +27,21 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   const subscribedTaskOccurrenceRepository = new SubscribedTaskOccurrenceRepository(database);
   const localEventRepository = new LocalEventRepository(database);
   const secretStore = createTasksSecretStore(userDataDir);
-  const googleCalendarService = new GoogleCalendarService(calendarSourceRepository, secretStore);
+  const runtimeConfigPath = describeTasksRuntimeConfigPath(userDataDir);
+  const runtimeConfig = loadTasksRuntimeConfig(userDataDir);
+  const googleCalendarService = new GoogleCalendarService(calendarSourceRepository, secretStore, {
+    credentialsPath: runtimeConfig.googleCalendarCredentialsPath,
+    runtimeConfigPath
+  });
   const syncService = new IcalSyncService(
     calendarSourceRepository,
     calendarEventOccurrenceRepository,
     subscribedTaskOccurrenceRepository,
     secretStore,
-    googleCalendarService
+    googleCalendarService,
+    {
+      calendarHttpUserAgent: runtimeConfig.calendarHttpUserAgent
+    }
   );
 
   ipcMain.handle(tasksIpcChannels.config.loadGlobal, async () =>

@@ -5,6 +5,9 @@ export const tasksDataDir = (userDataDir: string): string => path.join(userDataD
 export const tasksGlobalConfigPath = (userDataDir: string): string =>
   path.join(tasksDataDir(userDataDir), 'global.json');
 
+export const tasksRuntimeLocalConfigPath = (userDataDir: string): string =>
+  path.join(tasksDataDir(userDataDir), 'runtime.local.json');
+
 export const tasksDatabasePath = (userDataDir: string): string =>
   path.join(tasksDataDir(userDataDir), 'tasks.db');
 

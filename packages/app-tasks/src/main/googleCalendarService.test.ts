@@ -75,12 +75,11 @@ const writeCredentials = async (dir: string): Promise<string> => {
 describe('GoogleCalendarService', () => {
   afterEach(() => {
     vi.clearAllMocks();
-    delete process.env.TNET_GOOGLE_CALENDAR_CREDENTIALS_PATH;
   });
 
   it('creates auth URLs and stores OAuth tokens in the tasks secret store', async () => {
     const userDataDir = await tempDir('auth');
-    process.env.TNET_GOOGLE_CALENDAR_CREDENTIALS_PATH = await writeCredentials(userDataDir);
+    const credentialsPath = await writeCredentials(userDataDir);
     const database = openTasksDatabase(userDataDir);
     const sourceRepository = new CalendarSourceRepository(database);
     const secretStore = createTasksSecretStore(userDataDir);
@@ -89,7 +88,9 @@ describe('GoogleCalendarService', () => {
       type: 'google-calendar',
       uri: 'primary'
     });
-    const service = new GoogleCalendarService(sourceRepository, secretStore);
+    const service = new GoogleCalendarService(sourceRepository, secretStore, {
+      credentialsPath
+    });
 
     expect(service.createAuthUrl(source.id)).toBe('https://accounts.google.test/auth');
     const authorized = await service.completeAuth(source.id, 'auth-code');
@@ -102,7 +103,7 @@ describe('GoogleCalendarService', () => {
 
   it('lists Google Calendar events with the expected query shape', async () => {
     const userDataDir = await tempDir('events');
-    process.env.TNET_GOOGLE_CALENDAR_CREDENTIALS_PATH = await writeCredentials(userDataDir);
+    const credentialsPath = await writeCredentials(userDataDir);
     const database = openTasksDatabase(userDataDir);
     const sourceRepository = new CalendarSourceRepository(database);
     const secretStore = createTasksSecretStore(userDataDir);
@@ -115,7 +116,9 @@ describe('GoogleCalendarService', () => {
       uri: 'primary',
       googleTokenSecretId: tokenSecretId
     });
-    const service = new GoogleCalendarService(sourceRepository, secretStore);
+    const service = new GoogleCalendarService(sourceRepository, secretStore, {
+      credentialsPath
+    });
 
     await expect(
       service.listEvents({
@@ -133,6 +136,25 @@ describe('GoogleCalendarService', () => {
       singleEvents: true,
       orderBy: 'startTime'
     });
+    database.close();
+  });
+
+  it('reports the runtime config path when credentials are not configured', async () => {
+    const userDataDir = await tempDir('missing-credentials');
+    const database = openTasksDatabase(userDataDir);
+    const sourceRepository = new CalendarSourceRepository(database);
+    const secretStore = createTasksSecretStore(userDataDir);
+    const source = sourceRepository.save({
+      name: 'Google',
+      type: 'google-calendar',
+      uri: 'primary'
+    });
+    const service = new GoogleCalendarService(sourceRepository, secretStore, {
+      runtimeConfigPath: 'C:\\Users\\dummy\\AppData\\Roaming\\tnet\\tasks\\runtime.local.json'
+    });
+
+    expect(() => service.createAuthUrl(source.id)).toThrow('googleCalendarCredentialsPath');
+    expect(() => service.createAuthUrl(source.id)).toThrow('runtime.local.json');
     database.close();
   });
 });

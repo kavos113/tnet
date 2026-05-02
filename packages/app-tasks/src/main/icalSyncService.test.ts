@@ -26,7 +26,6 @@ END:VCALENDAR`;
 describe('IcalSyncService', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    delete process.env.TNET_TASKS_USER_AGENT;
   });
 
   it('syncs local .ics files and isolates source failures', async () => {
@@ -115,7 +114,6 @@ describe('IcalSyncService', () => {
   });
 
   it('applies the configured Tasks User-Agent to iCal HTTP requests', async () => {
-    process.env.TNET_TASKS_USER_AGENT = 'tnet-tasks-test/1.0';
     const userDataDir = await tempDir('user-agent');
     const database = openTasksDatabase(userDataDir);
     const sourceRepository = new CalendarSourceRepository(database);
@@ -136,7 +134,11 @@ describe('IcalSyncService', () => {
       sourceRepository,
       occurrenceRepository,
       subscribedTaskRepository,
-      secretStore
+      secretStore,
+      undefined,
+      {
+        calendarHttpUserAgent: 'tnet-tasks-test/1.0'
+      }
     ).sync(source.id);
 
     const [, init] = fetchMock.mock.calls[0] as [string | URL | Request, RequestInit?];
