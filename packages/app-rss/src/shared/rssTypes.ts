@@ -58,6 +58,7 @@ export interface RssTreeFeedNode {
   id: string;
   title: string;
   unreadCount: number;
+  lastSyncedAt?: string;
   lastSyncError?: string;
 }
 
@@ -87,6 +88,16 @@ export interface CreateRssFeedInput {
   url: string;
 }
 
+export interface ImportLocalRssFeedInput {
+  folderId?: string;
+  title?: string;
+  filePath: string;
+}
+
+export interface DiscoverRssFeedsRequest {
+  url: string;
+}
+
 export interface UpdateRssFeedInput {
   feedId: string;
   title?: string;
@@ -104,6 +115,7 @@ export interface ListRssItemsRequest {
   feedId?: string;
   folderId?: string;
   searchQuery?: string;
+  dedupe?: boolean;
   limit?: number;
   cursor?: string;
 }

@@ -108,9 +108,15 @@ export const tnetApi: DesktopTnetApi = {
       list: () => ipcRenderer.invoke(rssIpcChannels.feeds.list),
       create: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.create, request),
       update: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.update, request),
+      importLocalXml: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.importLocalXml, request),
+      discover: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.discover, request),
       move: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.move, request),
       remove: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.remove, request),
       sync: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.sync, request)
+    },
+    opml: {
+      importText: (request) => ipcRenderer.invoke(rssIpcChannels.opml.importText, request),
+      exportText: () => ipcRenderer.invoke(rssIpcChannels.opml.exportText)
     },
     items: {
       list: (request) => ipcRenderer.invoke(rssIpcChannels.items.list, request),

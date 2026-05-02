@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import type { RssFeed } from '@tnet/app-rss/shared/rssTypes';
 
 export interface FeedFetchResult {
@@ -16,6 +17,12 @@ export class FeedFetchService {
   ) {}
 
   async fetch(feed: RssFeed): Promise<FeedFetchResult> {
+    if (feed.url.startsWith('file://')) {
+      return {
+        status: 'ok',
+        body: await fs.readFile(new URL(feed.url), 'utf8')
+      };
+    }
     const abortController = new AbortController();
     const timeout = setTimeout(() => abortController.abort(), this.options.timeoutSeconds * 1000);
     try {

@@ -96,7 +96,23 @@ export class RssFolderRepository {
   }
 
   remove(folderId: string): void {
-    this.database.prepare('DELETE FROM rss_folders WHERE id = ?').run(folderId);
+    const remove = this.database.transaction((targetFolderId: string) => {
+      this.database
+        .prepare(
+          `WITH RECURSIVE folder_tree(id) AS (
+             SELECT id FROM rss_folders WHERE id = ?
+             UNION ALL
+             SELECT child.id
+             FROM rss_folders child
+             JOIN folder_tree parent ON child.parent_id = parent.id
+           )
+           DELETE FROM rss_feeds
+           WHERE folder_id IN (SELECT id FROM folder_tree)`
+        )
+        .run(targetFolderId);
+      this.database.prepare('DELETE FROM rss_folders WHERE id = ?').run(targetFolderId);
+    });
+    remove(folderId);
   }
 
   private require(folderId: string): RssFolder {

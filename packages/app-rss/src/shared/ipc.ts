@@ -2,6 +2,8 @@ import type { RssGlobalConfig } from './config';
 import type {
   CreateRssFeedInput,
   CreateRssFolderInput,
+  DiscoverRssFeedsRequest,
+  ImportLocalRssFeedInput,
   ListRssItemsRequest,
   ListRssItemsResult,
   MoveRssFeedInput,
@@ -32,9 +34,15 @@ export const rssIpcChannels = {
     list: 'rss:feeds:list',
     create: 'rss:feeds:create',
     update: 'rss:feeds:update',
+    importLocalXml: 'rss:feeds:importLocalXml',
+    discover: 'rss:feeds:discover',
     move: 'rss:feeds:move',
     remove: 'rss:feeds:remove',
     sync: 'rss:feeds:sync'
+  },
+  opml: {
+    importText: 'rss:opml:importText',
+    exportText: 'rss:opml:exportText'
   },
   items: {
     list: 'rss:items:list',
@@ -65,9 +73,17 @@ export interface RssApi {
       list: () => Promise<RssFeed[]>;
       create: (request: CreateRssFeedInput) => Promise<RssFeed>;
       update: (request: UpdateRssFeedInput) => Promise<RssFeed>;
+      importLocalXml: (request: ImportLocalRssFeedInput) => Promise<RssFeed>;
+      discover: (
+        request: DiscoverRssFeedsRequest
+      ) => Promise<Array<{ title?: string; url: string }>>;
       move: (request: MoveRssFeedInput) => Promise<RssFeed>;
       remove: (request: { feedId: string }) => Promise<void>;
       sync: (request?: { feedId?: string }) => Promise<RssSyncResult>;
+    };
+    opml: {
+      importText: (request: { opml: string; folderId?: string }) => Promise<RssFeed[]>;
+      exportText: () => Promise<string>;
     };
     items: {
       list: (request?: ListRssItemsRequest) => Promise<ListRssItemsResult>;

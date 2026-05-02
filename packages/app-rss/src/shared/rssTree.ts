@@ -34,6 +34,7 @@ export const buildRssTree = (folders: RssFolder[], feeds: RssFeed[]): RssTreeSna
       id: feed.id,
       title: feed.title,
       unreadCount: feed.unreadCount,
+      lastSyncedAt: feed.lastSyncedAt,
       lastSyncError: feed.lastSyncError
     };
     const parent = feed.folderId ? folderNodes.get(feed.folderId) : undefined;

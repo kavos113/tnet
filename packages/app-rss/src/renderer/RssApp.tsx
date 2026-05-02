@@ -11,6 +11,8 @@ import {
   upsertRssItem
 } from './rssSlice';
 import { useRssDispatch, useRssSelector } from './storeHooks';
+import { extractReadableText } from '@tnet/app-rss/shared/readability';
+import { toRssItemMarkdownLink } from '@tnet/app-rss/shared/markdownLink';
 import styles from './RssApp.module.css';
 
 export const RssApp = (): React.JSX.Element => {
@@ -64,6 +66,46 @@ export const RssApp = (): React.JSX.Element => {
     dispatch(setRssFeeds(feeds));
     dispatch(setRssTree(tree));
     await sync(feed.id);
+  };
+
+  const importLocalXml = async (): Promise<void> => {
+    const filePath = window.prompt('Local RSS/Atom XML file path');
+    if (!filePath) return;
+    const feed = await rssTnetApi.rss.feeds.importLocalXml({
+      title: feedTitle,
+      filePath,
+      folderId: selectedFolderId
+    });
+    const [feeds, tree] = await Promise.all([
+      rssTnetApi.rss.feeds.list(),
+      rssTnetApi.rss.folders.listTree()
+    ]);
+    dispatch(setRssFeeds(feeds));
+    dispatch(setRssTree(tree));
+    await sync(feed.id);
+  };
+
+  const importOpml = async (): Promise<void> => {
+    const opml = window.prompt('Paste OPML');
+    if (!opml) return;
+    const feeds = await rssTnetApi.rss.opml.importText({ opml, folderId: selectedFolderId });
+    const tree = await rssTnetApi.rss.folders.listTree();
+    dispatch(setRssFeeds(feeds));
+    dispatch(setRssTree(tree));
+  };
+
+  const exportOpml = async (): Promise<void> => {
+    const opml = await rssTnetApi.rss.opml.exportText();
+    await navigator.clipboard?.writeText(opml);
+  };
+
+  const discoverFeeds = async (): Promise<void> => {
+    if (!feedUrl.trim()) return;
+    const discovered = await rssTnetApi.rss.feeds.discover({ url: feedUrl });
+    if (discovered[0]) {
+      setFeedTitle(discovered[0].title ?? feedTitle);
+      setFeedUrl(discovered[0].url);
+    }
   };
 
   const sync = async (feedId?: string): Promise<void> => {
@@ -141,6 +183,18 @@ export const RssApp = (): React.JSX.Element => {
           <button className={styles.button} type="submit">
             Add
           </button>
+          <button className={styles.secondaryButton} type="button" onClick={discoverFeeds}>
+            Discover
+          </button>
+          <button className={styles.secondaryButton} type="button" onClick={importLocalXml}>
+            Import XML
+          </button>
+          <button className={styles.secondaryButton} type="button" onClick={importOpml}>
+            Import OPML
+          </button>
+          <button className={styles.secondaryButton} type="button" onClick={exportOpml}>
+            Export OPML
+          </button>
         </form>
         <div className={styles.form}>
           <input
@@ -198,16 +252,27 @@ const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element | null
   const item = useRssSelector((state) =>
     state.rss.items.find((candidate) => candidate.id === itemId)
   );
+  const feed = useRssSelector((state) =>
+    state.rss.feeds.find((candidate) => candidate.id === item?.feedId)
+  );
+  const confirmExternalLinks = useRssSelector((state) => state.rss.settings.confirmExternalLinks);
+  const [readabilityMode, setReadabilityMode] = useState(false);
   if (!item) return null;
   const update = async (next: Promise<typeof item>): Promise<void> => {
     dispatch(upsertRssItem(await next));
+  };
+  const openExternalLink = (): void => {
+    if (!item.link) return;
+    if (confirmExternalLinks && !window.confirm(`Open ${item.link}?`)) return;
+    window.open(item.link, '_blank', 'noopener,noreferrer');
   };
   return (
     <>
       <header className={styles.detailHeader}>
         <h1>{item.title}</h1>
         <div className={styles.itemMeta}>
-          {formatDate(item.publishedAt ?? item.fetchedAt)} {item.author ? `by ${item.author}` : ''}
+          {feed?.title ?? item.feedId} · {formatDate(item.publishedAt ?? item.fetchedAt)}
+          {item.author ? ` by ${item.author}` : ''}
         </div>
         <div className={styles.detailActions}>
           <button
@@ -242,16 +307,36 @@ const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element | null
             {item.archivedAt ? 'Unarchive' : 'Archive'}
           </button>
           {item.link ? (
-            <a className={styles.secondaryButton} href={item.link} target="_blank" rel="noreferrer">
+            <button className={styles.secondaryButton} type="button" onClick={openExternalLink}>
               Open Link
-            </a>
+            </button>
           ) : null}
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={() => setReadabilityMode((value) => !value)}
+          >
+            {readabilityMode ? 'HTML View' : 'Readable Text'}
+          </button>
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            onClick={() => navigator.clipboard?.writeText(toRssItemMarkdownLink(item))}
+          >
+            Copy Markdown Link
+          </button>
         </div>
       </header>
-      <article
-        className={styles.content}
-        dangerouslySetInnerHTML={{ __html: item.contentHtml ?? item.summary ?? '' }}
-      />
+      {readabilityMode ? (
+        <article className={styles.content}>
+          {extractReadableText(item.contentHtml ?? item.summary ?? '')}
+        </article>
+      ) : (
+        <article
+          className={styles.content}
+          dangerouslySetInnerHTML={{ __html: item.contentHtml ?? item.summary ?? '' }}
+        />
+      )}
     </>
   );
 };

@@ -22,9 +22,15 @@ export const rssTnetApi: RssApi = {
       list: () => getApi().rss.feeds.list(),
       create: (request) => getApi().rss.feeds.create(request),
       update: (request) => getApi().rss.feeds.update(request),
+      importLocalXml: (request) => getApi().rss.feeds.importLocalXml(request),
+      discover: (request) => getApi().rss.feeds.discover(request),
       move: (request) => getApi().rss.feeds.move(request),
       remove: (request) => getApi().rss.feeds.remove(request),
       sync: (request) => getApi().rss.feeds.sync(request)
+    },
+    opml: {
+      importText: (request) => getApi().rss.opml.importText(request),
+      exportText: () => getApi().rss.opml.exportText()
     },
     items: {
       list: (request) => getApi().rss.items.list(request),

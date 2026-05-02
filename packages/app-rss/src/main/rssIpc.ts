@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import type { RssGlobalConfig } from '@tnet/app-rss/shared/config';
 import { rssIpcChannels } from '@tnet/app-rss/shared/ipc';
+import { exportFeedsToOpml, parseOpmlFeeds } from '@tnet/app-rss/shared/opml';
 import { buildRssTree } from '@tnet/app-rss/shared/rssTree';
 import { loadRssGlobalConfig, saveRssGlobalConfig } from './rssConfigService';
 import {
@@ -10,6 +11,7 @@ import {
   RssItemRepository
 } from './repository';
 import { FeedFetchService } from './service/feedFetchService';
+import { FeedDiscoveryService } from './service/feedDiscoveryService';
 import { FeedSyncService } from './service/feedSyncService';
 
 export interface RegisterRssIpcOptions {
@@ -51,6 +53,15 @@ export const registerRssIpc = ({ userDataDir }: RegisterRssIpcOptions): void => 
   ipcMain.handle(rssIpcChannels.feeds.update, async (_event, request) =>
     feedRepository.update(request)
   );
+  ipcMain.handle(rssIpcChannels.feeds.importLocalXml, async (_event, request) =>
+    feedRepository.importLocalXml(request)
+  );
+  ipcMain.handle(rssIpcChannels.feeds.discover, async (_event, request) => {
+    const config = await loadRssGlobalConfig(userDataDir);
+    return new FeedDiscoveryService({
+      timeoutSeconds: config.settings.fetchTimeoutSeconds
+    }).discover(request.url);
+  });
   ipcMain.handle(rssIpcChannels.feeds.move, async (_event, request) =>
     feedRepository.move(request)
   );
@@ -68,6 +79,24 @@ export const registerRssIpc = ({ userDataDir }: RegisterRssIpcOptions): void => 
     );
     return syncService.sync(request?.feedId);
   });
+  ipcMain.handle(rssIpcChannels.opml.importText, async (_event, request) => {
+    const entries = parseOpmlFeeds(request.opml);
+    entries.forEach((entry) => {
+      try {
+        feedRepository.create({
+          title: entry.title,
+          url: entry.url,
+          folderId: request.folderId
+        });
+      } catch {
+        // Ignore duplicate or invalid OPML entries so the rest of the import can proceed.
+      }
+    });
+    return feedRepository.list();
+  });
+  ipcMain.handle(rssIpcChannels.opml.exportText, async () =>
+    exportFeedsToOpml(feedRepository.list())
+  );
 
   ipcMain.handle(rssIpcChannels.items.list, async (_event, request) =>
     itemRepository.list(request)

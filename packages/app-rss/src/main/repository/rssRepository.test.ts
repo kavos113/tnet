@@ -50,4 +50,21 @@ describe('RSS repositories', () => {
     items.markRead(listed.items[0].id, true);
     expect(feeds.get(feed.id)?.unreadCount).toBe(0);
   });
+
+  it('imports local XML feeds and deletes feeds under removed folders', () => {
+    database = openRssDatabase(tempDir);
+    const folders = new RssFolderRepository(database);
+    const feeds = new RssFeedRepository(database);
+
+    const folder = folders.create({ name: 'Local' });
+    const feed = feeds.importLocalXml({
+      folderId: folder.id,
+      title: 'Local Feed',
+      filePath: 'C:\\feeds\\local.xml'
+    });
+
+    expect(feed.url).toBe('file://C:/feeds/local.xml');
+    folders.remove(folder.id);
+    expect(feeds.get(feed.id)).toBeNull();
+  });
 });

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { normalizeRssUrl } from '@tnet/app-rss/shared/rssUrl';
 import type {
   CreateRssFeedInput,
+  ImportLocalRssFeedInput,
   MoveRssFeedInput,
   RssFeed,
   UpdateRssFeedInput
@@ -95,6 +96,29 @@ export class RssFeedRepository {
         id: feedId,
         folderId: input.folderId ?? null,
         title: normalizeTitle(input.title) ?? url,
+        url,
+        sortOrder: this.nextSortOrder(input.folderId),
+        createdAt: now,
+        updatedAt: now
+      });
+    return this.require(feedId);
+  }
+
+  importLocalXml(input: ImportLocalRssFeedInput): RssFeed {
+    const now = new Date().toISOString();
+    const feedId = randomUUID();
+    const url = `file://${input.filePath.replaceAll('\\', '/')}`;
+    this.database
+      .prepare(
+        `INSERT INTO rss_feeds (
+           id, folder_id, title, url, sort_order, enabled, created_at, updated_at
+         )
+         VALUES (@id, @folderId, @title, @url, @sortOrder, 1, @createdAt, @updatedAt)`
+      )
+      .run({
+        id: feedId,
+        folderId: input.folderId ?? null,
+        title: normalizeTitle(input.title) ?? input.filePath,
         url,
         sortOrder: this.nextSortOrder(input.folderId),
         createdAt: now,

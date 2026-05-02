@@ -96,11 +96,15 @@ export class RssItemRepository {
          LIMIT @limit`
       )
       .all(params) as ItemRow[];
-    const items = rows.slice(0, limit).map(toItem);
+    const mappedItems = rows.map(toItem);
+    const dedupedItems = request.dedupe === false ? mappedItems : dedupeItems(mappedItems);
+    const items = dedupedItems.slice(0, limit);
     return {
       items,
       nextCursor:
-        rows.length > limit ? (items.at(-1)?.publishedAt ?? items.at(-1)?.fetchedAt) : undefined
+        dedupedItems.length > limit
+          ? (items.at(-1)?.publishedAt ?? items.at(-1)?.fetchedAt)
+          : undefined
     };
   }
 
@@ -196,3 +200,13 @@ export class RssItemRepository {
     return item;
   }
 }
+
+const dedupeItems = (items: RssItem[]): RssItem[] => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = item.link ?? item.externalId;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
