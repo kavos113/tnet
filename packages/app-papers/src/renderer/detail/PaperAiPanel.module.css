@@ -1,0 +1,87 @@
+.panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.segmented {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
+.segmented button,
+.actionButton {
+  height: 30px;
+  padding: 0 10px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 0;
+  border-right: 1px solid var(--gray);
+}
+
+.segmented button:last-child {
+  border-right: 0;
+}
+
+.segmented .active {
+  background: var(--gray);
+}
+
+.languageInput {
+  width: 140px;
+  height: 30px;
+  padding: 0 8px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
+.actionButton {
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}
+
+.meta {
+  flex: 0 0 auto;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--foreground-muted);
+}
+
+.error {
+  flex: 0 0 auto;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #b42318;
+  background: #fff1f0;
+  border: 1px solid #ffd2cc;
+  border-radius: 6px;
+}
+
+.content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  background: var(--background-light);
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+}

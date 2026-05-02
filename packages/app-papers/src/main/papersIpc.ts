@@ -1,9 +1,18 @@
 import { ipcMain } from 'electron';
+import {
+  defaultPapersGlobalSettings,
+  type PapersGlobalSettings
+} from '@tnet/app-papers/shared/config';
 import { papersIpcChannels } from '@tnet/app-papers/shared/ipc';
 import { openPdfExternal, selectPdfForImport } from './papersFileService';
+import { createPaperAiService } from './papersAiService';
 import type { PapersServerClient } from './serverClient/papersServerClient';
 
-export const registerPapersDataIpc = (serverClient: PapersServerClient): void => {
+export const registerPapersDataIpc = (
+  serverClient: PapersServerClient,
+  settingsLoader: () => Promise<PapersGlobalSettings> = async () => defaultPapersGlobalSettings()
+): void => {
+  const aiService = createPaperAiService({ serverClient, settingsLoader });
   ipcMain.handle(papersIpcChannels.library.selectPdf, async (_event, request) =>
     selectPdfForImport(request)
   );
@@ -62,5 +71,18 @@ export const registerPapersDataIpc = (serverClient: PapersServerClient): void =>
 
   ipcMain.handle(papersIpcChannels.pdf.openExternal, async (_event, request) =>
     openPdfExternal(request.libraryRoot, request.pdfPath)
+  );
+
+  ipcMain.handle(papersIpcChannels.ai.translatePdf, async (_event, request) =>
+    aiService.run({ ...request, operation: 'translate', inputMode: 'pdf-direct' })
+  );
+  ipcMain.handle(papersIpcChannels.ai.translateText, async (_event, request) =>
+    aiService.run({ ...request, operation: 'translate', inputMode: 'text' })
+  );
+  ipcMain.handle(papersIpcChannels.ai.summarizePdf, async (_event, request) =>
+    aiService.run({ ...request, operation: 'summary', inputMode: 'pdf-direct' })
+  );
+  ipcMain.handle(papersIpcChannels.ai.summarizeText, async (_event, request) =>
+    aiService.run({ ...request, operation: 'summary', inputMode: 'text' })
   );
 };

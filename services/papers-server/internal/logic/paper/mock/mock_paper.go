@@ -176,6 +176,21 @@ func (mr *MockRepositoryMockRecorder) GetPaperByPDFPath(arg0, arg1 any) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaperByPDFPath", reflect.TypeOf((*MockRepository)(nil).GetPaperByPDFPath), arg0, arg1)
 }
 
+// ListPaperAIOutputs mocks base method.
+func (m *MockRepository) ListPaperAIOutputs(arg0 context.Context, arg1 string) ([]model.PaperAIOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPaperAIOutputs", arg0, arg1)
+	ret0, _ := ret[0].([]model.PaperAIOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPaperAIOutputs indicates an expected call of ListPaperAIOutputs.
+func (mr *MockRepositoryMockRecorder) ListPaperAIOutputs(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPaperAIOutputs", reflect.TypeOf((*MockRepository)(nil).ListPaperAIOutputs), arg0, arg1)
+}
+
 // ListPapers mocks base method.
 func (m *MockRepository) ListPapers(arg0 context.Context, arg1 paper.ListFilter) ([]model.Paper, error) {
 	m.ctrl.T.Helper()
@@ -220,6 +235,21 @@ func (m *MockRepository) SaveNote(arg0 context.Context, arg1, arg2 string) (mode
 func (mr *MockRepositoryMockRecorder) SaveNote(arg0, arg1, arg2 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveNote", reflect.TypeOf((*MockRepository)(nil).SaveNote), arg0, arg1, arg2)
+}
+
+// SavePaperAIOutput mocks base method.
+func (m *MockRepository) SavePaperAIOutput(arg0 context.Context, arg1 model.PaperAIOutput) (model.PaperAIOutput, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SavePaperAIOutput", arg0, arg1)
+	ret0, _ := ret[0].(model.PaperAIOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SavePaperAIOutput indicates an expected call of SavePaperAIOutput.
+func (mr *MockRepositoryMockRecorder) SavePaperAIOutput(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SavePaperAIOutput", reflect.TypeOf((*MockRepository)(nil).SavePaperAIOutput), arg0, arg1)
 }
 
 // UpsertTag mocks base method.

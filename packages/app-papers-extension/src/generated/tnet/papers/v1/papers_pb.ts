@@ -971,6 +971,11 @@ export class PaperDetail extends Message<PaperDetail> {
    */
   noteContent = '';
 
+  /**
+   * @generated from field: repeated tnet.papers.v1.PaperAiOutput ai_outputs = 15;
+   */
+  aiOutputs: PaperAiOutput[] = [];
+
   constructor(data?: PartialMessage<PaperDetail>) {
     super();
     proto3.util.initPartial(data, this);
@@ -992,7 +997,8 @@ export class PaperDetail extends Message<PaperDetail> {
     { no: 11, name: 'url', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 12, name: 'pdf_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
     { no: 13, name: 'directory_path', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
-    { no: 14, name: 'note_content', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+    { no: 14, name: 'note_content', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 15, name: 'ai_outputs', kind: 'message', T: PaperAiOutput, repeated: true }
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaperDetail {
@@ -1012,6 +1018,88 @@ export class PaperDetail extends Message<PaperDetail> {
     b: PaperDetail | PlainMessage<PaperDetail> | undefined
   ): boolean {
     return proto3.util.equals(PaperDetail, a, b);
+  }
+}
+
+/**
+ * @generated from message tnet.papers.v1.PaperAiOutput
+ */
+export class PaperAiOutput extends Message<PaperAiOutput> {
+  /**
+   * @generated from field: string paper_id = 1;
+   */
+  paperId = '';
+
+  /**
+   * @generated from field: string operation = 2;
+   */
+  operation = '';
+
+  /**
+   * @generated from field: string input_mode = 3;
+   */
+  inputMode = '';
+
+  /**
+   * @generated from field: string target_language = 4;
+   */
+  targetLanguage = '';
+
+  /**
+   * @generated from field: string provider = 5;
+   */
+  provider = '';
+
+  /**
+   * @generated from field: string model = 6;
+   */
+  model = '';
+
+  /**
+   * @generated from field: string content = 7;
+   */
+  content = '';
+
+  /**
+   * @generated from field: string updated_at = 8;
+   */
+  updatedAt = '';
+
+  constructor(data?: PartialMessage<PaperAiOutput>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.PaperAiOutput';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'paper_id', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: 'operation', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: 'input_mode', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: 'target_language', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: 'provider', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: 'model', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: 'content', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: 'updated_at', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaperAiOutput {
+    return new PaperAiOutput().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaperAiOutput {
+    return new PaperAiOutput().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaperAiOutput {
+    return new PaperAiOutput().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: PaperAiOutput | PlainMessage<PaperAiOutput> | undefined,
+    b: PaperAiOutput | PlainMessage<PaperAiOutput> | undefined
+  ): boolean {
+    return proto3.util.equals(PaperAiOutput, a, b);
   }
 }
 
@@ -1830,6 +1918,165 @@ export class SaveNoteRequest extends Message<SaveNoteRequest> {
     b: SaveNoteRequest | PlainMessage<SaveNoteRequest> | undefined
   ): boolean {
     return proto3.util.equals(SaveNoteRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message tnet.papers.v1.ListPaperAiOutputsRequest
+ */
+export class ListPaperAiOutputsRequest extends Message<ListPaperAiOutputsRequest> {
+  /**
+   * @generated from field: string library_root = 1;
+   */
+  libraryRoot = '';
+
+  /**
+   * @generated from field: string paper_id = 2;
+   */
+  paperId = '';
+
+  constructor(data?: PartialMessage<ListPaperAiOutputsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.ListPaperAiOutputsRequest';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'library_root', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: 'paper_id', kind: 'scalar', T: 9 /* ScalarType.STRING */ }
+  ]);
+
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): ListPaperAiOutputsRequest {
+    return new ListPaperAiOutputsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): ListPaperAiOutputsRequest {
+    return new ListPaperAiOutputsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): ListPaperAiOutputsRequest {
+    return new ListPaperAiOutputsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: ListPaperAiOutputsRequest | PlainMessage<ListPaperAiOutputsRequest> | undefined,
+    b: ListPaperAiOutputsRequest | PlainMessage<ListPaperAiOutputsRequest> | undefined
+  ): boolean {
+    return proto3.util.equals(ListPaperAiOutputsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message tnet.papers.v1.ListPaperAiOutputsResponse
+ */
+export class ListPaperAiOutputsResponse extends Message<ListPaperAiOutputsResponse> {
+  /**
+   * @generated from field: repeated tnet.papers.v1.PaperAiOutput outputs = 1;
+   */
+  outputs: PaperAiOutput[] = [];
+
+  constructor(data?: PartialMessage<ListPaperAiOutputsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.ListPaperAiOutputsResponse';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'outputs', kind: 'message', T: PaperAiOutput, repeated: true }
+  ]);
+
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): ListPaperAiOutputsResponse {
+    return new ListPaperAiOutputsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): ListPaperAiOutputsResponse {
+    return new ListPaperAiOutputsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): ListPaperAiOutputsResponse {
+    return new ListPaperAiOutputsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: ListPaperAiOutputsResponse | PlainMessage<ListPaperAiOutputsResponse> | undefined,
+    b: ListPaperAiOutputsResponse | PlainMessage<ListPaperAiOutputsResponse> | undefined
+  ): boolean {
+    return proto3.util.equals(ListPaperAiOutputsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message tnet.papers.v1.SavePaperAiOutputRequest
+ */
+export class SavePaperAiOutputRequest extends Message<SavePaperAiOutputRequest> {
+  /**
+   * @generated from field: string library_root = 1;
+   */
+  libraryRoot = '';
+
+  /**
+   * @generated from field: tnet.papers.v1.PaperAiOutput output = 2;
+   */
+  output?: PaperAiOutput;
+
+  constructor(data?: PartialMessage<SavePaperAiOutputRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = 'tnet.papers.v1.SavePaperAiOutputRequest';
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: 'library_root', kind: 'scalar', T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: 'output', kind: 'message', T: PaperAiOutput }
+  ]);
+
+  static fromBinary(
+    bytes: Uint8Array,
+    options?: Partial<BinaryReadOptions>
+  ): SavePaperAiOutputRequest {
+    return new SavePaperAiOutputRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(
+    jsonValue: JsonValue,
+    options?: Partial<JsonReadOptions>
+  ): SavePaperAiOutputRequest {
+    return new SavePaperAiOutputRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(
+    jsonString: string,
+    options?: Partial<JsonReadOptions>
+  ): SavePaperAiOutputRequest {
+    return new SavePaperAiOutputRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(
+    a: SavePaperAiOutputRequest | PlainMessage<SavePaperAiOutputRequest> | undefined,
+    b: SavePaperAiOutputRequest | PlainMessage<SavePaperAiOutputRequest> | undefined
+  ): boolean {
+    return proto3.util.equals(SavePaperAiOutputRequest, a, b);
   }
 }
 

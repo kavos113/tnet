@@ -102,7 +102,8 @@ describe('PapersServerClient', () => {
       url: undefined,
       pdfPath: 'papers/a.pdf',
       directoryPath: 'papers',
-      noteContent: 'note'
+      noteContent: 'note',
+      aiOutputs: []
     });
   });
 

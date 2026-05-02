@@ -53,6 +53,19 @@ CREATE TABLE IF NOT EXISTS notes (
   FOREIGN KEY (paper_id) REFERENCES papers(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS paper_ai_outputs (
+  paper_id TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  input_mode TEXT NOT NULL,
+  target_language TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  model TEXT NOT NULL,
+  content TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (paper_id, operation, input_mode, target_language),
+  FOREIGN KEY (paper_id) REFERENCES papers(id) ON DELETE CASCADE
+);
+
 DROP TABLE IF EXISTS paper_search;
 
 CREATE VIRTUAL TABLE IF NOT EXISTS paper_search USING fts5(

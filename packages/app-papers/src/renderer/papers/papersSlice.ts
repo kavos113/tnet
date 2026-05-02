@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { PaperDetail, PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes';
 
-export type PapersDetailTab = 'metadata' | 'pdf' | 'note';
+export type PapersDetailTab = 'metadata' | 'pdf' | 'note' | 'translate' | 'summary';
 
 export interface PapersContentState {
   items: PaperSummary[];

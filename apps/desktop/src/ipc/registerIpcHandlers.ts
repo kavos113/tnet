@@ -26,6 +26,7 @@ export const registerIpcHandlers = (): void => {
   });
   registerMarkdownIpcHandlers({ loadSession, saveSession });
   registerPapersIpcHandlers({
+    loadGlobal: () => loadGlobalConfig(app.getPath('userData')),
     userDataDir: app.getPath('userData')
   });
   registerRequesterIpcHandlers({

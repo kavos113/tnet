@@ -73,6 +73,12 @@ const (
 	PaperServiceCreatePaperFromPdfBytesProcedure = "/tnet.papers.v1.PaperService/CreatePaperFromPdfBytes"
 	// PaperServiceSaveNoteProcedure is the fully-qualified name of the PaperService's SaveNote RPC.
 	PaperServiceSaveNoteProcedure = "/tnet.papers.v1.PaperService/SaveNote"
+	// PaperServiceListPaperAiOutputsProcedure is the fully-qualified name of the PaperService's
+	// ListPaperAiOutputs RPC.
+	PaperServiceListPaperAiOutputsProcedure = "/tnet.papers.v1.PaperService/ListPaperAiOutputs"
+	// PaperServiceSavePaperAiOutputProcedure is the fully-qualified name of the PaperService's
+	// SavePaperAiOutput RPC.
+	PaperServiceSavePaperAiOutputProcedure = "/tnet.papers.v1.PaperService/SavePaperAiOutput"
 	// TagServiceListTagsProcedure is the fully-qualified name of the TagService's ListTags RPC.
 	TagServiceListTagsProcedure = "/tnet.papers.v1.TagService/ListTags"
 	// TagServiceUpsertTagProcedure is the fully-qualified name of the TagService's UpsertTag RPC.
@@ -362,6 +368,8 @@ type PaperServiceClient interface {
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.ImportPaperResponse], error)
 	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.ImportPaperResponse], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
+	ListPaperAiOutputs(context.Context, *connect.Request[v1.ListPaperAiOutputsRequest]) (*connect.Response[v1.ListPaperAiOutputsResponse], error)
+	SavePaperAiOutput(context.Context, *connect.Request[v1.SavePaperAiOutputRequest]) (*connect.Response[v1.PaperAiOutput], error)
 }
 
 // NewPaperServiceClient constructs a client for the tnet.papers.v1.PaperService service. By
@@ -405,6 +413,18 @@ func NewPaperServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(paperServiceMethods.ByName("SaveNote")),
 			connect.WithClientOptions(opts...),
 		),
+		listPaperAiOutputs: connect.NewClient[v1.ListPaperAiOutputsRequest, v1.ListPaperAiOutputsResponse](
+			httpClient,
+			baseURL+PaperServiceListPaperAiOutputsProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("ListPaperAiOutputs")),
+			connect.WithClientOptions(opts...),
+		),
+		savePaperAiOutput: connect.NewClient[v1.SavePaperAiOutputRequest, v1.PaperAiOutput](
+			httpClient,
+			baseURL+PaperServiceSavePaperAiOutputProcedure,
+			connect.WithSchema(paperServiceMethods.ByName("SavePaperAiOutput")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -415,6 +435,8 @@ type paperServiceClient struct {
 	createPaperFromLocalPdf *connect.Client[v1.CreatePaperFromLocalPdfRequest, v1.ImportPaperResponse]
 	createPaperFromPdfBytes *connect.Client[v1.CreatePaperFromPdfBytesRequest, v1.ImportPaperResponse]
 	saveNote                *connect.Client[v1.SaveNoteRequest, v1.GetPaperResponse]
+	listPaperAiOutputs      *connect.Client[v1.ListPaperAiOutputsRequest, v1.ListPaperAiOutputsResponse]
+	savePaperAiOutput       *connect.Client[v1.SavePaperAiOutputRequest, v1.PaperAiOutput]
 }
 
 // ListPapers calls tnet.papers.v1.PaperService.ListPapers.
@@ -442,6 +464,16 @@ func (c *paperServiceClient) SaveNote(ctx context.Context, req *connect.Request[
 	return c.saveNote.CallUnary(ctx, req)
 }
 
+// ListPaperAiOutputs calls tnet.papers.v1.PaperService.ListPaperAiOutputs.
+func (c *paperServiceClient) ListPaperAiOutputs(ctx context.Context, req *connect.Request[v1.ListPaperAiOutputsRequest]) (*connect.Response[v1.ListPaperAiOutputsResponse], error) {
+	return c.listPaperAiOutputs.CallUnary(ctx, req)
+}
+
+// SavePaperAiOutput calls tnet.papers.v1.PaperService.SavePaperAiOutput.
+func (c *paperServiceClient) SavePaperAiOutput(ctx context.Context, req *connect.Request[v1.SavePaperAiOutputRequest]) (*connect.Response[v1.PaperAiOutput], error) {
+	return c.savePaperAiOutput.CallUnary(ctx, req)
+}
+
 // PaperServiceHandler is an implementation of the tnet.papers.v1.PaperService service.
 type PaperServiceHandler interface {
 	ListPapers(context.Context, *connect.Request[v1.ListPapersRequest]) (*connect.Response[v1.ListPapersResponse], error)
@@ -449,6 +481,8 @@ type PaperServiceHandler interface {
 	CreatePaperFromLocalPdf(context.Context, *connect.Request[v1.CreatePaperFromLocalPdfRequest]) (*connect.Response[v1.ImportPaperResponse], error)
 	CreatePaperFromPdfBytes(context.Context, *connect.Request[v1.CreatePaperFromPdfBytesRequest]) (*connect.Response[v1.ImportPaperResponse], error)
 	SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error)
+	ListPaperAiOutputs(context.Context, *connect.Request[v1.ListPaperAiOutputsRequest]) (*connect.Response[v1.ListPaperAiOutputsResponse], error)
+	SavePaperAiOutput(context.Context, *connect.Request[v1.SavePaperAiOutputRequest]) (*connect.Response[v1.PaperAiOutput], error)
 }
 
 // NewPaperServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -488,6 +522,18 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(paperServiceMethods.ByName("SaveNote")),
 		connect.WithHandlerOptions(opts...),
 	)
+	paperServiceListPaperAiOutputsHandler := connect.NewUnaryHandler(
+		PaperServiceListPaperAiOutputsProcedure,
+		svc.ListPaperAiOutputs,
+		connect.WithSchema(paperServiceMethods.ByName("ListPaperAiOutputs")),
+		connect.WithHandlerOptions(opts...),
+	)
+	paperServiceSavePaperAiOutputHandler := connect.NewUnaryHandler(
+		PaperServiceSavePaperAiOutputProcedure,
+		svc.SavePaperAiOutput,
+		connect.WithSchema(paperServiceMethods.ByName("SavePaperAiOutput")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/tnet.papers.v1.PaperService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PaperServiceListPapersProcedure:
@@ -500,6 +546,10 @@ func NewPaperServiceHandler(svc PaperServiceHandler, opts ...connect.HandlerOpti
 			paperServiceCreatePaperFromPdfBytesHandler.ServeHTTP(w, r)
 		case PaperServiceSaveNoteProcedure:
 			paperServiceSaveNoteHandler.ServeHTTP(w, r)
+		case PaperServiceListPaperAiOutputsProcedure:
+			paperServiceListPaperAiOutputsHandler.ServeHTTP(w, r)
+		case PaperServiceSavePaperAiOutputProcedure:
+			paperServiceSavePaperAiOutputHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -527,6 +577,14 @@ func (UnimplementedPaperServiceHandler) CreatePaperFromPdfBytes(context.Context,
 
 func (UnimplementedPaperServiceHandler) SaveNote(context.Context, *connect.Request[v1.SaveNoteRequest]) (*connect.Response[v1.GetPaperResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.SaveNote is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) ListPaperAiOutputs(context.Context, *connect.Request[v1.ListPaperAiOutputsRequest]) (*connect.Response[v1.ListPaperAiOutputsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.ListPaperAiOutputs is not implemented"))
+}
+
+func (UnimplementedPaperServiceHandler) SavePaperAiOutput(context.Context, *connect.Request[v1.SavePaperAiOutputRequest]) (*connect.Response[v1.PaperAiOutput], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("tnet.papers.v1.PaperService.SavePaperAiOutput is not implemented"))
 }
 
 // TagServiceClient is a client for the tnet.papers.v1.TagService service.

@@ -66,6 +66,8 @@ type Repository interface {
 	AttachTag(context.Context, string, string) (model.Paper, bool, error)
 	DetachTag(context.Context, string, string) (model.Paper, bool, error)
 	SaveNote(context.Context, string, string) (model.Paper, bool, error)
+	ListPaperAIOutputs(context.Context, string) ([]model.PaperAIOutput, error)
+	SavePaperAIOutput(context.Context, model.PaperAIOutput) (model.PaperAIOutput, error)
 }
 
 type CreatePaperInput struct {

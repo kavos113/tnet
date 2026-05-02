@@ -41,3 +41,27 @@ func (s *Service) GetPaper(
 	}
 	return repository.GetPaper(ctx, paperID)
 }
+
+func (s *Service) ListPaperAIOutputs(
+	ctx context.Context,
+	libraryRoot string,
+	paperID string,
+) ([]model.PaperAIOutput, error) {
+	repository, err := s.repository(ctx, libraryRoot)
+	if err != nil {
+		return nil, err
+	}
+	return repository.ListPaperAIOutputs(ctx, paperID)
+}
+
+func (s *Service) SavePaperAIOutput(
+	ctx context.Context,
+	libraryRoot string,
+	output model.PaperAIOutput,
+) (model.PaperAIOutput, error) {
+	repository, err := s.repository(ctx, libraryRoot)
+	if err != nil {
+		return model.PaperAIOutput{}, err
+	}
+	return repository.SavePaperAIOutput(ctx, output)
+}

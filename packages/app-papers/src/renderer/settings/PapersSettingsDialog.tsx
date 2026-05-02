@@ -93,6 +93,12 @@ export const PapersGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.
         fields={globalNotePreviewFontFields}
         onFieldChange={updateDraft}
       />
+      <SettingsFieldsSection
+        title="AI"
+        draft={draft}
+        fields={globalAiFields}
+        onFieldChange={updateDraft}
+      />
       <SettingsActions>
         <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
         <SettingsPrimaryButton
@@ -222,6 +228,53 @@ const globalNotePreviewFontFields: ReadonlyArray<SettingsFieldConfig<PapersGloba
     type: 'number',
     min: 10,
     max: 32
+  }
+];
+
+const globalAiFields: ReadonlyArray<SettingsFieldConfig<PapersGlobalSettings>> = [
+  {
+    id: 'papers-ai-provider',
+    label: 'Provider',
+    key: 'aiProvider',
+    type: 'select',
+    options: [
+      { value: 'mock', label: 'Mock' },
+      { value: 'openai-sdk', label: 'OpenAI SDK' },
+      { value: 'gemini-sdk', label: 'Gemini SDK' }
+    ]
+  },
+  { id: 'papers-ai-model', label: 'Model', key: 'aiModel', type: 'text' },
+  { id: 'papers-ai-endpoint', label: 'Endpoint', key: 'aiEndpoint', type: 'text' },
+  { id: 'papers-ai-api-key', label: 'API key', key: 'aiApiKey', type: 'password' },
+  {
+    id: 'papers-ai-default-target-language',
+    label: 'Default target language',
+    key: 'aiDefaultTargetLanguage',
+    type: 'text'
+  },
+  {
+    id: 'papers-ai-timeout-ms',
+    label: 'Timeout ms',
+    key: 'aiTimeoutMs',
+    type: 'number',
+    min: 1000,
+    step: 1000
+  },
+  {
+    id: 'papers-ai-text-chunk-chars',
+    label: 'Text chunk chars',
+    key: 'aiTextChunkChars',
+    type: 'number',
+    min: 1000,
+    step: 1000
+  },
+  {
+    id: 'papers-ai-max-output-tokens',
+    label: 'Max output tokens',
+    key: 'aiMaxOutputTokens',
+    type: 'number',
+    min: 256,
+    step: 256
   }
 ];
 

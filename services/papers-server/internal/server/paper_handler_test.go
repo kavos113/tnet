@@ -52,6 +52,18 @@ func (usecase fakePaperUsecase) SaveNote(context.Context, string, string, string
 	return usecase.paper, usecase.ok, usecase.err
 }
 
+func (usecase fakePaperUsecase) ListPaperAIOutputs(context.Context, string, string) ([]model.PaperAIOutput, error) {
+	return usecase.paper.AIOutputs, usecase.err
+}
+
+func (usecase fakePaperUsecase) SavePaperAIOutput(
+	_ context.Context,
+	_ string,
+	output model.PaperAIOutput,
+) (model.PaperAIOutput, error) {
+	return output, usecase.err
+}
+
 func TestPaperHandlerCreatePaperFromPdfBytes(t *testing.T) {
 	testcases := []struct {
 		name string

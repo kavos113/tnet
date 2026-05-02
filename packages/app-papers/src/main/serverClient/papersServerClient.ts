@@ -9,7 +9,14 @@ import type {
   CreatePaperFromPdfRequest,
   ListPapersRequest
 } from '@tnet/app-papers/shared/ipc';
-import type { PaperDetail, PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes';
+import type {
+  PaperAiInputMode,
+  PaperAiOperation,
+  PaperAiOutput,
+  PaperDetail,
+  PaperSummary,
+  PaperTag
+} from '@tnet/app-papers/shared/paperTypes';
 import {
   LibraryServiceClient,
   PaperServiceClient,
@@ -22,6 +29,7 @@ import {
 } from '@tnet/app-papers/main/generated/tnet/papers/v1/papers.grpc-client';
 import type {
   PaperDetail as GeneratedPaperDetail,
+  PaperAiOutput as GeneratedPaperAiOutput,
   PaperTag as GeneratedPaperTag
 } from '@tnet/app-papers/main/generated/tnet/papers/v1/papers';
 
@@ -221,6 +229,29 @@ export class PapersServerClient {
     return response.paper ? toPaperDetail(response.paper) : null;
   }
 
+  async listPaperAiOutputs(request: {
+    libraryRoot: string;
+    paperId: string;
+  }): Promise<PaperAiOutput[]> {
+    if (!request.libraryRoot || !request.paperId) return [];
+    const response = await unary(
+      this.paperClient.listPaperAiOutputs.bind(this.paperClient),
+      request
+    );
+    return response.outputs.map(toPaperAiOutput);
+  }
+
+  async savePaperAiOutput(request: {
+    libraryRoot: string;
+    output: PaperAiOutput;
+  }): Promise<PaperAiOutput> {
+    const response = await unary(this.paperClient.savePaperAiOutput.bind(this.paperClient), {
+      libraryRoot: request.libraryRoot,
+      output: fromPaperAiOutput(request.output)
+    });
+    return toPaperAiOutput(response);
+  }
+
   async loadPdfBytes(request: { libraryRoot: string; pdfPath: string }): Promise<ArrayBuffer> {
     const response = await unary(this.pdfClient.loadPdfBytes.bind(this.pdfClient), request);
     return new Uint8Array(response.bytes).buffer;
@@ -299,7 +330,30 @@ const toPaperDetail = (paper: GeneratedPaperDetail): PaperDetail => ({
   url: paper.url || undefined,
   pdfPath: paper.pdfPath || undefined,
   directoryPath: paper.directoryPath,
-  noteContent: paper.noteContent
+  noteContent: paper.noteContent,
+  aiOutputs: (paper.aiOutputs ?? []).map(toPaperAiOutput)
+});
+
+const toPaperAiOutput = (output: GeneratedPaperAiOutput): PaperAiOutput => ({
+  paperId: output.paperId,
+  operation: output.operation as PaperAiOperation,
+  inputMode: output.inputMode as PaperAiInputMode,
+  targetLanguage: output.targetLanguage,
+  provider: output.provider,
+  model: output.model,
+  content: output.content,
+  updatedAt: output.updatedAt
+});
+
+const fromPaperAiOutput = (output: PaperAiOutput): GeneratedPaperAiOutput => ({
+  paperId: output.paperId,
+  operation: output.operation,
+  inputMode: output.inputMode,
+  targetLanguage: output.targetLanguage,
+  provider: output.provider,
+  model: output.model,
+  content: output.content,
+  updatedAt: output.updatedAt
 });
 
 const toPaperTag = (tag: GeneratedPaperTag): PaperTag => ({

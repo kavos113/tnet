@@ -60,3 +60,31 @@
   color: var(--foreground);
   background: var(--background-light);
 }
+
+.splitContent,
+.singleContent {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.splitPdf {
+  flex: 1 1 52%;
+  min-width: 320px;
+  min-height: 0;
+  border-right: 1px solid var(--gray);
+}
+
+.sidePanel {
+  display: flex;
+  flex: 1 1 48%;
+  flex-direction: column;
+  min-width: 320px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.singleContent .sidePanel {
+  flex-basis: 100%;
+}

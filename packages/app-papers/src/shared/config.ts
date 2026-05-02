@@ -28,6 +28,14 @@ export interface PapersGlobalSettings {
   noteEditorFontSize: number;
   notePreviewFontFamily: string;
   notePreviewFontSize: number;
+  aiProvider: 'mock' | 'openai-sdk' | 'gemini-sdk';
+  aiModel: string;
+  aiEndpoint: string;
+  aiApiKey: string;
+  aiTimeoutMs: number;
+  aiDefaultTargetLanguage: string;
+  aiTextChunkChars: number;
+  aiMaxOutputTokens: number;
 }
 
 export const defaultPapersGlobalConfig = (): PapersGlobalConfig => ({
@@ -38,7 +46,15 @@ export const defaultPapersGlobalSettings = (): PapersGlobalSettings => ({
   noteEditorFontFamily: '',
   noteEditorFontSize: 0,
   notePreviewFontFamily: '',
-  notePreviewFontSize: 0
+  notePreviewFontSize: 0,
+  aiProvider: 'mock',
+  aiModel: 'mock-paper-ai',
+  aiEndpoint: '',
+  aiApiKey: '',
+  aiTimeoutMs: 60000,
+  aiDefaultTargetLanguage: 'Japanese',
+  aiTextChunkChars: 12000,
+  aiMaxOutputTokens: 4096
 });
 
 export const defaultPapersLibraryConfig = (): PapersLibraryConfig => ({

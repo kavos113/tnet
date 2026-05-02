@@ -12,6 +12,10 @@ import type { UpsertTagRequest } from './papers';
 import type { ListTagsResponse } from './papers';
 import type { ListTagsRequest } from './papers';
 import { PaperService } from './papers';
+import type { PaperAiOutput } from './papers';
+import type { SavePaperAiOutputRequest } from './papers';
+import type { ListPaperAiOutputsResponse } from './papers';
+import type { ListPaperAiOutputsRequest } from './papers';
 import type { SaveNoteRequest } from './papers';
 import type { CreatePaperFromPdfBytesRequest } from './papers';
 import type { ImportPaperResponse } from './papers';
@@ -538,6 +542,52 @@ export interface IPaperServiceClient {
     input: SaveNoteRequest,
     callback: (err: grpc.ServiceError | null, value?: GetPaperResponse) => void
   ): grpc.ClientUnaryCall;
+  /**
+   * @generated from protobuf rpc: ListPaperAiOutputs
+   */
+  listPaperAiOutputs(
+    input: ListPaperAiOutputsRequest,
+    metadata: grpc.Metadata,
+    options: grpc.CallOptions,
+    callback: (err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void
+  ): grpc.ClientUnaryCall;
+  listPaperAiOutputs(
+    input: ListPaperAiOutputsRequest,
+    metadata: grpc.Metadata,
+    callback: (err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void
+  ): grpc.ClientUnaryCall;
+  listPaperAiOutputs(
+    input: ListPaperAiOutputsRequest,
+    options: grpc.CallOptions,
+    callback: (err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void
+  ): grpc.ClientUnaryCall;
+  listPaperAiOutputs(
+    input: ListPaperAiOutputsRequest,
+    callback: (err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void
+  ): grpc.ClientUnaryCall;
+  /**
+   * @generated from protobuf rpc: SavePaperAiOutput
+   */
+  savePaperAiOutput(
+    input: SavePaperAiOutputRequest,
+    metadata: grpc.Metadata,
+    options: grpc.CallOptions,
+    callback: (err: grpc.ServiceError | null, value?: PaperAiOutput) => void
+  ): grpc.ClientUnaryCall;
+  savePaperAiOutput(
+    input: SavePaperAiOutputRequest,
+    metadata: grpc.Metadata,
+    callback: (err: grpc.ServiceError | null, value?: PaperAiOutput) => void
+  ): grpc.ClientUnaryCall;
+  savePaperAiOutput(
+    input: SavePaperAiOutputRequest,
+    options: grpc.CallOptions,
+    callback: (err: grpc.ServiceError | null, value?: PaperAiOutput) => void
+  ): grpc.ClientUnaryCall;
+  savePaperAiOutput(
+    input: SavePaperAiOutputRequest,
+    callback: (err: grpc.ServiceError | null, value?: PaperAiOutput) => void
+  ): grpc.ClientUnaryCall;
 }
 /**
  * @generated from protobuf service tnet.papers.v1.PaperService
@@ -677,6 +727,57 @@ export class PaperServiceClient extends grpc.Client implements IPaperServiceClie
       (value: SaveNoteRequest): Buffer =>
         Buffer.from(method.I.toBinary(value, this._binaryOptions)),
       (value: Buffer): GetPaperResponse => method.O.fromBinary(value, this._binaryOptions),
+      input,
+      metadata as any,
+      options as any,
+      callback as any
+    );
+  }
+  /**
+   * @generated from protobuf rpc: ListPaperAiOutputs
+   */
+  listPaperAiOutputs(
+    input: ListPaperAiOutputsRequest,
+    metadata:
+      | grpc.Metadata
+      | grpc.CallOptions
+      | ((err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void),
+    options?:
+      | grpc.CallOptions
+      | ((err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void),
+    callback?: (err: grpc.ServiceError | null, value?: ListPaperAiOutputsResponse) => void
+  ): grpc.ClientUnaryCall {
+    const method = PaperService.methods[5];
+    return this.makeUnaryRequest<ListPaperAiOutputsRequest, ListPaperAiOutputsResponse>(
+      `/${PaperService.typeName}/${method.name}`,
+      (value: ListPaperAiOutputsRequest): Buffer =>
+        Buffer.from(method.I.toBinary(value, this._binaryOptions)),
+      (value: Buffer): ListPaperAiOutputsResponse =>
+        method.O.fromBinary(value, this._binaryOptions),
+      input,
+      metadata as any,
+      options as any,
+      callback as any
+    );
+  }
+  /**
+   * @generated from protobuf rpc: SavePaperAiOutput
+   */
+  savePaperAiOutput(
+    input: SavePaperAiOutputRequest,
+    metadata:
+      | grpc.Metadata
+      | grpc.CallOptions
+      | ((err: grpc.ServiceError | null, value?: PaperAiOutput) => void),
+    options?: grpc.CallOptions | ((err: grpc.ServiceError | null, value?: PaperAiOutput) => void),
+    callback?: (err: grpc.ServiceError | null, value?: PaperAiOutput) => void
+  ): grpc.ClientUnaryCall {
+    const method = PaperService.methods[6];
+    return this.makeUnaryRequest<SavePaperAiOutputRequest, PaperAiOutput>(
+      `/${PaperService.typeName}/${method.name}`,
+      (value: SavePaperAiOutputRequest): Buffer =>
+        Buffer.from(method.I.toBinary(value, this._binaryOptions)),
+      (value: Buffer): PaperAiOutput => method.O.fromBinary(value, this._binaryOptions),
       input,
       metadata as any,
       options as any,

@@ -149,6 +149,12 @@ export const tnetApi: DesktopTnetApi = {
     pdf: {
       loadBytes: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.loadBytes, request),
       openExternal: (request) => ipcRenderer.invoke(papersIpcChannels.pdf.openExternal, request)
+    },
+    ai: {
+      translatePdf: (request) => ipcRenderer.invoke(papersIpcChannels.ai.translatePdf, request),
+      translateText: (request) => ipcRenderer.invoke(papersIpcChannels.ai.translateText, request),
+      summarizePdf: (request) => ipcRenderer.invoke(papersIpcChannels.ai.summarizePdf, request),
+      summarizeText: (request) => ipcRenderer.invoke(papersIpcChannels.ai.summarizeText, request)
     }
   },
   requester: {

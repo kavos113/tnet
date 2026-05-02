@@ -34,6 +34,44 @@ func toProtoPaperDetail(paper model.Paper) *papersv1.PaperDetail {
 		PdfPath:       paper.PDFPath,
 		DirectoryPath: paper.DirectoryPath,
 		NoteContent:   paper.NoteContent,
+		AiOutputs:     toProtoPaperAIOutputs(paper.AIOutputs),
+	}
+}
+
+func toProtoPaperAIOutput(output model.PaperAIOutput) *papersv1.PaperAiOutput {
+	return &papersv1.PaperAiOutput{
+		PaperId:        output.PaperID,
+		Operation:      output.Operation,
+		InputMode:      output.InputMode,
+		TargetLanguage: output.TargetLanguage,
+		Provider:       output.Provider,
+		Model:          output.Model,
+		Content:        output.Content,
+		UpdatedAt:      output.UpdatedAt,
+	}
+}
+
+func toProtoPaperAIOutputs(outputs []model.PaperAIOutput) []*papersv1.PaperAiOutput {
+	protoOutputs := make([]*papersv1.PaperAiOutput, 0, len(outputs))
+	for _, output := range outputs {
+		protoOutputs = append(protoOutputs, toProtoPaperAIOutput(output))
+	}
+	return protoOutputs
+}
+
+func fromProtoPaperAIOutput(output *papersv1.PaperAiOutput) model.PaperAIOutput {
+	if output == nil {
+		return model.PaperAIOutput{}
+	}
+	return model.PaperAIOutput{
+		PaperID:        output.PaperId,
+		Operation:      output.Operation,
+		InputMode:      output.InputMode,
+		TargetLanguage: output.TargetLanguage,
+		Provider:       output.Provider,
+		Model:          output.Model,
+		Content:        output.Content,
+		UpdatedAt:      output.UpdatedAt,
 	}
 }
 

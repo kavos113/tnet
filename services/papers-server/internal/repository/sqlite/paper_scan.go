@@ -67,6 +67,12 @@ func (repository *PaperRepository) hydratePaper(ctx context.Context, paper model
 	}
 	paper.NoteContent = note
 
+	outputs, err := repository.ListPaperAIOutputs(ctx, paper.ID)
+	if err != nil {
+		return model.Paper{}, err
+	}
+	paper.AIOutputs = outputs
+
 	return paper, nil
 }
 

@@ -138,6 +138,20 @@ export const PapersApp = (): React.JSX.Element => {
     onTrigger: () => dispatch(setActivePapersDetailTab('note'))
   });
 
+  useShortcut({
+    key: '4',
+    ctrlOrMeta: true,
+    enabled: Boolean(selectedPaperId),
+    onTrigger: () => dispatch(setActivePapersDetailTab('translate'))
+  });
+
+  useShortcut({
+    key: '5',
+    ctrlOrMeta: true,
+    enabled: Boolean(selectedPaperId),
+    onTrigger: () => dispatch(setActivePapersDetailTab('summary'))
+  });
+
   const reloadPapers = async (): Promise<void> => {
     if (!activeLibraryRoot) return;
     const [papers, paperTags] = await Promise.all([
@@ -217,6 +231,11 @@ export const PapersApp = (): React.JSX.Element => {
       dispatch(setPapersError('Failed to save paper note.'));
       throw noteError;
     }
+  };
+
+  const appendToNote = async (content: string): Promise<void> => {
+    if (!detail) return;
+    await saveNote(`${detail.noteContent.trimEnd()}\n\n${content}`.trimStart());
   };
 
   const savePaperSettings = (settings: PapersLibraryConfig): void => {
@@ -309,6 +328,27 @@ export const PapersApp = (): React.JSX.Element => {
           });
         }}
         onSaveNote={saveNote}
+        onAppendToNote={appendToNote}
+        onAiOutputGenerated={(output) => {
+          if (!detail) return;
+          dispatch(
+            setPaperDetail({
+              ...detail,
+              aiOutputs: [
+                output,
+                ...(detail.aiOutputs ?? []).filter(
+                  (current) =>
+                    !(
+                      current.operation === output.operation &&
+                      current.inputMode === output.inputMode &&
+                      current.targetLanguage === output.targetLanguage
+                    )
+                )
+              ]
+            })
+          );
+        }}
+        defaultAiTargetLanguage={globalPaperSettings.aiDefaultTargetLanguage}
       />
       {importCandidate ? (
         <PaperImportDialog

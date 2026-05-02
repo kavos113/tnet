@@ -1,5 +1,12 @@
 import type { PapersGlobalConfig, PapersLibraryConfig } from './config';
-import type { PaperDetail, PaperSummary, PaperTag } from './paperTypes';
+import type {
+  PaperAiInputMode,
+  PaperAiOperation,
+  PaperAiOutput,
+  PaperDetail,
+  PaperSummary,
+  PaperTag
+} from './paperTypes';
 
 export interface SelectedPdfImportCandidate {
   sourcePath: string;
@@ -48,6 +55,15 @@ export interface ListPapersRequest {
   tagIds?: string[];
 }
 
+export interface PaperAiRequest {
+  libraryRoot: string;
+  paperId: string;
+  pdfPath?: string;
+  targetLanguage: string;
+  operation: PaperAiOperation;
+  inputMode: PaperAiInputMode;
+}
+
 export const papersIpcChannels = {
   config: {
     loadGlobal: 'papers:config:loadGlobal',
@@ -77,6 +93,12 @@ export const papersIpcChannels = {
   pdf: {
     loadBytes: 'papers:pdf:loadBytes',
     openExternal: 'papers:pdf:openExternal'
+  },
+  ai: {
+    translatePdf: 'papers:ai:translatePdf',
+    translateText: 'papers:ai:translateText',
+    summarizePdf: 'papers:ai:summarizePdf',
+    summarizeText: 'papers:ai:summarizeText'
   }
 } as const;
 
@@ -128,6 +150,12 @@ export interface PapersApi {
     pdf: {
       loadBytes: (request: { libraryRoot: string; pdfPath: string }) => Promise<ArrayBuffer>;
       openExternal: (request: { libraryRoot: string; pdfPath: string }) => Promise<void>;
+    };
+    ai: {
+      translatePdf: (request: PaperAiRequest) => Promise<PaperAiOutput>;
+      translateText: (request: PaperAiRequest) => Promise<PaperAiOutput>;
+      summarizePdf: (request: PaperAiRequest) => Promise<PaperAiOutput>;
+      summarizeText: (request: PaperAiRequest) => Promise<PaperAiOutput>;
     };
   };
 }

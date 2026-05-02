@@ -17,6 +17,8 @@ import {
   ListDirectoriesResponse,
   ListLibrariesRequest,
   ListLibrariesResponse,
+  ListPaperAiOutputsRequest,
+  ListPaperAiOutputsResponse,
   ListPapersRequest,
   ListPapersResponse,
   ListTagsRequest,
@@ -25,6 +27,7 @@ import {
   LoadLibraryConfigRequest,
   LoadPdfBytesRequest,
   LoadPdfBytesResponse,
+  PaperAiOutput,
   PapersGlobalConfig,
   PapersLibraryConfig,
   PaperTag,
@@ -33,6 +36,7 @@ import {
   SaveLibraryConfigRequest,
   SaveLibraryConfigResponse,
   SaveNoteRequest,
+  SavePaperAiOutputRequest,
   UpsertTagRequest
 } from './papers_pb.js';
 import { MethodKind } from '@bufbuild/protobuf';
@@ -167,6 +171,24 @@ export const PaperService = {
       name: 'SaveNote',
       I: SaveNoteRequest,
       O: GetPaperResponse,
+      kind: MethodKind.Unary
+    },
+    /**
+     * @generated from rpc tnet.papers.v1.PaperService.ListPaperAiOutputs
+     */
+    listPaperAiOutputs: {
+      name: 'ListPaperAiOutputs',
+      I: ListPaperAiOutputsRequest,
+      O: ListPaperAiOutputsResponse,
+      kind: MethodKind.Unary
+    },
+    /**
+     * @generated from rpc tnet.papers.v1.PaperService.SavePaperAiOutput
+     */
+    savePaperAiOutput: {
+      name: 'SavePaperAiOutput',
+      I: SavePaperAiOutputRequest,
+      O: PaperAiOutput,
       kind: MethodKind.Unary
     }
   }

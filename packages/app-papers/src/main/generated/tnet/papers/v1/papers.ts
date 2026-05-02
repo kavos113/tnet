@@ -301,6 +301,47 @@ export interface PaperDetail {
    * @generated from protobuf field: string note_content = 14
    */
   noteContent: string;
+  /**
+   * @generated from protobuf field: repeated tnet.papers.v1.PaperAiOutput ai_outputs = 15
+   */
+  aiOutputs: PaperAiOutput[];
+}
+/**
+ * @generated from protobuf message tnet.papers.v1.PaperAiOutput
+ */
+export interface PaperAiOutput {
+  /**
+   * @generated from protobuf field: string paper_id = 1
+   */
+  paperId: string;
+  /**
+   * @generated from protobuf field: string operation = 2
+   */
+  operation: string;
+  /**
+   * @generated from protobuf field: string input_mode = 3
+   */
+  inputMode: string;
+  /**
+   * @generated from protobuf field: string target_language = 4
+   */
+  targetLanguage: string;
+  /**
+   * @generated from protobuf field: string provider = 5
+   */
+  provider: string;
+  /**
+   * @generated from protobuf field: string model = 6
+   */
+  model: string;
+  /**
+   * @generated from protobuf field: string content = 7
+   */
+  content: string;
+  /**
+   * @generated from protobuf field: string updated_at = 8
+   */
+  updatedAt: string;
 }
 /**
  * @generated from protobuf message tnet.papers.v1.ListPapersRequest
@@ -583,6 +624,41 @@ export interface SaveNoteRequest {
    * @generated from protobuf field: string content = 3
    */
   content: string;
+}
+/**
+ * @generated from protobuf message tnet.papers.v1.ListPaperAiOutputsRequest
+ */
+export interface ListPaperAiOutputsRequest {
+  /**
+   * @generated from protobuf field: string library_root = 1
+   */
+  libraryRoot: string;
+  /**
+   * @generated from protobuf field: string paper_id = 2
+   */
+  paperId: string;
+}
+/**
+ * @generated from protobuf message tnet.papers.v1.ListPaperAiOutputsResponse
+ */
+export interface ListPaperAiOutputsResponse {
+  /**
+   * @generated from protobuf field: repeated tnet.papers.v1.PaperAiOutput outputs = 1
+   */
+  outputs: PaperAiOutput[];
+}
+/**
+ * @generated from protobuf message tnet.papers.v1.SavePaperAiOutputRequest
+ */
+export interface SavePaperAiOutputRequest {
+  /**
+   * @generated from protobuf field: string library_root = 1
+   */
+  libraryRoot: string;
+  /**
+   * @generated from protobuf field: tnet.papers.v1.PaperAiOutput output = 2
+   */
+  output?: PaperAiOutput;
 }
 /**
  * @generated from protobuf message tnet.papers.v1.LoadPdfBytesRequest
@@ -1915,7 +1991,14 @@ class PaperDetail$Type extends MessageType<PaperDetail> {
       { no: 11, name: 'url', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 12, name: 'pdf_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 13, name: 'directory_path', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 14, name: 'note_content', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+      { no: 14, name: 'note_content', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 15,
+        name: 'ai_outputs',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => PaperAiOutput
+      }
     ]);
   }
   create(value?: PartialMessage<PaperDetail>): PaperDetail {
@@ -1934,6 +2017,7 @@ class PaperDetail$Type extends MessageType<PaperDetail> {
     message.pdfPath = '';
     message.directoryPath = '';
     message.noteContent = '';
+    message.aiOutputs = [];
     if (value !== undefined) reflectionMergePartial<PaperDetail>(this, message, value);
     return message;
   }
@@ -1989,6 +2073,11 @@ class PaperDetail$Type extends MessageType<PaperDetail> {
           break;
         case /* string note_content */ 14:
           message.noteContent = reader.string();
+          break;
+        case /* repeated tnet.papers.v1.PaperAiOutput ai_outputs */ 15:
+          message.aiOutputs.push(
+            PaperAiOutput.internalBinaryRead(reader, reader.uint32(), options)
+          );
           break;
         default:
           let u = options.readUnknownField;
@@ -2046,6 +2135,13 @@ class PaperDetail$Type extends MessageType<PaperDetail> {
     /* string note_content = 14; */
     if (message.noteContent !== '')
       writer.tag(14, WireType.LengthDelimited).string(message.noteContent);
+    /* repeated tnet.papers.v1.PaperAiOutput ai_outputs = 15; */
+    for (let i = 0; i < message.aiOutputs.length; i++)
+      PaperAiOutput.internalBinaryWrite(
+        message.aiOutputs[i],
+        writer.tag(15, WireType.LengthDelimited).fork(),
+        options
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
     return writer;
@@ -2055,6 +2151,118 @@ class PaperDetail$Type extends MessageType<PaperDetail> {
  * @generated MessageType for protobuf message tnet.papers.v1.PaperDetail
  */
 export const PaperDetail = new PaperDetail$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PaperAiOutput$Type extends MessageType<PaperAiOutput> {
+  constructor() {
+    super('tnet.papers.v1.PaperAiOutput', [
+      { no: 1, name: 'paper_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'operation', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 3, name: 'input_mode', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 4, name: 'target_language', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 5, name: 'provider', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 6, name: 'model', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 7, name: 'content', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 8, name: 'updated_at', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+    ]);
+  }
+  create(value?: PartialMessage<PaperAiOutput>): PaperAiOutput {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.paperId = '';
+    message.operation = '';
+    message.inputMode = '';
+    message.targetLanguage = '';
+    message.provider = '';
+    message.model = '';
+    message.content = '';
+    message.updatedAt = '';
+    if (value !== undefined) reflectionMergePartial<PaperAiOutput>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: PaperAiOutput
+  ): PaperAiOutput {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string paper_id */ 1:
+          message.paperId = reader.string();
+          break;
+        case /* string operation */ 2:
+          message.operation = reader.string();
+          break;
+        case /* string input_mode */ 3:
+          message.inputMode = reader.string();
+          break;
+        case /* string target_language */ 4:
+          message.targetLanguage = reader.string();
+          break;
+        case /* string provider */ 5:
+          message.provider = reader.string();
+          break;
+        case /* string model */ 6:
+          message.model = reader.string();
+          break;
+        case /* string content */ 7:
+          message.content = reader.string();
+          break;
+        case /* string updated_at */ 8:
+          message.updatedAt = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: PaperAiOutput,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* string paper_id = 1; */
+    if (message.paperId !== '') writer.tag(1, WireType.LengthDelimited).string(message.paperId);
+    /* string operation = 2; */
+    if (message.operation !== '') writer.tag(2, WireType.LengthDelimited).string(message.operation);
+    /* string input_mode = 3; */
+    if (message.inputMode !== '') writer.tag(3, WireType.LengthDelimited).string(message.inputMode);
+    /* string target_language = 4; */
+    if (message.targetLanguage !== '')
+      writer.tag(4, WireType.LengthDelimited).string(message.targetLanguage);
+    /* string provider = 5; */
+    if (message.provider !== '') writer.tag(5, WireType.LengthDelimited).string(message.provider);
+    /* string model = 6; */
+    if (message.model !== '') writer.tag(6, WireType.LengthDelimited).string(message.model);
+    /* string content = 7; */
+    if (message.content !== '') writer.tag(7, WireType.LengthDelimited).string(message.content);
+    /* string updated_at = 8; */
+    if (message.updatedAt !== '') writer.tag(8, WireType.LengthDelimited).string(message.updatedAt);
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.PaperAiOutput
+ */
+export const PaperAiOutput = new PaperAiOutput$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ListPapersRequest$Type extends MessageType<ListPapersRequest> {
   constructor() {
@@ -3282,6 +3490,230 @@ class SaveNoteRequest$Type extends MessageType<SaveNoteRequest> {
  */
 export const SaveNoteRequest = new SaveNoteRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class ListPaperAiOutputsRequest$Type extends MessageType<ListPaperAiOutputsRequest> {
+  constructor() {
+    super('tnet.papers.v1.ListPaperAiOutputsRequest', [
+      { no: 1, name: 'library_root', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'paper_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ }
+    ]);
+  }
+  create(value?: PartialMessage<ListPaperAiOutputsRequest>): ListPaperAiOutputsRequest {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.libraryRoot = '';
+    message.paperId = '';
+    if (value !== undefined)
+      reflectionMergePartial<ListPaperAiOutputsRequest>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ListPaperAiOutputsRequest
+  ): ListPaperAiOutputsRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string library_root */ 1:
+          message.libraryRoot = reader.string();
+          break;
+        case /* string paper_id */ 2:
+          message.paperId = reader.string();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ListPaperAiOutputsRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* string library_root = 1; */
+    if (message.libraryRoot !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.libraryRoot);
+    /* string paper_id = 2; */
+    if (message.paperId !== '') writer.tag(2, WireType.LengthDelimited).string(message.paperId);
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.ListPaperAiOutputsRequest
+ */
+export const ListPaperAiOutputsRequest = new ListPaperAiOutputsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class ListPaperAiOutputsResponse$Type extends MessageType<ListPaperAiOutputsResponse> {
+  constructor() {
+    super('tnet.papers.v1.ListPaperAiOutputsResponse', [
+      {
+        no: 1,
+        name: 'outputs',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => PaperAiOutput
+      }
+    ]);
+  }
+  create(value?: PartialMessage<ListPaperAiOutputsResponse>): ListPaperAiOutputsResponse {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.outputs = [];
+    if (value !== undefined)
+      reflectionMergePartial<ListPaperAiOutputsResponse>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ListPaperAiOutputsResponse
+  ): ListPaperAiOutputsResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* repeated tnet.papers.v1.PaperAiOutput outputs */ 1:
+          message.outputs.push(PaperAiOutput.internalBinaryRead(reader, reader.uint32(), options));
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: ListPaperAiOutputsResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* repeated tnet.papers.v1.PaperAiOutput outputs = 1; */
+    for (let i = 0; i < message.outputs.length; i++)
+      PaperAiOutput.internalBinaryWrite(
+        message.outputs[i],
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.ListPaperAiOutputsResponse
+ */
+export const ListPaperAiOutputsResponse = new ListPaperAiOutputsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SavePaperAiOutputRequest$Type extends MessageType<SavePaperAiOutputRequest> {
+  constructor() {
+    super('tnet.papers.v1.SavePaperAiOutputRequest', [
+      { no: 1, name: 'library_root', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 2, name: 'output', kind: 'message', T: () => PaperAiOutput }
+    ]);
+  }
+  create(value?: PartialMessage<SavePaperAiOutputRequest>): SavePaperAiOutputRequest {
+    const message = globalThis.Object.create(this.messagePrototype!);
+    message.libraryRoot = '';
+    if (value !== undefined) reflectionMergePartial<SavePaperAiOutputRequest>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SavePaperAiOutputRequest
+  ): SavePaperAiOutputRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string library_root */ 1:
+          message.libraryRoot = reader.string();
+          break;
+        case /* tnet.papers.v1.PaperAiOutput output */ 2:
+          message.output = PaperAiOutput.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.output
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: SavePaperAiOutputRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions
+  ): IBinaryWriter {
+    /* string library_root = 1; */
+    if (message.libraryRoot !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.libraryRoot);
+    /* tnet.papers.v1.PaperAiOutput output = 2; */
+    if (message.output)
+      PaperAiOutput.internalBinaryWrite(
+        message.output,
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false) (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message tnet.papers.v1.SavePaperAiOutputRequest
+ */
+export const SavePaperAiOutputRequest = new SavePaperAiOutputRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class LoadPdfBytesRequest$Type extends MessageType<LoadPdfBytesRequest> {
   constructor() {
     super('tnet.papers.v1.LoadPdfBytesRequest', [
@@ -3458,7 +3890,14 @@ export const PaperService = new ServiceType('tnet.papers.v1.PaperService', [
     I: CreatePaperFromPdfBytesRequest,
     O: ImportPaperResponse
   },
-  { name: 'SaveNote', options: {}, I: SaveNoteRequest, O: GetPaperResponse }
+  { name: 'SaveNote', options: {}, I: SaveNoteRequest, O: GetPaperResponse },
+  {
+    name: 'ListPaperAiOutputs',
+    options: {},
+    I: ListPaperAiOutputsRequest,
+    O: ListPaperAiOutputsResponse
+  },
+  { name: 'SavePaperAiOutput', options: {}, I: SavePaperAiOutputRequest, O: PaperAiOutput }
 ]);
 /**
  * @generated ServiceType for protobuf service tnet.papers.v1.TagService

@@ -14,4 +14,16 @@ type Paper struct {
 	DirectoryPath string
 	Tags          []string
 	NoteContent   string
+	AIOutputs     []PaperAIOutput
+}
+
+type PaperAIOutput struct {
+	PaperID        string
+	Operation      string
+	InputMode      string
+	TargetLanguage string
+	Provider       string
+	Model          string
+	Content        string
+	UpdatedAt      string
 }

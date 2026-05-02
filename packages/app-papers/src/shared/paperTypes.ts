@@ -22,4 +22,19 @@ export interface PaperDetail extends PaperSummary {
   pdfPath?: string;
   directoryPath: string;
   noteContent: string;
+  aiOutputs?: PaperAiOutput[];
+}
+
+export type PaperAiOperation = 'translate' | 'summary';
+export type PaperAiInputMode = 'pdf-direct' | 'text';
+
+export interface PaperAiOutput {
+  paperId: string;
+  operation: PaperAiOperation;
+  inputMode: PaperAiInputMode;
+  targetLanguage: string;
+  provider: string;
+  model: string;
+  content: string;
+  updatedAt: string;
 }

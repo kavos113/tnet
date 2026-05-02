@@ -17,6 +17,8 @@ type PaperUsecase interface {
 	CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (paper.ImportResult, error)
 	CreatePaperFromPDFBytes(context.Context, paper.CreateFromPDFBytesInput) (paper.ImportResult, error)
 	SaveNote(context.Context, string, string, string) (model.Paper, bool, error)
+	ListPaperAIOutputs(context.Context, string, string) ([]model.PaperAIOutput, error)
+	SavePaperAIOutput(context.Context, string, model.PaperAIOutput) (model.PaperAIOutput, error)
 }
 
 type PaperHandler struct {
@@ -122,4 +124,28 @@ func (h *PaperHandler) SaveNote(
 		return connect.NewResponse(&papersv1.GetPaperResponse{}), nil
 	}
 	return connect.NewResponse(&papersv1.GetPaperResponse{Paper: toProtoPaperDetail(paper)}), nil
+}
+
+func (h *PaperHandler) ListPaperAiOutputs(
+	ctx context.Context,
+	request *connect.Request[papersv1.ListPaperAiOutputsRequest],
+) (*connect.Response[papersv1.ListPaperAiOutputsResponse], error) {
+	outputs, err := h.u.ListPaperAIOutputs(ctx, request.Msg.LibraryRoot, request.Msg.PaperId)
+	if err != nil {
+		return nil, invalidArgumentError(err)
+	}
+	return connect.NewResponse(&papersv1.ListPaperAiOutputsResponse{
+		Outputs: toProtoPaperAIOutputs(outputs),
+	}), nil
+}
+
+func (h *PaperHandler) SavePaperAiOutput(
+	ctx context.Context,
+	request *connect.Request[papersv1.SavePaperAiOutputRequest],
+) (*connect.Response[papersv1.PaperAiOutput], error) {
+	output, err := h.u.SavePaperAIOutput(ctx, request.Msg.LibraryRoot, fromProtoPaperAIOutput(request.Msg.Output))
+	if err != nil {
+		return nil, invalidArgumentError(err)
+	}
+	return connect.NewResponse(toProtoPaperAIOutput(output)), nil
 }

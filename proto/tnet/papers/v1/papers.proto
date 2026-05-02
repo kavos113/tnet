@@ -23,6 +23,8 @@ service PaperService {
   rpc CreatePaperFromLocalPdf(CreatePaperFromLocalPdfRequest) returns (ImportPaperResponse);
   rpc CreatePaperFromPdfBytes(CreatePaperFromPdfBytesRequest) returns (ImportPaperResponse);
   rpc SaveNote(SaveNoteRequest) returns (GetPaperResponse);
+  rpc ListPaperAiOutputs(ListPaperAiOutputsRequest) returns (ListPaperAiOutputsResponse);
+  rpc SavePaperAiOutput(SavePaperAiOutputRequest) returns (PaperAiOutput);
 }
 
 service TagService {
@@ -136,6 +138,18 @@ message PaperDetail {
   string pdf_path = 12;
   string directory_path = 13;
   string note_content = 14;
+  repeated PaperAiOutput ai_outputs = 15;
+}
+
+message PaperAiOutput {
+  string paper_id = 1;
+  string operation = 2;
+  string input_mode = 3;
+  string target_language = 4;
+  string provider = 5;
+  string model = 6;
+  string content = 7;
+  string updated_at = 8;
 }
 
 message ListPapersRequest {
@@ -231,6 +245,20 @@ message SaveNoteRequest {
   string library_root = 1;
   string paper_id = 2;
   string content = 3;
+}
+
+message ListPaperAiOutputsRequest {
+  string library_root = 1;
+  string paper_id = 2;
+}
+
+message ListPaperAiOutputsResponse {
+  repeated PaperAiOutput outputs = 1;
+}
+
+message SavePaperAiOutputRequest {
+  string library_root = 1;
+  PaperAiOutput output = 2;
 }
 
 message LoadPdfBytesRequest {
