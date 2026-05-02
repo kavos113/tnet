@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { createDirectory, readFile } from '../fileService';
+import { createDirectory, movePath, readFile, renamePath } from '../fileService';
 import { getFileTree } from '../fileTreeService';
 import { loadSession } from '../sessionService';
 
@@ -38,6 +38,34 @@ describe('main file services', () => {
     await createDirectory({ rootDir: root, path: 'a/b' });
     await expect(fs.stat(dirPath)).resolves.toMatchObject({});
     await expect(createDirectory({ rootDir: root, path: 'a/b' })).rejects.toThrow('already exists');
+  });
+
+  it('renames and moves files inside the workspace without overwriting', async () => {
+    const root = await tempDir('move-file');
+    await fs.writeFile(path.join(root, 'old.pdf'), 'content', 'utf-8');
+
+    await renamePath({ rootDir: root, oldPath: 'old.pdf', newPath: 'renamed.pdf' });
+    await expect(fs.readFile(path.join(root, 'renamed.pdf'), 'utf-8')).resolves.toBe('content');
+
+    await fs.writeFile(path.join(root, 'existing.pdf'), 'exists', 'utf-8');
+    await expect(
+      movePath({ rootDir: root, oldPath: 'renamed.pdf', newPath: 'nested/moved.pdf' })
+    ).resolves.toBeUndefined();
+    await expect(fs.readFile(path.join(root, 'nested', 'moved.pdf'), 'utf-8')).resolves.toBe(
+      'content'
+    );
+    await expect(
+      movePath({ rootDir: root, oldPath: 'nested/moved.pdf', newPath: 'existing.pdf' })
+    ).rejects.toThrow('destination already exists');
+  });
+
+  it('rejects rename and move paths outside the workspace', async () => {
+    const root = await tempDir('move-unsafe');
+    await fs.writeFile(path.join(root, 'old.pdf'), 'content', 'utf-8');
+
+    await expect(
+      movePath({ rootDir: root, oldPath: 'old.pdf', newPath: '../escape.pdf' })
+    ).rejects.toThrow('inside rootDir');
   });
 
   it('loads old or invalid session files as an empty current session', async () => {

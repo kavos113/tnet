@@ -25,7 +25,9 @@ export const tnetApi: DesktopTnetApi = {
     read: (request) => ipcRenderer.invoke(ipcChannels.file.read, request),
     openWithDefaultApp: (request) =>
       ipcRenderer.invoke(ipcChannels.file.openWithDefaultApp, request),
-    createDirectory: (request) => ipcRenderer.invoke(ipcChannels.file.createDirectory, request)
+    createDirectory: (request) => ipcRenderer.invoke(ipcChannels.file.createDirectory, request),
+    rename: (request) => ipcRenderer.invoke(ipcChannels.file.rename, request),
+    move: (request) => ipcRenderer.invoke(ipcChannels.file.move, request)
   },
   session: {
     load: (rootDir) => ipcRenderer.invoke(ipcChannels.session.load, rootDir),

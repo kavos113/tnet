@@ -29,7 +29,11 @@ export const registerPdfViewerIpcHandlers = (configStore: PdfViewerConfigStore):
   );
   ipcMain.handle(
     pdfViewerIpcChannels.pdf.loadBytes,
-    async (_event, request: PdfWorkspacePathRequest) => loadPdfBytes(request)
+    async (_event, request: PdfWorkspacePathRequest) =>
+      loadPdfBytes(
+        request,
+        getPdfViewerGlobalSettings(normalizeGlobalConfig(await configStore.loadGlobal()))
+      )
   );
   ipcMain.handle(
     pdfViewerIpcChannels.pdf.openExternal,

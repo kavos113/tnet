@@ -12,6 +12,7 @@ import { pdfViewerTnetApi } from './pdfViewerTnetApi';
 import { usePdfViewerDispatch, usePdfViewerSelector } from './state/storeHooks';
 import {
   openPdf,
+  renameOpenedPdfPath,
   setFileTree,
   setPdfViewerError,
   setPdfViewerSidebarPanel,
@@ -101,10 +102,12 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
             activePdfPath={activePdfPath}
             onRefresh={refresh}
             onOpenPdf={(path) => dispatch(openPdf({ path }))}
+            onRenamePdf={(oldPath, newPath) => dispatch(renameOpenedPdfPath({ oldPath, newPath }))}
           />
         ) : (
           <PdfSidebarDocumentPanel
             panel={activeSidebarPanel as Exclude<PdfViewerSidebarPanel, 'files'>}
+            rootPath={rootPath}
             activePath={activePdfPath}
             activePage={activePdfPath ? (activePageByPath[activePdfPath] ?? 1) : 1}
             pageCount={activeDocument?.pageCount}

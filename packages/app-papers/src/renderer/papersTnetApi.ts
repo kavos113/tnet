@@ -14,7 +14,9 @@ export const papersTnetApi: PapersTnetApi = {
   file: {
     read: (request) => getPapersApi().file.read(request),
     openWithDefaultApp: (request) => getPapersApi().file.openWithDefaultApp(request),
-    createDirectory: (request) => getPapersApi().file.createDirectory(request)
+    createDirectory: (request) => getPapersApi().file.createDirectory(request),
+    rename: (request) => getPapersApi().file.rename(request),
+    move: (request) => getPapersApi().file.move(request)
   },
   session: {
     load: (rootDir) => getPapersApi().session.load(rootDir),

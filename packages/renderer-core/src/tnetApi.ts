@@ -15,7 +15,9 @@ export const tnetApi: TnetApi = {
   file: {
     read: (request) => getApi().file.read(request),
     openWithDefaultApp: (request) => getApi().file.openWithDefaultApp(request),
-    createDirectory: (request) => getApi().file.createDirectory(request)
+    createDirectory: (request) => getApi().file.createDirectory(request),
+    rename: (request) => getApi().file.rename(request),
+    move: (request) => getApi().file.move(request)
   },
   session: {
     load: (rootDir) => getApi().session.load(rootDir),

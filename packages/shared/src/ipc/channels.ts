@@ -6,7 +6,9 @@ export const ipcChannels = {
   file: {
     read: 'file:read',
     openWithDefaultApp: 'file:openWithDefaultApp',
-    createDirectory: 'file:createDirectory'
+    createDirectory: 'file:createDirectory',
+    rename: 'file:rename',
+    move: 'file:move'
   },
   session: {
     load: 'session:load',

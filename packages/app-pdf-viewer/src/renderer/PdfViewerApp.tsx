@@ -165,7 +165,7 @@ export const PdfViewerApp = (): React.JSX.Element => {
   };
 
   const copyPdfLink = (): void => {
-    if (!rootPath || !activePath) return;
+    if (!rootPath || !activePath || !activePath.toLowerCase().endsWith('.pdf')) return;
     const href = createPdfLinkHref(workspaceNameForRoot(rootPath), activePath);
     navigator.clipboard
       .writeText(href)
@@ -243,7 +243,7 @@ export const PdfViewerApp = (): React.JSX.Element => {
           type="button"
           className={`${styles.iconButton} material-icons-round`}
           aria-label="Copy PDF link"
-          disabled={!activePath}
+          disabled={!activePath || !activePath.toLowerCase().endsWith('.pdf')}
           onClick={copyPdfLink}
         >
           content_copy

@@ -8,6 +8,10 @@ export interface PdfViewerGlobalSettings {
   overscanPages: number;
   workspaceRoots: string[];
   activeWorkspaceRoot?: string;
+  officeConverterKind: 'none' | 'libreoffice';
+  officeConverterPath: string;
+  officeConverterTimeoutMs: number;
+  officePreviewCacheDir: string;
 }
 
 const appId = 'pdf-viewer';
@@ -24,7 +28,11 @@ export const defaultPdfViewerGlobalSettings = (): PdfViewerGlobalSettings => ({
   defaultCustomScale: 1,
   defaultColumns: 1,
   overscanPages: 2,
-  workspaceRoots: []
+  workspaceRoots: [],
+  officeConverterKind: 'none',
+  officeConverterPath: '',
+  officeConverterTimeoutMs: 30000,
+  officePreviewCacheDir: ''
 });
 
 export const normalizePdfViewerGlobalSettings = (value: unknown): PdfViewerGlobalSettings => {
@@ -38,7 +46,25 @@ export const normalizePdfViewerGlobalSettings = (value: unknown): PdfViewerGloba
     overscanPages: normalizeInteger(candidate.overscanPages, defaults.overscanPages, 0, 20),
     workspaceRoots: normalizeStringArray(candidate.workspaceRoots),
     activeWorkspaceRoot:
-      typeof candidate.activeWorkspaceRoot === 'string' ? candidate.activeWorkspaceRoot : undefined
+      typeof candidate.activeWorkspaceRoot === 'string' ? candidate.activeWorkspaceRoot : undefined,
+    officeConverterKind:
+      candidate.officeConverterKind === 'libreoffice'
+        ? 'libreoffice'
+        : defaults.officeConverterKind,
+    officeConverterPath:
+      typeof candidate.officeConverterPath === 'string'
+        ? candidate.officeConverterPath
+        : defaults.officeConverterPath,
+    officeConverterTimeoutMs: normalizeInteger(
+      candidate.officeConverterTimeoutMs,
+      defaults.officeConverterTimeoutMs,
+      1000,
+      300000
+    ),
+    officePreviewCacheDir:
+      typeof candidate.officePreviewCacheDir === 'string'
+        ? candidate.officePreviewCacheDir
+        : defaults.officePreviewCacheDir
   };
 };
 

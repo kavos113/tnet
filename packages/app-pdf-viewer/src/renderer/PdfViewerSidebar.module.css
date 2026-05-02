@@ -65,6 +65,7 @@
 }
 
 .title {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -72,6 +73,37 @@
   color: var(--foreground);
   font-size: 12px;
   font-weight: 600;
+}
+
+.moveForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.moveForm input {
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+}
+
+.moveForm button {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.actionError {
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+  color: #b42318;
+  font-size: 12px;
 }
 
 .tree {
@@ -110,4 +142,123 @@
   padding: 12px;
   color: var(--foreground);
   font-size: 12px;
+}
+
+.panelList {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  list-style: none;
+}
+
+.panelListButton {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.panelListButton:hover {
+  background: #eef2f7;
+}
+
+.panelListButton:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.nestedList {
+  margin-left: 10px;
+}
+
+.thumbnailList {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px;
+  overflow: auto;
+}
+
+.thumbnailButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.thumbnailButtonActive {
+  border-color: #4f7cff;
+  background: #eef4ff;
+}
+
+.thumbnailCanvasWrap {
+  position: relative;
+  display: block;
+  min-height: 40px;
+}
+
+.thumbnailCanvas {
+  display: block;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 16%);
+}
+
+.thumbnailError {
+  color: #b42318;
+  font-size: 11px;
+}
+
+.thumbnailPlaceholder {
+  display: block;
+  width: 120px;
+  height: 156px;
+  border: 1px dashed #d8dee8;
+  background: #f5f7fa;
+}
+
+.searchPanel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px;
+}
+
+.searchInput {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+}
+
+.searchActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.searchActions button {
+  height: 28px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  background: #ffffff;
 }

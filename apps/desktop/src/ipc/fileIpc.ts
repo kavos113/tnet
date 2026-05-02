@@ -1,7 +1,10 @@
 import { ipcMain, shell } from 'electron';
 import { ipcChannels } from '@tnet/shared/ipc/channels';
-import { createDirectory, readFile } from '@main/services/fileService';
-import type { WorkspacePathRequest } from '@tnet/main-core/workspace/workspacePath';
+import { createDirectory, movePath, readFile, renamePath } from '@main/services/fileService';
+import type {
+  RenameWorkspacePathRequest,
+  WorkspacePathRequest
+} from '@tnet/main-core/workspace/workspacePath';
 import { resolveWorkspacePath } from '@tnet/main-core/workspace/workspacePath';
 
 export const registerFileIpc = (): void => {
@@ -20,5 +23,11 @@ export const registerFileIpc = (): void => {
   );
   ipcMain.handle(ipcChannels.file.createDirectory, async (_event, request: WorkspacePathRequest) =>
     createDirectory(request)
+  );
+  ipcMain.handle(ipcChannels.file.rename, async (_event, request: RenameWorkspacePathRequest) =>
+    renamePath(request)
+  );
+  ipcMain.handle(ipcChannels.file.move, async (_event, request: RenameWorkspacePathRequest) =>
+    movePath(request)
   );
 };

@@ -11,6 +11,12 @@ export interface WorkspacePathRequest {
   path: string;
 }
 
+export interface RenameWorkspacePathRequest {
+  rootDir: string;
+  oldPath: string;
+  newPath: string;
+}
+
 export interface TnetApi {
   workspace: {
     openDirectory: () => Promise<OpenDirectoryResult>;
@@ -20,6 +26,8 @@ export interface TnetApi {
     read: (request: WorkspacePathRequest) => Promise<string>;
     openWithDefaultApp: (request: WorkspacePathRequest) => Promise<void>;
     createDirectory: (request: WorkspacePathRequest) => Promise<void>;
+    rename: (request: RenameWorkspacePathRequest) => Promise<void>;
+    move: (request: RenameWorkspacePathRequest) => Promise<void>;
   };
   session: {
     load: (rootDir: string) => Promise<unknown>;

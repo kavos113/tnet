@@ -14,7 +14,9 @@ export const pdfViewerTnetApi: PdfViewerTnetApi = {
   file: {
     read: (request) => getPdfViewerApi().file.read(request),
     openWithDefaultApp: (request) => getPdfViewerApi().file.openWithDefaultApp(request),
-    createDirectory: (request) => getPdfViewerApi().file.createDirectory(request)
+    createDirectory: (request) => getPdfViewerApi().file.createDirectory(request),
+    rename: (request) => getPdfViewerApi().file.rename(request),
+    move: (request) => getPdfViewerApi().file.move(request)
   },
   session: {
     load: (rootDir) => getPdfViewerApi().session.load(rootDir),

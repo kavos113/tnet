@@ -1,19 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  getDocument,
-  GlobalWorkerOptions,
-  type PDFDocumentLoadingTask,
-  type PDFDocumentProxy
-} from 'pdfjs-dist';
+import { GlobalWorkerOptions, type PDFDocumentProxy } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import type {
   PdfDocumentViewState,
   PdfPageNavigationRequest
 } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
-import { pdfViewerTnetApi } from '../../pdfViewerTnetApi';
+import { loadPdfDocument } from '../../document/pdfDocumentLoader';
 import { PdfPageCanvas } from './PdfPageCanvas';
-import { pdfJsAssetUrls } from './pdfJsAssets';
-import { PdfViewerCMapReaderFactory, PdfViewerStandardFontDataFactory } from './pdfJsFactories';
 import {
   getActivePdfPageFromScroll,
   getPdfRenderScale,
@@ -77,8 +70,7 @@ export const PdfDocumentViewer = ({
 
   useEffect(() => {
     let canceled = false;
-    let loadedDocument: PDFDocumentProxy | null = null;
-    const loadingTaskRef = { current: null as PDFDocumentLoadingTask | null };
+    let releaseDocument: (() => void) | null = null;
 
     const loadPdf = async (): Promise<void> => {
       setPdfDocument(null);
@@ -89,39 +81,27 @@ export const PdfDocumentViewer = ({
 
       setIsLoading(true);
       try {
-        const bytes = await pdfViewerTnetApi.pdfViewer.pdf.loadBytes({
-          rootDir: rootPath,
-          path: filePath
-        });
-        if (canceled) return;
-        loadingTaskRef.current = getDocument({
-          data: new Uint8Array(bytes),
-          CMapReaderFactory: PdfViewerCMapReaderFactory,
-          StandardFontDataFactory: PdfViewerStandardFontDataFactory,
-          cMapPacked: true,
-          disableFontFace: false,
-          useSystemFonts: true,
-          useWorkerFetch: false,
-          ...pdfJsAssetUrls()
-        });
-        loadedDocument = await loadingTaskRef.current.promise;
+        const loaded = await loadPdfDocument(rootPath, filePath);
+        releaseDocument = loaded.release;
         if (canceled) {
-          await loadedDocument.destroy();
+          releaseDocument();
+          releaseDocument = null;
           return;
         }
-        const firstPage = await loadedDocument.getPage(1);
+        const firstPage = await loaded.pdfDocument.getPage(1);
         const firstViewport = firstPage.getViewport({ scale: 1 });
         if (canceled) {
-          await loadedDocument.destroy();
+          releaseDocument?.();
+          releaseDocument = null;
           return;
         }
         setFirstPageSize({
           width: firstViewport.width,
           height: firstViewport.height
         });
-        setPdfDocument(loadedDocument);
-        setPageCount(loadedDocument.numPages);
-        onPageCountChange(loadedDocument.numPages);
+        setPdfDocument(loaded.pdfDocument);
+        setPageCount(loaded.pdfDocument.numPages);
+        onPageCountChange(loaded.pdfDocument.numPages);
         onActivePageChange(1);
       } catch (loadError) {
         console.error('Failed to load PDF', loadError);
@@ -135,8 +115,7 @@ export const PdfDocumentViewer = ({
 
     return () => {
       canceled = true;
-      if (loadedDocument) void loadedDocument.destroy();
-      else void loadingTaskRef.current?.destroy();
+      releaseDocument?.();
     };
   }, [filePath, onActivePageChange, onPageCountChange, rootPath]);
 

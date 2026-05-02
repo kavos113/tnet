@@ -79,6 +79,12 @@ export const PdfViewerGlobalSettingsPage = ({ onClose }: SettingsPageProps): Rea
         fields={settingsFields}
         onFieldChange={updateDraft}
       />
+      <SettingsFieldsSection
+        title="Office Preview"
+        draft={draft}
+        fields={officePreviewFields}
+        onFieldChange={updateDraft}
+      />
       <SettingsActions>
         <SettingsSecondaryButton onClick={onClose}>Cancel</SettingsSecondaryButton>
         <SettingsPrimaryButton
@@ -140,5 +146,43 @@ const settingsFields: ReadonlyArray<SettingsFieldConfig<PdfViewerGlobalSettings>
     key: 'overscanPages',
     type: 'number',
     min: 0
+  }
+];
+
+const officePreviewFields: ReadonlyArray<SettingsFieldConfig<PdfViewerGlobalSettings>> = [
+  {
+    id: 'pdf-viewer-office-converter-kind',
+    label: 'Converter',
+    key: 'officeConverterKind',
+    type: 'select',
+    options: [
+      { label: 'Disabled', value: 'none' },
+      { label: 'LibreOffice', value: 'libreoffice' }
+    ],
+    helperText:
+      'Office files are converted to a cached PDF preview. Macros and Office editing are not run in this app.'
+  },
+  {
+    id: 'pdf-viewer-office-converter-path',
+    label: 'Executable path',
+    key: 'officeConverterPath',
+    type: 'text',
+    placeholder: 'soffice',
+    visible: (draft) => draft.officeConverterKind === 'libreoffice'
+  },
+  {
+    id: 'pdf-viewer-office-converter-timeout',
+    label: 'Timeout ms',
+    key: 'officeConverterTimeoutMs',
+    type: 'number',
+    min: 1000,
+    visible: (draft) => draft.officeConverterKind === 'libreoffice'
+  },
+  {
+    id: 'pdf-viewer-office-cache-dir',
+    label: 'Cache directory',
+    key: 'officePreviewCacheDir',
+    type: 'text',
+    visible: (draft) => draft.officeConverterKind === 'libreoffice'
   }
 ];

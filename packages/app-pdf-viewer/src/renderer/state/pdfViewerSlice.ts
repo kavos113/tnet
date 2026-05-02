@@ -125,6 +125,28 @@ const pdfViewerSlice = createSlice({
       if (action.payload < 0 || action.payload >= state.tabs.length) return;
       state.activeIndex = action.payload;
     },
+    renameOpenedPdfPath: (state, action: PayloadAction<{ oldPath: string; newPath: string }>) => {
+      const { oldPath, newPath } = action.payload;
+      const tabIndex = state.tabs.indexOf(oldPath);
+      if (tabIndex !== -1) state.tabs[tabIndex] = newPath;
+      const document = state.documentsByPath[oldPath];
+      if (document) {
+        state.documentsByPath[newPath] = {
+          ...document,
+          path: newPath,
+          displayName: basename(newPath)
+        };
+        delete state.documentsByPath[oldPath];
+      }
+      if (state.viewStateByPath[oldPath]) {
+        state.viewStateByPath[newPath] = state.viewStateByPath[oldPath];
+        delete state.viewStateByPath[oldPath];
+      }
+      if (state.activePageByPath[oldPath]) {
+        state.activePageByPath[newPath] = state.activePageByPath[oldPath];
+        delete state.activePageByPath[oldPath];
+      }
+    },
     replaceSession: (
       state,
       action: PayloadAction<{
@@ -187,6 +209,7 @@ const pdfViewerSlice = createSlice({
 export const {
   closePdf,
   openPdf,
+  renameOpenedPdfPath,
   replaceSession,
   requestPageNavigation,
   setActivePage,

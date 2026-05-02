@@ -31,3 +31,29 @@ export interface PdfPageNavigationRequest {
   pageNumber: number;
   source: PdfViewerSidebarPanel | 'external' | 'toolbar';
 }
+
+export interface PdfOutlineItem {
+  id: string;
+  title: string;
+  pageNumber?: number;
+  url?: string;
+  children: PdfOutlineItem[];
+}
+
+export interface PdfAnnotationItem {
+  id: string;
+  pageNumber: number;
+  subtype: string;
+  title?: string;
+  contents?: string;
+  modifiedAt?: string;
+  url?: string;
+  destination?: string;
+}
+
+export interface PdfSearchResult {
+  id: string;
+  pageNumber: number;
+  snippet: string;
+  matchIndex: number;
+}

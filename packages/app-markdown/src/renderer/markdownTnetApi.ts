@@ -14,7 +14,9 @@ export const markdownTnetApi: MarkdownTnetApi = {
   file: {
     read: (request) => getMarkdownApi().file.read(request),
     openWithDefaultApp: (request) => getMarkdownApi().file.openWithDefaultApp(request),
-    createDirectory: (request) => getMarkdownApi().file.createDirectory(request)
+    createDirectory: (request) => getMarkdownApi().file.createDirectory(request),
+    rename: (request) => getMarkdownApi().file.rename(request),
+    move: (request) => getMarkdownApi().file.move(request)
   },
   session: {
     load: (rootDir) => getMarkdownApi().session.load(rootDir),
