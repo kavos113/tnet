@@ -20,6 +20,7 @@ const previewPaneProps = vi.hoisted(
     [] as Array<{
       showOutline: boolean;
       onToggleTask?: unknown;
+      onOpenPdfLink?: unknown;
     }>
 );
 
@@ -46,13 +47,15 @@ vi.mock('./EditorPane', () => ({
 }));
 
 vi.mock('@tnet/app-markdown/renderer/preview/PreviewPane', () => ({
-  PreviewPane: forwardRef((props: { showOutline: boolean; onToggleTask?: unknown }, ref) => {
-    previewPaneProps.push(props);
-    useImperativeHandle(ref, () => ({
-      getPreviewElement: () => null
-    }));
-    return <div data-testid="preview-pane-content" />;
-  })
+  PreviewPane: forwardRef(
+    (props: { showOutline: boolean; onToggleTask?: unknown; onOpenPdfLink?: unknown }, ref) => {
+      previewPaneProps.push(props);
+      useImperativeHandle(ref, () => ({
+        getPreviewElement: () => null
+      }));
+      return <div data-testid="preview-pane-content" />;
+    }
+  )
 }));
 
 const installTnetApi = (): void => {
@@ -153,6 +156,20 @@ describe('EditorWorkspace split resize', () => {
 
     expect(editorPane).toHaveStyle({ width: '80%' });
     expect(previewPane).toHaveStyle({ width: '20%' });
+  });
+
+  it('passes the PDF link opener to the preview pane', () => {
+    const store = createAppStore();
+    const openPdfLink = vi.fn();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '[PDF](pdf:slides/0407.pdf)' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace onOpenPdfLink={openPdfLink} />
+      </Provider>
+    );
+
+    expect(previewPaneProps.at(-1)?.onOpenPdfLink).toBe(openPdfLink);
   });
 
   it('keeps the inline completion requester stable while editing the same file', () => {

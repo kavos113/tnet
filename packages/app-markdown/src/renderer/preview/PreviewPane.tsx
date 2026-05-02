@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useMemo } from 'react';
+import { forwardRef, useCallback, useMemo, type MouseEvent } from 'react';
 import {
   MarkdownPreviewPane,
   type MarkdownPreviewPaneHandle
@@ -8,7 +8,7 @@ import { rehypeAiChat } from './markdown/rehypeAiChat';
 import { rehypeKeyword } from './markdown/rehypeKeyword';
 import { rehypePdfLinks } from './markdown/rehypePdfLinks';
 import { remarkInternalLinks } from './markdown/remarkInternalLinks';
-import { PdfLinkClickController } from './PdfLinkClickController';
+import { closestPdfLink } from './tooltip/pdfLinkTarget';
 import 'highlight.js/styles/github.css';
 import 'katex/dist/katex.min.css';
 
@@ -54,6 +54,18 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       },
       [onOpenInternalLink]
     );
+    const openPdfLink = useCallback(
+      (event: MouseEvent<HTMLDivElement>): void => {
+        if (!onOpenPdfLink) return;
+        const link = closestPdfLink(event.target);
+        if (!link) return;
+
+        event.preventDefault();
+        const href = link.getAttribute('data-pdf-target') ?? link.getAttribute('href');
+        if (href) onOpenPdfLink(href);
+      },
+      [onOpenPdfLink]
+    );
 
     return (
       <MarkdownPreviewPane
@@ -62,6 +74,7 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
         showOutline={showOutline}
         onToggleTask={onToggleTask}
         resolveImageSrc={loadImageDataUrl}
+        onPreviewClickCapture={openPdfLink}
         onRendered={onRendered}
         renderDebounceMs={renderDebounceMs}
         remarkPlugins={remarkPlugins}
@@ -73,7 +86,6 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
               onOpenInternalLink={openInternalLink}
               loadKeywordContent={loadKeywordContent}
             />
-            <PdfLinkClickController containerRef={containerRef} onOpenPdfLink={onOpenPdfLink} />
           </>
         )}
       />

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type RefObject,
+  type MouseEvent,
   type ReactNode
 } from 'react';
 import type { PluggableList } from 'unified';
@@ -21,6 +22,7 @@ export interface MarkdownPreviewPaneProps {
   markdown: string;
   showOutline?: boolean;
   onToggleTask?: (sourceLine: number, checked: boolean) => void;
+  onPreviewClickCapture?: (event: MouseEvent<HTMLDivElement>) => void;
   resolveImageSrc?: ObsidianImageSrcResolver;
   onRendered?: () => void;
   renderDebounceMs?: number;
@@ -52,6 +54,7 @@ export const MarkdownPreviewPane = forwardRef<MarkdownPreviewPaneHandle, Markdow
       markdown,
       showOutline = false,
       onToggleTask,
+      onPreviewClickCapture,
       resolveImageSrc,
       onRendered,
       renderDebounceMs = 80,
@@ -161,6 +164,7 @@ export const MarkdownPreviewPane = forwardRef<MarkdownPreviewPaneHandle, Markdow
         <div
           ref={containerRef}
           className="markdown-preview"
+          onClickCapture={onPreviewClickCapture}
           dangerouslySetInnerHTML={{ __html: html }}
         />
         {showOutline ? <PreviewOutline items={outlineItems} onSelect={scrollToHeading} /> : null}

@@ -48,6 +48,8 @@ export const useOpenPdfLink = (): ((href: string) => void) => {
           return;
         }
 
+        console.log('Opening PDF link', { href, parsed, matches });
+
         const rootPath = matches[0];
         const fileTree = await tnetApi.workspace.getFileTree(rootPath);
         const workspaceRoots = Array.from(new Set([...roots, rootPath]));
