@@ -293,6 +293,24 @@ importers:
 
   packages/app-papers-extension: {}
 
+  packages/app-pdf-viewer:
+    dependencies:
+      '@tnet/main-core':
+        specifier: workspace:*
+        version: link:../main-core
+      '@tnet/renderer-core':
+        specifier: workspace:*
+        version: link:../renderer-core
+      '@tnet/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@tnet/ui':
+        specifier: workspace:*
+        version: link:../ui
+      pdfjs-dist:
+        specifier: 4.10.38
+        version: 4.10.38
+
   packages/app-requester:
     dependencies:
       '@tnet/main-core':

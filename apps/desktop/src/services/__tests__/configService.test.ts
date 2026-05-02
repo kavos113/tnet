@@ -44,6 +44,7 @@ describe('config services', () => {
         papers: {},
         requester: {},
         'db-inspector': {},
+        'pdf-viewer': {},
         code: {}
       }
     });

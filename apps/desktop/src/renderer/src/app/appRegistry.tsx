@@ -31,6 +31,12 @@ import {
   TasksSettingsDialog,
   TasksSidebar
 } from '@tnet/app-tasks/renderer';
+import {
+  PdfViewerApp,
+  PdfViewerRuntime,
+  PdfViewerSettingsDialog,
+  PdfViewerSidebar
+} from '@tnet/app-pdf-viewer/renderer';
 
 export interface AppModule {
   id: AppId;
@@ -87,6 +93,15 @@ export const appRegistry: AppModule[] = [
     Sidebar: DbInspectorSidebar,
     Runtime: DbInspectorRuntime,
     Settings: DbInspectorSettingsDialog
+  },
+  {
+    id: 'pdf-viewer',
+    label: 'PDF Viewer',
+    icon: 'picture_as_pdf',
+    Main: PdfViewerApp,
+    Sidebar: PdfViewerSidebar,
+    Runtime: PdfViewerRuntime,
+    Settings: PdfViewerSettingsDialog
   },
   {
     id: 'code',

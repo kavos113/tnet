@@ -6,13 +6,15 @@ import { papersIpcChannels, type PapersApi } from '@tnet/app-papers/shared/ipc';
 import { requesterIpcChannels, type RequesterApi } from '@tnet/app-requester/shared/ipc';
 import { dbInspectorIpcChannels, type DbInspectorApi } from '@tnet/app-db-inspector/shared/ipc';
 import { tasksIpcChannels, type TasksApi } from '@tnet/app-tasks/shared/ipc';
+import { pdfViewerIpcChannels, type PdfViewerApi } from '@tnet/app-pdf-viewer/shared/ipc';
 
 export type DesktopTnetApi = TnetApi &
   MarkdownApi &
   PapersApi &
   RequesterApi &
   DbInspectorApi &
-  TasksApi;
+  TasksApi &
+  PdfViewerApi;
 
 export const tnetApi: DesktopTnetApi = {
   workspace: {
@@ -73,6 +75,16 @@ export const tnetApi: DesktopTnetApi = {
     },
     secrets: {
       has: (request) => ipcRenderer.invoke(tasksIpcChannels.secrets.has, request)
+    }
+  },
+  pdfViewer: {
+    config: {
+      loadGlobal: () => ipcRenderer.invoke(pdfViewerIpcChannels.config.loadGlobal),
+      saveGlobal: (config) => ipcRenderer.invoke(pdfViewerIpcChannels.config.saveGlobal, config)
+    },
+    pdf: {
+      loadBytes: (request) => ipcRenderer.invoke(pdfViewerIpcChannels.pdf.loadBytes, request),
+      openExternal: (request) => ipcRenderer.invoke(pdfViewerIpcChannels.pdf.openExternal, request)
     }
   },
   markdown: {

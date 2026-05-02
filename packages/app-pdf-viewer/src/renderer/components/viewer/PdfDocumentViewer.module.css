@@ -1,0 +1,45 @@
+.viewport {
+  min-height: 0;
+  overflow: auto;
+  background: #2b2d31;
+}
+
+.pages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: min-content;
+}
+
+.page {
+  position: relative;
+  margin: 0;
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+}
+
+.canvas {
+  display: block;
+}
+
+.empty {
+  display: grid;
+  min-height: 240px;
+  place-items: center;
+  color: #c7cbd1;
+}
+
+.pageError {
+  padding: 8px;
+  color: #b42318;
+  background: #fff1f0;
+}

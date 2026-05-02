@@ -14,6 +14,10 @@ import {
   DbInspectorWorkspaceSettingsPage
 } from '@tnet/app-db-inspector/renderer';
 import { TasksGlobalSettingsPage } from '@tnet/app-tasks/renderer';
+import {
+  PdfViewerGlobalSettingsPage,
+  PdfViewerWorkspaceSettingsPage
+} from '@tnet/app-pdf-viewer/renderer';
 import { SettingsCenterDialog, type SettingsCenterPage } from '@tnet/ui/settings';
 import { useAppSelector } from './hooks';
 
@@ -32,6 +36,7 @@ export const AppSettingsCenter = ({
   const papersLibraryRoot = useAppSelector((state) => state.papersLibrary.activeLibraryRoot);
   const requesterWorkspaceId = useAppSelector((state) => state.requester.activeWorkspaceId);
   const dbInspectorWorkspaceId = useAppSelector((state) => state.dbInspector.activeWorkspaceId);
+  const pdfViewerRootPath = useAppSelector((state) => state.pdfViewer.rootPath);
   const [activePageId, setActivePageId] = useState(() => getInitialPageId(activeAppId, true));
 
   const pages = useMemo<SettingsCenterPage[]>(
@@ -116,9 +121,34 @@ export const AppSettingsCenter = ({
         scopeLabel: 'Workspace',
         title: dbInspectorWorkspaceId ? 'DB Inspector Workspace' : 'DB Inspector Workspace',
         content: <DbInspectorWorkspaceSettingsPage onClose={onClose} />
+      },
+      {
+        id: 'pdf-viewer-global',
+        appId: 'pdf-viewer',
+        appLabel: 'PDF Viewer',
+        appIcon: 'picture_as_pdf',
+        scopeLabel: 'Global',
+        title: 'PDF Viewer Global',
+        content: <PdfViewerGlobalSettingsPage onClose={onClose} />
+      },
+      {
+        id: 'pdf-viewer-workspace',
+        appId: 'pdf-viewer',
+        appLabel: 'PDF Viewer',
+        appIcon: 'picture_as_pdf',
+        scopeLabel: 'Workspace',
+        title: pdfViewerRootPath ? 'PDF Viewer Workspace' : 'PDF Viewer Workspace',
+        content: <PdfViewerWorkspaceSettingsPage onClose={onClose} />
       }
     ],
-    [dbInspectorWorkspaceId, markdownRootPath, onClose, papersLibraryRoot, requesterWorkspaceId]
+    [
+      dbInspectorWorkspaceId,
+      markdownRootPath,
+      onClose,
+      papersLibraryRoot,
+      pdfViewerRootPath,
+      requesterWorkspaceId
+    ]
   );
 
   useEffect(() => {
@@ -132,7 +162,9 @@ export const AppSettingsCenter = ({
             ? Boolean(requesterWorkspaceId)
             : activeAppId === 'db-inspector'
               ? Boolean(dbInspectorWorkspaceId)
-              : false;
+              : activeAppId === 'pdf-viewer'
+                ? Boolean(pdfViewerRootPath)
+                : false;
     setActivePageId(getInitialPageId(activeAppId, hasActiveWorkspace));
   }, [
     activeAppId,
@@ -140,6 +172,7 @@ export const AppSettingsCenter = ({
     isOpen,
     markdownRootPath,
     papersLibraryRoot,
+    pdfViewerRootPath,
     requesterWorkspaceId
   ]);
 
@@ -164,5 +197,6 @@ const getInitialPageId = (appId: AppId, hasWorkspace: boolean): string => {
   if (appId === 'db-inspector') {
     return hasWorkspace ? 'db-inspector-workspace' : 'db-inspector-global';
   }
+  if (appId === 'pdf-viewer') return hasWorkspace ? 'pdf-viewer-workspace' : 'pdf-viewer-global';
   return 'tasks-global';
 };

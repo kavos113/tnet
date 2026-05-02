@@ -13,6 +13,7 @@ export const defaultGlobalConfig = (): GlobalConfig => ({
     papers: {},
     requester: {},
     'db-inspector': {},
+    'pdf-viewer': {},
     code: {}
   }
 });
