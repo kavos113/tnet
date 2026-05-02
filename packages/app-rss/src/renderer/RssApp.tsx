@@ -3,6 +3,7 @@ import { rssTnetApi } from './rssTnetApi';
 import {
   appendRssItems,
   selectRssItem,
+  selectRssFeed,
   setRssError,
   setRssFeeds,
   setRssItems,
@@ -24,6 +25,7 @@ export const RssApp = (): React.JSX.Element => {
     selectedFolderId,
     selectedItemId,
     selectedView,
+    isSubscribeOpen,
     settings,
     isSyncing,
     error
@@ -35,6 +37,7 @@ export const RssApp = (): React.JSX.Element => {
     () => items.find((item) => item.id === selectedItemId),
     [items, selectedItemId]
   );
+  const shouldShowSubscribe = isSubscribeOpen || !selectedFeedId;
 
   useEffect(() => {
     rssTnetApi.rss.items
@@ -66,6 +69,7 @@ export const RssApp = (): React.JSX.Element => {
     dispatch(setRssFeeds(feeds));
     dispatch(setRssTree(tree));
     await sync(feed.id);
+    dispatch(selectRssFeed(feed.id));
   };
 
   const importLocalXml = async (): Promise<void> => {
@@ -83,6 +87,7 @@ export const RssApp = (): React.JSX.Element => {
     dispatch(setRssFeeds(feeds));
     dispatch(setRssTree(tree));
     await sync(feed.id);
+    dispatch(selectRssFeed(feed.id));
   };
 
   const importOpml = async (): Promise<void> => {
@@ -157,84 +162,104 @@ export const RssApp = (): React.JSX.Element => {
             {isSyncing ? 'Syncing' : 'Sync All'}
           </button>
         </div>
-        <form
-          className={styles.form}
-          onSubmit={(event) => {
-            event.preventDefault();
-            addFeed().catch((addError: unknown) =>
-              dispatch(setRssError(addError instanceof Error ? addError.message : String(addError)))
-            );
-          }}
-        >
-          <input
-            className={styles.input}
-            value={feedTitle}
-            onChange={(event) => setFeedTitle(event.target.value)}
-            placeholder="Feed title"
-            aria-label="Feed title"
-          />
-          <input
-            className={styles.input}
-            value={feedUrl}
-            onChange={(event) => setFeedUrl(event.target.value)}
-            placeholder="https://example.com/feed.xml"
-            aria-label="Feed URL"
-          />
-          <button className={styles.button} type="submit">
-            Add
-          </button>
-          <button className={styles.secondaryButton} type="button" onClick={discoverFeeds}>
-            Discover
-          </button>
-          <button className={styles.secondaryButton} type="button" onClick={importLocalXml}>
-            Import XML
-          </button>
-          <button className={styles.secondaryButton} type="button" onClick={importOpml}>
-            Import OPML
-          </button>
-          <button className={styles.secondaryButton} type="button" onClick={exportOpml}>
-            Export OPML
-          </button>
-        </form>
-        <div className={styles.form}>
-          <input
-            className={styles.input}
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search items"
-            aria-label="Search RSS items"
-          />
-        </div>
         {error ? <div className={styles.error}>{error}</div> : null}
-        <div className={styles.itemList}>
-          {items.length === 0 ? <div className={styles.empty}>No items.</div> : null}
-          {items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={[
-                styles.itemRow,
-                item.readAt ? styles.itemRowRead : '',
-                item.id === selectedItemId ? styles.itemRowActive : ''
-              ].join(' ')}
-              onClick={() => openItem(item.id)}
+        {shouldShowSubscribe ? (
+          <section className={styles.subscribePane} aria-label="Subscribe feed">
+            <div className={styles.subscribeHeader}>
+              <h3>Subscribe Feed</h3>
+            </div>
+            <form
+              className={styles.subscribeForm}
+              onSubmit={(event) => {
+                event.preventDefault();
+                addFeed().catch((addError: unknown) =>
+                  dispatch(
+                    setRssError(addError instanceof Error ? addError.message : String(addError))
+                  )
+                );
+              }}
             >
-              <span className={styles.itemTitle}>
-                {item.starred ? '★ ' : ''}
-                {item.title}
-              </span>
-              <span className={styles.itemMeta}>
-                {formatDate(item.publishedAt ?? item.fetchedAt)}
-              </span>
-              {item.summary ? <span className={styles.itemSummary}>{item.summary}</span> : null}
-            </button>
-          ))}
-          {nextCursor ? (
-            <button className={styles.secondaryButton} type="button" onClick={loadMore}>
-              Load More
-            </button>
-          ) : null}
-        </div>
+              <label className={styles.field}>
+                <span>Title</span>
+                <input
+                  className={styles.input}
+                  value={feedTitle}
+                  onChange={(event) => setFeedTitle(event.target.value)}
+                  placeholder="Feed title"
+                  aria-label="Feed title"
+                />
+              </label>
+              <label className={styles.field}>
+                <span>URL</span>
+                <input
+                  className={styles.input}
+                  value={feedUrl}
+                  onChange={(event) => setFeedUrl(event.target.value)}
+                  placeholder="https://example.com/feed.xml"
+                  aria-label="Feed URL"
+                />
+              </label>
+              <div className={styles.subscribeActions}>
+                <button className={styles.button} type="submit">
+                  Subscribe
+                </button>
+                <button className={styles.secondaryButton} type="button" onClick={discoverFeeds}>
+                  Discover
+                </button>
+                <button className={styles.secondaryButton} type="button" onClick={importLocalXml}>
+                  Import XML
+                </button>
+                <button className={styles.secondaryButton} type="button" onClick={importOpml}>
+                  Import OPML
+                </button>
+                <button className={styles.secondaryButton} type="button" onClick={exportOpml}>
+                  Export OPML
+                </button>
+              </div>
+            </form>
+          </section>
+        ) : (
+          <>
+            <div className={styles.form}>
+              <input
+                className={styles.input}
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search items"
+                aria-label="Search RSS items"
+              />
+            </div>
+            <div className={styles.itemList}>
+              {items.length === 0 ? <div className={styles.empty}>No items.</div> : null}
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={[
+                    styles.itemRow,
+                    item.readAt ? styles.itemRowRead : '',
+                    item.id === selectedItemId ? styles.itemRowActive : ''
+                  ].join(' ')}
+                  onClick={() => openItem(item.id)}
+                >
+                  <span className={styles.itemTitle}>
+                    {item.starred ? '★ ' : ''}
+                    {item.title}
+                  </span>
+                  <span className={styles.itemMeta}>
+                    {formatDate(item.publishedAt ?? item.fetchedAt)}
+                  </span>
+                  {item.summary ? <span className={styles.itemSummary}>{item.summary}</span> : null}
+                </button>
+              ))}
+              {nextCursor ? (
+                <button className={styles.secondaryButton} type="button" onClick={loadMore}>
+                  Load More
+                </button>
+              ) : null}
+            </div>
+          </>
+        )}
       </section>
       <section className={styles.detailPane} aria-label="RSS item detail">
         {selectedItem ? (

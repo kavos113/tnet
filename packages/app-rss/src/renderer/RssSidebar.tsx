@@ -1,5 +1,6 @@
 import { rssTnetApi } from './rssTnetApi';
 import {
+  openRssSubscribe,
   selectRssFeed,
   selectRssFolder,
   selectRssSystemView,
@@ -53,9 +54,18 @@ export const RssSidebar = (): React.JSX.Element => {
     <aside className={styles.root}>
       <div className={styles.header}>
         <span className={styles.title}>RSS Feeds</span>
-        <button className={styles.button} type="button" onClick={() => createFolder()}>
-          New Folder
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            className={styles.button}
+            type="button"
+            onClick={() => dispatch(openRssSubscribe())}
+          >
+            New Feed
+          </button>
+          <button className={styles.button} type="button" onClick={() => createFolder()}>
+            New Folder
+          </button>
+        </div>
       </div>
       <div
         className={styles.tree}

@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRssGlobalSettings } from '@tnet/app-rss/shared/config';
 import { RssApp } from './RssApp';
-import rssReducer, { restoreRss } from './rssSlice';
+import rssReducer, { restoreRss, selectRssFeed } from './rssSlice';
 import { rssTnetApi } from './rssTnetApi';
 
 vi.mock('./rssTnetApi', () => ({
@@ -71,6 +71,7 @@ describe('RssApp', () => {
         settings: defaultRssGlobalSettings()
       })
     );
+    store.dispatch(selectRssFeed('feed-1'));
     vi.mocked(rssTnetApi.rss.items.list).mockResolvedValue({
       items: [
         {
@@ -164,6 +165,24 @@ describe('RssApp', () => {
       )
     );
     expect(await screen.findByText('Second item')).toBeInTheDocument();
+  });
+
+  it('shows the subscribe form when no feed is selected', () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+
+    renderApp();
+
+    expect(screen.getByRole('heading', { name: 'Subscribe Feed' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Feed URL')).toBeInTheDocument();
   });
 
   const renderApp = (): void => {

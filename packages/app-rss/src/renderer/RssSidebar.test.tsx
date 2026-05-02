@@ -130,6 +130,15 @@ describe('RssSidebar', () => {
     );
   });
 
+  it('opens the subscribe screen from the new feed button', () => {
+    renderSidebar();
+
+    fireEvent.click(screen.getByText('New Feed'));
+
+    expect(store.getState().rss.isSubscribeOpen).toBe(true);
+    expect(store.getState().rss.selectedFeedId).toBeUndefined();
+  });
+
   const renderSidebar = (): void => {
     render(
       <Provider store={store}>

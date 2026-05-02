@@ -20,6 +20,7 @@ interface RssState {
   selectedFeedId?: string;
   selectedFolderId?: string;
   selectedItemId?: string;
+  isSubscribeOpen: boolean;
   settings: RssGlobalSettings;
   isRestored: boolean;
   isSyncing: boolean;
@@ -32,6 +33,7 @@ const initialState: RssState = {
   tree: { folders: [], feeds: [] },
   items: [],
   selectedView: defaultRssGlobalSettings().defaultFilter,
+  isSubscribeOpen: true,
   settings: defaultRssGlobalSettings(),
   isRestored: false,
   isSyncing: false
@@ -86,18 +88,21 @@ const rssSlice = createSlice({
       state.selectedFeedId = undefined;
       state.selectedFolderId = undefined;
       state.selectedItemId = undefined;
+      state.isSubscribeOpen = true;
     },
     selectRssFeed: (state, action: PayloadAction<string>) => {
       state.selectedFeedId = action.payload;
       state.selectedFolderId = undefined;
       state.selectedView = 'all';
       state.selectedItemId = undefined;
+      state.isSubscribeOpen = false;
     },
     selectRssFolder: (state, action: PayloadAction<string>) => {
       state.selectedFolderId = action.payload;
       state.selectedFeedId = undefined;
       state.selectedView = 'all';
       state.selectedItemId = undefined;
+      state.isSubscribeOpen = true;
     },
     selectRssItem: (state, action: PayloadAction<string | undefined>) => {
       state.selectedItemId = action.payload;
@@ -110,12 +115,18 @@ const rssSlice = createSlice({
     },
     setRssError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
+    },
+    openRssSubscribe: (state) => {
+      state.isSubscribeOpen = true;
+      state.selectedFeedId = undefined;
+      state.selectedItemId = undefined;
     }
   }
 });
 
 export const {
   appendRssItems,
+  openRssSubscribe,
   restoreRss,
   selectRssFeed,
   selectRssFolder,

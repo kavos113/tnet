@@ -129,9 +129,47 @@
   border-bottom: 1px solid #e3e7eb;
 }
 
+.subscribePane {
+  overflow: auto;
+  min-height: 0;
+  padding: 18px;
+}
+
+.subscribeHeader {
+  margin-bottom: 16px;
+}
+
+.subscribeHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.subscribeForm {
+  display: grid;
+  gap: 14px;
+  max-width: 680px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: #42505b;
+}
+
+.subscribeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .input {
   min-width: 0;
   flex: 1;
+  width: 100%;
   border: 1px solid #c7ced6;
   border-radius: 6px;
   padding: 6px 8px;
