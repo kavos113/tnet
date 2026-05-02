@@ -74,7 +74,11 @@
   background: color-mix(in srgb, var(--main-light) 26%, var(--background));
 }
 
-.cellWeekend .dayLabel {
+.cellSaturday .dayLabel {
+  color: #2563eb;
+}
+
+.cellHoliday .dayLabel {
   color: var(--color-danger);
 }
 

@@ -14,7 +14,11 @@ export interface CalendarDateRange {
 
 export interface CalendarDayItems {
   date: string;
+  holidayNames: string[];
+  isHoliday: boolean;
   isOutsideCurrentMonth: boolean;
+  isSaturday: boolean;
+  isSunday: boolean;
   isWeekend: boolean;
   tasks: TaskItem[];
   localEvents: LocalEvent[];
@@ -63,7 +67,11 @@ export const groupVisibleCalendarItems = ({
 }): CalendarDayItems[] =>
   dates.map((date) => ({
     date,
+    holidayNames: [],
+    isHoliday: false,
     isOutsideCurrentMonth: date.slice(0, 7) !== currentDate.slice(0, 7),
+    isSaturday: getLocalDayOfWeek(date) === 6,
+    isSunday: getLocalDayOfWeek(date) === 0,
     isWeekend: isWeekendDate(date),
     tasks: tasks.filter((task) => task.deadlineDate === date),
     localEvents: localEvents.filter((event) =>
@@ -75,9 +83,11 @@ export const groupVisibleCalendarItems = ({
   }));
 
 export const isWeekendDate = (date: string): boolean => {
-  const day = new Date(`${date}T00:00:00`).getDay();
+  const day = getLocalDayOfWeek(date);
   return day === 0 || day === 6;
 };
+
+const getLocalDayOfWeek = (date: string): number => new Date(`${date}T00:00:00`).getDay();
 
 export const expandRecurringTasksForRange = (
   tasks: TaskItem[],

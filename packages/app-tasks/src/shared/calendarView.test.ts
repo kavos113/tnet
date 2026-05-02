@@ -107,6 +107,44 @@ describe('calendar view helpers', () => {
     expect(isWeekendDate('2026-05-02')).toBe(true);
     expect(isWeekendDate('2026-05-03')).toBe(true);
     expect(isWeekendDate('2026-05-04')).toBe(false);
+
+    const grouped = groupVisibleCalendarItems({
+      dates: ['2026-05-02', '2026-05-03', '2026-05-04'],
+      currentDate: '2026-05-02',
+      tasks: [],
+      events: []
+    });
+    expect(
+      grouped.map((day) => ({
+        date: day.date,
+        holidayNames: day.holidayNames,
+        isHoliday: day.isHoliday,
+        isSaturday: day.isSaturday,
+        isSunday: day.isSunday
+      }))
+    ).toEqual([
+      {
+        date: '2026-05-02',
+        holidayNames: [],
+        isHoliday: false,
+        isSaturday: true,
+        isSunday: false
+      },
+      {
+        date: '2026-05-03',
+        holidayNames: [],
+        isHoliday: false,
+        isSaturday: false,
+        isSunday: true
+      },
+      {
+        date: '2026-05-04',
+        holidayNames: [],
+        isHoliday: false,
+        isSaturday: false,
+        isSunday: false
+      }
+    ]);
   });
 
   it('uses six months before and twelve months after for occurrence cache range', () => {

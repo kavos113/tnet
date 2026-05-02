@@ -396,7 +396,10 @@ describe('TasksApp', () => {
       screen.getByRole('gridcell', { name: 'Calendar day 2026-05-02' }).className
     ).not.toContain('cellOutsideMonth');
     expect(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-02' }).className).toContain(
-      'cellWeekend'
+      'cellSaturday'
+    );
+    expect(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-03' }).className).toContain(
+      'cellHoliday'
     );
   });
 
