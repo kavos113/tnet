@@ -148,6 +148,7 @@ export const subscribedTaskOccurrenceToTaskItem = (task: SubscribedTaskOccurrenc
   deadlineDate: task.deadlineDate,
   deadlineTime: task.deadlineTime,
   sourceUrl: task.sourceId,
+  completedAt: task.completedAt,
   createdAt: task.createdAt,
   updatedAt: task.updatedAt
 });

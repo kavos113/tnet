@@ -24,6 +24,7 @@ export interface TasksEditableDetailsPaneProps {
   isCategoryCompletionEnabled: boolean;
   selectedQuickDate: string;
   sourceColors: Record<string, string>;
+  sourceNames: Record<string, string>;
   tasks: TaskItem[];
   onClose: () => void;
   onDeleteEvent: (eventId: string) => void;
@@ -45,6 +46,7 @@ export const TasksEditableDetailsPane = ({
   isCategoryCompletionEnabled,
   selectedQuickDate,
   sourceColors,
+  sourceNames,
   tasks,
   onClose,
   onDeleteEvent,
@@ -65,7 +67,8 @@ export const TasksEditableDetailsPane = ({
       onEventDraftChange,
       onPanelChange,
       categoryColors,
-      sourceColors
+      sourceColors,
+      sourceNames
     })}
     onClose={onClose}
   >
@@ -129,7 +132,8 @@ const getReadOnlyItem = ({
   onEventDraftChange,
   onPanelChange,
   categoryColors,
-  sourceColors
+  sourceColors,
+  sourceNames
 }: {
   detailsPanel: TasksDetailsPanelState;
   tasks: TaskItem[];
@@ -139,6 +143,7 @@ const getReadOnlyItem = ({
   onPanelChange: (state: TasksDetailsPanelState | undefined) => void;
   categoryColors: Record<string, string>;
   sourceColors: Record<string, string>;
+  sourceNames: Record<string, string>;
 }): React.ComponentProps<typeof TasksDetailsPanel>['readOnlyItem'] => {
   if (detailsPanel.type === 'task-detail') {
     return {
@@ -151,6 +156,9 @@ const getReadOnlyItem = ({
         : detailsPanel.task.category
           ? categoryColors[detailsPanel.task.category]
           : undefined,
+      sourceName: detailsPanel.task.sourceUrl
+        ? sourceNames[detailsPanel.task.sourceUrl]
+        : undefined,
       onEdit: createTaskEditHandler(
         detailsPanel.task,
         tasks,
@@ -173,13 +181,15 @@ const getReadOnlyItem = ({
   if (detailsPanel.type === 'subscription-event') {
     return {
       ...detailsPanel,
-      accentColor: sourceColors[detailsPanel.event.sourceId]
+      accentColor: sourceColors[detailsPanel.event.sourceId],
+      sourceName: sourceNames[detailsPanel.event.sourceId]
     };
   }
   if (detailsPanel.type === 'subscription-task') {
     return {
       ...detailsPanel,
-      accentColor: sourceColors[detailsPanel.task.sourceId]
+      accentColor: sourceColors[detailsPanel.task.sourceId],
+      sourceName: sourceNames[detailsPanel.task.sourceId]
     };
   }
   return undefined;

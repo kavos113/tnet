@@ -54,15 +54,20 @@ export const TasksApp = ({
   const [selectedQuickDate, setSelectedQuickDate] = useState<string>(currentDate);
   const [eventDraft, setEventDraft] = useState<LocalEventDraft>();
   const [calendarFocusDate, setCalendarFocusDate] = useState<string>(currentDate);
-  const { agendaSubscribedTaskOccurrences, calendarTasks, setCalendarTasks, visibleRange } =
-    useTasksVisibleRangeData({
-      agendaDate: currentDate,
-      categoryFilter,
-      currentDate: calendarFocusDate,
-      isRestored,
-      settings,
-      view
-    });
+  const {
+    agendaSubscribedTaskOccurrences,
+    calendarTasks,
+    setAgendaSubscribedTaskOccurrences,
+    setCalendarTasks,
+    visibleRange
+  } = useTasksVisibleRangeData({
+    agendaDate: currentDate,
+    categoryFilter,
+    currentDate: calendarFocusDate,
+    isRestored,
+    settings,
+    view
+  });
 
   useTaskReminderNotifications(tasks);
 
@@ -74,11 +79,13 @@ export const TasksApp = ({
   const {
     calendarItems,
     sourceColors,
+    sourceNames,
     todayEvents,
     todaySubscribedTasks,
     todayTasks,
     undatedTasks,
     upcomingDeadlines,
+    visibleCompletedSubscribedTasks,
     visibleCompletedTasks
   } = useTasksAgendaData({
     calendarOccurrences,
@@ -95,6 +102,7 @@ export const TasksApp = ({
     visibleRange
   });
   const {
+    completeSubscribedTask,
     completeTask,
     deleteLocalEvent,
     deleteTask,
@@ -104,6 +112,7 @@ export const TasksApp = ({
     saveEventDraft,
     saveQuickAdd
   } = useTasksActions({
+    agendaDate: currentDate,
     calendarTasks,
     draft,
     eventDraft,
@@ -112,6 +121,7 @@ export const TasksApp = ({
     selectedQuickDate,
     tasks,
     visibleRange,
+    setAgendaSubscribedTaskOccurrences,
     setCalendarTasks,
     setDetailsPanel,
     setDraft,
@@ -182,6 +192,7 @@ export const TasksApp = ({
         calendarTasks={calendarTasks}
         categoryColors={settings.categoryColors}
         completedTasks={visibleCompletedTasks}
+        completedSubscribedTasks={visibleCompletedSubscribedTasks}
         currentDate={currentDate}
         focusDate={calendarFocusDate}
         todayEvents={todayEvents}
@@ -194,6 +205,9 @@ export const TasksApp = ({
         view={view}
         visibleRange={visibleRange}
         onCompleteTask={(taskId, completed) => runAction(() => completeTask(taskId, completed))}
+        onCompleteSubscribedTask={(occurrenceId, completed) =>
+          runAction(() => completeSubscribedTask(occurrenceId, completed))
+        }
         onDeleteTask={(taskId) => runAction(() => deleteTask(taskId))}
         onEditTask={(task) => {
           setDraft(draftFromTask(task));
@@ -215,6 +229,7 @@ export const TasksApp = ({
           isCategoryCompletionEnabled={settings.categoryCompletionEnabled}
           categoryColors={settings.categoryColors}
           sourceColors={sourceColors}
+          sourceNames={sourceNames}
           selectedQuickDate={selectedQuickDate}
           tasks={tasks}
           onClose={() => {

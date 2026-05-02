@@ -61,6 +61,11 @@
   opacity: 0.82;
 }
 
+.readOnlyTaskItem {
+  grid-template-columns: auto minmax(0, 1fr);
+  opacity: 0.9;
+}
+
 .rowButton {
   display: grid;
   width: 100%;

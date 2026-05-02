@@ -109,6 +109,7 @@ export interface SubscribedTaskOccurrence {
   description?: string;
   recurrenceId?: string;
   lastModified?: string;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,6 +117,7 @@ export interface SubscribedTaskOccurrence {
 export interface ListSubscribedTaskOccurrencesRequest {
   startDate: string;
   endDate: string;
+  includeCompleted?: boolean;
 }
 
 export interface LocalEvent {

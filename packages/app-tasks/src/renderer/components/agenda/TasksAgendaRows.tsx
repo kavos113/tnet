@@ -78,17 +78,28 @@ export const TaskRow = ({
 export const ReadOnlyTaskRow = ({
   task,
   accentColor,
+  onComplete,
   onOpen
 }: {
   task: SubscribedTaskOccurrence;
   accentColor?: string;
+  onComplete: (occurrenceId: string, completed: boolean) => void;
   onOpen: (task: SubscribedTaskOccurrence) => void;
 }): React.JSX.Element => (
-  <li className={`${styles.item} ${styles.readOnlyItem}`} style={accentColorStyle(accentColor)}>
+  <li className={`${styles.item} ${styles.readOnlyTaskItem}`} style={accentColorStyle(accentColor)}>
+    <input
+      aria-label={`Complete ${task.title}`}
+      className={styles.checkbox}
+      type="checkbox"
+      checked={Boolean(task.completedAt)}
+      onChange={(event) => onComplete(task.id, event.target.checked)}
+    />
     <button type="button" className={styles.rowButton} onClick={() => onOpen(task)}>
       <div className={styles.body}>
-        <span className={styles.title}>{task.title}</span>
-        <span className={styles.meta}>{formatSubscribedTaskDeadline(task)} read-only</span>
+        <span className={`${styles.title} ${task.completedAt ? styles.titleDone : ''}`}>
+          {task.title}
+        </span>
+        <span className={styles.meta}>{formatSubscribedTaskDeadline(task)} subscribed</span>
       </div>
     </button>
   </li>
@@ -103,10 +114,53 @@ export const DeadlineBody = ({
     <span className={styles.title}>{item.title}</span>
     <span className={styles.meta}>
       {formatDeadlineItem(item)}
-      {'sourceId' in item ? ' read-only' : ''}
+      {'sourceId' in item ? ' subscribed' : ''}
     </span>
   </div>
 );
+
+export const DeadlineRow = ({
+  item,
+  accentColor,
+  onComplete,
+  onCompleteReadOnlyTask,
+  onReadOnlyTaskOpen,
+  onTaskOpen
+}: {
+  item: TaskItem | SubscribedTaskOccurrence;
+  accentColor?: string;
+  onComplete: (taskId: string, completed: boolean) => void;
+  onCompleteReadOnlyTask: (occurrenceId: string, completed: boolean) => void;
+  onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
+  onTaskOpen: (task: TaskItem) => void;
+}): React.JSX.Element => {
+  const isSubscribed = 'sourceId' in item;
+  return (
+    <li
+      className={`${styles.item} ${styles.readOnlyTaskItem}`}
+      style={accentColorStyle(accentColor)}
+    >
+      <input
+        aria-label={`Complete deadline ${item.title}`}
+        className={styles.checkbox}
+        type="checkbox"
+        checked={Boolean(item.completedAt)}
+        onChange={(event) =>
+          isSubscribed
+            ? onCompleteReadOnlyTask(item.id, event.target.checked)
+            : onComplete(item.id, event.target.checked)
+        }
+      />
+      <button
+        type="button"
+        className={styles.rowButton}
+        onClick={() => (isSubscribed ? onReadOnlyTaskOpen(item) : onTaskOpen(item))}
+      >
+        <DeadlineBody item={item} />
+      </button>
+    </li>
+  );
+};
 
 const formatTaskDeadline = (task: TaskItem): string =>
   task.deadlineTime ? `${task.deadlineDate} ${task.deadlineTime}` : (task.deadlineDate ?? '');

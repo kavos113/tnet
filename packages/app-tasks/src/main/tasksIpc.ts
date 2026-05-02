@@ -99,6 +99,9 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   ipcMain.handle(tasksIpcChannels.subscribedTaskOccurrences.list, async (_event, request) =>
     subscribedTaskOccurrenceRepository.list(request)
   );
+  ipcMain.handle(tasksIpcChannels.subscribedTaskOccurrences.complete, async (_event, request) =>
+    subscribedTaskOccurrenceRepository.complete(request.occurrenceId, request.completed)
+  );
   ipcMain.handle(tasksIpcChannels.localEvents.list, async (_event, request) =>
     localEventRepository.list(request)
   );

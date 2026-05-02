@@ -16,6 +16,7 @@ interface SubscribedTaskOccurrenceRow {
   description: string | null;
   recurrence_id: string | null;
   last_modified: string | null;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ const toSubscribedTaskOccurrence = (
   description: row.description ?? undefined,
   recurrenceId: row.recurrence_id ?? undefined,
   lastModified: row.last_modified ?? undefined,
+  completedAt: row.completed_at ?? undefined,
   createdAt: row.created_at,
   updatedAt: row.updated_at
 });
@@ -41,16 +43,117 @@ export class SubscribedTaskOccurrenceRepository {
   constructor(private readonly database: TasksDatabase) {}
 
   list(request: ListSubscribedTaskOccurrencesRequest): SubscribedTaskOccurrence[] {
+    const completedClause = request.includeCompleted ? '' : 'AND completed.completed_at IS NULL';
     const rows = this.database
       .prepare(
-        `SELECT id, source_id, uid, title, deadline_date, deadline_time, all_day, description,
-                recurrence_id, last_modified, created_at, updated_at
-         FROM subscribed_task_occurrences
-         WHERE deadline_date >= @startDate AND deadline_date <= @endDate
-         ORDER BY deadline_date ASC, deadline_time ASC, title ASC`
+        `SELECT occurrences.id,
+                occurrences.source_id,
+                occurrences.uid,
+                occurrences.title,
+                occurrences.deadline_date,
+                occurrences.deadline_time,
+                occurrences.all_day,
+                occurrences.description,
+                occurrences.recurrence_id,
+                occurrences.last_modified,
+                completed.completed_at,
+                occurrences.created_at,
+                occurrences.updated_at
+         FROM subscribed_task_occurrences occurrences
+         LEFT JOIN subscribed_task_completion_overrides completed
+           ON completed.source_id = occurrences.source_id
+          AND completed.uid = occurrences.uid
+          AND completed.deadline_date = occurrences.deadline_date
+          AND completed.deadline_time = COALESCE(occurrences.deadline_time, '')
+          AND completed.recurrence_id = COALESCE(occurrences.recurrence_id, '')
+         WHERE occurrences.deadline_date >= @startDate
+           AND occurrences.deadline_date <= @endDate
+           ${completedClause}
+         ORDER BY occurrences.deadline_date ASC, occurrences.deadline_time ASC, occurrences.title ASC`
       )
       .all(request) as SubscribedTaskOccurrenceRow[];
     return rows.map(toSubscribedTaskOccurrence);
+  }
+
+  get(occurrenceId: string): SubscribedTaskOccurrence | null {
+    const row = this.database
+      .prepare(
+        `SELECT occurrences.id,
+                occurrences.source_id,
+                occurrences.uid,
+                occurrences.title,
+                occurrences.deadline_date,
+                occurrences.deadline_time,
+                occurrences.all_day,
+                occurrences.description,
+                occurrences.recurrence_id,
+                occurrences.last_modified,
+                completed.completed_at,
+                occurrences.created_at,
+                occurrences.updated_at
+         FROM subscribed_task_occurrences occurrences
+         LEFT JOIN subscribed_task_completion_overrides completed
+           ON completed.source_id = occurrences.source_id
+          AND completed.uid = occurrences.uid
+          AND completed.deadline_date = occurrences.deadline_date
+          AND completed.deadline_time = COALESCE(occurrences.deadline_time, '')
+          AND completed.recurrence_id = COALESCE(occurrences.recurrence_id, '')
+         WHERE occurrences.id = ?`
+      )
+      .get(occurrenceId) as SubscribedTaskOccurrenceRow | undefined;
+    return row ? toSubscribedTaskOccurrence(row) : null;
+  }
+
+  complete(occurrenceId: string, completed: boolean): SubscribedTaskOccurrence {
+    const occurrence = this.get(occurrenceId);
+    if (!occurrence) throw new Error(`Subscribed task occurrence not found: ${occurrenceId}`);
+
+    const deadlineTime = occurrence.deadlineTime ?? '';
+    const recurrenceId = occurrence.recurrenceId ?? '';
+    if (completed) {
+      const now = new Date().toISOString();
+      this.database
+        .prepare(
+          `INSERT INTO subscribed_task_completion_overrides (
+             source_id, uid, deadline_date, deadline_time, recurrence_id, completed_at, updated_at
+           )
+           VALUES (
+             @sourceId, @uid, @deadlineDate, @deadlineTime, @recurrenceId, @completedAt, @updatedAt
+           )
+           ON CONFLICT(source_id, uid, deadline_date, deadline_time, recurrence_id)
+           DO UPDATE SET completed_at = excluded.completed_at, updated_at = excluded.updated_at`
+        )
+        .run({
+          sourceId: occurrence.sourceId,
+          uid: occurrence.uid,
+          deadlineDate: occurrence.deadlineDate,
+          deadlineTime,
+          recurrenceId,
+          completedAt: now,
+          updatedAt: now
+        });
+    } else {
+      this.database
+        .prepare(
+          `DELETE FROM subscribed_task_completion_overrides
+           WHERE source_id = @sourceId
+             AND uid = @uid
+             AND deadline_date = @deadlineDate
+             AND deadline_time = @deadlineTime
+             AND recurrence_id = @recurrenceId`
+        )
+        .run({
+          sourceId: occurrence.sourceId,
+          uid: occurrence.uid,
+          deadlineDate: occurrence.deadlineDate,
+          deadlineTime,
+          recurrenceId
+        });
+    }
+
+    const updated = this.get(occurrenceId);
+    if (!updated) throw new Error(`Subscribed task occurrence not found: ${occurrenceId}`);
+    return updated;
   }
 
   replaceForSource(sourceId: string, occurrences: SubscribedTaskOccurrence[]): void {

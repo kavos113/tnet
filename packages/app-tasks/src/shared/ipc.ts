@@ -38,7 +38,8 @@ export const tasksIpcChannels = {
     list: 'tasks:calendarOccurrences:list'
   },
   subscribedTaskOccurrences: {
-    list: 'tasks:subscribedTaskOccurrences:list'
+    list: 'tasks:subscribedTaskOccurrences:list',
+    complete: 'tasks:subscribedTaskOccurrences:complete'
   },
   localEvents: {
     list: 'tasks:localEvents:list',
@@ -83,6 +84,10 @@ export interface TasksApi {
     };
     subscribedTaskOccurrences: {
       list: (request: ListSubscribedTaskOccurrencesRequest) => Promise<SubscribedTaskOccurrence[]>;
+      complete: (request: {
+        occurrenceId: string;
+        completed: boolean;
+      }) => Promise<SubscribedTaskOccurrence>;
     };
     localEvents: {
       list: (request: ListLocalEventsRequest) => Promise<LocalEvent[]>;

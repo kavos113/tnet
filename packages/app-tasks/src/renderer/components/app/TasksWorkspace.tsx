@@ -21,6 +21,7 @@ export interface TasksWorkspaceProps {
   calendarTasks: TaskItem[];
   categoryColors: Record<string, string>;
   completedTasks: TaskItem[];
+  completedSubscribedTasks: SubscribedTaskOccurrence[];
   currentDate: string;
   focusDate: string;
   todayEvents: Array<LocalEvent | CalendarEventOccurrence>;
@@ -33,6 +34,7 @@ export interface TasksWorkspaceProps {
   view: TasksDefaultView;
   visibleRange: CalendarDateRange;
   onCompleteTask: (taskId: string, completed: boolean) => void;
+  onCompleteSubscribedTask: (occurrenceId: string, completed: boolean) => void;
   onDeleteTask: (taskId: string) => void;
   onEditTask: (task: TaskItem) => void;
   onMoveRange: (days: number) => void;
@@ -47,6 +49,7 @@ export const TasksWorkspace = ({
   calendarTasks,
   categoryColors,
   completedTasks,
+  completedSubscribedTasks,
   currentDate,
   focusDate,
   todayEvents,
@@ -59,6 +62,7 @@ export const TasksWorkspace = ({
   view,
   visibleRange,
   onCompleteTask,
+  onCompleteSubscribedTask,
   onDeleteTask,
   onEditTask,
   onMoveRange,
@@ -70,6 +74,7 @@ export const TasksWorkspace = ({
   <div className={styles.content}>
     <TasksAgenda
       completedTasks={completedTasks}
+      completedSubscribedTasks={completedSubscribedTasks}
       categoryColors={categoryColors}
       sourceColors={sourceColors}
       todayEvents={todayEvents}
@@ -78,6 +83,7 @@ export const TasksWorkspace = ({
       undatedTasks={undatedTasks}
       upcomingDeadlines={upcomingDeadlines}
       onComplete={onCompleteTask}
+      onCompleteReadOnlyTask={onCompleteSubscribedTask}
       onDelete={onDeleteTask}
       onEdit={onEditTask}
       onEventOpen={(event) => openEventDetails(event, onSetDetailsPanel)}
@@ -97,10 +103,33 @@ export const TasksWorkspace = ({
       onDateSelect={onSelectQuickDate}
       onLocalEventSelect={(event) => onSetDetailsPanel({ type: 'event-detail', event })}
       onSubscribedEventSelect={(event) => onSetDetailsPanel({ type: 'subscription-event', event })}
-      onTaskSelect={(task) => onSetDetailsPanel(createTaskDetailsState(task, tasks, calendarTasks))}
+      onTaskSelect={(task) => {
+        if (task.id.startsWith('subscribed:')) {
+          onSetDetailsPanel({
+            type: 'subscription-task',
+            task: subscribedTaskItemToOccurrence(task)
+          });
+          return;
+        }
+        onSetDetailsPanel(createTaskDetailsState(task, tasks, calendarTasks));
+      }}
       onMoveRange={onMoveRange}
       onRescheduleTask={onRescheduleTask}
       onToday={onToday}
     />
   </div>
 );
+
+const subscribedTaskItemToOccurrence = (task: TaskItem): SubscribedTaskOccurrence => ({
+  id: task.id.replace(/^subscribed:/, ''),
+  sourceId: task.sourceUrl ?? '',
+  uid: task.id.replace(/^subscribed:/, ''),
+  title: task.title,
+  deadlineDate: task.deadlineDate ?? '',
+  deadlineTime: task.deadlineTime,
+  allDay: !task.deadlineTime,
+  description: task.notes || undefined,
+  completedAt: task.completedAt,
+  createdAt: task.createdAt,
+  updatedAt: task.updatedAt
+});

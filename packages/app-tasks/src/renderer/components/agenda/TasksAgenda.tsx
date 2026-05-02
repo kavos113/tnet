@@ -10,6 +10,7 @@ import styles from './TasksAgenda.module.css';
 export interface TasksAgendaProps {
   categoryColors: Record<string, string>;
   completedTasks: TaskItem[];
+  completedSubscribedTasks: SubscribedTaskOccurrence[];
   sourceColors: Record<string, string>;
   todayEvents: Array<LocalEvent | CalendarEventOccurrence>;
   todaySubscribedTasks: SubscribedTaskOccurrence[];
@@ -17,6 +18,7 @@ export interface TasksAgendaProps {
   undatedTasks: TaskItem[];
   upcomingDeadlines: Array<TaskItem | SubscribedTaskOccurrence>;
   onComplete: (taskId: string, completed: boolean) => void;
+  onCompleteReadOnlyTask: (occurrenceId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
   onEventOpen: (event: LocalEvent | CalendarEventOccurrence) => void;
@@ -26,6 +28,7 @@ export interface TasksAgendaProps {
 
 export const TasksAgenda = ({
   completedTasks,
+  completedSubscribedTasks,
   categoryColors,
   sourceColors,
   todayEvents,
@@ -34,6 +37,7 @@ export const TasksAgenda = ({
   undatedTasks,
   upcomingDeadlines,
   onComplete,
+  onCompleteReadOnlyTask,
   onDelete,
   onEdit,
   onEventOpen,
@@ -48,6 +52,7 @@ export const TasksAgenda = ({
       categoryColors={categoryColors}
       sourceColors={sourceColors}
       onComplete={onComplete}
+      onCompleteReadOnlyTask={onCompleteReadOnlyTask}
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
@@ -64,6 +69,8 @@ export const TasksAgenda = ({
       items={upcomingDeadlines}
       categoryColors={categoryColors}
       sourceColors={sourceColors}
+      onComplete={onComplete}
+      onCompleteReadOnlyTask={onCompleteReadOnlyTask}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
       onTaskOpen={onTaskOpen}
     />
@@ -73,6 +80,7 @@ export const TasksAgenda = ({
       categoryColors={categoryColors}
       sourceColors={sourceColors}
       onComplete={onComplete}
+      onCompleteReadOnlyTask={onCompleteReadOnlyTask}
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}
@@ -81,9 +89,11 @@ export const TasksAgenda = ({
     <TaskSection
       title="Completed Tasks"
       tasks={completedTasks}
+      readOnlyTasks={completedSubscribedTasks}
       categoryColors={categoryColors}
       sourceColors={sourceColors}
       onComplete={onComplete}
+      onCompleteReadOnlyTask={onCompleteReadOnlyTask}
       onDelete={onDelete}
       onEdit={onEdit}
       onReadOnlyTaskOpen={onReadOnlyTaskOpen}

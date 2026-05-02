@@ -30,6 +30,9 @@ export const useTasksVisibleRangeData = ({
 }): {
   agendaSubscribedTaskOccurrences: SubscribedTaskOccurrence[];
   calendarTasks: TaskItem[];
+  setAgendaSubscribedTaskOccurrences: React.Dispatch<
+    React.SetStateAction<SubscribedTaskOccurrence[]>
+  >;
   setCalendarTasks: React.Dispatch<React.SetStateAction<TaskItem[]>>;
   visibleRange: ReturnType<typeof getVisibleCalendarRange>;
 } => {
@@ -102,7 +105,8 @@ export const useTasksVisibleRangeData = ({
     const loadAgendaSubscriptions = async (): Promise<void> => {
       const subscribedTasks = await tasksTnetApi.tasks.subscribedTaskOccurrences.list({
         startDate: agendaDate,
-        endDate: addLocalDays(agendaDate, 365)
+        endDate: addLocalDays(agendaDate, 365),
+        includeCompleted: true
       });
       if (!canceled) setAgendaSubscribedTaskOccurrences(subscribedTasks);
     };
@@ -117,7 +121,13 @@ export const useTasksVisibleRangeData = ({
     };
   }, [agendaDate, dispatch, isRestored]);
 
-  return { agendaSubscribedTaskOccurrences, calendarTasks, setCalendarTasks, visibleRange };
+  return {
+    agendaSubscribedTaskOccurrences,
+    calendarTasks,
+    setAgendaSubscribedTaskOccurrences,
+    setCalendarTasks,
+    visibleRange
+  };
 };
 
 const mergeTaskLists = (primary: TaskItem[], secondary: TaskItem[]): TaskItem[] => {

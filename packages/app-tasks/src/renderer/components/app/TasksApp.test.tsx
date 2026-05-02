@@ -14,6 +14,7 @@ const listTasks = vi.fn();
 const listCategories = vi.fn();
 const listOccurrences = vi.fn();
 const listSubscribedTasks = vi.fn();
+const completeSubscribedTask = vi.fn();
 const listLocalEvents = vi.fn();
 const saveLocalEvent = vi.fn();
 const removeLocalEvent = vi.fn();
@@ -67,7 +68,8 @@ const installTnetApi = (): void => {
           list: listOccurrences
         },
         subscribedTaskOccurrences: {
-          list: listSubscribedTasks
+          list: listSubscribedTasks,
+          complete: completeSubscribedTask
         },
         localEvents: {
           list: listLocalEvents,
@@ -107,6 +109,18 @@ describe('TasksApp', () => {
     listCategories.mockResolvedValue(['Work']);
     listOccurrences.mockResolvedValue([]);
     listSubscribedTasks.mockResolvedValue([]);
+    completeSubscribedTask.mockImplementation(async (request) => ({
+      id: request.occurrenceId,
+      sourceId: 'source-1',
+      uid: 'uid-1',
+      title: 'Read-only deadline',
+      deadlineDate: '2026-05-02',
+      deadlineTime: '10:00',
+      allDay: false,
+      completedAt: request.completed ? '2026-05-02T01:00:00.000Z' : undefined,
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-01T00:00:00.000Z'
+    }));
     localEventsStore = [];
     listLocalEvents.mockImplementation(async () => localEventsStore);
     saveLocalEvent.mockImplementation(async (request) => {
@@ -381,6 +395,7 @@ describe('TasksApp', () => {
 
     let panel = await screen.findByRole('dialog', { name: 'Task Details' });
     expect(panel).toHaveTextContent('Write report');
+    expect(panel).toHaveTextContent('Category: Work');
     expect(panel.innerHTML).toContain('--task-accent-color: #00aa88');
     expect(within(panel).queryByLabelText('Detail task title')).not.toBeInTheDocument();
 
@@ -520,7 +535,8 @@ describe('TasksApp', () => {
     });
     expect(listSubscribedTasks).toHaveBeenCalledWith({
       startDate: '2026-05-02',
-      endDate: '2027-05-02'
+      endDate: '2027-05-02',
+      includeCompleted: true
     });
     expect(listLocalEvents).toHaveBeenLastCalledWith({
       startDate: '2026-06-01',
@@ -597,6 +613,86 @@ describe('TasksApp', () => {
     expect(screen.getByRole('region', { name: 'Upcoming Deadlines' })).toHaveTextContent(
       'Read-only deadline'
     );
+    fireEvent.click(subscribedTask);
+    const panel = await screen.findByRole('dialog', { name: 'Subscribed Task' });
+    expect(panel).toHaveTextContent('Subscription: Source');
+  });
+
+  it('completes subscribed task occurrences locally', async () => {
+    let subscribedCompleted = false;
+    const subscribedTask = {
+      id: 'subscribed-task-1',
+      sourceId: 'source-1',
+      uid: 'uid-1',
+      title: 'Read-only deadline',
+      deadlineDate: '2026-05-02',
+      deadlineTime: '10:00',
+      allDay: false,
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-01T00:00:00.000Z'
+    };
+    listSubscribedTasks.mockImplementation(async (request) => {
+      const task = subscribedCompleted
+        ? { ...subscribedTask, completedAt: '2026-05-02T01:00:00.000Z' }
+        : subscribedTask;
+      if (!request.includeCompleted && subscribedCompleted) return [];
+      return [task];
+    });
+    completeSubscribedTask.mockImplementation(async (request) => {
+      subscribedCompleted = request.completed;
+      return {
+        ...subscribedTask,
+        completedAt: request.completed ? '2026-05-02T01:00:00.000Z' : undefined
+      };
+    });
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        calendarSources: [
+          {
+            id: 'source-1',
+            name: 'Task Feed',
+            type: 'ics-url',
+            itemKind: 'task',
+            purpose: 'calendar',
+            uri: 'https://calendar.example/tasks.ics',
+            enabled: true,
+            writeBackEnabled: false,
+            authType: 'none',
+            createdAt: '2026-05-01T00:00:00.000Z',
+            updatedAt: '2026-05-01T00:00:00.000Z'
+          }
+        ],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    const checkbox = await screen.findByLabelText('Complete deadline Read-only deadline');
+    fireEvent.click(checkbox);
+
+    await waitFor(() =>
+      expect(completeSubscribedTask).toHaveBeenCalledWith({
+        occurrenceId: 'subscribed-task-1',
+        completed: true
+      })
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('region', { name: 'Completed Tasks' })).toHaveTextContent(
+        'Read-only deadline'
+      )
+    );
+    expect(screen.getByRole('region', { name: 'Today Tasks' })).not.toHaveTextContent(
+      'Read-only deadline'
+    );
   });
 
   it('opens subscribed calendar events in a read-only details panel', async () => {
@@ -653,6 +749,7 @@ describe('TasksApp', () => {
 
     const panel = await screen.findByRole('dialog', { name: 'Subscribed Event' });
     expect(panel.innerHTML).toContain('--task-accent-color: #7755cc');
+    expect(panel).toHaveTextContent('Subscription: Source');
     expect(panel).toHaveTextContent('Room A');
     expect(panel).toHaveTextContent('Read-only event');
     expect(screen.getByRole('region', { name: 'Today Events' })).toHaveTextContent(
@@ -818,6 +915,13 @@ describe('TasksApp', () => {
 
     expect(screen.getByRole('region', { name: 'Upcoming Deadlines' })).toHaveTextContent(
       'Future report'
+    );
+    fireEvent.click(screen.getByLabelText('Complete deadline Future report'));
+    await waitFor(() =>
+      expect(completeTask).toHaveBeenCalledWith({
+        taskId: 'task-future',
+        completed: true
+      })
     );
     expect(screen.getByRole('region', { name: 'Completed Tasks' })).toHaveTextContent(
       'Finished report'

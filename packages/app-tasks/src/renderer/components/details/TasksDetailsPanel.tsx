@@ -9,10 +9,20 @@ import { accentColorStyle } from '../../utils/taskColors';
 import styles from './TasksDetailsPanel.module.css';
 
 export type TasksDetailsPanelReadOnlyItem =
-  | { type: 'task'; task: TaskItem; accentColor?: string; onEdit?: () => void }
+  | { type: 'task'; task: TaskItem; accentColor?: string; sourceName?: string; onEdit?: () => void }
   | { type: 'event'; event: LocalEvent; onEdit?: () => void }
-  | { type: 'subscription-event'; event: CalendarEventOccurrence; accentColor?: string }
-  | { type: 'subscription-task'; task: SubscribedTaskOccurrence; accentColor?: string };
+  | {
+      type: 'subscription-event';
+      event: CalendarEventOccurrence;
+      accentColor?: string;
+      sourceName?: string;
+    }
+  | {
+      type: 'subscription-task';
+      task: SubscribedTaskOccurrence;
+      accentColor?: string;
+      sourceName?: string;
+    };
 
 export interface TasksDetailsPanelProps {
   children?: React.ReactNode;
@@ -79,7 +89,8 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
           {formatTaskDeadline(task)}
           {task.completedAt ? ' completed' : ''}
         </p>
-        {task.category ? <p className={styles.meta}>{task.category}</p> : null}
+        {task.category ? <p className={styles.meta}>Category: {task.category}</p> : null}
+        {item.sourceName ? <p className={styles.meta}>Subscription: {item.sourceName}</p> : null}
         {task.notes ? <p className={styles.description}>{task.notes}</p> : null}
         {item.onEdit ? (
           <button type="button" className={styles.primaryButton} onClick={item.onEdit}>
@@ -116,8 +127,10 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
         <h3>{task.title}</h3>
         <p className={styles.meta}>
           {task.deadlineDate}
-          {task.deadlineTime ? ` ${task.deadlineTime}` : ''} read-only
+          {task.deadlineTime ? ` ${task.deadlineTime}` : ''} subscribed
+          {task.completedAt ? ' completed' : ''}
         </p>
+        {item.sourceName ? <p className={styles.meta}>Subscription: {item.sourceName}</p> : null}
         {task.description ? <p className={styles.description}>{task.description}</p> : null}
       </div>
     );
@@ -128,8 +141,9 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
     <div className={styles.readOnly} style={accentColorStyle(item.accentColor)}>
       <h3>{event.title}</h3>
       <p className={styles.meta}>
-        {event.allDay ? 'All day' : `${event.startsAt} - ${event.endsAt}`} read-only
+        {event.allDay ? 'All day' : `${event.startsAt} - ${event.endsAt}`} subscribed
       </p>
+      {item.sourceName ? <p className={styles.meta}>Subscription: {item.sourceName}</p> : null}
       {event.location ? <p className={styles.meta}>{event.location}</p> : null}
       {event.description ? <p className={styles.description}>{event.description}</p> : null}
     </div>

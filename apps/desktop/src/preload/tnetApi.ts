@@ -59,7 +59,9 @@ export const tnetApi: DesktopTnetApi = {
     },
     subscribedTaskOccurrences: {
       list: (request) =>
-        ipcRenderer.invoke(tasksIpcChannels.subscribedTaskOccurrences.list, request)
+        ipcRenderer.invoke(tasksIpcChannels.subscribedTaskOccurrences.list, request),
+      complete: (request) =>
+        ipcRenderer.invoke(tasksIpcChannels.subscribedTaskOccurrences.complete, request)
     },
     localEvents: {
       list: (request) => ipcRenderer.invoke(tasksIpcChannels.localEvents.list, request),

@@ -1,4 +1,5 @@
-import type { TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import { addLocalDays } from '@tnet/app-tasks/shared/dateHelpers';
 import {
   emptyLocalEventDraft,
   localEventInputFromDraft,
@@ -16,6 +17,7 @@ import {
   setTaskCategories,
   setTasksError,
   setTasksLocalEvents,
+  setTasksSubscribedTaskOccurrences,
   upsertTask
 } from '../state/tasksSlice';
 import { tasksTnetApi } from '../api/tasksTnetApi';
@@ -25,6 +27,7 @@ import type { TasksDetailsPanelState } from '../state/tasksDetailsState';
 import type { CalendarDateRange } from '@tnet/app-tasks/shared/calendarView';
 
 export const useTasksActions = ({
+  agendaDate,
   calendarTasks,
   draft,
   eventDraft,
@@ -33,12 +36,14 @@ export const useTasksActions = ({
   selectedQuickDate,
   tasks,
   visibleRange,
+  setAgendaSubscribedTaskOccurrences,
   setCalendarTasks,
   setDetailsPanel,
   setDraft,
   setEventDraft,
   setQuickEventDraft
 }: {
+  agendaDate: string;
   calendarTasks: TaskItem[];
   draft: TaskDraft;
   eventDraft?: LocalEventDraft;
@@ -47,6 +52,9 @@ export const useTasksActions = ({
   selectedQuickDate: string;
   tasks: TaskItem[];
   visibleRange: CalendarDateRange;
+  setAgendaSubscribedTaskOccurrences: React.Dispatch<
+    React.SetStateAction<SubscribedTaskOccurrence[]>
+  >;
   setCalendarTasks: React.Dispatch<React.SetStateAction<TaskItem[]>>;
   setDetailsPanel: (state: TasksDetailsPanelState | undefined) => void;
   setDraft: (draft: TaskDraft) => void;
@@ -84,6 +92,26 @@ export const useTasksActions = ({
     const task = await tasksTnetApi.tasks.tasks.complete({ taskId, completed });
     dispatch(upsertTask(task));
     setCalendarTasks((current) => upsertTaskInList(current, task));
+  };
+
+  const completeSubscribedTask = async (
+    occurrenceId: string,
+    completed: boolean
+  ): Promise<void> => {
+    await tasksTnetApi.tasks.subscribedTaskOccurrences.complete({ occurrenceId, completed });
+    const [visibleSubscribedTasks, agendaSubscribedTasks] = await Promise.all([
+      tasksTnetApi.tasks.subscribedTaskOccurrences.list({
+        startDate: visibleRange.startDate,
+        endDate: visibleRange.endDate
+      }),
+      tasksTnetApi.tasks.subscribedTaskOccurrences.list({
+        startDate: agendaDate,
+        endDate: addLocalDays(agendaDate, 365),
+        includeCompleted: true
+      })
+    ]);
+    dispatch(setTasksSubscribedTaskOccurrences(visibleSubscribedTasks));
+    setAgendaSubscribedTaskOccurrences(agendaSubscribedTasks);
   };
 
   const deleteTask = async (taskId: string): Promise<void> => {
@@ -141,6 +169,7 @@ export const useTasksActions = ({
   };
 
   return {
+    completeSubscribedTask,
     completeTask,
     deleteLocalEvent,
     deleteTask,

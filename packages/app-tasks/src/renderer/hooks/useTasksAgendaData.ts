@@ -70,6 +70,7 @@ export const useTasksAgendaData = ({
   const todaySubscribedTasks = useMemo(
     () =>
       agendaSubscribedTaskOccurrences
+        .filter((task) => !task.completedAt)
         .filter((task) => task.deadlineDate === currentDate)
         .sort(compareSubscribedTaskDeadlines),
     [agendaSubscribedTaskOccurrences, currentDate]
@@ -87,12 +88,24 @@ export const useTasksAgendaData = ({
   const upcomingDeadlines = useMemo(
     () =>
       [...visibleOpenTasks, ...agendaSubscribedTaskOccurrences]
+        .filter((item) => !('sourceId' in item) || !item.completedAt)
         .filter((item) => Boolean(item.deadlineDate))
         .filter((item) => (item.deadlineDate ?? '') >= currentDate)
         .sort(compareAgendaDeadlineItems)
         .slice(0, 8),
     [agendaSubscribedTaskOccurrences, currentDate, visibleOpenTasks]
   );
+  const visibleCompletedSubscribedTasks = useMemo(() => {
+    const completedTasks = agendaSubscribedTaskOccurrences.filter((task) => task.completedAt);
+    const scopedTasks =
+      settings.completedTaskScope === 'today'
+        ? completedTasks.filter((task) => task.completedAt?.slice(0, 10) === currentDate)
+        : completedTasks;
+
+    return scopedTasks.sort((left, right) =>
+      (right.completedAt ?? '').localeCompare(left.completedAt ?? '')
+    );
+  }, [agendaSubscribedTaskOccurrences, currentDate, settings.completedTaskScope]);
   const undatedTasks = useMemo(
     () => visibleOpenTasks.filter((task) => !task.deadlineDate).sort(compareUndatedTasks),
     [visibleOpenTasks]
@@ -130,15 +143,25 @@ export const useTasksAgendaData = ({
       }, {}),
     [calendarSources]
   );
+  const sourceNames = useMemo(
+    () =>
+      calendarSources.reduce<Record<string, string>>((names, source) => {
+        names[source.id] = source.name;
+        return names;
+      }, {}),
+    [calendarSources]
+  );
 
   return {
     calendarItems,
     sourceColors,
+    sourceNames,
     todayEvents,
     todaySubscribedTasks,
     todayTasks,
     undatedTasks,
     upcomingDeadlines,
+    visibleCompletedSubscribedTasks,
     visibleCompletedTasks
   };
 };

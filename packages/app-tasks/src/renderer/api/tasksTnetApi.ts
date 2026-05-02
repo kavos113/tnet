@@ -29,7 +29,8 @@ export const tasksTnetApi: TasksApi = {
       list: (request) => getApi().tasks.calendarOccurrences.list(request)
     },
     subscribedTaskOccurrences: {
-      list: (request) => getApi().tasks.subscribedTaskOccurrences.list(request)
+      list: (request) => getApi().tasks.subscribedTaskOccurrences.list(request),
+      complete: (request) => getApi().tasks.subscribedTaskOccurrences.complete(request)
     },
     localEvents: {
       list: (request) => getApi().tasks.localEvents.list(request),

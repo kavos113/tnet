@@ -197,6 +197,36 @@ describe('Tasks repositories', () => {
         endDate: '2026-05-31'
       })
     ).toEqual([expect.objectContaining({ title: 'External deadline' })]);
+    const completed = subscribedTaskRepository.complete('subscribed-task-1', true);
+    expect(completed.completedAt).toBeTruthy();
+    expect(
+      subscribedTaskRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31'
+      })
+    ).toEqual([]);
+    expect(
+      subscribedTaskRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+        includeCompleted: true
+      })
+    ).toEqual([
+      expect.objectContaining({ title: 'External deadline', completedAt: completed.completedAt })
+    ]);
+    subscribedTaskRepository.replaceForSource(source.id, subscribedTasks);
+    expect(
+      subscribedTaskRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+        includeCompleted: true
+      })
+    ).toEqual([
+      expect.objectContaining({ title: 'External deadline', completedAt: completed.completedAt })
+    ]);
+    expect(
+      subscribedTaskRepository.complete('subscribed-task-1', false).completedAt
+    ).toBeUndefined();
     expect(
       localEventRepository.list({
         startDate: '2026-05-01',

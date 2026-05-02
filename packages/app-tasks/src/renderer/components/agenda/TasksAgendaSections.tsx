@@ -4,7 +4,7 @@ import type {
   SubscribedTaskOccurrence,
   TaskItem
 } from '@tnet/app-tasks/shared/tasksTypes';
-import { DeadlineBody, ReadOnlyTaskRow, SectionHeader, TaskRow } from './TasksAgendaRows';
+import { DeadlineRow, ReadOnlyTaskRow, SectionHeader, TaskRow } from './TasksAgendaRows';
 import {
   accentColorStyle,
   getSubscribedEventAccentColor,
@@ -20,6 +20,7 @@ export const TaskSection = ({
   categoryColors,
   sourceColors,
   onComplete,
+  onCompleteReadOnlyTask,
   onDelete,
   onEdit,
   onReadOnlyTaskOpen,
@@ -31,6 +32,7 @@ export const TaskSection = ({
   categoryColors: Record<string, string>;
   sourceColors: Record<string, string>;
   onComplete: (taskId: string, completed: boolean) => void;
+  onCompleteReadOnlyTask: (occurrenceId: string, completed: boolean) => void;
   onDelete: (taskId: string) => void;
   onEdit: (task: TaskItem) => void;
   onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
@@ -56,6 +58,7 @@ export const TaskSection = ({
             key={task.id}
             task={task}
             accentColor={getSubscribedTaskAccentColor(task, sourceColors)}
+            onComplete={onCompleteReadOnlyTask}
             onOpen={onReadOnlyTaskOpen}
           />
         ))}
@@ -114,6 +117,8 @@ export const DeadlineSection = ({
   items,
   categoryColors,
   sourceColors,
+  onComplete,
+  onCompleteReadOnlyTask,
   onReadOnlyTaskOpen,
   onTaskOpen
 }: {
@@ -121,6 +126,8 @@ export const DeadlineSection = ({
   items: Array<TaskItem | SubscribedTaskOccurrence>;
   categoryColors: Record<string, string>;
   sourceColors: Record<string, string>;
+  onComplete: (taskId: string, completed: boolean) => void;
+  onCompleteReadOnlyTask: (occurrenceId: string, completed: boolean) => void;
   onReadOnlyTaskOpen: (task: SubscribedTaskOccurrence) => void;
   onTaskOpen: (task: TaskItem) => void;
 }): React.JSX.Element => (
@@ -129,29 +136,19 @@ export const DeadlineSection = ({
     {items.length > 0 ? (
       <ul className={styles.list}>
         {items.map((item) => (
-          <li
+          <DeadlineRow
             key={item.id}
-            className={`${styles.item} ${styles.readOnlyItem}`}
-            style={accentColorStyle(
+            item={item}
+            accentColor={
               'sourceId' in item
                 ? getSubscribedTaskAccentColor(item, sourceColors)
                 : getTaskAccentColor(item, categoryColors, sourceColors)
-            )}
-          >
-            {'sourceId' in item ? (
-              <button
-                type="button"
-                className={styles.rowButton}
-                onClick={() => onReadOnlyTaskOpen(item)}
-              >
-                <DeadlineBody item={item} />
-              </button>
-            ) : (
-              <button type="button" className={styles.rowButton} onClick={() => onTaskOpen(item)}>
-                <DeadlineBody item={item} />
-              </button>
-            )}
-          </li>
+            }
+            onComplete={onComplete}
+            onCompleteReadOnlyTask={onCompleteReadOnlyTask}
+            onReadOnlyTaskOpen={onReadOnlyTaskOpen}
+            onTaskOpen={onTaskOpen}
+          />
         ))}
       </ul>
     ) : (
