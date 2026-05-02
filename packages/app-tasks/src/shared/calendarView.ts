@@ -14,6 +14,7 @@ export interface CalendarDateRange {
 
 export interface CalendarDayItems {
   date: string;
+  isOutsideCurrentMonth: boolean;
   tasks: TaskItem[];
   events: CalendarEventOccurrence[];
 }
@@ -47,15 +48,18 @@ export const getVisibleCalendarDates = (
 
 export const groupVisibleCalendarItems = ({
   dates,
+  currentDate,
   tasks,
   events
 }: {
   dates: string[];
+  currentDate: string;
   tasks: TaskItem[];
   events: CalendarEventOccurrence[];
 }): CalendarDayItems[] =>
   dates.map((date) => ({
     date,
+    isOutsideCurrentMonth: date.slice(0, 7) !== currentDate.slice(0, 7),
     tasks: tasks.filter((task) => task.deadlineDate === date),
     events: events.filter((event) =>
       doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)

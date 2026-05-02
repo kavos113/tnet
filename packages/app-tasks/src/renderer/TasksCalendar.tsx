@@ -108,7 +108,9 @@ const CalendarCell = ({
 
   return (
     <div
-      className={`${styles.cell} ${isToday ? styles.cellToday : ''}`}
+      className={`${styles.cell} ${isToday ? styles.cellToday : ''} ${
+        day.isOutsideCurrentMonth ? styles.cellOutsideMonth : ''
+      }`}
       role="gridcell"
       aria-label={`Calendar day ${day.date}`}
       tabIndex={0}

@@ -66,6 +66,28 @@
   background: var(--background-light);
 }
 
+.subscriptionBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 24px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.secondaryButton {
+  height: 28px;
+  padding: 0 10px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.secondaryButton:hover {
+  color: var(--foreground);
+  background: var(--background-light);
+}
+
 .content {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);

@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import {
   extractCalDavCalendarData,
+  expandIcalTasks,
   expandIcalEvents,
   parseIcalCalendar,
   taskToIcalCalendar,
@@ -8,7 +9,11 @@ import {
 } from '@tnet/app-tasks/shared/ical';
 import { getOccurrenceCacheRange } from '@tnet/app-tasks/shared/calendarView';
 import type { CalendarSource, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
-import type { CalendarEventOccurrenceRepository, CalendarSourceRepository } from './repository';
+import type {
+  CalendarEventOccurrenceRepository,
+  CalendarSourceRepository,
+  SubscribedTaskOccurrenceRepository
+} from './repository';
 import type { TasksSecretStore } from './tasksSecretStore';
 
 export interface SyncTasksCalendarsResult {
@@ -21,6 +26,7 @@ export class IcalSyncService {
   constructor(
     private readonly sourceRepository: CalendarSourceRepository,
     private readonly occurrenceRepository: CalendarEventOccurrenceRepository,
+    private readonly subscribedTaskRepository: SubscribedTaskOccurrenceRepository,
     private readonly secretStore: TasksSecretStore
   ) {}
 
@@ -55,6 +61,9 @@ export class IcalSyncService {
   async writeTask(sourceId: string, task: TaskItem): Promise<CalendarSource> {
     const source = this.sourceRepository.get(sourceId);
     if (!source) throw new Error(`Calendar source not found: ${sourceId}`);
+    if (!source.writeBackEnabled) {
+      throw new Error('Calendar write-back is disabled for this source.');
+    }
     const calendarText = taskToIcalCalendar(task);
     const uid = taskToIcalUid(task);
 
@@ -81,13 +90,27 @@ export class IcalSyncService {
     const texts = await this.readSource(source);
     const { startDate, endDate } = getOccurrenceCacheRange();
     const events = texts.flatMap(parseIcalCalendar);
-    const occurrences = expandIcalEvents({
-      events,
-      sourceId: source.id,
-      startDate,
-      endDate
-    });
-    this.occurrenceRepository.replaceForSource(source.id, occurrences);
+    if (source.itemKind === 'task') {
+      this.subscribedTaskRepository.replaceForSource(
+        source.id,
+        expandIcalTasks({
+          events,
+          sourceId: source.id,
+          startDate,
+          endDate
+        })
+      );
+    } else {
+      this.occurrenceRepository.replaceForSource(
+        source.id,
+        expandIcalEvents({
+          events,
+          sourceId: source.id,
+          startDate,
+          endDate
+        })
+      );
+    }
     this.sourceRepository.saveSyncResult(source.id);
   }
 

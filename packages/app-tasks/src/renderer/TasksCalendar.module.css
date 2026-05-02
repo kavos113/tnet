@@ -74,6 +74,16 @@
   background: color-mix(in srgb, var(--main-light) 26%, var(--background));
 }
 
+.cellOutsideMonth {
+  color: var(--foreground-muted);
+  background: color-mix(in srgb, var(--background-light) 45%, var(--background));
+}
+
+.cellOutsideMonth .calendarItem,
+.cellOutsideMonth .dayLabel {
+  opacity: 0.48;
+}
+
 .dayLabel {
   display: flex;
   align-items: center;

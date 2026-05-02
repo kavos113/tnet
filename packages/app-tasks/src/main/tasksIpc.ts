@@ -5,7 +5,9 @@ import { loadTasksGlobalConfig, saveTasksGlobalConfig } from './tasksConfigServi
 import {
   CalendarEventOccurrenceRepository,
   CalendarSourceRepository,
+  LocalEventRepository,
   openTasksDatabase,
+  SubscribedTaskOccurrenceRepository,
   TaskRepository
 } from './repository';
 import { IcalSyncService } from './icalSyncService';
@@ -20,10 +22,13 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   const taskRepository = new TaskRepository(database);
   const calendarSourceRepository = new CalendarSourceRepository(database);
   const calendarEventOccurrenceRepository = new CalendarEventOccurrenceRepository(database);
+  const subscribedTaskOccurrenceRepository = new SubscribedTaskOccurrenceRepository(database);
+  const localEventRepository = new LocalEventRepository(database);
   const secretStore = createTasksSecretStore(userDataDir);
   const syncService = new IcalSyncService(
     calendarSourceRepository,
     calendarEventOccurrenceRepository,
+    subscribedTaskOccurrenceRepository,
     secretStore
   );
 
@@ -67,6 +72,18 @@ export const registerTasksIpc = ({ userDataDir }: RegisterTasksIpcOptions): void
   ipcMain.handle(tasksIpcChannels.calendarOccurrences.list, async (_event, request) =>
     calendarEventOccurrenceRepository.list(request)
   );
+  ipcMain.handle(tasksIpcChannels.subscribedTaskOccurrences.list, async (_event, request) =>
+    subscribedTaskOccurrenceRepository.list(request)
+  );
+  ipcMain.handle(tasksIpcChannels.localEvents.list, async (_event, request) =>
+    localEventRepository.list(request)
+  );
+  ipcMain.handle(tasksIpcChannels.localEvents.save, async (_event, request) =>
+    localEventRepository.save(request)
+  );
+  ipcMain.handle(tasksIpcChannels.localEvents.remove, async (_event, request) => {
+    localEventRepository.remove(request.eventId);
+  });
   ipcMain.handle(tasksIpcChannels.sync.manual, async (_event, request) =>
     syncService.sync(request?.sourceId)
   );

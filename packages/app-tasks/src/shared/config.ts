@@ -25,7 +25,7 @@ export const defaultTasksGlobalConfig = (): TasksGlobalConfig => ({});
 export const defaultTasksGlobalSettings = (): TasksGlobalSettings => ({
   weekStartsOn: 1,
   timeFormat: '24h',
-  defaultView: 'week',
+  defaultView: 'month',
   clockSize: 'large',
   syncIntervalMinutes: 60,
   showPortal: true,

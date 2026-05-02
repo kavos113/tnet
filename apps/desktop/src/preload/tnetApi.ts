@@ -55,9 +55,17 @@ export const tnetApi: DesktopTnetApi = {
     calendarOccurrences: {
       list: (request) => ipcRenderer.invoke(tasksIpcChannels.calendarOccurrences.list, request)
     },
+    subscribedTaskOccurrences: {
+      list: (request) =>
+        ipcRenderer.invoke(tasksIpcChannels.subscribedTaskOccurrences.list, request)
+    },
+    localEvents: {
+      list: (request) => ipcRenderer.invoke(tasksIpcChannels.localEvents.list, request),
+      save: (request) => ipcRenderer.invoke(tasksIpcChannels.localEvents.save, request),
+      remove: (request) => ipcRenderer.invoke(tasksIpcChannels.localEvents.remove, request)
+    },
     sync: {
-      manual: (request) => ipcRenderer.invoke(tasksIpcChannels.sync.manual, request),
-      writeTask: (request) => ipcRenderer.invoke(tasksIpcChannels.sync.writeTask, request)
+      manual: (request) => ipcRenderer.invoke(tasksIpcChannels.sync.manual, request)
     },
     secrets: {
       has: (request) => ipcRenderer.invoke(tasksIpcChannels.secrets.has, request)

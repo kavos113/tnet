@@ -62,6 +62,7 @@ describe('calendar view helpers', () => {
   it('groups tasks and range-overlapping events per visible day', () => {
     const grouped = groupVisibleCalendarItems({
       dates: ['2026-05-02', '2026-05-03'],
+      currentDate: '2026-05-02',
       tasks: [task('today', '2026-05-02'), task('undated')],
       events: [
         event('single', '2026-05-02T10:00:00.000', '2026-05-02T11:00:00.000'),
@@ -72,6 +73,17 @@ describe('calendar view helpers', () => {
     expect(grouped[0].tasks.map((item) => item.id)).toEqual(['today']);
     expect(grouped[0].events.map((item) => item.id)).toEqual(['single', 'multi']);
     expect(grouped[1].events.map((item) => item.id)).toEqual(['multi']);
+  });
+
+  it('marks month grid dates outside the current month', () => {
+    const grouped = groupVisibleCalendarItems({
+      dates: ['2026-04-30', '2026-05-01', '2026-06-01'],
+      currentDate: '2026-05-02',
+      tasks: [],
+      events: []
+    });
+
+    expect(grouped.map((day) => day.isOutsideCurrentMonth)).toEqual([true, false, true]);
   });
 
   it('uses six months before and twelve months after for occurrence cache range', () => {

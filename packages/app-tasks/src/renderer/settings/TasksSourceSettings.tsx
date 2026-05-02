@@ -9,6 +9,7 @@ import {
 import type {
   CalendarSource,
   CalendarSourceAuthType,
+  CalendarSourceItemKind,
   CalendarSourceType
 } from '@tnet/app-tasks/shared/tasksTypes';
 import { setTasksCalendarSources, setTasksError } from '../tasksSlice';
@@ -20,6 +21,7 @@ interface SourceDraft {
   id?: string;
   name: string;
   type: CalendarSourceType;
+  itemKind: CalendarSourceItemKind;
   uri: string;
   color: string;
   enabled: boolean;
@@ -32,6 +34,7 @@ interface SourceDraft {
 const emptyDraft = (): SourceDraft => ({
   name: '',
   type: 'ics-url',
+  itemKind: 'event',
   uri: '',
   color: '',
   enabled: true,
@@ -60,6 +63,7 @@ export const TasksSourceSettings = (): React.JSX.Element => {
       id: draft.id,
       name: draft.name,
       type: draft.type,
+      itemKind: draft.itemKind,
       uri: draft.uri,
       color: draft.color || undefined,
       enabled: draft.enabled,
@@ -92,7 +96,7 @@ export const TasksSourceSettings = (): React.JSX.Element => {
   };
 
   return (
-    <SettingsSection title="Calendar Sources">
+    <SettingsSection title="Calendar Subscriptions">
       <div className={styles.section}>
         {sources.length > 0 ? (
           <div className={styles.sourceList}>
@@ -107,7 +111,7 @@ export const TasksSourceSettings = (): React.JSX.Element => {
             ))}
           </div>
         ) : (
-          <SettingsEmptyMessage>No calendar sources configured.</SettingsEmptyMessage>
+          <SettingsEmptyMessage>No calendar subscriptions configured.</SettingsEmptyMessage>
         )}
         <SourceForm
           draft={draft}
@@ -137,6 +141,8 @@ const SourceRow = ({
       <strong>{source.name}</strong>
       <span>
         {source.type} - {source.uri}
+        {' - '}
+        {source.itemKind === 'task' ? 'Task calendar' : 'Event calendar'}
       </span>
       {source.lastSyncError ? <span className={styles.error}>{source.lastSyncError}</span> : null}
     </div>
@@ -200,6 +206,16 @@ const SourceForm = ({
           </select>
         </label>
         <label>
+          Items
+          <select
+            value={draft.itemKind}
+            onChange={(event) => update('itemKind', event.target.value as CalendarSourceItemKind)}
+          >
+            <option value="event">Event calendar</option>
+            <option value="task">Task calendar</option>
+          </select>
+        </label>
+        <label>
           URI
           <input
             placeholder={draft.type === 'ics-file' ? 'C:\\calendar\\work.ics' : 'https://...'}
@@ -256,7 +272,7 @@ const SourceForm = ({
           <SettingsSecondaryButton onClick={onCancel}>Cancel Edit</SettingsSecondaryButton>
         ) : null}
         <SettingsPrimaryButton onClick={onSave}>
-          {draft.id ? 'Save Source' : 'Add Source'}
+          {draft.id ? 'Save Subscription' : 'Add Subscription'}
         </SettingsPrimaryButton>
       </div>
     </>
@@ -267,6 +283,7 @@ const draftFromSource = (source: CalendarSource): SourceDraft => ({
   id: source.id,
   name: source.name,
   type: source.type,
+  itemKind: source.itemKind,
   uri: source.uri,
   color: source.color ?? '',
   enabled: source.enabled,

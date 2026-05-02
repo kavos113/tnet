@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  expandIcalTasks,
   expandIcalEvents,
   extractCalDavCalendarData,
   parseIcalCalendar,
@@ -64,6 +65,37 @@ END:VCALENDAR`);
       'weekly:2026-05-01',
       'weekly:2026-05-08',
       'weekly:2026-05-15'
+    ]);
+  });
+
+  it('maps iCal events to subscribed task occurrences', () => {
+    const [event] = parseIcalCalendar(`BEGIN:VCALENDAR
+BEGIN:VEVENT
+UID:task-1
+SUMMARY:External task
+DTSTART:20260502T093000Z
+DTEND:20260502T100000Z
+DESCRIPTION:Imported as a task
+END:VEVENT
+END:VCALENDAR`);
+
+    expect(
+      expandIcalTasks({
+        events: [event],
+        sourceId: 'source-1',
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+        now: new Date('2026-05-01T00:00:00.000Z')
+      })
+    ).toEqual([
+      expect.objectContaining({
+        sourceId: 'source-1',
+        uid: 'task-1',
+        title: 'External task',
+        deadlineDate: '2026-05-02',
+        deadlineTime: '09:30',
+        description: 'Imported as a task'
+      })
     ]);
   });
 

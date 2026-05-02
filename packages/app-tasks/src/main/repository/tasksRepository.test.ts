@@ -3,9 +3,14 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import type { CalendarEventOccurrence } from '@tnet/app-tasks/shared/tasksTypes';
+import type {
+  CalendarEventOccurrence,
+  SubscribedTaskOccurrence
+} from '@tnet/app-tasks/shared/tasksTypes';
 import { CalendarEventOccurrenceRepository } from './calendarEventOccurrenceRepository';
 import { CalendarSourceRepository } from './calendarSourceRepository';
+import { LocalEventRepository } from './localEventRepository';
+import { SubscribedTaskOccurrenceRepository } from './subscribedTaskOccurrenceRepository';
 import { TaskRepository } from './taskRepository';
 import { openTasksDatabase } from './tasksDb';
 
@@ -17,7 +22,9 @@ const createRepositories = async (
 ): Promise<{
   database: ReturnType<typeof openTasksDatabase>;
   eventRepository: CalendarEventOccurrenceRepository;
+  localEventRepository: LocalEventRepository;
   sourceRepository: CalendarSourceRepository;
+  subscribedTaskRepository: SubscribedTaskOccurrenceRepository;
   taskRepository: TaskRepository;
   userDataDir: string;
 }> => {
@@ -26,7 +33,9 @@ const createRepositories = async (
   return {
     database,
     eventRepository: new CalendarEventOccurrenceRepository(database),
+    localEventRepository: new LocalEventRepository(database),
     sourceRepository: new CalendarSourceRepository(database),
+    subscribedTaskRepository: new SubscribedTaskOccurrenceRepository(database),
     taskRepository: new TaskRepository(database),
     userDataDir
   };
@@ -96,6 +105,7 @@ describe('Tasks repositories', () => {
     const source = sourceRepository.save({
       name: 'Holidays',
       type: 'ics-url',
+      itemKind: 'event',
       uri: 'https://example.test/calendar.ics',
       color: '#3874d8'
     });
@@ -144,6 +154,72 @@ describe('Tasks repositories', () => {
     sourceRepository.remove(source.id);
     expect(sourceRepository.list()).toEqual([]);
     expect(eventRepository.list({ startDate: '2026-05-01', endDate: '2026-05-31' })).toEqual([]);
+    database.close();
+  });
+
+  it('stores subscribed task occurrences and local events', async () => {
+    const { database, localEventRepository, sourceRepository, subscribedTaskRepository } =
+      await createRepositories('local-events');
+    const source = sourceRepository.save({
+      name: 'Task Feed',
+      type: 'ics-url',
+      itemKind: 'task',
+      uri: 'https://example.test/tasks.ics'
+    });
+    const subscribedTasks: SubscribedTaskOccurrence[] = [
+      {
+        id: 'subscribed-task-1',
+        sourceId: source.id,
+        uid: 'uid-1',
+        title: 'External deadline',
+        deadlineDate: '2026-05-02',
+        deadlineTime: '09:30',
+        allDay: false,
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ];
+
+    subscribedTaskRepository.replaceForSource(source.id, subscribedTasks);
+    const localEvent = localEventRepository.save({
+      title: 'Planning',
+      startsAt: '2026-05-02T10:00:00.000',
+      endsAt: '2026-05-02T11:00:00.000',
+      location: 'Room 1',
+      description: 'Discuss roadmap'
+    });
+
+    expect(
+      subscribedTaskRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31'
+      })
+    ).toEqual([expect.objectContaining({ title: 'External deadline' })]);
+    expect(
+      localEventRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31'
+      })
+    ).toEqual([
+      expect.objectContaining({
+        id: localEvent.id,
+        title: 'Planning',
+        location: 'Room 1'
+      })
+    ]);
+
+    const updated = localEventRepository.save({
+      ...localEvent,
+      title: 'Updated planning'
+    });
+    expect(updated.title).toBe('Updated planning');
+    localEventRepository.remove(localEvent.id);
+    expect(
+      localEventRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31'
+      })
+    ).toEqual([]);
     database.close();
   });
 });

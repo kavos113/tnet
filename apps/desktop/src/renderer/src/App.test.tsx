@@ -51,9 +51,16 @@ describe('App', () => {
           calendarOccurrences: {
             list: vi.fn().mockResolvedValue([])
           },
+          subscribedTaskOccurrences: {
+            list: vi.fn().mockResolvedValue([])
+          },
+          localEvents: {
+            list: vi.fn().mockResolvedValue([]),
+            save: vi.fn(),
+            remove: vi.fn()
+          },
           sync: {
-            manual: vi.fn(),
-            writeTask: vi.fn()
+            manual: vi.fn()
           },
           secrets: {
             has: vi.fn()

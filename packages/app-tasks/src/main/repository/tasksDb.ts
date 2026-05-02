@@ -33,9 +33,11 @@ CREATE TABLE IF NOT EXISTS calendar_sources (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   type TEXT NOT NULL,
+  item_kind TEXT NOT NULL DEFAULT 'event',
   uri TEXT NOT NULL,
   color TEXT,
   enabled INTEGER NOT NULL,
+  write_back_enabled INTEGER NOT NULL DEFAULT 0,
   auth_type TEXT NOT NULL DEFAULT 'none',
   username TEXT,
   password_secret_id TEXT,
@@ -68,6 +70,43 @@ CREATE INDEX IF NOT EXISTS idx_calendar_event_occurrences_range
 CREATE INDEX IF NOT EXISTS idx_calendar_event_occurrences_source
   ON calendar_event_occurrences(source_id);
 
+CREATE TABLE IF NOT EXISTS subscribed_task_occurrences (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  uid TEXT NOT NULL,
+  title TEXT NOT NULL,
+  deadline_date TEXT NOT NULL,
+  deadline_time TEXT,
+  all_day INTEGER NOT NULL,
+  description TEXT,
+  recurrence_id TEXT,
+  last_modified TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (source_id) REFERENCES calendar_sources(id) ON DELETE CASCADE,
+  UNIQUE (source_id, uid, deadline_date, deadline_time, recurrence_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscribed_task_occurrences_range
+  ON subscribed_task_occurrences(deadline_date);
+CREATE INDEX IF NOT EXISTS idx_subscribed_task_occurrences_source
+  ON subscribed_task_occurrences(source_id);
+
+CREATE TABLE IF NOT EXISTS local_events (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  starts_at TEXT NOT NULL,
+  ends_at TEXT NOT NULL,
+  all_day INTEGER NOT NULL,
+  location TEXT,
+  description TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_local_events_range
+  ON local_events(starts_at, ends_at);
+
 INSERT OR IGNORE INTO tasks_schema_migrations (version, applied_at)
 VALUES (1, datetime('now'));
 `;
@@ -91,6 +130,18 @@ const ensureCurrentSchema = (database: TasksDatabase): void => {
   ensureColumn(database, 'tasks', 'recurrence_rule', 'recurrence_rule TEXT');
   ensureColumn(database, 'tasks', 'linked_entity_id', 'linked_entity_id TEXT');
   ensureColumn(database, 'tasks', 'source_url', 'source_url TEXT');
+  ensureColumn(
+    database,
+    'calendar_sources',
+    'item_kind',
+    "item_kind TEXT NOT NULL DEFAULT 'event'"
+  );
+  ensureColumn(
+    database,
+    'calendar_sources',
+    'write_back_enabled',
+    'write_back_enabled INTEGER NOT NULL DEFAULT 0'
+  );
   ensureColumn(database, 'calendar_sources', 'auth_type', "auth_type TEXT NOT NULL DEFAULT 'none'");
   ensureColumn(database, 'calendar_sources', 'username', 'username TEXT');
   ensureColumn(database, 'calendar_sources', 'password_secret_id', 'password_secret_id TEXT');

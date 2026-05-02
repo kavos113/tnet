@@ -3,9 +3,14 @@ import type {
   CalendarEventOccurrence,
   CalendarSource,
   ListCalendarOccurrencesRequest,
+  ListLocalEventsRequest,
+  ListSubscribedTaskOccurrencesRequest,
   ListTasksRequest,
+  LocalEvent,
   SaveCalendarSourceInput,
+  SaveLocalEventInput,
   SaveTaskInput,
+  SubscribedTaskOccurrence,
   TaskItem
 } from './tasksTypes';
 
@@ -30,6 +35,14 @@ export const tasksIpcChannels = {
   },
   calendarOccurrences: {
     list: 'tasks:calendarOccurrences:list'
+  },
+  subscribedTaskOccurrences: {
+    list: 'tasks:subscribedTaskOccurrences:list'
+  },
+  localEvents: {
+    list: 'tasks:localEvents:list',
+    save: 'tasks:localEvents:save',
+    remove: 'tasks:localEvents:remove'
   },
   sync: {
     manual: 'tasks:sync:manual',
@@ -63,13 +76,20 @@ export interface TasksApi {
     calendarOccurrences: {
       list: (request: ListCalendarOccurrencesRequest) => Promise<CalendarEventOccurrence[]>;
     };
+    subscribedTaskOccurrences: {
+      list: (request: ListSubscribedTaskOccurrencesRequest) => Promise<SubscribedTaskOccurrence[]>;
+    };
+    localEvents: {
+      list: (request: ListLocalEventsRequest) => Promise<LocalEvent[]>;
+      save: (request: SaveLocalEventInput) => Promise<LocalEvent>;
+      remove: (request: { eventId: string }) => Promise<void>;
+    };
     sync: {
       manual: (request?: { sourceId?: string }) => Promise<{
         sources: CalendarSource[];
         syncedSourceIds: string[];
         failedSourceIds: string[];
       }>;
-      writeTask: (request: { sourceId: string; task: TaskItem }) => Promise<CalendarSource>;
     };
     secrets: {
       has: (request: { secretId?: string }) => Promise<{ exists: boolean }>;

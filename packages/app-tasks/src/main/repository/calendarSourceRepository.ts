@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type {
   CalendarSource,
+  CalendarSourceItemKind,
   CalendarSourceType,
   SaveCalendarSourceInput
 } from '@tnet/app-tasks/shared/tasksTypes';
@@ -10,9 +11,11 @@ interface CalendarSourceRow {
   id: string;
   name: string;
   type: CalendarSourceType;
+  item_kind: CalendarSourceItemKind;
   uri: string;
   color: string | null;
   enabled: number;
+  write_back_enabled: number;
   auth_type: 'none' | 'basic';
   username: string | null;
   password_secret_id: string | null;
@@ -26,9 +29,11 @@ const toCalendarSource = (row: CalendarSourceRow): CalendarSource => ({
   id: row.id,
   name: row.name,
   type: row.type,
+  itemKind: row.item_kind,
   uri: row.uri,
   color: row.color ?? undefined,
   enabled: row.enabled === 1,
+  writeBackEnabled: row.write_back_enabled === 1,
   authType: row.auth_type,
   username: row.username ?? undefined,
   passwordSecretId: row.password_secret_id ?? undefined,
@@ -44,8 +49,9 @@ export class CalendarSourceRepository {
   list(): CalendarSource[] {
     const rows = this.database
       .prepare(
-        `SELECT id, name, type, uri, color, enabled, auth_type, username, password_secret_id,
-                last_synced_at, last_sync_error, created_at, updated_at
+        `SELECT id, name, type, item_kind, uri, color, enabled, write_back_enabled,
+                auth_type, username, password_secret_id, last_synced_at, last_sync_error,
+                created_at, updated_at
          FROM calendar_sources
          ORDER BY lower(name) ASC`
       )
@@ -56,8 +62,9 @@ export class CalendarSourceRepository {
   get(sourceId: string): CalendarSource | null {
     const row = this.database
       .prepare(
-        `SELECT id, name, type, uri, color, enabled, auth_type, username, password_secret_id,
-                last_synced_at, last_sync_error, created_at, updated_at
+        `SELECT id, name, type, item_kind, uri, color, enabled, write_back_enabled,
+                auth_type, username, password_secret_id, last_synced_at, last_sync_error,
+                created_at, updated_at
          FROM calendar_sources
          WHERE id = ?`
       )
@@ -73,6 +80,8 @@ export class CalendarSourceRepository {
     const uri = input.uri.trim();
     const color = input.color?.trim() || undefined;
     const enabled = input.enabled ?? true;
+    const itemKind = input.itemKind === 'task' ? 'task' : 'event';
+    const writeBackEnabled = input.writeBackEnabled === true;
     const authType = input.authType === 'basic' ? 'basic' : 'none';
     const username = authType === 'basic' ? input.username?.trim() || undefined : undefined;
     const passwordSecretId =
@@ -84,9 +93,11 @@ export class CalendarSourceRepository {
           `UPDATE calendar_sources
            SET name = @name,
                type = @type,
+               item_kind = @itemKind,
                uri = @uri,
                color = @color,
                enabled = @enabled,
+               write_back_enabled = @writeBackEnabled,
                auth_type = @authType,
                username = @username,
                password_secret_id = @passwordSecretId,
@@ -97,9 +108,11 @@ export class CalendarSourceRepository {
           id: sourceId,
           name,
           type: input.type,
+          itemKind,
           uri,
           color: color ?? null,
           enabled: enabled ? 1 : 0,
+          writeBackEnabled: writeBackEnabled ? 1 : 0,
           authType,
           username: username ?? null,
           passwordSecretId: passwordSecretId ?? null,
@@ -109,11 +122,13 @@ export class CalendarSourceRepository {
       this.database
         .prepare(
           `INSERT INTO calendar_sources (
-             id, name, type, uri, color, enabled, auth_type, username, password_secret_id,
+             id, name, type, item_kind, uri, color, enabled, write_back_enabled,
+             auth_type, username, password_secret_id,
              created_at, updated_at
            )
            VALUES (
-             @id, @name, @type, @uri, @color, @enabled, @authType, @username, @passwordSecretId,
+             @id, @name, @type, @itemKind, @uri, @color, @enabled, @writeBackEnabled,
+             @authType, @username, @passwordSecretId,
              @createdAt, @updatedAt
            )`
         )
@@ -121,9 +136,11 @@ export class CalendarSourceRepository {
           id: sourceId,
           name,
           type: input.type,
+          itemKind,
           uri,
           color: color ?? null,
           enabled: enabled ? 1 : 0,
+          writeBackEnabled: writeBackEnabled ? 1 : 0,
           authType,
           username: username ?? null,
           passwordSecretId: passwordSecretId ?? null,

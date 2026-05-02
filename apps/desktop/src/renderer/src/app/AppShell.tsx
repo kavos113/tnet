@@ -86,6 +86,7 @@ export const AppShell = (): React.JSX.Element => {
           <ActiveApp
             portalShortcuts={portalShortcuts}
             onSelectPortalApp={(appId) => dispatch(setActiveApp(appId))}
+            onOpenTasksSettings={() => setIsSettingsOpen(true)}
           />
         ) : (
           <ActiveApp />

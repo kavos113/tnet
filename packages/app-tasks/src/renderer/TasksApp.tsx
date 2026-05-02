@@ -12,7 +12,7 @@ import {
   getVisibleCalendarRange,
   groupVisibleCalendarItems
 } from '@tnet/app-tasks/shared/calendarView';
-import type { TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
+import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
 import { TaskLists } from './TaskLists';
 import { TasksCalendar } from './TasksCalendar';
 import { TasksPortal, type TasksPortalShortcut } from './TasksPortal';
@@ -29,6 +29,8 @@ import {
   setTaskCategories,
   setTasks,
   setTasksCalendarOccurrences,
+  setTasksLocalEvents,
+  setTasksSubscribedTaskOccurrences,
   setTasksCurrentDate,
   setTasksError,
   setTasksView,
@@ -42,15 +44,20 @@ import styles from './TasksApp.module.css';
 export interface TasksAppProps {
   portalShortcuts?: TasksPortalShortcut[];
   onSelectPortalApp?: (appId: AppId) => void;
+  onOpenTasksSettings?: () => void;
 }
 
 export const TasksApp = ({
   portalShortcuts = [],
-  onSelectPortalApp = () => undefined
+  onSelectPortalApp = () => undefined,
+  onOpenTasksSettings = () => undefined
 }: TasksAppProps): React.JSX.Element => {
   const dispatch = useTasksDispatch();
   const tasks = useTasksSelector((state) => state.tasks.tasks);
   const calendarOccurrences = useTasksSelector((state) => state.tasks.calendarOccurrences);
+  const subscribedTaskOccurrences = useTasksSelector(
+    (state) => state.tasks.subscribedTaskOccurrences
+  );
   const categories = useTasksSelector((state) => state.tasks.categories);
   const categoryFilter = useTasksSelector((state) => state.tasks.categoryFilter);
   const currentDate = useTasksSelector((state) => state.tasks.currentDate);
@@ -78,7 +85,7 @@ export const TasksApp = ({
     let canceled = false;
 
     const loadVisibleRange = async (): Promise<void> => {
-      const [openTasks, rangeTasks, occurrences] = await Promise.all([
+      const [openTasks, rangeTasks, occurrences, subscribedTasks, localEvents] = await Promise.all([
         tasksTnetApi.tasks.tasks.list({
           category: categoryFilter,
           includeCompleted: false
@@ -92,6 +99,14 @@ export const TasksApp = ({
         tasksTnetApi.tasks.calendarOccurrences.list({
           startDate: visibleRange.startDate,
           endDate: visibleRange.endDate
+        }),
+        tasksTnetApi.tasks.subscribedTaskOccurrences.list({
+          startDate: visibleRange.startDate,
+          endDate: visibleRange.endDate
+        }),
+        tasksTnetApi.tasks.localEvents.list({
+          startDate: visibleRange.startDate,
+          endDate: visibleRange.endDate
         })
       ]);
       if (canceled) return;
@@ -103,6 +118,8 @@ export const TasksApp = ({
         )
       );
       dispatch(setTasksCalendarOccurrences(occurrences));
+      dispatch(setTasksSubscribedTaskOccurrences(subscribedTasks));
+      dispatch(setTasksLocalEvents(localEvents));
     };
 
     loadVisibleRange().catch((error: unknown) => {
@@ -137,8 +154,9 @@ export const TasksApp = ({
     () =>
       groupVisibleCalendarItems({
         dates: visibleRange.dates,
+        currentDate,
         tasks: expandRecurringTasksForRange(
-          calendarTasks,
+          [...calendarTasks, ...subscribedTaskOccurrences.map(subscribedTaskToTaskItem)],
           visibleRange.startDate,
           visibleRange.endDate
         ).sort(compareTaskDeadlines),
@@ -147,6 +165,8 @@ export const TasksApp = ({
     [
       calendarOccurrences,
       calendarTasks,
+      currentDate,
+      subscribedTaskOccurrences,
       visibleRange.dates,
       visibleRange.endDate,
       visibleRange.startDate
@@ -226,6 +246,11 @@ export const TasksApp = ({
       {settings.showPortal ? (
         <TasksPortal shortcuts={portalShortcuts} onSelect={onSelectPortalApp} />
       ) : null}
+      <div className={styles.subscriptionBar}>
+        <button type="button" className={styles.secondaryButton} onClick={onOpenTasksSettings}>
+          Add subscription
+        </button>
+      </div>
       <TasksQuickAddForm
         categories={categories}
         draft={draft}
@@ -290,6 +315,17 @@ const mergeTaskLists = (primary: TaskItem[], secondary: TaskItem[]): TaskItem[] 
   const existingIds = new Set(primary.map((task) => task.id));
   return [...primary, ...secondary.filter((task) => !existingIds.has(task.id))];
 };
+
+const subscribedTaskToTaskItem = (task: SubscribedTaskOccurrence): TaskItem => ({
+  id: `subscribed:${task.id}`,
+  title: task.title,
+  notes: task.description ?? '',
+  deadlineDate: task.deadlineDate,
+  deadlineTime: task.deadlineTime,
+  sourceUrl: task.sourceId,
+  createdAt: task.createdAt,
+  updatedAt: task.updatedAt
+});
 
 const viewLabels: Record<TasksDefaultView, string> = {
   today: 'Today',

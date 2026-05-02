@@ -5,6 +5,7 @@ import path from 'path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CalendarEventOccurrenceRepository } from './repository/calendarEventOccurrenceRepository';
 import { CalendarSourceRepository } from './repository/calendarSourceRepository';
+import { SubscribedTaskOccurrenceRepository } from './repository/subscribedTaskOccurrenceRepository';
 import { openTasksDatabase } from './repository/tasksDb';
 import { IcalSyncService } from './icalSyncService';
 import { createTasksSecretStore } from './tasksSecretStore';
@@ -34,6 +35,7 @@ describe('IcalSyncService', () => {
     const database = openTasksDatabase(userDataDir);
     const sourceRepository = new CalendarSourceRepository(database);
     const occurrenceRepository = new CalendarEventOccurrenceRepository(database);
+    const subscribedTaskRepository = new SubscribedTaskOccurrenceRepository(database);
     const secretStore = createTasksSecretStore(userDataDir);
     const goodSource = sourceRepository.save({
       name: 'Work',
@@ -49,6 +51,7 @@ describe('IcalSyncService', () => {
     const result = await new IcalSyncService(
       sourceRepository,
       occurrenceRepository,
+      subscribedTaskRepository,
       secretStore
     ).sync();
 
@@ -75,6 +78,7 @@ describe('IcalSyncService', () => {
     const database = openTasksDatabase(userDataDir);
     const sourceRepository = new CalendarSourceRepository(database);
     const occurrenceRepository = new CalendarEventOccurrenceRepository(database);
+    const subscribedTaskRepository = new SubscribedTaskOccurrenceRepository(database);
     const secretStore = createTasksSecretStore(userDataDir);
     const passwordSecretId = secretStore.saveSecret('secret');
     const source = sourceRepository.save({
@@ -90,7 +94,12 @@ describe('IcalSyncService', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    await new IcalSyncService(sourceRepository, occurrenceRepository, secretStore).sync(source.id);
+    await new IcalSyncService(
+      sourceRepository,
+      occurrenceRepository,
+      subscribedTaskRepository,
+      secretStore
+    ).sync(source.id);
 
     const [, init] = fetchMock.mock.calls[0] as [string | URL | Request, RequestInit?];
     const headers = init?.headers;
@@ -103,12 +112,13 @@ describe('IcalSyncService', () => {
     database.close();
   });
 
-  it('writes deadline tasks back to writable calendar sources', async () => {
+  it('keeps write-back disabled by default', async () => {
     const userDataDir = await tempDir('write-back');
     const icsPath = path.join(userDataDir, 'tasks.ics');
     const database = openTasksDatabase(userDataDir);
     const sourceRepository = new CalendarSourceRepository(database);
     const occurrenceRepository = new CalendarEventOccurrenceRepository(database);
+    const subscribedTaskRepository = new SubscribedTaskOccurrenceRepository(database);
     const secretStore = createTasksSecretStore(userDataDir);
     const source = sourceRepository.save({
       name: 'Writable',
@@ -116,62 +126,104 @@ describe('IcalSyncService', () => {
       uri: icsPath
     });
 
-    await new IcalSyncService(sourceRepository, occurrenceRepository, secretStore).writeTask(
-      source.id,
-      {
+    await expect(
+      new IcalSyncService(
+        sourceRepository,
+        occurrenceRepository,
+        subscribedTaskRepository,
+        secretStore
+      ).writeTask(source.id, {
         id: 'task-1',
         title: 'Export task',
         notes: '',
         deadlineDate: '2026-05-02',
         createdAt: '2026-05-01T00:00:00.000Z',
         updatedAt: '2026-05-01T00:00:00.000Z'
-      }
-    );
+      })
+    ).rejects.toThrow('Calendar write-back is disabled');
+
+    await expect(fs.stat(icsPath)).rejects.toBeTruthy();
+    database.close();
+  });
+
+  it('syncs task subscriptions to read-only task occurrences', async () => {
+    const userDataDir = await tempDir('task-subscription');
+    const icsPath = path.join(userDataDir, 'tasks.ics');
+    await fs.writeFile(icsPath, icsText, 'utf-8');
+    const database = openTasksDatabase(userDataDir);
+    const sourceRepository = new CalendarSourceRepository(database);
+    const occurrenceRepository = new CalendarEventOccurrenceRepository(database);
+    const subscribedTaskRepository = new SubscribedTaskOccurrenceRepository(database);
+    const secretStore = createTasksSecretStore(userDataDir);
+    const source = sourceRepository.save({
+      name: 'Task Feed',
+      type: 'ics-file',
+      itemKind: 'task',
+      uri: icsPath
+    });
+
+    await new IcalSyncService(
+      sourceRepository,
+      occurrenceRepository,
+      subscribedTaskRepository,
+      secretStore
+    ).sync(source.id);
+
+    expect(
+      subscribedTaskRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31'
+      })
+    ).toEqual([
+      expect.objectContaining({
+        sourceId: source.id,
+        uid: 'event-1',
+        title: 'Planning',
+        deadlineDate: '2026-05-02',
+        deadlineTime: '10:00'
+      })
+    ]);
+    expect(
+      occurrenceRepository.list({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31'
+      })
+    ).toEqual([]);
+    database.close();
+  });
+
+  it('allows guarded write-back only when explicitly enabled', async () => {
+    const userDataDir = await tempDir('enabled-write-back');
+    const icsPath = path.join(userDataDir, 'tasks.ics');
+    const database = openTasksDatabase(userDataDir);
+    const sourceRepository = new CalendarSourceRepository(database);
+    const occurrenceRepository = new CalendarEventOccurrenceRepository(database);
+    const subscribedTaskRepository = new SubscribedTaskOccurrenceRepository(database);
+    const secretStore = createTasksSecretStore(userDataDir);
+    const source = sourceRepository.save({
+      name: 'Writable',
+      type: 'ics-file',
+      uri: icsPath,
+      writeBackEnabled: true
+    });
+
+    await new IcalSyncService(
+      sourceRepository,
+      occurrenceRepository,
+      subscribedTaskRepository,
+      secretStore
+    ).writeTask(source.id, {
+      id: 'task-1',
+      title: 'Export task',
+      notes: '',
+      deadlineDate: '2026-05-02',
+      createdAt: '2026-05-01T00:00:00.000Z',
+      updatedAt: '2026-05-01T00:00:00.000Z'
+    });
 
     const calendarText = await fs.readFile(icsPath, 'utf-8');
     expect(calendarText).toContain('UID:tnet-task-task-1');
     expect(calendarText).toContain('SUMMARY:Export task');
-    expect(sourceRepository.get(source.id)?.lastSyncedAt).toBeTruthy();
-    database.close();
-  });
-
-  it('writes deadline tasks to CalDAV collections with basic auth', async () => {
-    const userDataDir = await tempDir('caldav-write-back');
-    const database = openTasksDatabase(userDataDir);
-    const sourceRepository = new CalendarSourceRepository(database);
-    const occurrenceRepository = new CalendarEventOccurrenceRepository(database);
-    const secretStore = createTasksSecretStore(userDataDir);
-    const passwordSecretId = secretStore.saveSecret('secret');
-    const source = sourceRepository.save({
-      name: 'CalDAV',
-      type: 'caldav',
-      uri: 'https://calendar.example/calendars/user/work/',
-      authType: 'basic',
-      username: 'user',
-      passwordSecretId
-    });
-    const fetchMock = vi.fn(
-      async (_url: string | URL | Request, _init?: RequestInit) => new Response('')
-    );
-    vi.stubGlobal('fetch', fetchMock);
-
-    await new IcalSyncService(sourceRepository, occurrenceRepository, secretStore).writeTask(
-      source.id,
-      {
-        id: 'task-1',
-        title: 'CalDAV task',
-        notes: '',
-        deadlineDate: '2026-05-02',
-        deadlineTime: '09:30',
-        createdAt: '2026-05-01T00:00:00.000Z',
-        updatedAt: '2026-05-01T00:00:00.000Z'
-      }
-    );
-
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit?];
-    expect(url).toBe('https://calendar.example/calendars/user/work/tnet-task-task-1.ics');
-    expect(init?.method).toBe('PUT');
-    expect(String(init?.body)).toContain('SUMMARY:CalDAV task');
     database.close();
   });
 });

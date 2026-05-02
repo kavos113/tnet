@@ -26,8 +26,10 @@ const source = (overrides: Partial<CalendarSource> = {}): CalendarSource => ({
   id: 'source-1',
   name: 'Work',
   type: 'ics-url',
+  itemKind: 'event',
   uri: 'https://calendar.example/work.ics',
   enabled: true,
+  writeBackEnabled: false,
   authType: 'none',
   createdAt: '2026-05-01T00:00:00.000Z',
   updatedAt: '2026-05-01T00:00:00.000Z',
@@ -44,8 +46,7 @@ const installTnetApi = (): void => {
           remove: removeSource
         },
         sync: {
-          manual: syncManual,
-          writeTask: vi.fn()
+          manual: syncManual
         }
       }
     },
@@ -62,6 +63,7 @@ describe('TasksSourceSettings', () => {
         id: request.id ?? 'source-saved',
         name: request.name,
         type: request.type,
+        itemKind: request.itemKind ?? 'event',
         uri: request.uri,
         authType: request.authType ?? 'none',
         username: request.username,
@@ -99,13 +101,15 @@ describe('TasksSourceSettings', () => {
     fireEvent.change(screen.getByLabelText('Authentication'), { target: { value: 'basic' } });
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'user' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add Source' }));
+    fireEvent.change(screen.getByLabelText('Items'), { target: { value: 'task' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Subscription' }));
 
     await waitFor(() =>
       expect(saveSource).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Private',
           type: 'ics-url',
+          itemKind: 'task',
           uri: 'https://calendar.example/private.ics',
           authType: 'basic',
           username: 'user',
@@ -116,6 +120,7 @@ describe('TasksSourceSettings', () => {
     expect(store.getState().tasks.calendarSources).toEqual([
       expect.objectContaining({
         id: 'source-saved',
+        itemKind: 'task',
         authType: 'basic',
         passwordSecretId: 'secret-1'
       })

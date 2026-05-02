@@ -1,5 +1,5 @@
 import { addLocalDays, doesDateRangeOverlap, toLocalDateString } from './dateHelpers';
-import type { CalendarEventOccurrence, TaskItem } from './tasksTypes';
+import type { CalendarEventOccurrence, SubscribedTaskOccurrence, TaskItem } from './tasksTypes';
 
 export interface IcalEvent {
   uid: string;
@@ -97,6 +97,36 @@ export const expandIcalEvents = ({
 
     return expandRecurringEvent(event, sourceId, startDate, endDate, timestamp);
   });
+};
+
+export const expandIcalTasks = ({
+  events,
+  sourceId,
+  startDate,
+  endDate,
+  now = new Date()
+}: {
+  events: IcalEvent[];
+  sourceId: string;
+  startDate: string;
+  endDate: string;
+  now?: Date;
+}): SubscribedTaskOccurrence[] => {
+  const timestamp = now.toISOString();
+  return expandIcalEvents({ events, sourceId, startDate, endDate, now }).map((event) => ({
+    id: `task:${event.id}`,
+    sourceId: event.sourceId,
+    uid: event.uid,
+    title: event.title,
+    deadlineDate: event.startsAt.slice(0, 10),
+    deadlineTime: event.allDay ? undefined : event.startsAt.slice(11, 16),
+    allDay: event.allDay,
+    description: event.description,
+    recurrenceId: event.recurrenceId,
+    lastModified: event.lastModified,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }));
 };
 
 export const extractCalDavCalendarData = (text: string): string[] => {

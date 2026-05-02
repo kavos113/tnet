@@ -4,6 +4,8 @@ import { defaultTasksGlobalSettings } from '@tnet/app-tasks/shared/config';
 import type {
   CalendarEventOccurrence,
   CalendarSource,
+  LocalEvent,
+  SubscribedTaskOccurrence,
   TaskItem
 } from '@tnet/app-tasks/shared/tasksTypes';
 import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
@@ -13,6 +15,8 @@ interface TasksState {
   categories: string[];
   calendarSources: CalendarSource[];
   calendarOccurrences: CalendarEventOccurrence[];
+  subscribedTaskOccurrences: SubscribedTaskOccurrence[];
+  localEvents: LocalEvent[];
   settings: TasksGlobalSettings;
   categoryFilter?: string;
   currentDate: string;
@@ -28,6 +32,8 @@ const initialState: TasksState = {
   categories: [],
   calendarSources: [],
   calendarOccurrences: [],
+  subscribedTaskOccurrences: [],
+  localEvents: [],
   settings: defaultSettings,
   currentDate: toLocalDateString(),
   view: defaultSettings.defaultView,
@@ -45,6 +51,8 @@ const tasksSlice = createSlice({
         categories?: string[];
         calendarSources?: CalendarSource[];
         calendarOccurrences?: CalendarEventOccurrence[];
+        subscribedTaskOccurrences?: SubscribedTaskOccurrence[];
+        localEvents?: LocalEvent[];
         settings?: TasksGlobalSettings;
       }>
     ) => {
@@ -52,6 +60,8 @@ const tasksSlice = createSlice({
       state.categories = action.payload.categories ?? [];
       state.calendarSources = action.payload.calendarSources ?? [];
       state.calendarOccurrences = action.payload.calendarOccurrences ?? [];
+      state.subscribedTaskOccurrences = action.payload.subscribedTaskOccurrences ?? [];
+      state.localEvents = action.payload.localEvents ?? [];
       state.settings = action.payload.settings ?? defaultTasksGlobalSettings();
       state.view = state.settings.defaultView;
       state.isRestored = true;
@@ -78,6 +88,15 @@ const tasksSlice = createSlice({
     },
     setTasksCalendarOccurrences: (state, action: PayloadAction<CalendarEventOccurrence[]>) => {
       state.calendarOccurrences = action.payload;
+    },
+    setTasksSubscribedTaskOccurrences: (
+      state,
+      action: PayloadAction<SubscribedTaskOccurrence[]>
+    ) => {
+      state.subscribedTaskOccurrences = action.payload;
+    },
+    setTasksLocalEvents: (state, action: PayloadAction<LocalEvent[]>) => {
+      state.localEvents = action.payload;
     },
     setTasksSettings: (state, action: PayloadAction<TasksGlobalSettings>) => {
       state.settings = action.payload;
@@ -108,7 +127,9 @@ export const {
   setTasksCategoryFilter,
   setTasksCurrentDate,
   setTasksError,
+  setTasksLocalEvents,
   setTasksSettings,
+  setTasksSubscribedTaskOccurrences,
   setTasksView,
   upsertTask
 } = tasksSlice.actions;

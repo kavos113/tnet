@@ -13,6 +13,8 @@ const removeTask = vi.fn();
 const listTasks = vi.fn();
 const listCategories = vi.fn();
 const listOccurrences = vi.fn();
+const listSubscribedTasks = vi.fn();
+const listLocalEvents = vi.fn();
 
 interface TasksTestState {
   tasks: ReturnType<typeof tasksReducer>;
@@ -50,6 +52,14 @@ const installTnetApi = (): void => {
         },
         calendarOccurrences: {
           list: listOccurrences
+        },
+        subscribedTaskOccurrences: {
+          list: listSubscribedTasks
+        },
+        localEvents: {
+          list: listLocalEvents,
+          save: vi.fn(),
+          remove: vi.fn()
         }
       }
     },
@@ -83,6 +93,8 @@ describe('TasksApp', () => {
     listTasks.mockResolvedValue([]);
     listCategories.mockResolvedValue(['Work']);
     listOccurrences.mockResolvedValue([]);
+    listSubscribedTasks.mockResolvedValue([]);
+    listLocalEvents.mockResolvedValue([]);
   });
 
   afterEach(() => {

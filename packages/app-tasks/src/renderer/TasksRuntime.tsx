@@ -2,7 +2,14 @@ import { useEffect } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import { tnetApi } from '@tnet/renderer-core/tnetApi';
 import { getTasksGlobalSettings } from '@tnet/app-tasks/shared/config';
-import { restoreTasks, setTasksCalendarSources, setTasksError } from './tasksSlice';
+import { getOccurrenceCacheRange } from '@tnet/app-tasks/shared/calendarView';
+import {
+  restoreTasks,
+  setTasksCalendarSources,
+  setTasksError,
+  setTasksLocalEvents,
+  setTasksSubscribedTaskOccurrences
+} from './tasksSlice';
 import { tasksTnetApi } from './tasksTnetApi';
 import { useTasksDispatch } from './storeHooks';
 
@@ -35,7 +42,16 @@ export const TasksRuntime = (): null => {
         () => {
           tasksTnetApi.tasks.sync
             .manual()
-            .then((result) => dispatch(setTasksCalendarSources(result.sources)))
+            .then(async (result) => {
+              dispatch(setTasksCalendarSources(result.sources));
+              const range = getRuntimeRefreshRange();
+              const [subscribedTasks, localEvents] = await Promise.all([
+                tasksTnetApi.tasks.subscribedTaskOccurrences.list(range),
+                tasksTnetApi.tasks.localEvents.list(range)
+              ]);
+              dispatch(setTasksSubscribedTaskOccurrences(subscribedTasks));
+              dispatch(setTasksLocalEvents(localEvents));
+            })
             .catch((error: unknown) => {
               console.error('Periodic calendar sync failed', error);
             });
@@ -64,3 +80,6 @@ export const TasksRuntime = (): null => {
 
   return null;
 };
+
+const getRuntimeRefreshRange = (): { startDate: string; endDate: string } =>
+  getOccurrenceCacheRange();
