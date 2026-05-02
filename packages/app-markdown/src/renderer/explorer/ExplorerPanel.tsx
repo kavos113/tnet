@@ -1,19 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { basename } from '@tnet/shared/path/pathUtils';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
+import { WorkspaceSwitcher } from '@tnet/ui';
 import { FileTree } from './FileTree';
 import { SearchPanel, type SearchPanelHandle } from './SearchPanel';
 import { useExplorerActions } from './useExplorerActions';
 import { useExplorerShortcuts } from './useExplorerShortcuts';
 import styles from './ExplorerPanel.module.css';
 import treeStyles from './FileTreeItem.module.css';
-
-const workspaceLabel = (rootPath: string): string => basename(rootPath) || rootPath;
-
-const workspaceInitial = (rootPath: string): string => {
-  const label = workspaceLabel(rootPath).trim();
-  return (label[0] ?? '?').toUpperCase();
-};
 
 export const ExplorerPanel = (): React.JSX.Element => {
   const rootInputRef = useRef<HTMLInputElement | null>(null);
@@ -86,41 +79,22 @@ export const ExplorerPanel = (): React.JSX.Element => {
 
   return (
     <aside className={styles.panel}>
-      <nav className={styles.workspaceSwitcher} aria-label="Workspaces">
-        {workspaceRoots.map((workspaceRoot) => (
-          <button
-            key={workspaceRoot}
-            type="button"
-            className={`${styles.workspaceSwitcherItem} ${
-              workspaceRoot === rootPath ? styles.workspaceSwitcherItemActive : ''
-            }`}
-            title={workspaceRoot}
-            aria-label={`Switch to ${workspaceLabel(workspaceRoot)}`}
-            aria-current={workspaceRoot === rootPath ? 'page' : undefined}
-            onClick={() => {
-              if (workspaceRoot === rootPath) return;
-              switchWorkspaceRoot(workspaceRoot).catch((error: unknown) => {
-                console.error('Failed to switch workspace', error);
-              });
-            }}
-          >
-            {workspaceInitial(workspaceRoot)}
-          </button>
-        ))}
-        <button
-          type="button"
-          className={`${styles.workspaceSwitcherAdd} material-icons-round`}
-          aria-label="Open workspace"
-          title="Open workspace"
-          onClick={() => {
-            openWorkspace().catch((error: unknown) => {
-              console.error('Failed to open workspace', error);
-            });
-          }}
-        >
-          add
-        </button>
-      </nav>
+      <WorkspaceSwitcher
+        roots={workspaceRoots}
+        activeRoot={rootPath}
+        ariaLabel="Workspaces"
+        openLabel="Open workspace"
+        onSwitchRoot={(workspaceRoot) => {
+          switchWorkspaceRoot(workspaceRoot).catch((error: unknown) => {
+            console.error('Failed to switch workspace', error);
+          });
+        }}
+        onOpenRoot={() => {
+          openWorkspace().catch((error: unknown) => {
+            console.error('Failed to open workspace', error);
+          });
+        }}
+      />
       <div className={styles.content}>
         <header className={styles.header}>
           <span className={styles.title}>{activeView === 'files' ? 'Files' : 'Search'}</span>

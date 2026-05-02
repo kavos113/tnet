@@ -4,8 +4,13 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": "./src/index.ts",
     "./AppRail": "./src/AppRail/AppRail.tsx",
     "./DirectoryTree": "./src/DirectoryTree/DirectoryTree.tsx",
+    "./TabBar": "./src/TabBar/TabBar.tsx",
+    "./workspace": "./src/workspace/WorkspaceFileTree.tsx",
+    "./workspace/WorkspaceFileTree": "./src/workspace/WorkspaceFileTree.tsx",
+    "./workspace/WorkspaceSwitcher": "./src/workspace/WorkspaceSwitcher.tsx",
     "./settings": "./src/settings/index.ts"
   },
   "dependencies": {

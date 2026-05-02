@@ -1,6 +1,8 @@
 .root {
   display: grid;
+  flex: 1 1 auto;
   grid-template-rows: auto auto minmax(0, 1fr);
+  width: 100%;
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -57,44 +59,6 @@
 
 .iconButton:hover {
   background: #eef2f7;
-}
-
-.tabs {
-  display: flex;
-  min-width: 0;
-  overflow-x: auto;
-  border-bottom: 1px solid #d8dee8;
-  background: #eef2f7;
-}
-
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 120px;
-  max-width: 240px;
-  height: 34px;
-  padding: 0 8px;
-  border: 0;
-  border-right: 1px solid #d8dee8;
-  background: transparent;
-  cursor: pointer;
-}
-
-.tabActive {
-  background: #ffffff;
-}
-
-.tabName {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tabClose {
-  margin-left: auto;
-  color: #68707a;
 }
 
 .empty {

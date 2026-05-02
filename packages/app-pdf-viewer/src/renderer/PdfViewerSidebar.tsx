@@ -1,6 +1,7 @@
-import { basename, toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
+import { basename, joinPath, toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import type { FileItem } from '@tnet/shared/types/file';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import { WorkspaceFileTree, WorkspaceSwitcher } from '@tnet/ui';
 import {
   getPdfViewerGlobalSettings,
   withPdfViewerGlobalSettings
@@ -12,7 +13,12 @@ import styles from './PdfViewerSidebar.module.css';
 
 export const PdfViewerSidebar = (): React.JSX.Element => {
   const dispatch = usePdfViewerDispatch();
-  const { fileTree, rootPath, workspaceRoots } = usePdfViewerSelector((state) => state.pdfViewer);
+  const { activeIndex, fileTree, rootPath, tabs, workspaceRoots } = usePdfViewerSelector(
+    (state) => state.pdfViewer
+  );
+  const activePdfPath =
+    rootPath && tabs[activeIndex] ? joinPath(rootPath, tabs[activeIndex]) : null;
+  const expandedPaths = collectDirectoryPaths(fileTree);
 
   const openWorkspace = (): void => {
     pdfViewerTnetApi.workspace
@@ -61,30 +67,14 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
 
   return (
     <aside className={styles.panel}>
-      <nav className={styles.workspaceSwitcher} aria-label="PDF workspaces">
-        {workspaceRoots.map((workspaceRoot) => (
-          <button
-            key={workspaceRoot}
-            type="button"
-            className={`${styles.workspaceButton} ${
-              workspaceRoot === rootPath ? styles.workspaceButtonActive : ''
-            }`}
-            title={workspaceRoot}
-            aria-label={`Switch to ${basename(workspaceRoot)}`}
-            onClick={() => switchWorkspace(workspaceRoot)}
-          >
-            {(basename(workspaceRoot)[0] ?? '?').toUpperCase()}
-          </button>
-        ))}
-        <button
-          type="button"
-          className={`${styles.addButton} material-icons-round`}
-          aria-label="Open PDF workspace"
-          onClick={openWorkspace}
-        >
-          add
-        </button>
-      </nav>
+      <WorkspaceSwitcher
+        roots={workspaceRoots}
+        activeRoot={rootPath}
+        ariaLabel="PDF workspaces"
+        openLabel="Open PDF workspace"
+        onSwitchRoot={switchWorkspace}
+        onOpenRoot={openWorkspace}
+      />
       <div className={styles.content}>
         <header className={styles.header}>
           <span className={styles.title}>{rootPath ? basename(rootPath) : 'PDFs'}</span>
@@ -100,7 +90,20 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
         </header>
         {rootPath ? (
           <ul className={styles.tree}>
-            <PdfFileTree items={fileTree} rootPath={rootPath} />
+            <WorkspaceFileTree
+              items={fileTree}
+              selectedPath={activePdfPath}
+              expandedPaths={expandedPaths}
+              onActivateItem={(item) => {
+                if (item.isDirectory || !isPdfItem(item)) return;
+                dispatch(openPdf({ path: toWorkspaceRelativePath(rootPath, item.path) }));
+              }}
+              isItemDisabled={(item) => !item.isDirectory && !isPdfItem(item)}
+              getItemIcon={(item, isExpanded) => {
+                if (item.isDirectory) return isExpanded ? 'folder_open' : 'folder';
+                return isPdfItem(item) ? 'picture_as_pdf' : 'description';
+              }}
+            />
           </ul>
         ) : (
           <div className={styles.empty}>Open a folder to browse PDFs.</div>
@@ -110,45 +113,13 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
   );
 };
 
-const PdfFileTree = ({
-  items,
-  rootPath
-}: {
-  items: FileItem[];
-  rootPath: string;
-}): React.JSX.Element => {
-  const dispatch = usePdfViewerDispatch();
-  return (
-    <>
-      {items.map((item) => {
-        const isPdf = !item.isDirectory && item.name.toLowerCase().endsWith('.pdf');
-        return (
-          <li key={item.path}>
-            <button
-              type="button"
-              className={`${styles.fileButton} ${!item.isDirectory && !isPdf ? styles.fileButtonDisabled : ''}`}
-              disabled={!item.isDirectory && !isPdf}
-              onClick={() => {
-                if (item.isDirectory) return;
-                dispatch(openPdf({ path: toWorkspaceRelativePath(rootPath, item.path) }));
-              }}
-            >
-              <span className="material-icons-round" aria-hidden="true">
-                {item.isDirectory ? 'folder' : isPdf ? 'picture_as_pdf' : 'description'}
-              </span>
-              <span className={styles.fileName}>{item.name}</span>
-            </button>
-            {item.isDirectory && item.children ? (
-              <ul>
-                <PdfFileTree items={item.children} rootPath={rootPath} />
-              </ul>
-            ) : null}
-          </li>
-        );
-      })}
-    </>
+const isPdfItem = (item: FileItem): boolean =>
+  !item.isDirectory && item.name.toLowerCase().endsWith('.pdf');
+
+const collectDirectoryPaths = (items: FileItem[]): string[] =>
+  items.flatMap((item) =>
+    item.isDirectory ? [item.path, ...collectDirectoryPaths(item.children ?? [])] : []
   );
-};
 
 const persistWorkspaceRoots = async (
   workspaceRoots: string[],

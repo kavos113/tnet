@@ -9,6 +9,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import type { PdfDocumentViewState } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { pdfViewerTnetApi } from '../../pdfViewerTnetApi';
 import { PdfPageCanvas } from './PdfPageCanvas';
+import { pdfJsAssetUrls } from './pdfJsAssets';
 import { groupPdfPages } from './pdfViewerLayout';
 import styles from './PdfDocumentViewer.module.css';
 
@@ -71,7 +72,11 @@ export const PdfDocumentViewer = ({
           path: filePath
         });
         if (canceled) return;
-        loadingTaskRef.current = getDocument({ data: new Uint8Array(bytes) });
+        loadingTaskRef.current = getDocument({
+          data: new Uint8Array(bytes),
+          cMapPacked: true,
+          ...pdfJsAssetUrls()
+        });
         loadedDocument = await loadingTaskRef.current.promise;
         if (canceled) {
           await loadedDocument.destroy();

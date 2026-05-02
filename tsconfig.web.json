@@ -54,6 +54,7 @@
       "@tnet/markdown-editor/shared/*": ["./packages/markdown-editor/src/shared/*"],
       "@tnet/renderer-core/*": ["./packages/renderer-core/src/*"],
       "@tnet/shared/*": ["./packages/shared/src/*"],
+      "@tnet/ui": ["./packages/ui/src/index.ts"],
       "@tnet/ui/*": ["./packages/ui/src/*"]
     }
   }

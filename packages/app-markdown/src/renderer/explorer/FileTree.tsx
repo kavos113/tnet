@@ -1,20 +1,19 @@
 import type { FileItem } from '@tnet/shared/types/file';
-import { FileTreeItem } from './FileTreeItem';
+import {
+  WorkspaceFileTree,
+  type WorkspaceNewEntryMode,
+  type WorkspaceNewEntryState,
+  type WorkspaceRenameEntryState
+} from '@tnet/ui';
+import { useAppDispatch, useAppSelector } from '@tnet/app-markdown/renderer/storeHooks';
+import { useActiveMarkdownWorkspaceApi } from '@tnet/app-markdown/renderer/workspace/useActiveMarkdownWorkspaceApi';
+import { selectDirectory, selectFile } from './explorerSlice';
 
-export type NewEntryMode = 'file' | 'directory';
+export type NewEntryMode = WorkspaceNewEntryMode;
 
-export interface NewEntryState {
-  isActive: boolean;
-  mode: NewEntryMode;
-  parentPath: string | null;
-  name: string;
-}
+export type NewEntryState = WorkspaceNewEntryState;
 
-export interface RenameEntryState {
-  isActive: boolean;
-  targetPath: string | null;
-  name: string;
-}
+export type RenameEntryState = WorkspaceRenameEntryState;
 
 interface FileTreeProps {
   items: FileItem[];
@@ -29,11 +28,29 @@ interface FileTreeProps {
 }
 
 export const FileTree = ({ items, ...itemProps }: FileTreeProps): React.JSX.Element => {
+  const dispatch = useAppDispatch();
+  const workspaceApi = useActiveMarkdownWorkspaceApi();
+  const { selectedPath, selectedDirPath, expandedPaths } = useAppSelector(
+    (state) => state.explorer
+  );
+
+  const activateItem = async (item: FileItem): Promise<void> => {
+    if (item.isDirectory) {
+      dispatch(selectDirectory(item.path));
+      return;
+    }
+
+    dispatch(selectFile(item.path));
+    await workspaceApi.openFile(item.path);
+  };
+
   return (
-    <>
-      {items.map((item) => (
-        <FileTreeItem key={item.path} item={item} {...itemProps} />
-      ))}
-    </>
+    <WorkspaceFileTree
+      items={items}
+      selectedPath={selectedPath ?? selectedDirPath}
+      expandedPaths={expandedPaths}
+      onActivateItem={activateItem}
+      {...itemProps}
+    />
   );
 };

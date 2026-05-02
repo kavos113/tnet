@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { PdfZoomMode } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { normalizeColumns } from '@tnet/app-pdf-viewer/shared/config';
+import { TabBar } from '@tnet/ui';
 import { PdfDocumentViewer } from './components/viewer/PdfDocumentViewer';
 import { pdfViewerTnetApi } from './pdfViewerTnetApi';
 import { usePdfViewerDispatch, usePdfViewerSelector } from './state/storeHooks';
@@ -101,38 +102,13 @@ export const PdfViewerApp = (): React.JSX.Element => {
           open_in_new
         </button>
       </div>
-      <div className={styles.tabs} role="tablist" aria-label="Open PDFs">
-        {tabs.map((path, index) => (
-          <button
-            key={path}
-            type="button"
-            className={`${styles.tab} ${index === activeIndex ? styles.tabActive : ''}`}
-            role="tab"
-            aria-selected={index === activeIndex}
-            onClick={() => dispatch(switchPdf(index))}
-          >
-            <span className={styles.tabName}>{documentsByPath[path]?.displayName ?? path}</span>
-            <span
-              className={styles.tabClose}
-              role="button"
-              tabIndex={0}
-              aria-label={`Close ${documentsByPath[path]?.displayName ?? path}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                dispatch(closePdf(index));
-              }}
-              onKeyDown={(event) => {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
-                event.preventDefault();
-                event.stopPropagation();
-                dispatch(closePdf(index));
-              }}
-            >
-              x
-            </span>
-          </button>
-        ))}
-      </div>
+      <TabBar
+        tabs={tabs.map((path) => ({ id: path, label: documentsByPath[path]?.displayName ?? path }))}
+        activeId={activePath ?? null}
+        ariaLabel="Open PDFs"
+        onSelectTab={(_, index) => dispatch(switchPdf(index))}
+        onCloseTab={(_, index) => dispatch(closePdf(index))}
+      />
       {error ? <div className={styles.error}>{error}</div> : null}
       {activePath && activeViewState ? (
         <PdfDocumentViewer

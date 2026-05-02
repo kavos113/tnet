@@ -1,10 +1,14 @@
-import { builtinModules } from 'module';
-import { resolve } from 'path';
+import { builtinModules, createRequire } from 'module';
+import { dirname, join, resolve } from 'path';
 import { defineConfig } from 'electron-vite';
+import { normalizePath } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import react from '@vitejs/plugin-react';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const analyze = process.env.ANALYZE === 'true';
+const require = createRequire(import.meta.url);
+const pdfjsDistDir = dirname(require.resolve('pdfjs-dist/package.json'));
 
 const workspacePackages = [
   '@tnet/app-papers',
@@ -100,6 +104,15 @@ export default defineConfig({
     },
     plugins: [
       react(),
+      viteStaticCopy({
+        targets: [
+          { src: normalizePath(join(pdfjsDistDir, 'cmaps', '*')), dest: 'pdfjs/cmaps' },
+          {
+            src: normalizePath(join(pdfjsDistDir, 'standard_fonts', '*')),
+            dest: 'pdfjs/standard_fonts'
+          }
+        ]
+      }),
       analyze &&
         visualizer({
           open: true,

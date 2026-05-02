@@ -1,0 +1,103 @@
+.treeItem {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+  min-height: 18px;
+  padding: 0;
+  color: var(--foreground, #1f2328);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.treeItem:hover {
+  background-color: var(--gray, #eef2f7);
+}
+
+.selected {
+  background-color: var(--main-light, #dbeafe);
+}
+
+.disabled {
+  color: var(--muted-foreground, #8c959f);
+  cursor: default;
+}
+
+.disabled:hover {
+  background: transparent;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 0.12s ease;
+}
+
+.chevron:global(.material-icons-round) {
+  font-size: 12px;
+}
+
+.chevronExpanded {
+  transform: rotate(90deg);
+}
+
+.icon {
+  flex: 0 0 auto;
+  font-size: 12px;
+}
+
+.icon:global(.material-icons) {
+  font-size: 12px;
+}
+
+.folder {
+  color: var(--folder, #c69026);
+}
+
+.fileIcon {
+  width: 26px;
+  color: currentColor;
+  text-align: right;
+}
+
+.name {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: currentColor;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.children {
+  padding: 0 0 0 12px;
+  margin: 0;
+  list-style-type: none;
+}
+
+.newItem {
+  list-style-type: none;
+}
+
+.newInput {
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.iconPlaceholder {
+  visibility: hidden;
+}
