@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   getDocument,
   GlobalWorkerOptions,
@@ -6,13 +6,18 @@ import {
   type PDFDocumentProxy
 } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
-import type { PdfDocumentViewState } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
+import type {
+  PdfDocumentViewState,
+  PdfPageNavigationRequest
+} from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { pdfViewerTnetApi } from '../../pdfViewerTnetApi';
 import { PdfPageCanvas } from './PdfPageCanvas';
 import { pdfJsAssetUrls } from './pdfJsAssets';
 import { PdfViewerCMapReaderFactory, PdfViewerStandardFontDataFactory } from './pdfJsFactories';
 import {
+  getActivePdfPageFromScroll,
   getPdfRenderScale,
+  getScrollTopForPdfPage,
   getVisiblePdfRowWindow,
   groupPdfPages,
   pdfPageGapPx,
@@ -32,14 +37,18 @@ export const PdfDocumentViewer = ({
   filePath,
   viewState,
   overscanPages,
+  navigationRequest,
   onPageCountChange,
+  onActivePageChange,
   onViewStateChange
 }: {
   rootPath: string;
   filePath: string;
   viewState: PdfDocumentViewState;
   overscanPages: number;
+  navigationRequest?: PdfPageNavigationRequest;
   onPageCountChange: (pageCount: number) => void;
+  onActivePageChange: (pageNumber: number) => void;
   onViewStateChange: (viewState: Partial<PdfDocumentViewState>) => void;
 }): React.JSX.Element => {
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -113,6 +122,7 @@ export const PdfDocumentViewer = ({
         setPdfDocument(loadedDocument);
         setPageCount(loadedDocument.numPages);
         onPageCountChange(loadedDocument.numPages);
+        onActivePageChange(1);
       } catch (loadError) {
         console.error('Failed to load PDF', loadError);
         if (!canceled) setError('Failed to load PDF.');
@@ -128,7 +138,7 @@ export const PdfDocumentViewer = ({
       if (loadedDocument) void loadedDocument.destroy();
       else void loadingTaskRef.current?.destroy();
     };
-  }, [filePath, onPageCountChange, rootPath]);
+  }, [filePath, onActivePageChange, onPageCountChange, rootPath]);
 
   useEffect(() => {
     restoredScrollKeyRef.current = '';
@@ -189,13 +199,59 @@ export const PdfDocumentViewer = ({
     viewportSize.height
   ]);
 
+  const getActivePage = useCallback(
+    (nextScrollTop: number): number =>
+      getActivePdfPageFromScroll({
+        pageCount,
+        columns: viewState.columns,
+        scrollTop: nextScrollTop,
+        rowHeight: estimatedRowHeight,
+        rowGapPx: pdfPageGapPx,
+        paddingPx: pdfPageGapPx
+      }),
+    [estimatedRowHeight, pageCount, viewState.columns]
+  );
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (
+      !viewport ||
+      !navigationRequest ||
+      navigationRequest.path !== filePath ||
+      !estimatedRowHeight
+    ) {
+      return;
+    }
+    const nextScrollTop = getScrollTopForPdfPage({
+      pageNumber: navigationRequest.pageNumber,
+      columns: viewState.columns,
+      rowHeight: estimatedRowHeight,
+      rowGapPx: pdfPageGapPx,
+      paddingPx: pdfPageGapPx
+    });
+    viewport.scrollTop = nextScrollTop;
+    setScrollTop(nextScrollTop);
+    onViewStateChange({ scrollTop: nextScrollTop });
+    onActivePageChange(getActivePage(nextScrollTop));
+  }, [
+    estimatedRowHeight,
+    filePath,
+    getActivePage,
+    navigationRequest,
+    onActivePageChange,
+    onViewStateChange,
+    viewState.columns
+  ]);
+
   return (
     <div
       ref={viewportRef}
       className={styles.viewport}
       onScroll={(event) => {
-        setScrollTop(event.currentTarget.scrollTop);
-        onViewStateChange({ scrollTop: event.currentTarget.scrollTop });
+        const nextScrollTop = event.currentTarget.scrollTop;
+        setScrollTop(nextScrollTop);
+        onViewStateChange({ scrollTop: nextScrollTop });
+        onActivePageChange(getActivePage(nextScrollTop));
       }}
     >
       {isLoading ? <div className={styles.empty}>Loading PDF...</div> : null}

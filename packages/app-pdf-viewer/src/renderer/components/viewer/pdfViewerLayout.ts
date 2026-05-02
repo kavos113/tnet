@@ -25,6 +25,23 @@ export interface PdfVisibleRowWindow {
   lastRowIndex: number;
 }
 
+export interface PdfPageScrollRequest {
+  pageNumber: number;
+  columns: number;
+  rowHeight: number;
+  rowGapPx: number;
+  paddingPx: number;
+}
+
+export interface PdfActivePageRequest {
+  pageCount: number;
+  columns: number;
+  scrollTop: number;
+  rowHeight: number;
+  rowGapPx: number;
+  paddingPx: number;
+}
+
 export const pdfPageGapPx = 16;
 export const pdfViewportPaddingPx = 32;
 export const pdfMinPageWidthPx = 120;
@@ -84,4 +101,32 @@ export const getVisiblePdfRowWindow = ({
     firstRowIndex: Math.max(firstVisibleRow - overscanRows, 0),
     lastRowIndex: Math.min(lastVisibleRow + overscanRows, rowCount - 1)
   };
+};
+
+export const getScrollTopForPdfPage = ({
+  pageNumber,
+  columns,
+  rowHeight,
+  rowGapPx,
+  paddingPx
+}: PdfPageScrollRequest): number => {
+  const normalizedColumns = Math.max(Math.round(columns), 1);
+  const normalizedPage = Math.max(Math.round(pageNumber), 1);
+  const rowIndex = Math.floor((normalizedPage - 1) / normalizedColumns);
+  return paddingPx + rowIndex * (rowHeight + rowGapPx);
+};
+
+export const getActivePdfPageFromScroll = ({
+  pageCount,
+  columns,
+  scrollTop,
+  rowHeight,
+  rowGapPx,
+  paddingPx
+}: PdfActivePageRequest): number => {
+  if (pageCount <= 0 || rowHeight <= 0) return 1;
+  const normalizedColumns = Math.max(Math.round(columns), 1);
+  const rowStride = rowHeight + rowGapPx;
+  const rowIndex = Math.max(Math.floor(Math.max(scrollTop - paddingPx, 0) / rowStride), 0);
+  return Math.min(rowIndex * normalizedColumns + 1, pageCount);
 };

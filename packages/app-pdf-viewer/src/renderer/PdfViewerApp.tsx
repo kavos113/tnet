@@ -10,6 +10,7 @@ import { usePdfViewerDispatch, usePdfViewerSelector } from './state/storeHooks';
 import {
   closePdf,
   setDocumentPageCount,
+  setActivePage,
   setPdfViewerError,
   switchPdf,
   updateActiveViewState
@@ -18,8 +19,16 @@ import styles from './PdfViewerApp.module.css';
 
 export const PdfViewerApp = (): React.JSX.Element => {
   const dispatch = usePdfViewerDispatch();
-  const { activeIndex, documentsByPath, error, rootPath, settings, tabs, viewStateByPath } =
-    usePdfViewerSelector((state) => state.pdfViewer);
+  const {
+    activeIndex,
+    documentsByPath,
+    error,
+    navigationRequest,
+    rootPath,
+    settings,
+    tabs,
+    viewStateByPath
+  } = usePdfViewerSelector((state) => state.pdfViewer);
   const activePath = tabs[activeIndex];
   const activeDocument = activePath ? documentsByPath[activePath] : undefined;
   const activeViewState = activePath ? viewStateByPath[activePath] : undefined;
@@ -263,7 +272,11 @@ export const PdfViewerApp = (): React.JSX.Element => {
           filePath={activePath}
           viewState={activeViewState}
           overscanPages={settings.overscanPages}
+          navigationRequest={navigationRequest}
           onPageCountChange={onPageCountChange}
+          onActivePageChange={(pageNumber) =>
+            dispatch(setActivePage({ path: activePath, pageNumber }))
+          }
           onViewStateChange={(viewState) => dispatch(updateActiveViewState(viewState))}
         />
       ) : (

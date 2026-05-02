@@ -1,4 +1,5 @@
 export type PdfZoomMode = 'page-width' | 'page-fit' | 'actual-size' | 'custom';
+export type PdfViewerSidebarPanel = 'files' | 'outline' | 'thumbnails' | 'annotations' | 'search';
 
 export interface PdfDocumentViewState {
   zoomMode: PdfZoomMode;
@@ -22,4 +23,11 @@ export interface PdfViewerOpenRequest {
 export interface PdfWorkspacePathRequest {
   rootDir: string;
   path: string;
+}
+
+export interface PdfPageNavigationRequest {
+  requestId: number;
+  path: string;
+  pageNumber: number;
+  source: PdfViewerSidebarPanel | 'external' | 'toolbar';
 }

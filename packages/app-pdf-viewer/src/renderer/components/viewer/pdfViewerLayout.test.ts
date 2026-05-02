@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getPdfRenderScale, getVisiblePdfRowWindow, groupPdfPages } from './pdfViewerLayout';
+import {
+  getActivePdfPageFromScroll,
+  getPdfRenderScale,
+  getScrollTopForPdfPage,
+  getVisiblePdfRowWindow,
+  groupPdfPages
+} from './pdfViewerLayout';
 
 describe('PDF viewer layout', () => {
   it('groups pages by arbitrary column count', () => {
@@ -45,5 +51,30 @@ describe('PDF viewer layout', () => {
       firstRowIndex: 1,
       lastRowIndex: 5
     });
+  });
+
+  it('maps page navigation to row scroll positions', () => {
+    expect(
+      getScrollTopForPdfPage({
+        pageNumber: 5,
+        columns: 2,
+        rowHeight: 100,
+        rowGapPx: 20,
+        paddingPx: 16
+      })
+    ).toBe(256);
+  });
+
+  it('estimates the active page from scroll position', () => {
+    expect(
+      getActivePdfPageFromScroll({
+        pageCount: 8,
+        columns: 2,
+        scrollTop: 256,
+        rowHeight: 100,
+        rowGapPx: 20,
+        paddingPx: 16
+      })
+    ).toBe(5);
   });
 });

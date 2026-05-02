@@ -60,6 +60,7 @@ describe('PdfDocumentViewer', () => {
         viewState={defaultPdfDocumentViewState()}
         overscanPages={2}
         onPageCountChange={vi.fn()}
+        onActivePageChange={vi.fn()}
         onViewStateChange={vi.fn()}
       />
     );
@@ -76,5 +77,43 @@ describe('PdfDocumentViewer', () => {
         useWorkerFetch: false
       })
     );
+  });
+
+  it('scrolls to requested pages and reports the active page', async () => {
+    const onActivePageChange = vi.fn();
+    const onViewStateChange = vi.fn();
+    getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 6,
+        destroy: vi.fn(),
+        getPage: vi.fn().mockResolvedValue({
+          getViewport: vi.fn().mockReturnValue({ width: 600, height: 800 })
+        })
+      }),
+      destroy: vi.fn()
+    });
+
+    render(
+      <PdfDocumentViewer
+        rootPath="/workspace"
+        filePath="paper.pdf"
+        viewState={defaultPdfDocumentViewState()}
+        overscanPages={2}
+        navigationRequest={{
+          requestId: 1,
+          path: 'paper.pdf',
+          pageNumber: 3,
+          source: 'outline'
+        }}
+        onPageCountChange={vi.fn()}
+        onActivePageChange={onActivePageChange}
+        onViewStateChange={onViewStateChange}
+      />
+    );
+
+    await waitFor(() => {
+      expect(onActivePageChange).toHaveBeenCalledWith(3);
+    });
+    expect(onViewStateChange).toHaveBeenCalledWith({ scrollTop: 368 });
   });
 });

@@ -1,29 +1,38 @@
-import { useEffect, useState } from 'react';
-import { basename, joinPath, toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
-import type { FileItem } from '@tnet/shared/types/file';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
-import { WorkspaceFileTree, WorkspaceSwitcher } from '@tnet/ui';
+import { WorkspaceSwitcher } from '@tnet/ui';
+import type { PdfViewerSidebarPanel } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import {
   getPdfViewerGlobalSettings,
   withPdfViewerGlobalSettings
 } from '@tnet/app-pdf-viewer/shared/config';
+import { PdfSidebarDocumentPanel } from './components/sidebar/PdfSidebarDocumentPanel';
+import { PdfSidebarFilesPanel } from './components/sidebar/PdfSidebarFilesPanel';
+import { PdfSidebarTabs } from './components/sidebar/PdfSidebarTabs';
 import { pdfViewerTnetApi } from './pdfViewerTnetApi';
 import { usePdfViewerDispatch, usePdfViewerSelector } from './state/storeHooks';
-import { openPdf, setFileTree, setPdfViewerError, setWorkspace } from './state/pdfViewerSlice';
+import {
+  openPdf,
+  setFileTree,
+  setPdfViewerError,
+  setPdfViewerSidebarPanel,
+  setWorkspace
+} from './state/pdfViewerSlice';
 import styles from './PdfViewerSidebar.module.css';
 
 export const PdfViewerSidebar = (): React.JSX.Element => {
   const dispatch = usePdfViewerDispatch();
-  const { activeIndex, fileTree, rootPath, tabs, workspaceRoots } = usePdfViewerSelector(
-    (state) => state.pdfViewer
-  );
-  const activePdfPath =
-    rootPath && tabs[activeIndex] ? joinPath(rootPath, tabs[activeIndex]) : null;
-  const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
-
-  useEffect(() => {
-    setExpandedPaths([]);
-  }, [rootPath]);
+  const {
+    activeIndex,
+    activePageByPath,
+    activeSidebarPanel,
+    documentsByPath,
+    fileTree,
+    rootPath,
+    tabs,
+    workspaceRoots
+  } = usePdfViewerSelector((state) => state.pdfViewer);
+  const activePdfPath = tabs[activeIndex];
+  const activeDocument = activePdfPath ? documentsByPath[activePdfPath] : undefined;
 
   const openWorkspace = (): void => {
     pdfViewerTnetApi.workspace
@@ -81,53 +90,30 @@ export const PdfViewerSidebar = (): React.JSX.Element => {
         onOpenRoot={openWorkspace}
       />
       <div className={styles.content}>
-        <header className={styles.header}>
-          <span className={styles.title}>{rootPath ? basename(rootPath) : 'PDFs'}</span>
-          <button
-            type="button"
-            className={`${styles.addButton} material-icons-round`}
-            aria-label="Refresh PDF workspace"
-            disabled={!rootPath}
-            onClick={refresh}
-          >
-            refresh
-          </button>
-        </header>
-        {rootPath ? (
-          <ul className={styles.tree}>
-            <WorkspaceFileTree
-              items={fileTree}
-              selectedPath={activePdfPath}
-              expandedPaths={expandedPaths}
-              onActivateItem={(item) => {
-                if (item.isDirectory) {
-                  setExpandedPaths((current) =>
-                    current.includes(item.path)
-                      ? current.filter((path) => path !== item.path)
-                      : [...current, item.path]
-                  );
-                  return;
-                }
-                if (!isPdfItem(item)) return;
-                dispatch(openPdf({ path: toWorkspaceRelativePath(rootPath, item.path) }));
-              }}
-              isItemDisabled={(item) => !item.isDirectory && !isPdfItem(item)}
-              getItemIcon={(item, isExpanded) => {
-                if (item.isDirectory) return isExpanded ? 'folder_open' : 'folder';
-                return isPdfItem(item) ? 'picture_as_pdf' : 'description';
-              }}
-            />
-          </ul>
+        <PdfSidebarTabs
+          activePanel={activeSidebarPanel}
+          onSelectPanel={(panel) => dispatch(setPdfViewerSidebarPanel(panel))}
+        />
+        {activeSidebarPanel === 'files' ? (
+          <PdfSidebarFilesPanel
+            rootPath={rootPath}
+            fileTree={fileTree}
+            activePdfPath={activePdfPath}
+            onRefresh={refresh}
+            onOpenPdf={(path) => dispatch(openPdf({ path }))}
+          />
         ) : (
-          <div className={styles.empty}>Open a folder to browse PDFs.</div>
+          <PdfSidebarDocumentPanel
+            panel={activeSidebarPanel as Exclude<PdfViewerSidebarPanel, 'files'>}
+            activePath={activePdfPath}
+            activePage={activePdfPath ? (activePageByPath[activePdfPath] ?? 1) : 1}
+            pageCount={activeDocument?.pageCount}
+          />
         )}
       </div>
     </aside>
   );
 };
-
-const isPdfItem = (item: FileItem): boolean =>
-  !item.isDirectory && item.name.toLowerCase().endsWith('.pdf');
 
 const persistWorkspaceRoots = async (
   workspaceRoots: string[],

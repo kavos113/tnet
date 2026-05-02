@@ -9,7 +9,9 @@ import {
 } from '@tnet/app-pdf-viewer/shared/config';
 import type {
   PdfDocumentViewState,
-  PdfViewerDocument
+  PdfPageNavigationRequest,
+  PdfViewerDocument,
+  PdfViewerSidebarPanel
 } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 
 export interface PdfViewerState {
@@ -20,6 +22,9 @@ export interface PdfViewerState {
   activeIndex: number;
   documentsByPath: Record<string, PdfViewerDocument>;
   viewStateByPath: Record<string, PdfDocumentViewState>;
+  activePageByPath: Record<string, number>;
+  activeSidebarPanel: PdfViewerSidebarPanel;
+  navigationRequest?: PdfPageNavigationRequest;
   settings: PdfViewerGlobalSettings;
   error?: string;
 }
@@ -32,6 +37,8 @@ const initialState: PdfViewerState = {
   activeIndex: -1,
   documentsByPath: {},
   viewStateByPath: {},
+  activePageByPath: {},
+  activeSidebarPanel: 'files',
   settings: defaultPdfViewerGlobalSettings()
 };
 
@@ -61,6 +68,9 @@ const pdfViewerSlice = createSlice({
     },
     setPdfViewerError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
+    },
+    setPdfViewerSidebarPanel: (state, action: PayloadAction<PdfViewerSidebarPanel>) => {
+      state.activeSidebarPanel = action.payload;
     },
     setWorkspace: (
       state,
@@ -94,6 +104,7 @@ const pdfViewerSlice = createSlice({
         path: action.payload.path,
         displayName: basename(action.payload.path)
       };
+      state.activePageByPath[action.payload.path] ??= 1;
       ensureViewState(state, action.payload.path);
       if (action.payload.viewState) {
         state.viewStateByPath[action.payload.path] = normalizePdfDocumentViewState({
@@ -106,6 +117,7 @@ const pdfViewerSlice = createSlice({
       if (action.payload < 0 || action.payload >= state.tabs.length) return;
       const [path] = state.tabs.splice(action.payload, 1);
       delete state.documentsByPath[path];
+      delete state.activePageByPath[path];
       if (action.payload <= state.activeIndex) state.activeIndex -= 1;
       clampActiveIndex(state);
     },
@@ -128,6 +140,7 @@ const pdfViewerSlice = createSlice({
         state.documentsByPath[path] = { path, displayName: basename(path) };
       });
       state.viewStateByPath = action.payload.viewStateByPath;
+      state.activePageByPath = Object.fromEntries(state.tabs.map((path) => [path, 1]));
       clampActiveIndex(state);
     },
     updateActiveViewState: (state, action: PayloadAction<Partial<PdfDocumentViewState>>) => {
@@ -142,6 +155,28 @@ const pdfViewerSlice = createSlice({
       const document = state.documentsByPath[action.payload.path];
       if (document) document.pageCount = action.payload.pageCount;
     },
+    setActivePage: (state, action: PayloadAction<{ path: string; pageNumber: number }>) => {
+      const document = state.documentsByPath[action.payload.path];
+      const maxPage = document?.pageCount ?? Number.MAX_SAFE_INTEGER;
+      state.activePageByPath[action.payload.path] = Math.min(
+        Math.max(Math.round(action.payload.pageNumber), 1),
+        maxPage
+      );
+    },
+    requestPageNavigation: (
+      state,
+      action: PayloadAction<{
+        path: string;
+        pageNumber: number;
+        source: PdfPageNavigationRequest['source'];
+      }>
+    ) => {
+      state.navigationRequest = {
+        ...action.payload,
+        pageNumber: Math.max(Math.round(action.payload.pageNumber), 1),
+        requestId: (state.navigationRequest?.requestId ?? 0) + 1
+      };
+    },
     setDocumentError: (state, action: PayloadAction<{ path: string; error?: string }>) => {
       const document = state.documentsByPath[action.payload.path];
       if (document) document.error = action.payload.error;
@@ -153,11 +188,14 @@ export const {
   closePdf,
   openPdf,
   replaceSession,
+  requestPageNavigation,
+  setActivePage,
   setDocumentError,
   setDocumentPageCount,
   setFileTree,
   setPdfViewerError,
   setPdfViewerSettings,
+  setPdfViewerSidebarPanel,
   setWorkspace,
   setWorkspaceRoots,
   switchPdf,

@@ -19,9 +19,40 @@
 }
 
 .content {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 6px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.tabButton {
+  display: grid;
+  width: 34px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.tabButton:hover {
+  background: #eef2f7;
+}
+
+.tabButtonActive {
+  border-color: #d8dee8;
+  background: #ffffff;
 }
 
 .header {
@@ -44,10 +75,35 @@
 }
 
 .tree {
+  flex: 1 1 auto;
+  overflow: auto;
   min-height: 0;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.documentPanel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.documentPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.pageBadge {
+  flex: 0 0 auto;
+  color: #68707a;
+  font-size: 11px;
 }
 
 .empty {
