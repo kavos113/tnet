@@ -75,9 +75,8 @@ export const TasksSourceSettings = (): React.JSX.Element => {
       passwordSecretId: draft.passwordSecretId
     });
     setDraft(emptyDraft());
-    dispatch(
-      setTasksCalendarSources([...sources.filter((current) => current.id !== source.id), source])
-    );
+    const syncResult = await tasksTnetApi.tasks.sync.manual({ sourceId: source.id });
+    dispatch(setTasksCalendarSources(syncResult.sources));
   };
 
   const syncSource = async (sourceId?: string): Promise<void> => {

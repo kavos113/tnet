@@ -88,6 +88,19 @@ describe('TasksSourceSettings', () => {
   });
 
   it('saves authenticated iCal sources through the settings form', async () => {
+    syncManual.mockResolvedValue({
+      sources: [
+        source({
+          id: 'source-saved',
+          name: 'Private',
+          itemKind: 'task',
+          authType: 'basic',
+          passwordSecretId: 'secret-1'
+        })
+      ],
+      syncedSourceIds: ['source-saved'],
+      failedSourceIds: []
+    });
     const store = createStore();
     store.dispatch(restoreTasks({ calendarSources: [] }));
 
@@ -121,6 +134,7 @@ describe('TasksSourceSettings', () => {
         })
       )
     );
+    await waitFor(() => expect(syncManual).toHaveBeenCalledWith({ sourceId: 'source-saved' }));
     expect(store.getState().tasks.calendarSources).toEqual([
       expect.objectContaining({
         id: 'source-saved',
