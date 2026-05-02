@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CalendarEventOccurrence, TaskItem } from './tasksTypes';
+import type { CalendarEventOccurrence, LocalEvent, TaskItem } from './tasksTypes';
 import {
   expandRecurringTasksForRange,
   getOccurrenceCacheRange,
@@ -24,6 +24,16 @@ const event = (
   id,
   sourceId: 'source-1',
   uid: id,
+  title: id,
+  startsAt,
+  endsAt,
+  allDay: false,
+  createdAt: '2026-05-01T00:00:00.000Z',
+  updatedAt: '2026-05-01T00:00:00.000Z'
+});
+
+const localEvent = (id: string, startsAt: string, endsAt: string = startsAt): LocalEvent => ({
+  id,
   title: id,
   startsAt,
   endsAt,
@@ -64,6 +74,10 @@ describe('calendar view helpers', () => {
       dates: ['2026-05-02', '2026-05-03'],
       currentDate: '2026-05-02',
       tasks: [task('today', '2026-05-02'), task('undated')],
+      localEvents: [
+        localEvent('owned-single', '2026-05-02T09:00:00.000', '2026-05-02T10:00:00.000'),
+        localEvent('owned-multi', '2026-05-02T23:00:00.000', '2026-05-03T01:00:00.000')
+      ],
       events: [
         event('single', '2026-05-02T10:00:00.000', '2026-05-02T11:00:00.000'),
         event('multi', '2026-05-02T23:00:00.000', '2026-05-03T01:00:00.000')
@@ -71,6 +85,8 @@ describe('calendar view helpers', () => {
     });
 
     expect(grouped[0].tasks.map((item) => item.id)).toEqual(['today']);
+    expect(grouped[0].localEvents.map((item) => item.id)).toEqual(['owned-single', 'owned-multi']);
+    expect(grouped[1].localEvents.map((item) => item.id)).toEqual(['owned-multi']);
     expect(grouped[0].events.map((item) => item.id)).toEqual(['single', 'multi']);
     expect(grouped[1].events.map((item) => item.id)).toEqual(['multi']);
   });

@@ -15,6 +15,19 @@ const listCategories = vi.fn();
 const listOccurrences = vi.fn();
 const listSubscribedTasks = vi.fn();
 const listLocalEvents = vi.fn();
+const saveLocalEvent = vi.fn();
+const removeLocalEvent = vi.fn();
+let localEventsStore: Array<{
+  id: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  allDay: boolean;
+  location?: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}> = [];
 
 interface TasksTestState {
   tasks: ReturnType<typeof tasksReducer>;
@@ -58,8 +71,8 @@ const installTnetApi = (): void => {
         },
         localEvents: {
           list: listLocalEvents,
-          save: vi.fn(),
-          remove: vi.fn()
+          save: saveLocalEvent,
+          remove: removeLocalEvent
         }
       }
     },
@@ -94,7 +107,26 @@ describe('TasksApp', () => {
     listCategories.mockResolvedValue(['Work']);
     listOccurrences.mockResolvedValue([]);
     listSubscribedTasks.mockResolvedValue([]);
-    listLocalEvents.mockResolvedValue([]);
+    localEventsStore = [];
+    listLocalEvents.mockImplementation(async () => localEventsStore);
+    saveLocalEvent.mockImplementation(async (request) => {
+      const saved = {
+        id: request.id ?? 'local-event-saved',
+        title: request.title,
+        startsAt: request.startsAt,
+        endsAt: request.endsAt,
+        allDay: request.allDay ?? false,
+        location: request.location,
+        description: request.description,
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      };
+      localEventsStore = [...localEventsStore.filter((event) => event.id !== saved.id), saved];
+      return saved;
+    });
+    removeLocalEvent.mockImplementation(async (request) => {
+      localEventsStore = localEventsStore.filter((event) => event.id !== request.eventId);
+    });
   });
 
   afterEach(() => {
@@ -318,7 +350,9 @@ describe('TasksApp', () => {
       </Provider>
     );
 
+    await waitFor(() => expect(listTasks).toHaveBeenCalledTimes(2));
     fireEvent.click(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-03' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }));
     fireEvent.change(screen.getByLabelText('Task title'), {
       target: { value: 'Plan from calendar' }
     });
@@ -331,6 +365,213 @@ describe('TasksApp', () => {
           deadlineDate: '2026-05-03'
         })
       )
+    );
+  });
+
+  it('uses month view on first render and fades days outside the current month', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    await screen.findByRole('gridcell', { name: 'Calendar day 2026-04-27' });
+
+    expect(screen.getByRole('button', { name: 'Month' }).className).toContain('viewButtonActive');
+    expect(screen.getAllByRole('gridcell')).toHaveLength(42);
+    expect(screen.getByRole('gridcell', { name: 'Calendar day 2026-04-27' }).className).toContain(
+      'cellOutsideMonth'
+    );
+    expect(
+      screen.getByRole('gridcell', { name: 'Calendar day 2026-05-02' }).className
+    ).not.toContain('cellOutsideMonth');
+  });
+
+  it('shows subscribed task occurrences as read-only calendar items', async () => {
+    listSubscribedTasks.mockResolvedValue([
+      {
+        id: 'subscribed-task-1',
+        sourceId: 'source-1',
+        uid: 'uid-1',
+        title: 'Read-only deadline',
+        deadlineDate: '2026-05-02',
+        deadlineTime: '10:00',
+        allDay: false,
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ]);
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    const subscribedTask = await screen.findByRole('button', {
+      name: '10:00 Read-only deadline'
+    });
+    expect(subscribedTask.className).toContain('readOnlyItem');
+    expect(subscribedTask).toHaveAttribute('draggable', 'false');
+  });
+
+  it('opens subscribed calendar events in a read-only popover', async () => {
+    listOccurrences.mockResolvedValue([
+      {
+        id: 'occurrence-1',
+        sourceId: 'source-1',
+        uid: 'uid-1',
+        title: 'Subscribed meeting',
+        startsAt: '2026-05-02T11:00:00.000',
+        endsAt: '2026-05-02T12:00:00.000',
+        allDay: false,
+        location: 'Room A',
+        description: 'Read-only event',
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ]);
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '11:00 Subscribed meeting' }));
+
+    const popover = await screen.findByRole('complementary', { name: 'Calendar event' });
+    expect(popover).toHaveTextContent('Room A');
+    expect(popover).toHaveTextContent('Read-only event');
+    expect(screen.queryByRole('button', { name: 'Save event' })).not.toBeInTheDocument();
+  });
+
+  it('creates local events from a calendar day selection', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('gridcell', { name: 'Calendar day 2026-05-03' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add event' }));
+    fireEvent.change(screen.getByLabelText('Event title'), {
+      target: { value: 'New planning' }
+    });
+    fireEvent.change(screen.getByLabelText('Start'), { target: { value: '13:00' } });
+    fireEvent.change(screen.getByLabelText('End'), { target: { value: '14:00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create event' }));
+
+    await waitFor(() =>
+      expect(saveLocalEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'New planning',
+          startsAt: '2026-05-03T13:00:00.000',
+          endsAt: '2026-05-03T14:00:00.000'
+        })
+      )
+    );
+    await waitFor(() =>
+      expect(store.getState().tasks.localEvents).toEqual([
+        expect.objectContaining({ title: 'New planning' })
+      ])
+    );
+  });
+
+  it('shows, edits, and deletes local events on the calendar', async () => {
+    localEventsStore = [
+      {
+        id: 'local-event-1',
+        title: 'Owned planning',
+        startsAt: '2026-05-02T14:00:00.000',
+        endsAt: '2026-05-02T15:00:00.000',
+        allDay: false,
+        location: 'Desk',
+        description: 'Prepare agenda',
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z'
+      }
+    ];
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: [],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp />
+      </Provider>
+    );
+
+    const eventButton = await screen.findByRole('button', { name: '14:00 Owned planning' });
+    expect(eventButton.className).toContain('localEvent');
+    fireEvent.click(eventButton);
+
+    expect(await screen.findByRole('region', { name: 'Event editor' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Event title'), {
+      target: { value: 'Owned planning updated' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
+
+    await waitFor(() =>
+      expect(saveLocalEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'local-event-1',
+          title: 'Owned planning updated'
+        })
+      )
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '14:00 Owned planning updated' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete event' }));
+
+    await waitFor(() =>
+      expect(removeLocalEvent).toHaveBeenCalledWith({
+        eventId: 'local-event-1'
+      })
     );
   });
 });

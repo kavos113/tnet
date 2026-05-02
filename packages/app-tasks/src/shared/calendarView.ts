@@ -4,7 +4,7 @@ import {
   toLocalDateString
 } from '@tnet/app-tasks/shared/dateHelpers';
 import type { TasksDefaultView } from './config';
-import type { CalendarEventOccurrence, TaskItem } from './tasksTypes';
+import type { CalendarEventOccurrence, LocalEvent, TaskItem } from './tasksTypes';
 
 export interface CalendarDateRange {
   startDate: string;
@@ -16,6 +16,7 @@ export interface CalendarDayItems {
   date: string;
   isOutsideCurrentMonth: boolean;
   tasks: TaskItem[];
+  localEvents: LocalEvent[];
   events: CalendarEventOccurrence[];
 }
 
@@ -50,17 +51,22 @@ export const groupVisibleCalendarItems = ({
   dates,
   currentDate,
   tasks,
+  localEvents = [],
   events
 }: {
   dates: string[];
   currentDate: string;
   tasks: TaskItem[];
+  localEvents?: LocalEvent[];
   events: CalendarEventOccurrence[];
 }): CalendarDayItems[] =>
   dates.map((date) => ({
     date,
     isOutsideCurrentMonth: date.slice(0, 7) !== currentDate.slice(0, 7),
     tasks: tasks.filter((task) => task.deadlineDate === date),
+    localEvents: localEvents.filter((event) =>
+      doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+    ),
     events: events.filter((event) =>
       doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
     )

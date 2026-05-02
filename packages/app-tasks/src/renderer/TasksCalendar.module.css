@@ -118,6 +118,17 @@
   border-color: var(--gray);
 }
 
+.localEvent {
+  cursor: pointer;
+  border-color: var(--main);
+}
+
+.readOnlyItem {
+  cursor: default;
+  border-color: var(--gray);
+  opacity: 0.78;
+}
+
 .currentTime {
   position: absolute;
   right: 4px;

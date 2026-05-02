@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import type { CalendarDayItems } from '@tnet/app-tasks/shared/calendarView';
-import type { CalendarEventOccurrence } from '@tnet/app-tasks/shared/tasksTypes';
+import type { CalendarEventOccurrence, LocalEvent } from '@tnet/app-tasks/shared/tasksTypes';
 import styles from './TasksCalendar.module.css';
 
 export interface TasksCalendarProps {
@@ -11,6 +11,7 @@ export interface TasksCalendarProps {
   showCurrentTime: boolean;
   startDate: string;
   onDateSelect: (date: string) => void;
+  onLocalEventSelect: (event: LocalEvent) => void;
   onMoveRange: (days: number) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
   onToday: () => void;
@@ -29,6 +30,7 @@ export const TasksCalendar = ({
   showCurrentTime,
   startDate,
   onDateSelect,
+  onLocalEventSelect,
   onMoveRange,
   onRescheduleTask,
   onToday
@@ -71,6 +73,7 @@ export const TasksCalendar = ({
             showCurrentTime={showCurrentTime}
             onDateSelect={onDateSelect}
             onEventSelect={(event, x, y) => setPopover({ event, x, y })}
+            onLocalEventSelect={onLocalEventSelect}
             onRescheduleTask={onRescheduleTask}
           />
         ))}
@@ -93,6 +96,7 @@ const CalendarCell = ({
   showCurrentTime,
   onDateSelect,
   onEventSelect,
+  onLocalEventSelect,
   onRescheduleTask
 }: {
   currentDate: string;
@@ -100,6 +104,7 @@ const CalendarCell = ({
   showCurrentTime: boolean;
   onDateSelect: (date: string) => void;
   onEventSelect: (event: CalendarEventOccurrence, x: number, y: number) => void;
+  onLocalEventSelect: (event: LocalEvent) => void;
   onRescheduleTask: (taskId: string, date: string) => void;
 }): React.JSX.Element => {
   const today = toLocalDateString();
@@ -136,15 +141,35 @@ const CalendarCell = ({
         {day.tasks.map((task) => (
           <button
             type="button"
-            className={styles.calendarItem}
-            draggable
+            className={`${styles.calendarItem} ${
+              isSubscribedTask(task.id) ? styles.readOnlyItem : ''
+            }`}
+            draggable={!isSubscribedTask(task.id)}
             key={task.id}
             title={task.title}
             onClick={(event) => event.stopPropagation()}
-            onDragStart={(event) => event.dataTransfer.setData('text/plain', task.id.split(':')[0])}
+            onDragStart={(event) => {
+              if (isSubscribedTask(task.id)) return;
+              event.dataTransfer.setData('text/plain', task.id.split(':')[0]);
+            }}
           >
             {task.deadlineTime ? `${task.deadlineTime} ` : ''}
             {task.title}
+          </button>
+        ))}
+        {day.localEvents.map((event) => (
+          <button
+            type="button"
+            className={`${styles.calendarItem} ${styles.localEvent}`}
+            key={event.id}
+            title={event.title}
+            onClick={(clickEvent) => {
+              clickEvent.stopPropagation();
+              onLocalEventSelect(event);
+            }}
+          >
+            {event.allDay ? '' : `${event.startsAt.slice(11, 16)} `}
+            {event.title}
           </button>
         ))}
         {day.events.map((event) => (
@@ -206,6 +231,8 @@ const formatCalendarTitle = (startDate: string, endDate: string): string =>
 
 const formatShortWeekday = (date: string): string =>
   new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(`${date}T00:00:00`));
+
+const isSubscribedTask = (taskId: string): boolean => taskId.startsWith('subscribed:');
 
 const getCurrentTimeTop = (): number => {
   const now = new Date();
