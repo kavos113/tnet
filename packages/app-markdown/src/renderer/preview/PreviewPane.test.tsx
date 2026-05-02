@@ -14,6 +14,7 @@ const keywordGetContent = vi.fn();
 const openInternalLink = vi.fn();
 const imageLoadDataUrl = vi.fn();
 const toggleTask = vi.fn();
+const openPdfLink = vi.fn();
 
 const renderPreviewPane = (markdown: string): void => {
   render(
@@ -21,6 +22,7 @@ const renderPreviewPane = (markdown: string): void => {
       markdown={markdown}
       showOutline={true}
       onOpenInternalLink={openInternalLink}
+      onOpenPdfLink={openPdfLink}
       onToggleTask={toggleTask}
       loadKeywordContent={keywordGetContent}
       loadImageDataUrl={imageLoadDataUrl}
@@ -37,6 +39,7 @@ describe('PreviewPane', () => {
     vi.clearAllMocks();
     keywordGetContent.mockReset();
     openInternalLink.mockReset();
+    openPdfLink.mockReset();
     imageLoadDataUrl.mockReset();
     toggleTask.mockReset();
     imageLoadDataUrl.mockResolvedValue(null);
@@ -155,6 +158,34 @@ describe('PreviewPane', () => {
     await waitFor(() => {
       expect(openInternalLink).toHaveBeenCalledWith('/docs/text-target.md');
     });
+  });
+
+  it('opens standard PDF links through the PDF link handler', async () => {
+    renderPreviewPane('Open [0407](pdf:slides/0407.pdf).');
+
+    const link = await screen.findByRole('link', { name: '0407' });
+    expect(link).toHaveAttribute('data-pdf-link', 'true');
+
+    fireEvent.click(link);
+
+    await waitFor(() => {
+      expect(openPdfLink).toHaveBeenCalledWith('pdf:slides/0407.pdf');
+    });
+    expect(openInternalLink).not.toHaveBeenCalled();
+  });
+
+  it('opens wiki-style PDF links through the PDF link handler', async () => {
+    renderPreviewPane('Open [[pdf:slides/0407.pdf|0407]].');
+
+    const link = await screen.findByRole('link', { name: '0407' });
+    expect(link).toHaveAttribute('data-pdf-link', 'true');
+
+    fireEvent.click(link);
+
+    await waitFor(() => {
+      expect(openPdfLink).toHaveBeenCalledWith('pdf:slides/0407.pdf');
+    });
+    expect(openInternalLink).not.toHaveBeenCalled();
   });
 
   it('renders a right-side outline from preview headings', async () => {

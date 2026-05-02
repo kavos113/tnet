@@ -41,7 +41,13 @@ describe('PdfDocumentViewer', () => {
     installTnetApi();
     loadBytes.mockResolvedValue(new Uint8Array([37, 80, 68, 70]).buffer);
     getDocument.mockReturnValue({
-      promise: Promise.resolve({ numPages: 1, destroy: vi.fn() }),
+      promise: Promise.resolve({
+        numPages: 1,
+        destroy: vi.fn(),
+        getPage: vi.fn().mockResolvedValue({
+          getViewport: vi.fn().mockReturnValue({ width: 600, height: 800 })
+        })
+      }),
       destroy: vi.fn()
     });
   });
@@ -52,6 +58,7 @@ describe('PdfDocumentViewer', () => {
         rootPath="/workspace"
         filePath="paper.pdf"
         viewState={defaultPdfDocumentViewState()}
+        overscanPages={2}
         onPageCountChange={vi.fn()}
         onViewStateChange={vi.fn()}
       />

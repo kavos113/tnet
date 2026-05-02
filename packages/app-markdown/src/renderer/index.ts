@@ -1,4 +1,5 @@
 export { MarkdownApp } from './MarkdownApp';
+export type { MarkdownAppProps } from './MarkdownApp';
 export { MarkdownRuntime } from './MarkdownRuntime';
 export { MarkdownSidebar } from './MarkdownSidebar';
 export { SettingsDialog as MarkdownSettingsDialog } from './settings/SettingsDialog';

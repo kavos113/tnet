@@ -20,6 +20,11 @@
   min-width: min-content;
 }
 
+.rowPlaceholder {
+  flex: 0 0 auto;
+  width: 1px;
+}
+
 .page {
   position: relative;
   margin: 0;

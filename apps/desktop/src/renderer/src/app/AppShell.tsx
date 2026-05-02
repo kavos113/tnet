@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import type { MarkdownAppProps } from '@tnet/app-markdown/renderer';
+import type { TasksAppProps } from '@tnet/app-tasks/renderer';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { AppRail } from '@tnet/ui/AppRail';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
@@ -7,6 +9,7 @@ import { tnetApi } from '@tnet/renderer-core/tnetApi';
 import { appRegistry, getAppModule } from './appRegistry';
 import { AppSettingsCenter } from './AppSettingsCenter';
 import { restoreActiveApp, setActiveApp } from './appSlice';
+import { useOpenPdfLink } from './useOpenPdfLink';
 import styles from './AppShell.module.css';
 
 export const AppShell = (): React.JSX.Element => {
@@ -14,8 +17,11 @@ export const AppShell = (): React.JSX.Element => {
   const activeAppId = useAppSelector((state) => state.app.activeAppId);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAppRestored, setIsAppRestored] = useState(false);
+  const openPdfLink = useOpenPdfLink();
   const activeModule = getAppModule(activeAppId);
   const ActiveApp = activeModule.Main;
+  const TasksMain = ActiveApp as React.ComponentType<TasksAppProps>;
+  const MarkdownMain = ActiveApp as React.ComponentType<MarkdownAppProps>;
   const ActiveSidebar = activeModule.Sidebar;
   const ActiveRuntime = activeModule.Runtime;
   const portalShortcuts = appRegistry
@@ -83,11 +89,13 @@ export const AppShell = (): React.JSX.Element => {
       {isAppRestored && ActiveSidebar ? <ActiveSidebar /> : null}
       {isAppRestored ? (
         activeAppId === 'tasks' ? (
-          <ActiveApp
+          <TasksMain
             portalShortcuts={portalShortcuts}
             onSelectPortalApp={(appId) => dispatch(setActiveApp(appId))}
             onOpenTasksSettings={() => setIsSettingsOpen(true)}
           />
+        ) : activeAppId === 'markdown' ? (
+          <MarkdownMain onOpenPdfLink={openPdfLink} />
         ) : (
           <ActiveApp />
         )

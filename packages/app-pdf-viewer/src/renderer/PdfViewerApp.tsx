@@ -17,12 +17,25 @@ import styles from './PdfViewerApp.module.css';
 
 export const PdfViewerApp = (): React.JSX.Element => {
   const dispatch = usePdfViewerDispatch();
-  const { activeIndex, documentsByPath, error, rootPath, tabs, viewStateByPath } =
+  const { activeIndex, documentsByPath, error, rootPath, settings, tabs, viewStateByPath } =
     usePdfViewerSelector((state) => state.pdfViewer);
   const activePath = tabs[activeIndex];
   const activeDocument = activePath ? documentsByPath[activePath] : undefined;
   const activeViewState = activePath ? viewStateByPath[activePath] : undefined;
   const [pendingColumns, setPendingColumns] = useState(String(activeViewState?.columns ?? 1));
+
+  const zoomBy = useCallback(
+    (delta: number): void => {
+      if (!activeViewState) return;
+      dispatch(
+        updateActiveViewState({
+          zoomMode: 'custom',
+          customScale: activeViewState.customScale + delta
+        })
+      );
+    },
+    [activeViewState, dispatch]
+  );
 
   useEffect(() => {
     setPendingColumns(String(activeViewState?.columns ?? 1));
@@ -60,6 +73,67 @@ export const PdfViewerApp = (): React.JSX.Element => {
     onTrigger: () => {
       if (!activeViewState) return;
       dispatch(updateActiveViewState({ columns: normalizeColumns(activeViewState.columns + 1) }));
+    }
+  });
+
+  useShortcut({
+    key: '=',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: Boolean(activeViewState),
+    onTrigger: () => zoomBy(0.1)
+  });
+
+  useShortcut({
+    key: '+',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: Boolean(activeViewState),
+    onTrigger: () => zoomBy(0.1)
+  });
+
+  useShortcut({
+    key: '-',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: Boolean(activeViewState),
+    onTrigger: () => zoomBy(-0.1)
+  });
+
+  useShortcut({
+    key: '0',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: Boolean(activeViewState),
+    onTrigger: () => {
+      dispatch(updateActiveViewState({ zoomMode: 'actual-size', customScale: 1 }));
+    }
+  });
+
+  useShortcut({
+    key: 'Tab',
+    ctrlOrMeta: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: tabs.length > 1,
+    onTrigger: () => {
+      dispatch(switchPdf((activeIndex + 1) % tabs.length));
+    }
+  });
+
+  useShortcut({
+    key: 'Tab',
+    ctrlOrMeta: true,
+    shift: true,
+    target: 'document',
+    allowInEditable: true,
+    enabled: tabs.length > 1,
+    onTrigger: () => {
+      dispatch(switchPdf((activeIndex - 1 + tabs.length) % tabs.length));
     }
   });
 
@@ -166,6 +240,7 @@ export const PdfViewerApp = (): React.JSX.Element => {
           rootPath={rootPath}
           filePath={activePath}
           viewState={activeViewState}
+          overscanPages={settings.overscanPages}
           onPageCountChange={onPageCountChange}
           onViewStateChange={(viewState) => dispatch(updateActiveViewState(viewState))}
         />

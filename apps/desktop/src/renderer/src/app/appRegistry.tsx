@@ -20,6 +20,7 @@ import {
 } from '@tnet/app-db-inspector/renderer';
 import {
   MarkdownApp,
+  type MarkdownAppProps,
   MarkdownRuntime,
   MarkdownSettingsDialog,
   MarkdownSidebar
@@ -42,7 +43,10 @@ export interface AppModule {
   id: AppId;
   label: string;
   icon: string;
-  Main: React.ComponentType<TasksAppProps> | React.ComponentType;
+  Main:
+    | React.ComponentType<TasksAppProps>
+    | React.ComponentType<MarkdownAppProps>
+    | React.ComponentType;
   Sidebar?: React.ComponentType;
   Runtime?: React.ComponentType;
   Settings?: React.ComponentType<{ isOpen: boolean; onClose: () => void }>;

@@ -1,5 +1,6 @@
 import type { Root as MdastRoot, Text } from 'mdast';
 import { visit } from 'unist-util-visit';
+import { isPdfLinkHref } from '@tnet/app-pdf-viewer/shared/pdfLink';
 
 type InternalLinkNode = {
   type: 'link';
@@ -13,13 +14,25 @@ type InternalLinkNode = {
   children: Text[];
 };
 
+type PdfLinkNode = {
+  type: 'link';
+  url: string;
+  data: {
+    hProperties: {
+      'data-pdf-link': string;
+      'data-pdf-target': string;
+    };
+  };
+  children: Text[];
+};
+
 export const remarkInternalLinks = () => {
   return (tree: MdastRoot): void => {
     visit(tree, 'text', (node: Text, index, parent) => {
       if (!parent || typeof index !== 'number') return;
 
       const regex = /\[\[(.*?)]]/g;
-      const nextNodes: (Text | InternalLinkNode)[] = [];
+      const nextNodes: (Text | InternalLinkNode | PdfLinkNode)[] = [];
       let lastIndex = 0;
       let match: RegExpExecArray | null;
 
@@ -29,17 +42,32 @@ export const remarkInternalLinks = () => {
         }
 
         const [path, displayName] = (match[1] ?? '').split('|');
-        nextNodes.push({
-          type: 'link',
-          url: '#',
-          data: {
-            hProperties: {
-              'data-internal-link': 'true',
-              'data-path': path
-            }
-          },
-          children: [{ type: 'text', value: displayName || path }]
-        });
+        const isPdfLink = isPdfLinkHref(path);
+        if (isPdfLink) {
+          nextNodes.push({
+            type: 'link',
+            url: path,
+            data: {
+              hProperties: {
+                'data-pdf-link': 'true',
+                'data-pdf-target': path
+              }
+            },
+            children: [{ type: 'text', value: displayName || path }]
+          });
+        } else {
+          nextNodes.push({
+            type: 'link',
+            url: '#',
+            data: {
+              hProperties: {
+                'data-internal-link': 'true',
+                'data-path': path
+              }
+            },
+            children: [{ type: 'text', value: displayName || path }]
+          });
+        }
         lastIndex = match.index + match[0].length;
       }
 

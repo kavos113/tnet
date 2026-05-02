@@ -22,8 +22,8 @@ describe('App', () => {
           createDirectory: vi.fn()
         },
         session: {
-          load: vi.fn(),
-          save: vi.fn()
+          load: vi.fn().mockResolvedValue({}),
+          save: vi.fn().mockResolvedValue(undefined)
         },
         config: {
           loadGlobal: vi.fn().mockResolvedValue({}),
@@ -307,5 +307,37 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText('Select a table from the schema tree.')).toBeInTheDocument();
     });
+  });
+
+  it('opens the PDF Viewer app module and restores its configured workspace', async () => {
+    vi.mocked(window.tnet.config.loadGlobal).mockResolvedValue({
+      apps: {
+        'pdf-viewer': {
+          workspaceRoots: ['C:/workspace/pdfs'],
+          activeWorkspaceRoot: 'C:/workspace/pdfs'
+        }
+      }
+    });
+    vi.mocked(window.tnet.workspace.getFileTree).mockResolvedValue([
+      {
+        name: '0407.pdf',
+        path: 'C:/workspace/pdfs/0407.pdf',
+        isDirectory: false
+      }
+    ]);
+
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'PDF Viewer' }));
+
+    expect(screen.getByRole('main', { name: 'PDF Viewer' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(window.tnet.workspace.getFileTree).toHaveBeenCalledWith('C:/workspace/pdfs');
+    });
+    expect(await screen.findByText('pdfs')).toBeInTheDocument();
   });
 });

@@ -1,3 +1,9 @@
 import { EditorWorkspace } from './editor/EditorWorkspace';
 
-export const MarkdownApp = (): React.JSX.Element => <EditorWorkspace />;
+export interface MarkdownAppProps {
+  onOpenPdfLink?: (href: string) => void;
+}
+
+export const MarkdownApp = ({ onOpenPdfLink }: MarkdownAppProps): React.JSX.Element => (
+  <EditorWorkspace onOpenPdfLink={onOpenPdfLink} />
+);

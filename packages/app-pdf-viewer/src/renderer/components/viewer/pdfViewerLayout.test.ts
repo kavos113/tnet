@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupPdfPages, getPdfRenderScale } from './pdfViewerLayout';
+import { getPdfRenderScale, getVisiblePdfRowWindow, groupPdfPages } from './pdfViewerLayout';
 
 describe('PDF viewer layout', () => {
   it('groups pages by arbitrary column count', () => {
@@ -28,5 +28,22 @@ describe('PDF viewer layout', () => {
         paddingPx: 16
       })
     ).toBe(1);
+  });
+
+  it('calculates the visible row window with overscan', () => {
+    expect(
+      getVisiblePdfRowWindow({
+        rowCount: 20,
+        scrollTop: 250,
+        viewportHeight: 300,
+        rowHeight: 100,
+        rowGapPx: 20,
+        paddingPx: 10,
+        overscanRows: 1
+      })
+    ).toEqual({
+      firstRowIndex: 1,
+      lastRowIndex: 5
+    });
   });
 });

@@ -35,9 +35,10 @@ import styles from './EditorWorkspace.module.css';
 
 interface EditorGroupViewProps {
   groupId: EditorGroupId;
+  onOpenPdfLink?: (href: string) => void;
 }
 
-const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element => {
+const EditorGroupView = ({ groupId, onOpenPdfLink }: EditorGroupViewProps): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const editorPaneRef = useRef<EditorPaneHandle | null>(null);
   const previewPaneRef = useRef<PreviewPaneHandle | null>(null);
@@ -276,6 +277,7 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
                   onOpenInternalLink={(filePath) =>
                     workspaceApi.openFile(filePath, { targetGroupId: groupId })
                   }
+                  onOpenPdfLink={onOpenPdfLink}
                   onToggleTask={handleToggleTask}
                   loadKeywordContent={workspaceApi.getKeywordContent}
                   loadImageDataUrl={workspaceApi.readImageDataUrl}
@@ -293,7 +295,11 @@ const EditorGroupView = ({ groupId }: EditorGroupViewProps): React.JSX.Element =
   );
 };
 
-export const EditorWorkspace = (): React.JSX.Element => {
+export const EditorWorkspace = ({
+  onOpenPdfLink
+}: {
+  onOpenPdfLink?: (href: string) => void;
+}): React.JSX.Element => {
   const dispatch = useAppDispatch();
   const markdownSettings = useAppSelector((state) => state.workspace.settings.markdown);
   const globalSettings = useAppSelector((state) => state.workspace.globalSettings);
@@ -379,7 +385,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
           className={styles.groupWrapper}
           style={{ width: isSecondaryGroupVisible ? `${groupWidthPercent}%` : '100%' }}
         >
-          <EditorGroupView groupId="primary" />
+          <EditorGroupView groupId="primary" onOpenPdfLink={onOpenPdfLink} />
         </div>
         {isSecondaryGroupVisible ? (
           <>
@@ -391,7 +397,7 @@ export const EditorWorkspace = (): React.JSX.Element => {
               onMouseDown={startGroupResize}
             />
             <div className={styles.groupWrapper} style={{ width: `${100 - groupWidthPercent}%` }}>
-              <EditorGroupView groupId="secondary" />
+              <EditorGroupView groupId="secondary" onOpenPdfLink={onOpenPdfLink} />
             </div>
           </>
         ) : null}

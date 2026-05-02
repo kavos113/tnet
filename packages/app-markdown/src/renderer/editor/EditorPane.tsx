@@ -1,7 +1,12 @@
 import { forwardRef, useMemo } from 'react';
 import { MarkdownEditorPane, type MarkdownEditorPaneHandle } from '@tnet/markdown-editor/renderer';
 import type { KeywordIndexLoader } from './codeMirror/completions';
-import { keywordCompletion, tagCompletion } from './codeMirror/completions';
+import {
+  createPdfLinkCompletionIndexLoader,
+  keywordCompletion,
+  pdfLinkCompletion,
+  tagCompletion
+} from './codeMirror/completions';
 import { keywordDecorationPlugin } from './codeMirror/keywordDecorations';
 import type { SavePastedImageRequester } from '@tnet/markdown-editor/renderer';
 import type { InlineCompletionRequester } from '@tnet/markdown-editor/renderer';
@@ -36,7 +41,11 @@ export const EditorPane = forwardRef<EditorPaneHandle, EditorPaneProps>(
     ref
   ): React.JSX.Element => {
     const completionSources = useMemo(
-      () => [keywordCompletion(loadKeywordIndex), tagCompletion],
+      () => [
+        keywordCompletion(loadKeywordIndex),
+        pdfLinkCompletion(createPdfLinkCompletionIndexLoader()),
+        tagCompletion
+      ],
       [loadKeywordIndex]
     );
     const editorExtensions = useMemo(() => [keywordDecorationPlugin()], []);
