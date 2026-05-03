@@ -80,7 +80,11 @@ export const TasksDetailsPanel = ({
   );
 };
 
-const CategoryHeadline = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): React.JSX.Element | null => {
+const CategoryHeadline = ({
+  item
+}: {
+  item: TasksDetailsPanelReadOnlyItem;
+}): React.JSX.Element | null => {
   if (item.type === 'task' && item.task.category) {
     return <h3 className={styles.categoryHeadline}>{item.task.category}</h3>;
   } else if (item.type === 'task' && item.sourceName) {
@@ -91,7 +95,7 @@ const CategoryHeadline = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Re
     return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
   }
   return null;
-}
+};
 
 const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): React.JSX.Element => {
   if (item.type === 'task') {
