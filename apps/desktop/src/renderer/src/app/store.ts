@@ -1,12 +1,15 @@
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import appReducer from './appSlice';
-import { editorReducer, explorerReducer, workspaceReducer } from '@tnet/app-markdown/renderer';
-import { papersContentReducer, papersLibraryReducer } from '@tnet/app-papers/renderer';
-import { requesterReducer } from '@tnet/app-requester/renderer';
-import { dbInspectorReducer } from '@tnet/app-db-inspector/renderer';
-import { tasksReducer } from '@tnet/app-tasks/renderer';
-import { pdfViewerReducer } from '@tnet/app-pdf-viewer/renderer';
-import { rssReducer } from '@tnet/app-rss/renderer';
+import editorReducer from '@tnet/app-markdown/renderer/editor/editorSlice';
+import explorerReducer from '@tnet/app-markdown/renderer/explorer/explorerSlice';
+import workspaceReducer from '@tnet/app-markdown/renderer/workspace/workspaceSlice';
+import papersLibraryReducer from '@tnet/app-papers/renderer/library/librarySlice';
+import papersContentReducer from '@tnet/app-papers/renderer/papers/papersSlice';
+import requesterReducer from '@tnet/app-requester/renderer/requesterSlice';
+import dbInspectorReducer from '@tnet/app-db-inspector/renderer/dbInspectorSlice';
+import tasksReducer from '@tnet/app-tasks/renderer/state/tasksSlice';
+import pdfViewerReducer from '@tnet/app-pdf-viewer/renderer/state/pdfViewerSlice';
+import rssReducer from '@tnet/app-rss/renderer/rssSlice';
 
 export interface RootState {
   app: ReturnType<typeof appReducer>;

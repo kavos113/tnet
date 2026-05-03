@@ -1,44 +1,121 @@
+import { lazy } from 'react';
 import type { AppId } from '@tnet/shared/app/appTypes';
-import { CodeApp } from '@renderer/apps/code/CodeApp';
-import {
-  PapersApp,
-  PapersRuntime,
-  PapersSettingsDialog,
-  PapersSidebar
-} from '@tnet/app-papers/renderer';
-import {
-  RequesterApp,
-  RequesterRuntime,
-  RequesterSettingsDialog,
-  RequesterSidebar
-} from '@tnet/app-requester/renderer';
-import {
-  DbInspectorApp,
-  DbInspectorRuntime,
-  DbInspectorSettingsDialog,
-  DbInspectorSidebar
-} from '@tnet/app-db-inspector/renderer';
-import {
-  MarkdownApp,
-  type MarkdownAppProps,
-  MarkdownRuntime,
-  MarkdownSettingsDialog,
-  MarkdownSidebar
-} from '@tnet/app-markdown/renderer';
-import {
-  TasksApp,
-  type TasksAppProps,
-  TasksRuntime,
-  TasksSettingsDialog,
-  TasksSidebar
-} from '@tnet/app-tasks/renderer';
-import {
-  PdfViewerApp,
-  PdfViewerRuntime,
-  PdfViewerSettingsDialog,
-  PdfViewerSidebar
-} from '@tnet/app-pdf-viewer/renderer';
-import { RssApp, RssRuntime, RssSettingsDialog, RssSidebar } from '@tnet/app-rss/renderer';
+import type { MarkdownAppProps } from '@tnet/app-markdown/renderer';
+import type { TasksAppProps } from '@tnet/app-tasks/renderer';
+
+const CodeApp = lazy(() =>
+  import('@renderer/apps/code/CodeApp').then((module) => ({ default: module.CodeApp }))
+);
+const PapersApp = lazy(() =>
+  import('@tnet/app-papers/renderer').then((module) => ({ default: module.PapersApp }))
+);
+const PapersRuntime = lazy(() =>
+  import('@tnet/app-papers/renderer').then((module) => ({ default: module.PapersRuntime }))
+);
+const PapersSettingsDialog = lazy(() =>
+  import('@tnet/app-papers/renderer').then((module) => ({
+    default: module.PapersSettingsDialog
+  }))
+);
+const PapersSidebar = lazy(() =>
+  import('@tnet/app-papers/renderer').then((module) => ({ default: module.PapersSidebar }))
+);
+const RequesterApp = lazy(() =>
+  import('@tnet/app-requester/renderer').then((module) => ({ default: module.RequesterApp }))
+);
+const RequesterRuntime = lazy(() =>
+  import('@tnet/app-requester/renderer').then((module) => ({
+    default: module.RequesterRuntime
+  }))
+);
+const RequesterSettingsDialog = lazy(() =>
+  import('@tnet/app-requester/renderer').then((module) => ({
+    default: module.RequesterSettingsDialog
+  }))
+);
+const RequesterSidebar = lazy(() =>
+  import('@tnet/app-requester/renderer').then((module) => ({
+    default: module.RequesterSidebar
+  }))
+);
+const DbInspectorApp = lazy(() =>
+  import('@tnet/app-db-inspector/renderer').then((module) => ({
+    default: module.DbInspectorApp
+  }))
+);
+const DbInspectorRuntime = lazy(() =>
+  import('@tnet/app-db-inspector/renderer').then((module) => ({
+    default: module.DbInspectorRuntime
+  }))
+);
+const DbInspectorSettingsDialog = lazy(() =>
+  import('@tnet/app-db-inspector/renderer').then((module) => ({
+    default: module.DbInspectorSettingsDialog
+  }))
+);
+const DbInspectorSidebar = lazy(() =>
+  import('@tnet/app-db-inspector/renderer').then((module) => ({
+    default: module.DbInspectorSidebar
+  }))
+);
+const MarkdownApp = lazy(() =>
+  import('@tnet/app-markdown/renderer').then((module) => ({ default: module.MarkdownApp }))
+);
+const MarkdownRuntime = lazy(() =>
+  import('@tnet/app-markdown/renderer').then((module) => ({ default: module.MarkdownRuntime }))
+);
+const MarkdownSettingsDialog = lazy(() =>
+  import('@tnet/app-markdown/renderer').then((module) => ({
+    default: module.MarkdownSettingsDialog
+  }))
+);
+const MarkdownSidebar = lazy(() =>
+  import('@tnet/app-markdown/renderer').then((module) => ({ default: module.MarkdownSidebar }))
+);
+const TasksApp = lazy(() =>
+  import('@tnet/app-tasks/renderer').then((module) => ({ default: module.TasksApp }))
+);
+const TasksRuntime = lazy(() =>
+  import('@tnet/app-tasks/renderer').then((module) => ({ default: module.TasksRuntime }))
+);
+const TasksSettingsDialog = lazy(() =>
+  import('@tnet/app-tasks/renderer').then((module) => ({
+    default: module.TasksSettingsDialog
+  }))
+);
+const TasksSidebar = lazy(() =>
+  import('@tnet/app-tasks/renderer').then((module) => ({ default: module.TasksSidebar }))
+);
+const PdfViewerApp = lazy(() =>
+  import('@tnet/app-pdf-viewer/renderer').then((module) => ({ default: module.PdfViewerApp }))
+);
+const PdfViewerRuntime = lazy(() =>
+  import('@tnet/app-pdf-viewer/renderer').then((module) => ({
+    default: module.PdfViewerRuntime
+  }))
+);
+const PdfViewerSettingsDialog = lazy(() =>
+  import('@tnet/app-pdf-viewer/renderer').then((module) => ({
+    default: module.PdfViewerSettingsDialog
+  }))
+);
+const PdfViewerSidebar = lazy(() =>
+  import('@tnet/app-pdf-viewer/renderer').then((module) => ({
+    default: module.PdfViewerSidebar
+  }))
+);
+const RssApp = lazy(() =>
+  import('@tnet/app-rss/renderer').then((module) => ({ default: module.RssApp }))
+);
+const RssRuntime = lazy(() =>
+  import('@tnet/app-rss/renderer').then((module) => ({ default: module.RssRuntime }))
+);
+const RssSettingsDialog = lazy(() =>
+  import('@tnet/app-rss/renderer').then((module) => ({ default: module.RssSettingsDialog }))
+);
+const RssSidebar = lazy(() =>
+  import('@tnet/app-rss/renderer').then((module) => ({ default: module.RssSidebar }))
+);
 
 export interface AppModule {
   id: AppId;

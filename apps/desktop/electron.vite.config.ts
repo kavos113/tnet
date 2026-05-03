@@ -27,6 +27,9 @@ const workspacePackages = [
 const nodeExternal = [
   'electron',
   'better-sqlite3',
+  'googleapis',
+  'openai',
+  '@google/genai',
   'pg-native',
   'bufferutil',
   'utf-8-validate',
