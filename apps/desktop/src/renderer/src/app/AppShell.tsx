@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import type { MarkdownAppProps } from '@tnet/app-markdown/renderer';
 import type { TasksAppProps } from '@tnet/app-tasks/renderer';
@@ -85,21 +85,23 @@ export const AppShell = (): React.JSX.Element => {
         activeAppId={activeAppId}
         onSelect={(appId) => dispatch(setActiveApp(appId))}
       />
-      {isAppRestored && ActiveRuntime ? <ActiveRuntime /> : null}
-      {isAppRestored && ActiveSidebar ? <ActiveSidebar /> : null}
-      {isAppRestored ? (
-        activeAppId === 'tasks' ? (
-          <TasksMain
-            portalShortcuts={portalShortcuts}
-            onSelectPortalApp={(appId) => dispatch(setActiveApp(appId))}
-            onOpenTasksSettings={() => setIsSettingsOpen(true)}
-          />
-        ) : activeAppId === 'markdown' ? (
-          <MarkdownMain onOpenPdfLink={openPdfLink} />
-        ) : (
-          <ActiveApp />
-        )
-      ) : null}
+      <Suspense fallback={<main aria-label={activeModule.label} className={styles.loading} />}>
+        {isAppRestored && ActiveRuntime ? <ActiveRuntime /> : null}
+        {isAppRestored && ActiveSidebar ? <ActiveSidebar /> : null}
+        {isAppRestored ? (
+          activeAppId === 'tasks' ? (
+            <TasksMain
+              portalShortcuts={portalShortcuts}
+              onSelectPortalApp={(appId) => dispatch(setActiveApp(appId))}
+              onOpenTasksSettings={() => setIsSettingsOpen(true)}
+            />
+          ) : activeAppId === 'markdown' ? (
+            <MarkdownMain onOpenPdfLink={openPdfLink} />
+          ) : (
+            <ActiveApp />
+          )
+        ) : null}
+      </Suspense>
       <AppSettingsCenter
         isOpen={isSettingsOpen}
         activeAppId={activeAppId}

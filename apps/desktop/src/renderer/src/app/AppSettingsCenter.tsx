@@ -1,26 +1,68 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import type { AppId } from '@tnet/shared/app/appTypes';
-import {
-  MarkdownGlobalSettingsPage,
-  MarkdownWorkspaceSettingsPage
-} from '@tnet/app-markdown/renderer';
-import { PapersGlobalSettingsPage, PapersWorkspaceSettingsPage } from '@tnet/app-papers/renderer';
-import {
-  RequesterGlobalSettingsPage,
-  RequesterWorkspaceSettingsPage
-} from '@tnet/app-requester/renderer';
-import {
-  DbInspectorGlobalSettingsPage,
-  DbInspectorWorkspaceSettingsPage
-} from '@tnet/app-db-inspector/renderer';
-import { TasksGlobalSettingsPage } from '@tnet/app-tasks/renderer';
-import {
-  PdfViewerGlobalSettingsPage,
-  PdfViewerWorkspaceSettingsPage
-} from '@tnet/app-pdf-viewer/renderer';
-import { RssGlobalSettingsPage } from '@tnet/app-rss/renderer';
 import { SettingsCenterDialog, type SettingsCenterPage } from '@tnet/ui/settings';
 import { useAppSelector } from './hooks';
+
+const TasksGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-tasks/renderer').then((module) => ({
+    default: module.TasksGlobalSettingsPage
+  }))
+);
+const MarkdownGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-markdown/renderer').then((module) => ({
+    default: module.MarkdownGlobalSettingsPage
+  }))
+);
+const MarkdownWorkspaceSettingsPage = lazy(() =>
+  import('@tnet/app-markdown/renderer').then((module) => ({
+    default: module.MarkdownWorkspaceSettingsPage
+  }))
+);
+const PapersGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-papers/renderer').then((module) => ({
+    default: module.PapersGlobalSettingsPage
+  }))
+);
+const PapersWorkspaceSettingsPage = lazy(() =>
+  import('@tnet/app-papers/renderer').then((module) => ({
+    default: module.PapersWorkspaceSettingsPage
+  }))
+);
+const RequesterGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-requester/renderer').then((module) => ({
+    default: module.RequesterGlobalSettingsPage
+  }))
+);
+const RequesterWorkspaceSettingsPage = lazy(() =>
+  import('@tnet/app-requester/renderer').then((module) => ({
+    default: module.RequesterWorkspaceSettingsPage
+  }))
+);
+const RssGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-rss/renderer').then((module) => ({
+    default: module.RssGlobalSettingsPage
+  }))
+);
+const DbInspectorGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-db-inspector/renderer').then((module) => ({
+    default: module.DbInspectorGlobalSettingsPage
+  }))
+);
+const DbInspectorWorkspaceSettingsPage = lazy(() =>
+  import('@tnet/app-db-inspector/renderer').then((module) => ({
+    default: module.DbInspectorWorkspaceSettingsPage
+  }))
+);
+const PdfViewerGlobalSettingsPage = lazy(() =>
+  import('@tnet/app-pdf-viewer/renderer').then((module) => ({
+    default: module.PdfViewerGlobalSettingsPage
+  }))
+);
+const PdfViewerWorkspaceSettingsPage = lazy(() =>
+  import('@tnet/app-pdf-viewer/renderer').then((module) => ({
+    default: module.PdfViewerWorkspaceSettingsPage
+  }))
+);
 
 interface AppSettingsCenterProps {
   isOpen: boolean;
@@ -49,7 +91,7 @@ export const AppSettingsCenter = ({
         appIcon: 'task_alt',
         scopeLabel: 'Global',
         title: 'Tasks Global',
-        content: <TasksGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<TasksGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'markdown-global',
@@ -58,7 +100,7 @@ export const AppSettingsCenter = ({
         appIcon: 'edit_note',
         scopeLabel: 'Global',
         title: 'Markdown Global',
-        content: <MarkdownGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<MarkdownGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'markdown-workspace',
@@ -67,7 +109,7 @@ export const AppSettingsCenter = ({
         appIcon: 'edit_note',
         scopeLabel: 'Workspace',
         title: markdownRootPath ? 'Markdown Workspace' : 'Markdown Workspace',
-        content: <MarkdownWorkspaceSettingsPage onClose={onClose} />
+        content: lazyContent(<MarkdownWorkspaceSettingsPage onClose={onClose} />)
       },
       {
         id: 'papers-global',
@@ -76,7 +118,7 @@ export const AppSettingsCenter = ({
         appIcon: 'article',
         scopeLabel: 'Global',
         title: 'Papers Global',
-        content: <PapersGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<PapersGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'papers-workspace',
@@ -85,7 +127,7 @@ export const AppSettingsCenter = ({
         appIcon: 'article',
         scopeLabel: 'Workspace',
         title: papersLibraryRoot ? 'Papers Workspace' : 'Papers Workspace',
-        content: <PapersWorkspaceSettingsPage onClose={onClose} />
+        content: lazyContent(<PapersWorkspaceSettingsPage onClose={onClose} />)
       },
       {
         id: 'requester-global',
@@ -94,7 +136,7 @@ export const AppSettingsCenter = ({
         appIcon: 'api',
         scopeLabel: 'Global',
         title: 'Requester Global',
-        content: <RequesterGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<RequesterGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'requester-workspace',
@@ -103,7 +145,7 @@ export const AppSettingsCenter = ({
         appIcon: 'api',
         scopeLabel: 'Workspace',
         title: requesterWorkspaceId ? 'Requester Workspace' : 'Requester Workspace',
-        content: <RequesterWorkspaceSettingsPage onClose={onClose} />
+        content: lazyContent(<RequesterWorkspaceSettingsPage onClose={onClose} />)
       },
       {
         id: 'rss-global',
@@ -112,7 +154,7 @@ export const AppSettingsCenter = ({
         appIcon: 'rss_feed',
         scopeLabel: 'Global',
         title: 'RSS Global',
-        content: <RssGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<RssGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'db-inspector-global',
@@ -121,7 +163,7 @@ export const AppSettingsCenter = ({
         appIcon: 'storage',
         scopeLabel: 'Global',
         title: 'DB Inspector Global',
-        content: <DbInspectorGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<DbInspectorGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'db-inspector-workspace',
@@ -130,7 +172,7 @@ export const AppSettingsCenter = ({
         appIcon: 'storage',
         scopeLabel: 'Workspace',
         title: dbInspectorWorkspaceId ? 'DB Inspector Workspace' : 'DB Inspector Workspace',
-        content: <DbInspectorWorkspaceSettingsPage onClose={onClose} />
+        content: lazyContent(<DbInspectorWorkspaceSettingsPage onClose={onClose} />)
       },
       {
         id: 'pdf-viewer-global',
@@ -139,7 +181,7 @@ export const AppSettingsCenter = ({
         appIcon: 'picture_as_pdf',
         scopeLabel: 'Global',
         title: 'PDF Viewer Global',
-        content: <PdfViewerGlobalSettingsPage onClose={onClose} />
+        content: lazyContent(<PdfViewerGlobalSettingsPage onClose={onClose} />)
       },
       {
         id: 'pdf-viewer-workspace',
@@ -148,7 +190,7 @@ export const AppSettingsCenter = ({
         appIcon: 'picture_as_pdf',
         scopeLabel: 'Workspace',
         title: pdfViewerRootPath ? 'PDF Viewer Workspace' : 'PDF Viewer Workspace',
-        content: <PdfViewerWorkspaceSettingsPage onClose={onClose} />
+        content: lazyContent(<PdfViewerWorkspaceSettingsPage onClose={onClose} />)
       }
     ],
     [
@@ -198,6 +240,10 @@ export const AppSettingsCenter = ({
     />
   );
 };
+
+const lazyContent = (content: React.ReactNode): React.JSX.Element => (
+  <Suspense fallback={null}>{content}</Suspense>
+);
 
 const getInitialPageId = (appId: AppId, hasWorkspace: boolean): string => {
   if (appId === 'markdown') return hasWorkspace ? 'markdown-workspace' : 'markdown-global';

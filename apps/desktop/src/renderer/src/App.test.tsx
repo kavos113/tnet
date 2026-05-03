@@ -244,9 +244,7 @@ describe('App', () => {
     const shortcuts = await screen.findByLabelText('App shortcuts');
     fireEvent.click(within(shortcuts).getByRole('button', { name: 'Markdown' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('No file selected')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('No file selected', {}, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('switches between app modules from the app rail', async () => {
@@ -260,23 +258,21 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Papers' }));
 
-    expect(screen.getByRole('main', { name: 'Papers' })).toBeInTheDocument();
+    expect(await screen.findByRole('main', { name: 'Papers' })).toBeInTheDocument();
     expect(screen.queryByText('No folder selected')).not.toBeInTheDocument();
     expect(getFileTree).not.toHaveBeenCalled();
     expect(sessionLoad).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Code' }));
 
-    expect(screen.getByRole('main', { name: 'Code' })).toBeInTheDocument();
+    expect(await screen.findByRole('main', { name: 'Code' })).toBeInTheDocument();
     expect(screen.queryByText('No folder selected')).not.toBeInTheDocument();
     expect(getFileTree).not.toHaveBeenCalled();
     expect(sessionLoad).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Markdown' }));
 
-    await waitFor(() => {
-      expect(screen.getByText('No file selected')).toBeInTheDocument();
-    });
+    expect(await screen.findByText('No file selected', {}, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('opens the requester app module from the app rail', async () => {
@@ -288,7 +284,7 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Requester' }));
 
-    expect(screen.getByRole('main', { name: 'Requester' })).toBeInTheDocument();
+    expect(await screen.findByRole('main', { name: 'Requester' })).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText('Create a request workspace to begin.')).toBeInTheDocument();
     });
@@ -303,7 +299,7 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'DB Inspector' }));
 
-    expect(screen.getByRole('main', { name: 'DB Inspector' })).toBeInTheDocument();
+    expect(await screen.findByRole('main', { name: 'DB Inspector' })).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText('Select a table from the schema tree.')).toBeInTheDocument();
     });
@@ -334,7 +330,7 @@ describe('App', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'PDF Viewer' }));
 
-    expect(screen.getByRole('main', { name: 'PDF Viewer' })).toBeInTheDocument();
+    expect(await screen.findByRole('main', { name: 'PDF Viewer' })).toBeInTheDocument();
     await waitFor(() => {
       expect(window.tnet.workspace.getFileTree).toHaveBeenCalledWith('C:/workspace/pdfs');
     });
