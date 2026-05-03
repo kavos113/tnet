@@ -72,12 +72,26 @@ export const TasksDetailsPanel = ({
           </button>
         </header>
         <div className={styles.body}>
+          {readOnlyItem ? <CategoryHeadline item={readOnlyItem} /> : null}
           {readOnlyItem ? <ReadOnlyDetails item={readOnlyItem} /> : children}
         </div>
       </aside>
     </div>
   );
 };
+
+const CategoryHeadline = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): React.JSX.Element | null => {
+  if (item.type === 'task' && item.task.category) {
+    return <h3 className={styles.categoryHeadline}>{item.task.category}</h3>;
+  } else if (item.type === 'task' && item.sourceName) {
+    return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
+  } else if (item.type === 'subscription-task' && item.sourceName) {
+    return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
+  } else if (item.type === 'subscription-event' && item.sourceName) {
+    return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
+  }
+  return null;
+}
 
 const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): React.JSX.Element => {
   if (item.type === 'task') {
@@ -89,8 +103,6 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
           {formatTaskDeadline(task)}
           {task.completedAt ? ' completed' : ''}
         </p>
-        {task.category ? <p className={styles.meta}>Category: {task.category}</p> : null}
-        {item.sourceName ? <p className={styles.meta}>Subscription: {item.sourceName}</p> : null}
         {task.notes ? <p className={styles.description}>{task.notes}</p> : null}
         {item.onEdit ? (
           <button type="button" className={styles.primaryButton} onClick={item.onEdit}>
@@ -130,7 +142,6 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
           {task.deadlineTime ? ` ${task.deadlineTime}` : ''} subscribed
           {task.completedAt ? ' completed' : ''}
         </p>
-        {item.sourceName ? <p className={styles.meta}>Subscription: {item.sourceName}</p> : null}
         {task.description ? <p className={styles.description}>{task.description}</p> : null}
       </div>
     );
@@ -143,7 +154,6 @@ const ReadOnlyDetails = ({ item }: { item: TasksDetailsPanelReadOnlyItem }): Rea
       <p className={styles.meta}>
         {event.allDay ? 'All day' : `${event.startsAt} - ${event.endsAt}`} subscribed
       </p>
-      {item.sourceName ? <p className={styles.meta}>Subscription: {item.sourceName}</p> : null}
       {event.location ? <p className={styles.meta}>{event.location}</p> : null}
       {event.description ? <p className={styles.description}>{event.description}</p> : null}
     </div>
