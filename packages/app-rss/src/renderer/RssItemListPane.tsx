@@ -1,6 +1,7 @@
 import type { RssFeed, RssItem } from '@tnet/app-rss/shared/rssTypes';
 import { formatRssDate } from './formatRssDate';
-import styles from './RssApp.module.css';
+import controlStyles from './RssControls.module.css';
+import styles from './RssItemListPane.module.css';
 
 interface RssItemListPaneProps {
   isSyncing: boolean;
@@ -43,7 +44,7 @@ export const RssItemListPane = ({
       {selectedFeed ? (
         <div className={styles.feedActions} aria-label="Selected feed actions">
           <button
-            className={styles.iconButton}
+            className={controlStyles.iconButton}
             type="button"
             title="Sync selected feed"
             onClick={() => onSyncSelectedFeed().catch(onError)}
@@ -51,7 +52,7 @@ export const RssItemListPane = ({
             sync
           </button>
           <button
-            className={styles.iconButton}
+            className={controlStyles.iconButton}
             type="button"
             title="Rename selected feed"
             onClick={() => onRenameSelectedFeed().catch(onError)}
@@ -59,7 +60,7 @@ export const RssItemListPane = ({
             edit
           </button>
           <button
-            className={styles.iconButton}
+            className={controlStyles.iconButton}
             type="button"
             title="Move selected feed"
             onClick={() => onMoveSelectedFeed().catch(onError)}
@@ -67,7 +68,7 @@ export const RssItemListPane = ({
             drive_file_move
           </button>
           <button
-            className={styles.iconButton}
+            className={controlStyles.iconButton}
             type="button"
             title="Delete selected feed"
             onClick={() => onDeleteSelectedFeed().catch(onError)}
@@ -77,7 +78,7 @@ export const RssItemListPane = ({
         </div>
       ) : null}
       <button
-        className={styles.secondaryButton}
+        className={controlStyles.secondaryButton}
         type="button"
         onClick={() => onSyncAll().catch(onError)}
       >
@@ -86,7 +87,7 @@ export const RssItemListPane = ({
     </div>
     <div className={styles.form}>
       <input
-        className={styles.input}
+        className={controlStyles.input}
         value={searchQuery}
         onChange={(event) => onSearchQueryChange(event.target.value)}
         placeholder="Search items"
@@ -118,7 +119,7 @@ export const RssItemListPane = ({
       ))}
       {nextCursor ? (
         <button
-          className={styles.secondaryButton}
+          className={controlStyles.secondaryButton}
           type="button"
           onClick={() => onLoadMore().catch(onError)}
         >

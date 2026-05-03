@@ -1,0 +1,27 @@
+.placeholder {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  color: var(--foreground-muted);
+  background: var(--background);
+}
+
+.placeholderContent {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  max-width: 320px;
+  padding: 24px;
+  text-align: center;
+}
+
+.placeholderIcon {
+  font-size: 34px;
+  color: var(--foreground);
+}
+
+.placeholderIcon:global(.material-icons-round) {
+  font-size: 34px;
+}

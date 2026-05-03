@@ -11,7 +11,8 @@ import {
   getSubscribedTaskAccentColor,
   getTaskAccentColor
 } from '../../utils/taskColors';
-import styles from './TasksAgenda.module.css';
+import rowStyles from './TasksAgendaRows.module.css';
+import styles from './TasksAgendaSections.module.css';
 
 export const TaskSection = ({
   title,
@@ -87,15 +88,19 @@ export const EventSection = ({
         {events.map((event) => (
           <li
             key={event.id}
-            className={`${styles.item} ${styles.readOnlyItem}`}
+            className={`${rowStyles.item} ${rowStyles.readOnlyItem}`}
             style={accentColorStyle(
               'sourceId' in event ? getSubscribedEventAccentColor(event, sourceColors) : undefined
             )}
           >
-            <button type="button" className={styles.rowButton} onClick={() => onEventOpen(event)}>
-              <div className={styles.body}>
-                <span className={styles.title}>{event.title}</span>
-                <span className={styles.meta}>
+            <button
+              type="button"
+              className={rowStyles.rowButton}
+              onClick={() => onEventOpen(event)}
+            >
+              <div className={rowStyles.body}>
+                <span className={rowStyles.title}>{event.title}</span>
+                <span className={rowStyles.meta}>
                   {event.allDay
                     ? 'All day'
                     : `${event.startsAt.slice(11, 16)}-${event.endsAt.slice(11, 16)}`}

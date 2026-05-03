@@ -4,7 +4,7 @@ import type {
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { formatExportValue, rowsToCsv, rowToTsv } from '@tnet/app-db-inspector/shared/tableExport';
 import { useState } from 'react';
-import appStyles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorShared.module.css';
 import styles from './DbInspectorTableGrid.module.css';
 
 interface DbInspectorTableGridProps {

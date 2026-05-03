@@ -17,6 +17,7 @@ import {
   type PdfViewMode,
   type PdfZoomMode
 } from './pdfViewerLayout';
+import pageStyles from './PdfPageCanvas.module.css';
 import styles from './PdfViewer.module.css';
 
 interface PdfViewerProps {
@@ -120,14 +121,14 @@ const PdfPageCanvas = ({
   }, [pageNumber, pagesInRow, pdfDocument, viewportSize.height, viewportSize.width, zoom]);
 
   return (
-    <figure className={styles.page} aria-label={`PDF page ${pageNumber}`}>
+    <figure className={pageStyles.page} aria-label={`PDF page ${pageNumber}`}>
       <canvas
         ref={canvasRef}
-        className={styles.canvas}
+        className={pageStyles.canvas}
         aria-label={`PDF page ${pageNumber} canvas`}
       />
-      {isRendering ? <div className={styles.renderingState}>Rendering page...</div> : null}
-      {error ? <div className={styles.pageError}>{error}</div> : null}
+      {isRendering ? <div className={pageStyles.renderingState}>Rendering page...</div> : null}
+      {error ? <div className={pageStyles.pageError}>{error}</div> : null}
     </figure>
   );
 };

@@ -1,0 +1,90 @@
+.clockHeader {
+  display: flex;
+  gap: 18px;
+  align-items: end;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.clockGroup {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.clock {
+  color: var(--foreground);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.clockCompact {
+  font-size: 26px;
+}
+
+.dateLabel {
+  color: var(--foreground-muted);
+  font-size: 13px;
+}
+
+.headerActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.portalShortcuts {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.portalShortcut {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--background-dark);
+  border-radius: 4px;
+}
+
+.portalShortcut:hover {
+  color: var(--foreground);
+  background: var(--background-light);
+}
+
+.portalIcon:global(.material-icons-round) {
+  font-size: 18px;
+}
+
+.viewControls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.viewButton {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  height: 30px;
+  padding: 0 10px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
+.viewButtonActive,
+.viewButton:hover {
+  background: var(--background-light);
+}

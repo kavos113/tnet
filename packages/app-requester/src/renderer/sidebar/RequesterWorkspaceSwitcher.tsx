@@ -1,5 +1,5 @@
 import type { RequesterWorkspace } from '@tnet/app-requester/shared/requesterTypes';
-import styles from '../RequesterShared.module.css';
+import styles from '../RequesterWorkspaceSwitcher.module.css';
 
 interface RequesterWorkspaceSwitcherProps {
   workspaces: RequesterWorkspace[];

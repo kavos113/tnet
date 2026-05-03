@@ -1,0 +1,53 @@
+.documentPanel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.documentPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.panelList {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  list-style: none;
+}
+
+.panelListButton {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  text-align: left;
+  cursor: pointer;
+}
+
+.panelListButton:hover {
+  background: #eef2f7;
+}
+
+.panelListButton:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.nestedList {
+  margin-left: 10px;
+}

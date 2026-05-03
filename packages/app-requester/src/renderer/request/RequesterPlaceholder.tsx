@@ -1,4 +1,4 @@
-import styles from '../RequesterShared.module.css';
+import styles from '../RequesterPlaceholder.module.css';
 
 interface RequesterPlaceholderProps {
   icon: string;

@@ -12,7 +12,7 @@ import {
   taskDraftFromEventDraft,
   type TasksDetailsPanelState
 } from '../../state/tasksDetailsState';
-import styles from '../app/TasksApp.module.css';
+import styles from './TasksDetailsKind.module.css';
 
 export interface TasksEditableDetailsPaneProps {
   calendarTasks: TaskItem[];

@@ -1,0 +1,28 @@
+.tabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 6px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.tabButton {
+  display: grid;
+  width: 34px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.tabButton:hover {
+  background: #eef2f7;
+}
+
+.tabButtonActive {
+  border-color: #d8dee8;
+  background: #ffffff;
+}

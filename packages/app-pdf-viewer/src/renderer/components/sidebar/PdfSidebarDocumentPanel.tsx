@@ -7,7 +7,8 @@ import { PdfAnnotationsPanel } from './document/PdfAnnotationsPanel';
 import { PdfOutlinePanel } from './document/PdfOutlinePanel';
 import { PdfSearchPanel } from './document/PdfSearchPanel';
 import { PdfThumbnailsPanel } from './document/PdfThumbnailsPanel';
-import styles from '../../PdfViewerSidebar.module.css';
+import sharedStyles from '../../PdfSidebarShared.module.css';
+import styles from './PdfSidebarDocumentPanel.module.css';
 
 const panelLabels: Record<Exclude<PdfViewerSidebarPanel, 'files'>, string> = {
   outline: 'Outline',
@@ -43,17 +44,17 @@ export const PdfSidebarDocumentPanel = ({
   return (
     <section className={styles.documentPanel} aria-label={`PDF ${label}`}>
       <header className={styles.documentPanelHeader}>
-        <span className={styles.title}>{label}</span>
+        <span className={sharedStyles.title}>{label}</span>
         {activePath ? (
-          <span className={styles.pageBadge}>
+          <span className={sharedStyles.pageBadge}>
             Page {activePage}
             {pageCount ? ` / ${pageCount}` : ''}
           </span>
         ) : null}
       </header>
-      {!activePath ? <div className={styles.empty}>Open a PDF to use {label}.</div> : null}
-      {activePath && isLoading ? <div className={styles.empty}>Loading PDF...</div> : null}
-      {activePath && error ? <div className={styles.empty}>{error}</div> : null}
+      {!activePath ? <div className={sharedStyles.empty}>Open a PDF to use {label}.</div> : null}
+      {activePath && isLoading ? <div className={sharedStyles.empty}>Loading PDF...</div> : null}
+      {activePath && error ? <div className={sharedStyles.empty}>{error}</div> : null}
       {activePath && pdfDocument ? (
         <PdfDocumentPanelContent
           panel={panel}

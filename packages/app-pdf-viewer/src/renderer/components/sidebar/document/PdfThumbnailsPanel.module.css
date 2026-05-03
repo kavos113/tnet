@@ -1,0 +1,35 @@
+.thumbnailList {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px;
+  overflow: auto;
+}
+
+.thumbnailButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.thumbnailButtonActive {
+  border-color: #4f7cff;
+  background: #eef4ff;
+}
+
+.thumbnailPlaceholder {
+  display: block;
+  width: 120px;
+  height: 156px;
+  border: 1px dashed #d8dee8;
+  background: #f5f7fa;
+}

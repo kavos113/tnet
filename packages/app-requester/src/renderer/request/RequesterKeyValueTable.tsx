@@ -1,5 +1,5 @@
 import type { RequesterKeyValueRow } from '@tnet/app-requester/shared/requesterTypes';
-import sharedStyles from '../RequesterShared.module.css';
+import controlStyles from '../RequesterControls.module.css';
 import { createEmptyRow, updateKeyValueRow } from './requesterAppHelpers';
 import styles from './RequesterKeyValueTable.module.css';
 
@@ -19,7 +19,7 @@ export const RequesterKeyValueTable = ({
       <h2 className={styles.title}>{label}</h2>
       <button
         type="button"
-        className={sharedStyles.openButton}
+        className={controlStyles.openButton}
         onClick={() => onChange([...rows, createEmptyRow()])}
       >
         Add
@@ -54,7 +54,7 @@ export const RequesterKeyValueTable = ({
           />
           <button
             type="button"
-            className={`${sharedStyles.iconButton} material-icons-round`}
+            className={`${controlStyles.iconButton} material-icons-round`}
             aria-label={`Remove ${label} row`}
             onClick={() => onChange(rows.filter((item) => item.id !== row.id))}
           >

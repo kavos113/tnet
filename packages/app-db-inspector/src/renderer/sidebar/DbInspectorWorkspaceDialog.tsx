@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { DbInspectorWorkspace } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import type { DbInspectorWorkspaceDraft } from '../dbInspectorActions';
-import appStyles from '../DbInspectorApp.module.css';
-import styles from './DbInspectorSidebar.module.css';
+import appStyles from '../DbInspectorShared.module.css';
+import dialogStyles from './DbInspectorWorkspaceDialog.module.css';
+import styles from './DbInspectorWorkspaceForm.module.css';
 
 interface DbInspectorWorkspaceDialogProps {
   isOpen: boolean;
@@ -36,14 +37,14 @@ export const DbInspectorWorkspaceDialog = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.dialogBackdrop} role="presentation">
+    <div className={dialogStyles.dialogBackdrop} role="presentation">
       <div
-        className={styles.workspaceDialog}
+        className={dialogStyles.workspaceDialog}
         role="dialog"
         aria-modal="true"
         aria-label="Edit DB workspace"
       >
-        <header className={styles.dialogHeader}>
+        <header className={dialogStyles.dialogHeader}>
           <strong>{workspace ? 'Edit Workspace' : 'Create Workspace'}</strong>
           <button className={appStyles.iconButton} type="button" onClick={onClose}>
             <span className="material-icons">close</span>
@@ -114,7 +115,7 @@ export const DbInspectorWorkspaceDialog = ({
         ) : (
           <ServerConnectionFields draft={draft} onDraftChange={setDraft} workspace={workspace} />
         )}
-        <footer className={styles.dialogActions}>
+        <footer className={dialogStyles.dialogActions}>
           {workspace ? (
             <button
               className={appStyles.button}

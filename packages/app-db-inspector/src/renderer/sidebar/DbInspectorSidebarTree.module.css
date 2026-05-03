@@ -1,0 +1,95 @@
+.workspaceTree {
+  display: grid;
+  gap: 2px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+}
+
+.workspaceTreeButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 4px;
+  padding: 4px 5px 4px 16px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workspaceTreeButton:hover,
+.treeButton:hover {
+  background: var(--background-light);
+}
+
+.workspaceTreeButton :global(.material-icons),
+.schemaName :global(.material-icons),
+.treeFolder :global(.material-icons),
+.treeButton :global(.material-icons),
+.treeItem :global(.material-icons) {
+  font-size: 16px;
+}
+
+.treeButtonActive {
+  background: var(--sidebar-hover);
+}
+
+.treeLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schemaTree {
+  min-height: 0;
+  overflow: auto;
+}
+
+.schemaGroup {
+  margin-bottom: 10px;
+}
+
+.schemaName {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.treeBranch {
+  margin-left: 8px;
+  border-left: 1px solid var(--color-border);
+  padding-left: 8px;
+}
+
+.treeFolder,
+.treeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 3px 4px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+}
+
+.treeButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 4px;
+  padding: 3px 5px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}

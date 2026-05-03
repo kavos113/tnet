@@ -1,0 +1,45 @@
+.iconButton {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+}
+
+.iconButton:global(.material-icons-round),
+.iconButton :global(.material-icons-round) {
+  font-size: 18px;
+}
+
+.iconButton:hover,
+.iconButtonActive {
+  background: var(--gray);
+}
+
+.openButton {
+  padding: 8px 16px;
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  background-color: var(--main-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+.openButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.secondaryButton {
+  padding: 8px 16px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--gray);
+  border: 0;
+  border-radius: 4px;
+}

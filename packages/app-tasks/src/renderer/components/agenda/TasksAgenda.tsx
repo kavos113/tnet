@@ -5,7 +5,7 @@ import type {
   TaskItem
 } from '@tnet/app-tasks/shared/tasksTypes';
 import { DeadlineSection, EventSection, TaskSection } from './TasksAgendaSections';
-import styles from './TasksAgenda.module.css';
+import styles from './TasksAgendaColumn.module.css';
 
 export interface TasksAgendaProps {
   categoryColors: Record<string, string>;

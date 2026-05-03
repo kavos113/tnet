@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { rssTnetApi } from './rssTnetApi';
 import { setRssError, setRssFeeds, setRssTree } from './rssSlice';
 import { useRssDispatch } from './storeHooks';
-import styles from './RssApp.module.css';
+import controlStyles from './RssControls.module.css';
+import styles from './RssSubscribePane.module.css';
 
 interface RssSubscribePaneProps {
   selectedFolderId?: string;
@@ -98,7 +99,7 @@ export const RssSubscribePane = ({
         <label className={styles.field}>
           <span>Title</span>
           <input
-            className={styles.input}
+            className={controlStyles.input}
             value={feedTitle}
             onChange={(event) => setFeedTitle(event.target.value)}
             placeholder="Feed title"
@@ -108,7 +109,7 @@ export const RssSubscribePane = ({
         <label className={styles.field}>
           <span>URL</span>
           <input
-            className={styles.input}
+            className={controlStyles.input}
             value={feedUrl}
             onChange={(event) => setFeedUrl(event.target.value)}
             onBlur={() => autoFillTitle().catch(reportError)}
@@ -117,32 +118,32 @@ export const RssSubscribePane = ({
           />
         </label>
         <div className={styles.subscribeActions}>
-          <button className={styles.button} type="submit">
+          <button className={controlStyles.button} type="submit">
             Subscribe
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() => discoverFeeds().catch(reportError)}
           >
             Discover
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() => importLocalXml().catch(reportError)}
           >
             Import XML
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() => importOpml().catch(reportError)}
           >
             Import OPML
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() => exportOpml().catch(reportError)}
           >

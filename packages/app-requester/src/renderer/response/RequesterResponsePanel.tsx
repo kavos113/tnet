@@ -5,7 +5,10 @@ import type {
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
-import sharedStyles from '../RequesterShared.module.css';
+import controlStyles from '../RequesterControls.module.css';
+import contentStyles from './RequesterResponseContent.module.css';
+import headersStyles from './RequesterResponseHeaders.module.css';
+import historyStyles from './RequesterResponseHistory.module.css';
 import styles from './RequesterResponsePanel.module.css';
 
 interface RequesterResponsePanelProps {
@@ -34,7 +37,7 @@ export const RequesterResponsePanel = ({
     {error ? (
       <section className={styles.error} aria-label="Response error details">
         <h3>Request failed</h3>
-        <dl className={styles.summary}>
+        <dl className={contentStyles.summary}>
           <div>
             <dt>Name</dt>
             <dd>{error.name}</dd>
@@ -48,7 +51,7 @@ export const RequesterResponsePanel = ({
             <dd>{error.cause ?? '-'}</dd>
           </div>
         </dl>
-        {error.stack ? <pre className={styles.body}>{error.stack}</pre> : null}
+        {error.stack ? <pre className={contentStyles.body}>{error.stack}</pre> : null}
       </section>
     ) : response ? (
       <RequesterResponseContent
@@ -60,13 +63,13 @@ export const RequesterResponsePanel = ({
     ) : (
       <p>Send a request to view the response.</p>
     )}
-    <section className={styles.history} aria-label="Request history">
+    <section className={historyStyles.history} aria-label="Request history">
       <h3>History</h3>
       {history.slice(0, 5).map((entry) => (
         <button
           type="button"
-          className={`${styles.historyRow} ${
-            entry.id === selectedHistoryId ? styles.historyRowSelected : ''
+          className={`${historyStyles.historyRow} ${
+            entry.id === selectedHistoryId ? historyStyles.historyRowSelected : ''
           }`}
           key={entry.id}
           onClick={() => onSelectHistory(entry.id)}
@@ -97,7 +100,7 @@ const RequesterResponseContent = ({
 
   return (
     <>
-      <dl className={styles.summary}>
+      <dl className={contentStyles.summary}>
         <div>
           <dt>Status</dt>
           <dd>
@@ -113,18 +116,18 @@ const RequesterResponseContent = ({
           <dd>{response.byteSize} bytes</dd>
         </div>
       </dl>
-      <div className={styles.actions}>
-        <button type="button" className={sharedStyles.openButton} onClick={onSaveResponse}>
+      <div className={contentStyles.actions}>
+        <button type="button" className={controlStyles.openButton} onClick={onSaveResponse}>
           Save Body
         </button>
-        <button type="button" className={sharedStyles.openButton} onClick={onOpenResponse}>
+        <button type="button" className={controlStyles.openButton} onClick={onOpenResponse}>
           Open
         </button>
       </div>
       {response.isBodyTruncated ? (
-        <p className={styles.errorText}>Response body preview was truncated at 1 MB.</p>
+        <p className={contentStyles.errorText}>Response body preview was truncated at 1 MB.</p>
       ) : null}
-      <section className={styles.detail} aria-label="Response details">
+      <section className={contentStyles.detail} aria-label="Response details">
         <div>
           <span>Content-Type</span>
           <strong>{response.contentType || '-'}</strong>
@@ -138,12 +141,12 @@ const RequesterResponseContent = ({
           <strong>{response.isBodyTruncated ? 'yes' : 'no'}</strong>
         </div>
       </section>
-      <section className={styles.headers} aria-label="Response headers">
+      <section className={headersStyles.headers} aria-label="Response headers">
         <h3>Headers</h3>
         {response.headers.length > 0 ? (
-          <div className={styles.headerGrid}>
+          <div className={headersStyles.headerGrid}>
             {response.headers.map((header) => (
-              <div className={styles.headerRow} key={header.id}>
+              <div className={headersStyles.headerRow} key={header.id}>
                 <span>{header.key}</span>
                 <span>{header.value}</span>
               </div>
@@ -153,12 +156,12 @@ const RequesterResponseContent = ({
           <p>No headers.</p>
         )}
       </section>
-      <section className={styles.extractionPreview} aria-label="Extraction preview">
+      <section className={headersStyles.extractionPreview} aria-label="Extraction preview">
         <h3>Extraction Preview</h3>
         {previewVariables.length > 0 ? (
-          <div className={styles.headerGrid}>
+          <div className={headersStyles.headerGrid}>
             {previewVariables.map((variable) => (
-              <div className={styles.headerRow} key={variable.key}>
+              <div className={headersStyles.headerRow} key={variable.key}>
                 <span>{variable.key}</span>
                 <span>{variable.value}</span>
               </div>
@@ -170,18 +173,18 @@ const RequesterResponseContent = ({
       </section>
       {response.previewType === 'image' ? (
         <img
-          className={styles.image}
+          className={contentStyles.image}
           alt="Response preview"
           src={`data:${response.contentType};base64,${response.bodyBase64}`}
         />
       ) : response.previewType === 'pdf' ? (
         <iframe
-          className={styles.pdf}
+          className={contentStyles.pdf}
           title="PDF response preview"
           src={`data:application/pdf;base64,${response.bodyBase64}`}
         />
       ) : (
-        <pre className={styles.body}>{response.bodyText}</pre>
+        <pre className={contentStyles.body}>{response.bodyText}</pre>
       )}
     </>
   );

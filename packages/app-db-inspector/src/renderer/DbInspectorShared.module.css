@@ -1,0 +1,87 @@
+.segmentedControl {
+  display: inline-flex;
+  overflow: hidden;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.segmentedControl button {
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  padding: 4px 8px;
+  color: inherit;
+  background: var(--background);
+  cursor: pointer;
+}
+
+.segmentedControl button:last-child {
+  border-right: 0;
+}
+
+.segmentedControl button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.segmentedActive,
+.segmentedButtonActive {
+  color: var(--foreground);
+  background: var(--tab-active-bg) !important;
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+  font-weight: 600;
+}
+
+.button,
+.iconButton {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  color: inherit;
+  background: var(--background);
+  cursor: pointer;
+}
+
+.iconButton {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+}
+
+.button:disabled,
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.select,
+.input {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 5px 7px;
+  color: inherit;
+  background: var(--background);
+}
+
+.empty,
+.error,
+.warning {
+  margin: 16px;
+  color: var(--foreground-muted);
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.warning {
+  color: var(--color-warning, #b45309);
+}
+
+.mutedText {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}

@@ -1,6 +1,6 @@
 import type { DbInspectorWorkspaceDraft } from '../dbInspectorActions';
-import appStyles from '../DbInspectorApp.module.css';
-import styles from './DbInspectorSidebar.module.css';
+import appStyles from '../DbInspectorShared.module.css';
+import styles from './DbInspectorWorkspaceForm.module.css';
 
 interface DbInspectorWorkspaceFormProps {
   draft: DbInspectorWorkspaceDraft;

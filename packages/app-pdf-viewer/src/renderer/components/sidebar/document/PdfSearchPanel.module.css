@@ -1,0 +1,28 @@
+.searchPanel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px;
+}
+
+.searchInput {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+}
+
+.searchActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.searchActions button {
+  height: 28px;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  background: #ffffff;
+}

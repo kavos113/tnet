@@ -86,13 +86,13 @@ const CategoryHeadline = ({
   item: TasksDetailsPanelReadOnlyItem;
 }): React.JSX.Element | null => {
   if (item.type === 'task' && item.task.category) {
-    return <h3 className={styles.categoryHeadline}>{item.task.category}</h3>;
+    return <h3 className={styles.categoryHeadline}>Category: {item.task.category}</h3>;
   } else if (item.type === 'task' && item.sourceName) {
-    return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
+    return <h3 className={styles.categoryHeadline}>Subscription: {item.sourceName}</h3>;
   } else if (item.type === 'subscription-task' && item.sourceName) {
-    return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
+    return <h3 className={styles.categoryHeadline}>Subscription: {item.sourceName}</h3>;
   } else if (item.type === 'subscription-event' && item.sourceName) {
-    return <h3 className={styles.categoryHeadline}>{item.sourceName}</h3>;
+    return <h3 className={styles.categoryHeadline}>Subscription: {item.sourceName}</h3>;
   }
   return null;
 };

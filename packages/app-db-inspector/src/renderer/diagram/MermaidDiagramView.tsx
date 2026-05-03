@@ -10,7 +10,7 @@ import {
 } from './mermaidViewportMath';
 import { serializeMermaidSvg, svgMarkupToPngBase64 } from './mermaidExport';
 import { dbInspectorTnetApi } from '../dbInspectorTnetApi';
-import appStyles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorShared.module.css';
 import styles from './MermaidDiagramView.module.css';
 
 interface MermaidDiagramViewProps {

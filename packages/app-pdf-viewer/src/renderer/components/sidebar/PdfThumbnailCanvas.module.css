@@ -1,0 +1,16 @@
+.thumbnailCanvasWrap {
+  position: relative;
+  display: block;
+  min-height: 40px;
+}
+
+.thumbnailCanvas {
+  display: block;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 16%);
+}
+
+.thumbnailError {
+  color: #b42318;
+  font-size: 11px;
+}

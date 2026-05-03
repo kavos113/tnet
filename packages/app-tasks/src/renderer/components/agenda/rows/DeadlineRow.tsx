@@ -1,6 +1,6 @@
 import type { SubscribedTaskOccurrence, TaskItem } from '@tnet/app-tasks/shared/tasksTypes';
 import { accentColorStyle } from '../../../utils/taskColors';
-import styles from '../TasksAgenda.module.css';
+import styles from '../TasksAgendaRows.module.css';
 
 export const DeadlineRow = ({
   item,

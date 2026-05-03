@@ -1,0 +1,42 @@
+.addButton {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 8px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pageBadge {
+  flex: 0 0 auto;
+  color: #68707a;
+  font-size: 11px;
+}
+
+.empty {
+  padding: 12px;
+  color: var(--foreground);
+  font-size: 12px;
+}

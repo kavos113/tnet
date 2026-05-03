@@ -2,7 +2,9 @@ import type { PaperSummary, PaperTag } from '@tnet/app-papers/shared/paperTypes'
 import sharedStyles from '../PapersShared.module.css';
 import buttonStyles from '../PapersButtons.module.css';
 import { formatPaperJournal, formatPaperYear } from '../papers/paperDisplay';
+import filterStyles from './PaperListFilter.module.css';
 import styles from './PaperListPane.module.css';
+import tableStyles from './PaperListTable.module.css';
 
 export interface PaperListPaneProps {
   items: PaperSummary[];
@@ -63,8 +65,8 @@ export const PaperListPane = ({
           </span>
         </button>
       </header>
-      <div className={styles.filter}>
-        <label className={styles.searchFilter}>
+      <div className={filterStyles.filter}>
+        <label className={filterStyles.searchFilter}>
           <span>Search</span>
           <input
             ref={searchInputRef}
@@ -75,13 +77,13 @@ export const PaperListPane = ({
           />
         </label>
         {tags.length > 0 ? (
-          <div className={styles.tagFilter} aria-label="Filter by tags">
+          <div className={filterStyles.tagFilter} aria-label="Filter by tags">
             {tags.map((tag) => (
               <button
                 key={tag.id}
                 type="button"
-                className={`${styles.tagChip} ${
-                  selectedTagIds.includes(tag.id) ? styles.tagChipActive : ''
+                className={`${filterStyles.tagChip} ${
+                  selectedTagIds.includes(tag.id) ? filterStyles.tagChipActive : ''
                 }`}
                 aria-pressed={selectedTagIds.includes(tag.id)}
                 onClick={() => onToggleTag(tag.id)}
@@ -100,8 +102,8 @@ export const PaperListPane = ({
       {!isLoading && items.length === 0 && (searchQuery.trim() || selectedTagIds.length > 0) ? (
         <div className={sharedStyles.emptyState}>No papers match the current filters.</div>
       ) : null}
-      <div className={styles.list} role="table" aria-label="Papers table">
-        <div className={styles.listHeader} role="row">
+      <div className={tableStyles.list} role="table" aria-label="Papers table">
+        <div className={tableStyles.listHeader} role="row">
           <span role="columnheader">Title</span>
           <span role="columnheader">Year</span>
           <span role="columnheader">Journal</span>
@@ -110,23 +112,23 @@ export const PaperListPane = ({
         {items.map((paper) => (
           <button
             key={paper.id}
-            className={`${styles.listItem} ${
-              paper.id === selectedPaperId ? styles.listItemActive : ''
+            className={`${tableStyles.listItem} ${
+              paper.id === selectedPaperId ? tableStyles.listItemActive : ''
             }`}
             type="button"
             role="row"
             onClick={() => onSelectPaper(paper.id)}
           >
-            <span className={styles.title} role="cell" title={paper.title}>
+            <span className={tableStyles.title} role="cell" title={paper.title}>
               {highlightSearchMatch(paper.title, normalizedSearchQuery)}
             </span>
-            <span className={styles.year} role="cell">
+            <span className={tableStyles.year} role="cell">
               {formatPaperYear(paper)}
             </span>
-            <span className={styles.journal} role="cell" title={formatPaperJournal(paper)}>
+            <span className={tableStyles.journal} role="cell" title={formatPaperJournal(paper)}>
               {highlightSearchMatch(formatPaperJournal(paper), normalizedSearchQuery)}
             </span>
-            <span className={styles.tags} role="cell" title={paper.tags.join(', ')}>
+            <span className={tableStyles.tags} role="cell" title={paper.tags.join(', ')}>
               {highlightSearchMatch(
                 paper.tags.length > 0 ? paper.tags.join(', ') : '-',
                 normalizedSearchQuery
@@ -158,7 +160,7 @@ const highlightSearchMatch = (value: string, query: string): React.ReactNode => 
     }
     const matchEnd = matchIndex + query.length;
     parts.push(
-      <mark key={`${matchIndex}:${matchEnd}`} className={styles.highlight}>
+      <mark key={`${matchIndex}:${matchEnd}`} className={tableStyles.highlight}>
         {value.slice(matchIndex, matchEnd)}
       </mark>
     );

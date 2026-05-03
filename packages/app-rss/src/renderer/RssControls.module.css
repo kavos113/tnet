@@ -1,0 +1,32 @@
+.button,
+.secondaryButton,
+.iconButton {
+  border: 1px solid #c7ced6;
+  background: #ffffff;
+  color: #202428;
+  border-radius: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  font: inherit;
+}
+
+.button {
+  background: #166a55;
+  color: #ffffff;
+  border-color: #166a55;
+}
+
+.iconButton {
+  width: 32px;
+  padding: 0;
+}
+
+.input {
+  min-width: 0;
+  flex: 1;
+  width: 100%;
+  border: 1px solid #c7ced6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+}

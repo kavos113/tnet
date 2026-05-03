@@ -14,6 +14,8 @@ import { RssSubscribePane } from './RssSubscribePane';
 import { useRssFeedActions } from './useRssFeedActions';
 import { useRssDispatch, useRssSelector } from './storeHooks';
 import styles from './RssApp.module.css';
+import detailStyles from './RssItemDetail.module.css';
+import listStyles from './RssItemListPane.module.css';
 
 export const RssApp = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
@@ -102,7 +104,7 @@ export const RssApp = (): React.JSX.Element => {
 
   return (
     <main className={styles.root} style={displayStyle}>
-      <section className={styles.listPane} aria-label="RSS items">
+      <section className={listStyles.listPane} aria-label="RSS items">
         {error ? <div className={styles.error}>{error}</div> : null}
         {isSubscribeOpen ? (
           <RssSubscribePane selectedFolderId={selectedFolderId} onFeedReady={syncAndSelectFeed} />
@@ -128,11 +130,11 @@ export const RssApp = (): React.JSX.Element => {
           />
         )}
       </section>
-      <section className={styles.detailPane} aria-label="RSS item detail">
+      <section className={detailStyles.detailPane} aria-label="RSS item detail">
         {selectedItem ? (
           <RssItemDetail itemId={selectedItem.id} />
         ) : (
-          <div className={styles.empty}>Select an item.</div>
+          <div className={detailStyles.empty}>Select an item.</div>
         )}
       </section>
     </main>

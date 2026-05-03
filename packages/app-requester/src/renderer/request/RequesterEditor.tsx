@@ -12,7 +12,9 @@ import { JsonTextEditor } from './JsonTextEditor';
 import { RequesterKeyValueTable } from './RequesterKeyValueTable';
 import { RequesterVariableSuggestions } from './RequesterVariableSuggestions';
 import type { GraphqlSchemaTypeSummary } from './requesterAppHelpers';
-import sharedStyles from '../RequesterShared.module.css';
+import controlStyles from '../RequesterControls.module.css';
+import bodyStyles from './RequesterEditorBody.module.css';
+import graphqlStyles from './RequesterEditorGraphql.module.css';
 import styles from './RequesterEditor.module.css';
 
 const httpMethods: RequesterHttpMethod[] = [
@@ -152,7 +154,7 @@ export const RequesterEditor = ({
         value={name}
         onChange={(event) => onNameChange(event.target.value)}
       />
-      <button type="button" className={sharedStyles.openButton} onClick={onSave}>
+      <button type="button" className={controlStyles.openButton} onClick={onSave}>
         Save
       </button>
     </header>
@@ -186,17 +188,17 @@ export const RequesterEditor = ({
       />
       <button
         type="button"
-        className={sharedStyles.openButton}
+        className={controlStyles.openButton}
         disabled={!url.trim()}
         onClick={onSend}
       >
         Send
       </button>
     </div>
-    <section className={styles.bodyEditor}>
+    <section className={bodyStyles.bodyEditor}>
       {requestType === 'grpc' ? (
-        <section className={styles.grpcSection} aria-label="gRPC request settings">
-          <div className={styles.grpcProtoRow}>
+        <section className={bodyStyles.grpcSection} aria-label="gRPC request settings">
+          <div className={bodyStyles.grpcProtoRow}>
             <input
               aria-label="gRPC proto file"
               placeholder="Path to .proto"
@@ -205,13 +207,13 @@ export const RequesterEditor = ({
             />
             <button
               type="button"
-              className={sharedStyles.openButton}
+              className={controlStyles.openButton}
               onClick={onGrpcProtoPathSelect}
             >
               Select Proto
             </button>
           </div>
-          <div className={styles.grpcMethodGrid}>
+          <div className={bodyStyles.grpcMethodGrid}>
             <input
               aria-label="gRPC package"
               placeholder="package, e.g. tnet.papers.v1"
@@ -238,7 +240,7 @@ export const RequesterEditor = ({
           />
         </section>
       ) : (
-        <section className={styles.authSection} aria-label="Auth">
+        <section className={bodyStyles.authSection} aria-label="Auth">
           <label>
             Auth
             <select
@@ -254,7 +256,7 @@ export const RequesterEditor = ({
             </select>
           </label>
           {authType === 'basic' ? (
-            <div className={styles.authFields}>
+            <div className={bodyStyles.authFields}>
               <input
                 aria-label="Auth username"
                 placeholder="Username"
@@ -278,7 +280,7 @@ export const RequesterEditor = ({
               onChange={(event) => onAuthTokenChange(event.target.value)}
             />
           ) : authType === 'api-key-header' || authType === 'api-key-query' ? (
-            <div className={styles.authFields}>
+            <div className={bodyStyles.authFields}>
               <input
                 aria-label="API key name"
                 placeholder="Key"
@@ -297,7 +299,7 @@ export const RequesterEditor = ({
         </section>
       )}
       {requestType === 'grpc' ? null : (
-        <div className={styles.kvGrid}>
+        <div className={bodyStyles.kvGrid}>
           <RequesterKeyValueTable
             label="Query Params"
             rows={queryParams}
@@ -326,29 +328,29 @@ export const RequesterEditor = ({
         </label>
       )}
       {requestType !== 'grpc' && bodyMode === 'graphql' ? (
-        <div className={styles.graphqlFields}>
+        <div className={graphqlStyles.graphqlFields}>
           <input
             aria-label="GraphQL operation name"
             placeholder="Operation name"
             value={graphqlOperationName}
             onChange={(event) => onGraphqlOperationNameChange(event.target.value)}
           />
-          <button type="button" className={sharedStyles.openButton} onClick={onIntrospectGraphql}>
+          <button type="button" className={controlStyles.openButton} onClick={onIntrospectGraphql}>
             Introspect
           </button>
           <JsonTextEditor
             ariaLabel="GraphQL variables"
-            className={styles.jsonEditor}
+            className={bodyStyles.jsonEditor}
             value={graphqlVariablesText}
             onChange={onGraphqlVariablesTextChange}
             minHeight={84}
           />
           {graphqlSchemaTypes.length > 0 ? (
-            <details className={styles.graphqlSchema} open>
+            <details className={graphqlStyles.graphqlSchema} open>
               <summary>Schema types</summary>
-              <div className={styles.graphqlSchemaGrid}>
+              <div className={graphqlStyles.graphqlSchemaGrid}>
                 {graphqlSchemaTypes.map((type) => (
-                  <div className={styles.graphqlSchemaRow} key={`${type.kind}:${type.name}`}>
+                  <div className={graphqlStyles.graphqlSchemaRow} key={`${type.kind}:${type.name}`}>
                     <span>{type.name}</span>
                     <span>{type.kind}</span>
                     <span>{type.fieldCount}</span>
@@ -362,7 +364,7 @@ export const RequesterEditor = ({
       {requestType === 'grpc' || bodyMode === 'json' ? (
         <JsonTextEditor
           ariaLabel="Request body"
-          className={styles.jsonEditor}
+          className={bodyStyles.jsonEditor}
           value={bodyText}
           onChange={onBodyTextChange}
         />
@@ -375,11 +377,11 @@ export const RequesterEditor = ({
         />
       )}
       {requestType !== 'grpc' && bodyMode === 'binary-file' ? (
-        <div className={styles.binaryBodyRow}>
+        <div className={bodyStyles.binaryBodyRow}>
           <input aria-label="Binary body file" value={binaryFilePath} readOnly />
           <button
             type="button"
-            className={sharedStyles.openButton}
+            className={controlStyles.openButton}
             onClick={onBinaryFilePathSelect}
           >
             Select File

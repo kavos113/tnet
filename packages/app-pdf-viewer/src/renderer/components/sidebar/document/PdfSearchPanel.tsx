@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { PdfSearchResult } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { searchPdfText } from '../../../document/pdfTextSearch';
-import styles from '../../../PdfViewerSidebar.module.css';
+import sharedStyles from '../../../PdfSidebarShared.module.css';
+import documentStyles from '../PdfSidebarDocumentPanel.module.css';
+import styles from './PdfSearchPanel.module.css';
 
 export const PdfSearchPanel = ({
   pdfDocument,
@@ -53,7 +55,7 @@ export const PdfSearchPanel = ({
         placeholder="Search PDF"
         onChange={(event) => setQuery(event.target.value)}
       />
-      <div className={styles.pageBadge}>
+      <div className={sharedStyles.pageBadge}>
         {isLoading ? 'Searching...' : `${results.length} result${results.length === 1 ? '' : 's'}`}
       </div>
       <div className={styles.searchActions}>
@@ -72,16 +74,16 @@ export const PdfSearchPanel = ({
           Next
         </button>
       </div>
-      <ul className={styles.panelList}>
+      <ul className={documentStyles.panelList}>
         {results.map((result, index) => (
           <li key={result.id}>
             <button
               type="button"
-              className={styles.panelListButton}
+              className={documentStyles.panelListButton}
               onClick={() => navigateResult(index)}
             >
               <span>{result.snippet}</span>
-              <span className={styles.pageBadge}>p. {result.pageNumber}</span>
+              <span className={sharedStyles.pageBadge}>p. {result.pageNumber}</span>
             </button>
           </li>
         ))}

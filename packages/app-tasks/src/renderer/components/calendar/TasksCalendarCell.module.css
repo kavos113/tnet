@@ -1,0 +1,119 @@
+.cell {
+  position: relative;
+  min-height: 132px;
+  padding: 8px;
+  border-right: 1px solid var(--background-dark);
+  border-bottom: 1px solid var(--background-dark);
+}
+
+.cellToday {
+  background: color-mix(in srgb, var(--main-light) 26%, var(--background));
+}
+
+.cellSaturday .dayLabel {
+  color: #2563eb;
+}
+
+.cellHoliday .dayLabel {
+  color: var(--color-danger);
+}
+
+.cellOutsideMonth {
+  color: var(--foreground-muted);
+  background: color-mix(in srgb, var(--background-light) 45%, var(--background));
+}
+
+.cellOutsideMonth .calendarItem,
+.cellOutsideMonth .dayLabel {
+  opacity: 0.48;
+}
+
+.dayLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.holidayNames {
+  margin-bottom: 6px;
+  overflow: hidden;
+  color: var(--color-danger);
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.items {
+  display: grid;
+  gap: 4px;
+}
+
+.calendarItem {
+  min-width: 0;
+  padding: 4px 6px;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 11px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--background);
+  border: 1px solid
+    color-mix(in srgb, var(--task-accent-color, var(--main-light)) 72%, var(--main-light));
+  border-left-width: 4px;
+  border-radius: 4px;
+}
+
+.event {
+  cursor: pointer;
+  border-color: color-mix(in srgb, var(--task-accent-color, var(--gray)) 72%, var(--gray));
+}
+
+.localEvent {
+  cursor: pointer;
+  border-color: var(--main);
+}
+
+.readOnlyItem {
+  cursor: default;
+  border-color: color-mix(in srgb, var(--task-accent-color, var(--gray)) 72%, var(--gray));
+  opacity: 0.78;
+}
+
+.currentTime {
+  position: absolute;
+  right: 4px;
+  left: 4px;
+  height: 2px;
+  pointer-events: none;
+  background: var(--color-danger);
+}
+
+.popover {
+  position: fixed;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  width: min(320px, calc(100vw - 32px));
+  padding: 12px;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 18%);
+}
+
+.popover h3,
+.popover p {
+  margin: 0;
+}
+
+.popoverMeta {
+  color: var(--foreground-muted);
+  font-size: 12px;
+}

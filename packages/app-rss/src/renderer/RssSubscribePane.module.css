@@ -1,0 +1,36 @@
+.subscribePane {
+  overflow: auto;
+  min-height: 0;
+  padding: 18px;
+}
+
+.subscribeHeader {
+  margin-bottom: 16px;
+}
+
+.subscribeHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.subscribeForm {
+  display: grid;
+  gap: 14px;
+  max-width: 680px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: #42505b;
+}
+
+.subscribeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}

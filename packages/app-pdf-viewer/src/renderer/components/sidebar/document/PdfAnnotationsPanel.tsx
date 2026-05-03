@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { PdfAnnotationItem } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { extractPdfAnnotations } from '../../../document/pdfAnnotations';
-import styles from '../../../PdfViewerSidebar.module.css';
+import sharedStyles from '../../../PdfSidebarShared.module.css';
+import styles from '../PdfSidebarDocumentPanel.module.css';
 
 export const PdfAnnotationsPanel = ({
   pdfDocument,
@@ -29,9 +30,9 @@ export const PdfAnnotationsPanel = ({
     };
   }, [pdfDocument]);
 
-  if (isLoading) return <div className={styles.empty}>Loading annotations...</div>;
+  if (isLoading) return <div className={sharedStyles.empty}>Loading annotations...</div>;
   if (annotations.length === 0)
-    return <div className={styles.empty}>No annotations in this PDF.</div>;
+    return <div className={sharedStyles.empty}>No annotations in this PDF.</div>;
   return (
     <ul className={styles.panelList}>
       {annotations.map((annotation) => (
@@ -45,7 +46,7 @@ export const PdfAnnotationsPanel = ({
             }}
           >
             <span>{annotation.contents || annotation.title || annotation.subtype}</span>
-            <span className={styles.pageBadge}>p. {annotation.pageNumber}</span>
+            <span className={sharedStyles.pageBadge}>p. {annotation.pageNumber}</span>
           </button>
         </li>
       ))}

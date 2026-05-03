@@ -2,7 +2,7 @@ import type {
   DatabaseSchemaSnapshot,
   DatabaseTable
 } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
-import styles from './DbInspectorSidebar.module.css';
+import styles from './DbInspectorSidebarTree.module.css';
 
 interface DbInspectorSchemaTreeProps {
   schema?: DatabaseSchemaSnapshot;

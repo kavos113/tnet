@@ -5,7 +5,7 @@ import {
 } from '@tnet/app-db-inspector/shared/erDiagram';
 import type { DatabaseSchemaSnapshot } from '@tnet/app-db-inspector/shared/dbInspectorTypes';
 import { MermaidDiagramView } from './MermaidDiagramView';
-import appStyles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorShared.module.css';
 import styles from './ErDiagramView.module.css';
 
 interface ErDiagramViewProps {

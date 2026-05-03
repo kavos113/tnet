@@ -14,7 +14,7 @@ import {
   openEventDetails,
   type TasksDetailsPanelState
 } from '../../state/tasksDetailsState';
-import styles from './TasksApp.module.css';
+import styles from './TasksWorkspace.module.css';
 
 export interface TasksWorkspaceProps {
   calendarItems: CalendarDayItems[];

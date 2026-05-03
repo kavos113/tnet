@@ -1,0 +1,123 @@
+.bodyEditor {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bodyEditor label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.bodyEditor select,
+.bodyEditor textarea {
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.bodyEditor textarea {
+  flex: 1;
+  min-height: 160px;
+  resize: none;
+  padding: 10px;
+  font-family: var(--requester-code-font-family, monospace);
+  font-size: var(--requester-code-font-size, 13px);
+  line-height: 1.5;
+}
+
+.binaryBodyRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.binaryBodyRow input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-sm);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.kvGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-height: 0;
+}
+
+.authSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-md);
+}
+
+.authFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.authSection input,
+.authSection select {
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-sm);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.grpcSection {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.grpcProtoRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.grpcMethodGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.grpcSection input {
+  height: 30px;
+  padding: 0 8px;
+  min-width: 0;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-sm);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.jsonEditor {
+  flex: 1;
+  min-height: 160px;
+  min-width: 0;
+}
+
+.jsonEditor :global(.cm-editor) {
+  height: 100%;
+}

@@ -1,0 +1,13 @@
+.column {
+  min-width: 0;
+  overflow: auto;
+  border-right: 1px solid var(--background-dark);
+}
+
+@media (max-width: 1040px) {
+  .column {
+    max-height: 320px;
+    border-right: 0;
+    border-bottom: 1px solid var(--background-dark);
+  }
+}

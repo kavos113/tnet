@@ -1,5 +1,6 @@
 import styles from './RequesterRenameDialog.module.css';
-import sharedStyles from '../RequesterShared.module.css';
+import controlStyles from '../RequesterControls.module.css';
+import dialogStyles from '../RequesterDialog.module.css';
 
 interface RequesterRenameDialogProps {
   name: string;
@@ -20,14 +21,14 @@ export const RequesterRenameDialog = ({
   onCancel,
   onSave
 }: RequesterRenameDialogProps): React.JSX.Element => (
-  <div className={sharedStyles.overlay} role="presentation" onMouseDown={onCancel}>
+  <div className={dialogStyles.overlay} role="presentation" onMouseDown={onCancel}>
     <section
-      className={`${sharedStyles.modal} ${styles.dialog}`}
+      className={`${dialogStyles.modal} ${styles.dialog}`}
       aria-label="Rename or move request"
       onMouseDown={(event) => event.stopPropagation()}
     >
       <h2>Rename Request</h2>
-      <label className={sharedStyles.formItem} htmlFor="requester-rename-name">
+      <label className={dialogStyles.formItem} htmlFor="requester-rename-name">
         <span>Request name</span>
         <input
           id="requester-rename-name"
@@ -35,7 +36,7 @@ export const RequesterRenameDialog = ({
           onChange={(event) => onNameChange(event.target.value)}
         />
       </label>
-      <label className={sharedStyles.formItem} htmlFor="requester-rename-folder">
+      <label className={dialogStyles.formItem} htmlFor="requester-rename-folder">
         <span>Folder path</span>
         <input
           id="requester-rename-folder"
@@ -48,11 +49,11 @@ export const RequesterRenameDialog = ({
         <span>Request path</span>
         <strong>{pathPreview}</strong>
       </div>
-      <footer className={sharedStyles.modalActions}>
-        <button type="button" className={sharedStyles.secondaryButton} onClick={onCancel}>
+      <footer className={dialogStyles.modalActions}>
+        <button type="button" className={controlStyles.secondaryButton} onClick={onCancel}>
           Cancel
         </button>
-        <button type="button" className={sharedStyles.openButton} onClick={onSave}>
+        <button type="button" className={controlStyles.openButton} onClick={onSave}>
           Save
         </button>
       </footer>

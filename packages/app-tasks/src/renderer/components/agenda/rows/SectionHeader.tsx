@@ -1,4 +1,4 @@
-import styles from '../TasksAgenda.module.css';
+import styles from '../TasksAgendaSections.module.css';
 
 export const SectionHeader = ({
   count,

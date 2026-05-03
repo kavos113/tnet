@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
-import styles from '../../PdfViewerSidebar.module.css';
+import styles from './PdfThumbnailCanvas.module.css';
 
 const thumbnailWidth = 120;
 

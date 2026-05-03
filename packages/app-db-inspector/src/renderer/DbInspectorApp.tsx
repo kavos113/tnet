@@ -21,6 +21,7 @@ import { QueryConsole } from './query/QueryConsole';
 import { DbInspectorTableGrid } from './table/DbInspectorTableGrid';
 import { ErDiagramView } from './diagram/ErDiagramView';
 import styles from './DbInspectorApp.module.css';
+import sharedStyles from './DbInspectorShared.module.css';
 
 type DbInspectorMainView = 'table' | 'schema-er' | 'table-er';
 
@@ -190,9 +191,9 @@ export const DbInspectorApp = (): React.JSX.Element => {
           <strong>{activeWorkspace?.name ?? 'No database selected'}</strong>
           {activeWorkspace ? <span>{describeConnection(activeWorkspace)}</span> : null}
         </div>
-        <div className={styles.segmentedControl} aria-label="DB Inspector view">
+        <div className={sharedStyles.segmentedControl} aria-label="DB Inspector view">
           <button
-            className={mainView === 'table' ? styles.segmentedActive : ''}
+            className={mainView === 'table' ? sharedStyles.segmentedActive : ''}
             type="button"
             aria-pressed={mainView === 'table'}
             onClick={() => setMainView('table')}
@@ -200,7 +201,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
             Table
           </button>
           <button
-            className={mainView === 'schema-er' ? styles.segmentedActive : ''}
+            className={mainView === 'schema-er' ? sharedStyles.segmentedActive : ''}
             type="button"
             aria-pressed={mainView === 'schema-er'}
             disabled={!schema}
@@ -209,7 +210,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
             Schema ER
           </button>
           <button
-            className={mainView === 'table-er' ? styles.segmentedActive : ''}
+            className={mainView === 'table-er' ? sharedStyles.segmentedActive : ''}
             type="button"
             aria-pressed={mainView === 'table-er'}
             disabled={!schema || !activeTableName}
@@ -220,7 +221,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
         </div>
         <span className={styles.modeBadge}>{settings.readOnlyMode ? 'Read only' : 'Writable'}</span>
       </div>
-      {error ? <div className={styles.error}>{error}</div> : null}
+      {error ? <div className={sharedStyles.error}>{error}</div> : null}
       <div className={styles.content}>
         <div className={styles.workspaceBody}>
           {mainView === 'schema-er' && schema ? (
@@ -232,7 +233,7 @@ export const DbInspectorApp = (): React.JSX.Element => {
               tableName={activeTableName}
             />
           ) : !activeTable ? (
-            <div className={styles.empty}>Select a table from the schema tree.</div>
+            <div className={sharedStyles.empty}>Select a table from the schema tree.</div>
           ) : (
             <DbInspectorTableGrid
               activeTable={activeTable}

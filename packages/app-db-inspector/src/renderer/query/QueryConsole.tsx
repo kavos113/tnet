@@ -20,7 +20,9 @@ import {
 import { useDbInspectorDispatch, useDbInspectorSelector } from '../storeHooks';
 import { SqlEditor } from './SqlEditor';
 import { createSqlCompletionSource } from './sqlCompletion';
-import appStyles from '../DbInspectorApp.module.css';
+import appStyles from '../DbInspectorShared.module.css';
+import planStyles from './QueryConsolePlan.module.css';
+import resultStyles from './QueryConsoleResult.module.css';
 import styles from './QueryConsole.module.css';
 
 export const QueryConsole = (): React.JSX.Element => {
@@ -192,7 +194,7 @@ export const QueryConsole = (): React.JSX.Element => {
           <aside className={styles.queryHistoryPane} aria-label="Query history">
             <strong>History</strong>
             {queryHistory.length === 0 ? (
-              <span className={styles.mutedText}>No query history.</span>
+              <span className={appStyles.mutedText}>No query history.</span>
             ) : (
               queryHistory.slice(0, 20).map((entry) => (
                 <button
@@ -244,7 +246,7 @@ const QueryOutputPane = ({
   queryResult?: QueryExecutionResult;
   onSelectTab: (tab: 'result' | 'plan') => void;
 }): React.JSX.Element => (
-  <div className={styles.queryOutputPane}>
+  <div className={resultStyles.queryOutputPane}>
     <div className={appStyles.segmentedControl} aria-label="Query output">
       <button
         type="button"
@@ -276,26 +278,26 @@ const QueryOutputPane = ({
 );
 
 const ExplainPlanView = ({ result }: { result: ExplainQueryResult }): React.JSX.Element => (
-  <div className={styles.explainPlan}>
+  <div className={planStyles.explainPlan}>
     <div className={styles.queryMeta}>Plan generated in {result.durationMs} ms</div>
     {result.nodes.length > 0 ? (
-      <ul className={styles.planTree}>
+      <ul className={planStyles.planTree}>
         {result.nodes.map((node) => (
           <ExplainPlanNodeView key={node.id} node={node} />
         ))}
       </ul>
     ) : null}
     {result.rawJson !== undefined ? (
-      <pre className={styles.planRaw}>{JSON.stringify(result.rawJson, null, 2)}</pre>
+      <pre className={planStyles.planRaw}>{JSON.stringify(result.rawJson, null, 2)}</pre>
     ) : result.rawText ? (
-      <pre className={styles.planRaw}>{result.rawText}</pre>
+      <pre className={planStyles.planRaw}>{result.rawText}</pre>
     ) : null}
   </div>
 );
 
 const ExplainPlanNodeView = ({ node }: { node: ExplainPlanNode }): React.JSX.Element => (
   <li>
-    <div className={styles.planNode}>
+    <div className={planStyles.planNode}>
       <strong>{node.label}</strong>
       {node.detail ? <span>{node.detail}</span> : null}
       {node.cost ? <span>cost: {node.cost}</span> : null}
@@ -349,8 +351,8 @@ const QueryResultTable = ({
   };
 
   return (
-    <div className={styles.queryResultTableShell}>
-      <div className={styles.queryResultToolbar}>
+    <div className={resultStyles.queryResultTableShell}>
+      <div className={resultStyles.queryResultToolbar}>
         <button className={appStyles.button} type="button" onClick={exportCsv}>
           Export CSV
         </button>
@@ -358,8 +360,8 @@ const QueryResultTable = ({
           Export INSERT
         </button>
       </div>
-      <div className={styles.tableWrapper}>
-        <table className={styles.dataTable}>
+      <div className={resultStyles.tableWrapper}>
+        <table className={resultStyles.dataTable}>
           <thead>
             <tr>
               {result.columns.map((column) => (

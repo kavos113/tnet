@@ -1,0 +1,60 @@
+.graphqlFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.graphqlFields input {
+  height: 30px;
+  padding: 0 8px;
+  min-width: 0;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-sm);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.graphqlFields .jsonEditor,
+.graphqlSchema {
+  grid-column: 1 / -1;
+}
+
+.graphqlSchema {
+  max-height: 142px;
+  overflow: auto;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius-md);
+  background: var(--background);
+}
+
+.graphqlSchema summary {
+  cursor: pointer;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--gray);
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.graphqlSchemaGrid {
+  display: grid;
+  gap: 1px;
+  background: var(--gray);
+}
+
+.graphqlSchemaRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 48px;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 12px;
+}
+
+.graphqlSchemaRow span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}

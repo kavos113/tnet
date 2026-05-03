@@ -1,5 +1,5 @@
 import type { PdfViewerSidebarPanel } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
-import styles from '../../PdfViewerSidebar.module.css';
+import styles from './PdfSidebarTabs.module.css';
 
 const panels: Array<{ id: PdfViewerSidebarPanel; label: string; icon: string }> = [
   { id: 'files', label: 'Files', icon: 'folder' },

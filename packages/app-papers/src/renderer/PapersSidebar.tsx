@@ -12,6 +12,8 @@ import {
   toggleExpandedPapersDirectory
 } from './library/librarySlice';
 import styles from './PapersSidebar.module.css';
+import treeStyles from './PapersSidebarTree.module.css';
+import workspaceStyles from './PapersWorkspaceSwitcher.module.css';
 import buttonStyles from './PapersButtons.module.css';
 
 interface NewDirectoryState {
@@ -116,13 +118,13 @@ export const PapersSidebar = (): React.JSX.Element => {
 
   return (
     <aside className={styles.panel} aria-label="Papers library">
-      <nav className={styles.workspaceSwitcher} aria-label="Paper libraries">
+      <nav className={workspaceStyles.workspaceSwitcher} aria-label="Paper libraries">
         {libraryRoots.map((libraryRoot) => (
           <button
             key={libraryRoot}
             type="button"
-            className={`${styles.workspaceSwitcherItem} ${
-              libraryRoot === activeLibraryRoot ? styles.workspaceSwitcherItemActive : ''
+            className={`${workspaceStyles.workspaceSwitcherItem} ${
+              libraryRoot === activeLibraryRoot ? workspaceStyles.workspaceSwitcherItemActive : ''
             }`}
             title={libraryRoot}
             aria-label={`Switch to ${libraryLabel(libraryRoot)}`}
@@ -139,7 +141,7 @@ export const PapersSidebar = (): React.JSX.Element => {
         ))}
         <button
           type="button"
-          className={`${styles.workspaceSwitcherAdd} material-icons-round`}
+          className={`${workspaceStyles.workspaceSwitcherAdd} material-icons-round`}
           aria-label="Open paper library"
           title="Open paper library"
           onClick={() => {
@@ -169,30 +171,30 @@ export const PapersSidebar = (): React.JSX.Element => {
           )}
         </section>
         {activeLibraryRoot ? (
-          <section className={styles.directorySection} aria-label="Paper directories">
+          <section className={treeStyles.directorySection} aria-label="Paper directories">
             <button
               type="button"
-              className={`${styles.treeItem} ${styles.allDirectories} ${
-                selectedDirectoryPath === null ? styles.selected : ''
+              className={`${treeStyles.treeItem} ${treeStyles.allDirectories} ${
+                selectedDirectoryPath === null ? treeStyles.selected : ''
               }`}
               onClick={() => dispatch(setSelectedPapersDirectory(null))}
             >
-              <span className={`material-icons ${styles.folder}`}>folder_special</span>
-              <p className={styles.itemName}>All papers</p>
+              <span className={`material-icons ${treeStyles.folder}`}>folder_special</span>
+              <p className={treeStyles.itemName}>All papers</p>
             </button>
-            <ul className={styles.fileList}>
+            <ul className={treeStyles.fileList}>
               {shouldShowNewDirectoryAtRoot ? (
-                <li className={styles.newItem}>
-                  <div className={styles.treeItem}>
+                <li className={treeStyles.newItem}>
+                  <div className={treeStyles.treeItem}>
                     <span
-                      className={`material-icons-round ${styles.chevron} ${styles.iconPlaceholder}`}
+                      className={`material-icons-round ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
                     >
                       chevron_right
                     </span>
-                    <span className={`material-icons ${styles.folder}`}>folder</span>
+                    <span className={`material-icons ${treeStyles.folder}`}>folder</span>
                     <input
                       ref={rootInputRef}
-                      className={styles.newInput}
+                      className={treeStyles.newInput}
                       value={newDirectory.name}
                       onChange={(event) =>
                         setNewDirectory((current) => ({

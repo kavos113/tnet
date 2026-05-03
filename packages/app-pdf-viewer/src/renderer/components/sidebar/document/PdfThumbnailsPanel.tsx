@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { PdfThumbnailCanvas } from '../PdfThumbnailCanvas';
-import styles from '../../../PdfViewerSidebar.module.css';
+import styles from './PdfThumbnailsPanel.module.css';
 
 export const PdfThumbnailsPanel = ({
   pdfDocument,

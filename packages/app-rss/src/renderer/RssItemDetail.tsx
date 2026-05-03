@@ -5,7 +5,8 @@ import { formatRssDate } from './formatRssDate';
 import { rssTnetApi } from './rssTnetApi';
 import { upsertRssItem } from './rssSlice';
 import { useRssDispatch, useRssSelector } from './storeHooks';
-import styles from './RssApp.module.css';
+import controlStyles from './RssControls.module.css';
+import styles from './RssItemDetail.module.css';
 
 export const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element | null => {
   const dispatch = useRssDispatch();
@@ -39,7 +40,7 @@ export const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element
         </div>
         <div className={styles.detailActions}>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() =>
               update(
@@ -52,7 +53,7 @@ export const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element
             {item.readAt ? 'Mark Unread' : 'Mark Read'}
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() =>
               update(rssTnetApi.rss.items.setStarred({ itemId, starred: !item.starred }))
@@ -61,7 +62,7 @@ export const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element
             {item.starred ? 'Unstar' : 'Star'}
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() =>
               update(rssTnetApi.rss.items.archive({ itemId, archived: !item.archivedAt }))
@@ -70,19 +71,23 @@ export const RssItemDetail = ({ itemId }: { itemId: string }): React.JSX.Element
             {item.archivedAt ? 'Unarchive' : 'Archive'}
           </button>
           {item.link ? (
-            <button className={styles.secondaryButton} type="button" onClick={openExternalLink}>
+            <button
+              className={controlStyles.secondaryButton}
+              type="button"
+              onClick={openExternalLink}
+            >
               Open Link
             </button>
           ) : null}
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() => setReadabilityMode((value) => !value)}
           >
             {readabilityMode ? 'HTML View' : 'Readable Text'}
           </button>
           <button
-            className={styles.secondaryButton}
+            className={controlStyles.secondaryButton}
             type="button"
             onClick={() => navigator.clipboard?.writeText(toRssItemMarkdownLink(item))}
           >

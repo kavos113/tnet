@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { PdfOutlineItem } from '@tnet/app-pdf-viewer/shared/pdfViewerTypes';
 import { extractPdfOutline } from '../../../document/pdfOutline';
-import styles from '../../../PdfViewerSidebar.module.css';
+import sharedStyles from '../../../PdfSidebarShared.module.css';
+import styles from '../PdfSidebarDocumentPanel.module.css';
 
 export const PdfOutlinePanel = ({
   pdfDocument,
@@ -29,8 +30,9 @@ export const PdfOutlinePanel = ({
     };
   }, [pdfDocument]);
 
-  if (isLoading) return <div className={styles.empty}>Loading outline...</div>;
-  if (outline.length === 0) return <div className={styles.empty}>No outline in this PDF.</div>;
+  if (isLoading) return <div className={sharedStyles.empty}>Loading outline...</div>;
+  if (outline.length === 0)
+    return <div className={sharedStyles.empty}>No outline in this PDF.</div>;
   return <OutlineList items={outline} onNavigate={onNavigate} />;
 };
 
@@ -51,7 +53,9 @@ const OutlineList = ({
           onClick={() => item.pageNumber && onNavigate(item.pageNumber)}
         >
           <span>{item.title}</span>
-          {item.pageNumber ? <span className={styles.pageBadge}>p. {item.pageNumber}</span> : null}
+          {item.pageNumber ? (
+            <span className={sharedStyles.pageBadge}>p. {item.pageNumber}</span>
+          ) : null}
         </button>
         {item.children.length > 0 ? (
           <div className={styles.nestedList}>

@@ -17,8 +17,9 @@ import { useDbInspectorDispatch, useDbInspectorSelector } from './storeHooks';
 import { DbInspectorSchemaTree } from './sidebar/DbInspectorSchemaTree';
 import { DbInspectorWorkspaceDialog } from './sidebar/DbInspectorWorkspaceDialog';
 import { DbInspectorWorkspaceForm } from './sidebar/DbInspectorWorkspaceForm';
-import appStyles from './DbInspectorApp.module.css';
+import appStyles from './DbInspectorShared.module.css';
 import styles from './sidebar/DbInspectorSidebar.module.css';
+import treeStyles from './sidebar/DbInspectorSidebarTree.module.css';
 
 export const DbInspectorSidebar = (): React.JSX.Element => {
   const dispatch = useDbInspectorDispatch();
@@ -101,16 +102,16 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
           <span className="material-icons">settings</span>
         </button>
       </div>
-      <div className={styles.workspaceTree} role="tree" aria-label="DB workspaces">
-        <div className={styles.treeFolder}>
+      <div className={treeStyles.workspaceTree} role="tree" aria-label="DB workspaces">
+        <div className={treeStyles.treeFolder}>
           <span className="material-icons">folder</span>
           Workspaces
         </div>
         {workspaces.map((workspace) => (
           <button
             key={workspace.id}
-            className={`${styles.workspaceTreeButton} ${
-              activeWorkspaceId === workspace.id ? styles.treeButtonActive : ''
+            className={`${treeStyles.workspaceTreeButton} ${
+              activeWorkspaceId === workspace.id ? treeStyles.treeButtonActive : ''
             }`}
             type="button"
             role="treeitem"
@@ -118,7 +119,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
             onClick={() => void selectDbInspectorWorkspace(dispatch, workspace.id)}
           >
             <span className="material-icons">storage</span>
-            <span className={styles.treeLabel}>{workspace.name}</span>
+            <span className={treeStyles.treeLabel}>{workspace.name}</span>
           </button>
         ))}
       </div>

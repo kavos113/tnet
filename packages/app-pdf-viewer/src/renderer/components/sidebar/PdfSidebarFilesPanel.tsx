@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { basename, dirname, joinPath, toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
 import type { FileItem } from '@tnet/shared/types/file';
 import { WorkspaceFileTree } from '@tnet/ui';
+import sharedStyles from '../../PdfSidebarShared.module.css';
 import { pdfViewerTnetApi } from '../../pdfViewerTnetApi';
-import styles from '../../PdfViewerSidebar.module.css';
+import styles from './PdfSidebarFilesPanel.module.css';
 
 export const PdfSidebarFilesPanel = ({
   rootPath,
@@ -39,11 +40,11 @@ export const PdfSidebarFilesPanel = ({
 
   return (
     <>
-      <header className={styles.header}>
-        <span className={styles.title}>{rootPath ? basename(rootPath) : 'PDFs'}</span>
+      <header className={sharedStyles.header}>
+        <span className={sharedStyles.title}>{rootPath ? basename(rootPath) : 'PDFs'}</span>
         <button
           type="button"
-          className={`${styles.addButton} material-icons-round`}
+          className={`${sharedStyles.addButton} material-icons-round`}
           aria-label="Refresh PDF workspace"
           disabled={!rootPath}
           onClick={onRefresh}
@@ -52,7 +53,7 @@ export const PdfSidebarFilesPanel = ({
         </button>
         <button
           type="button"
-          className={`${styles.addButton} material-icons-round`}
+          className={`${sharedStyles.addButton} material-icons-round`}
           aria-label="Rename active PDF"
           disabled={!rootPath || !activePdfPath}
           onClick={() => {
@@ -68,7 +69,7 @@ export const PdfSidebarFilesPanel = ({
         </button>
         <button
           type="button"
-          className={`${styles.addButton} material-icons-round`}
+          className={`${sharedStyles.addButton} material-icons-round`}
           aria-label="Move active PDF"
           disabled={!rootPath || !activePdfPath}
           onClick={() => {
@@ -171,7 +172,7 @@ export const PdfSidebarFilesPanel = ({
           />
         </ul>
       ) : (
-        <div className={styles.empty}>Open a folder to browse PDFs.</div>
+        <div className={sharedStyles.empty}>Open a folder to browse PDFs.</div>
       )}
     </>
   );

@@ -1,7 +1,7 @@
 import type { AppId } from '@tnet/shared/app/appTypes';
 import type { TasksDefaultView, TasksGlobalSettings } from '@tnet/app-tasks/shared/config';
 import type { TasksPortalShortcut } from '../navigation/TasksPortal';
-import styles from './TasksApp.module.css';
+import styles from './TasksAppHeader.module.css';
 
 export interface TasksAppHeaderProps {
   clock: Date;

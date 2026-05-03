@@ -6,7 +6,7 @@ import {
   getCalendarTaskAccentColor,
   getSubscribedEventAccentColor
 } from '../../utils/taskColors';
-import styles from './TasksCalendar.module.css';
+import styles from './TasksCalendarCell.module.css';
 
 export const TasksCalendarCell = ({
   categoryColors,
