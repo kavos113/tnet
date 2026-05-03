@@ -22,7 +22,7 @@
 }
 
 .openButton {
-  padding: 8px 16px;
+  padding: 4px 8px;
   color: var(--color-text-inverse);
   cursor: pointer;
   background-color: var(--main-dark);

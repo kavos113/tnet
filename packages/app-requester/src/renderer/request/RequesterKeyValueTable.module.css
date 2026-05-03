@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px;
+  padding: 4px 8px;
   background: var(--background-dark);
   border-bottom: 1px solid var(--gray);
 }
