@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRssGlobalSettings } from '@tnet/app-rss/shared/config';
 import { RssApp } from './RssApp';
-import rssReducer, { restoreRss, selectRssFeed } from './rssSlice';
+import rssReducer, { restoreRss, selectRssFeed, setRssSettings } from './rssSlice';
 import { rssTnetApi } from './rssTnetApi';
 
 vi.mock('./rssTnetApi', () => ({
@@ -209,6 +209,20 @@ describe('RssApp', () => {
       )
     );
     expect(await screen.findByText('Second item')).toBeInTheDocument();
+  });
+
+  it('hides item summaries when summary lines is zero', async () => {
+    store.dispatch(
+      setRssSettings({
+        ...defaultRssGlobalSettings(),
+        itemSummaryLineClamp: 0
+      })
+    );
+
+    renderApp();
+
+    expect(await screen.findByText('First item')).toBeInTheDocument();
+    expect(screen.queryByText('Summary')).not.toBeInTheDocument();
   });
 
   it('shows selected feed actions above the item list', async () => {

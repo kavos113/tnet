@@ -105,7 +105,7 @@ export const DisplaySettingsSection = ({
       <span>Summary lines</span>
       <input
         type="number"
-        min={1}
+        min={0}
         max={8}
         value={draft.itemSummaryLineClamp}
         onChange={(event) => update('itemSummaryLineClamp', Number(event.target.value))}
@@ -122,8 +122,8 @@ export const DisplaySettingsSection = ({
       <span>Font size px</span>
       <input
         type="number"
-        min={11}
-        max={22}
+        min={1}
+        max={200}
         value={draft.fontSizePx}
         onChange={(event) => update('fontSizePx', Number(event.target.value))}
       />
@@ -132,8 +132,8 @@ export const DisplaySettingsSection = ({
       <span>Line height</span>
       <input
         type="number"
-        min={1.2}
-        max={2}
+        min={1}
+        max={3}
         step={0.05}
         value={draft.lineHeight}
         onChange={(event) => update('lineHeight', Number(event.target.value))}

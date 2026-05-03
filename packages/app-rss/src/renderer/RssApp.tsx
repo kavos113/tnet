@@ -116,6 +116,7 @@ export const RssApp = (): React.JSX.Element => {
             searchQuery={searchQuery}
             selectedFeed={selectedFeed}
             selectedItemId={selectedItemId}
+            summaryLineClamp={settings.itemSummaryLineClamp}
             onDeleteSelectedFeed={feedActions.deleteSelectedFeed}
             onLoadMore={loadMore}
             onMoveSelectedFeed={feedActions.moveSelectedFeed}

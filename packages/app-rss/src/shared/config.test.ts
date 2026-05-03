@@ -69,6 +69,14 @@ describe('normalizeRssGlobalSettings', () => {
     });
   });
 
+  it('allows hiding list summaries with zero summary lines', () => {
+    expect(
+      normalizeRssGlobalSettings({
+        itemSummaryLineClamp: 0
+      }).itemSummaryLineClamp
+    ).toBe(0);
+  });
+
   it('reads and writes rss settings through the global config apps slot', () => {
     const globalConfig = defaultGlobalConfig();
     expect(getRssGlobalConfig(globalConfig)).toEqual(defaultRssGlobalConfig());

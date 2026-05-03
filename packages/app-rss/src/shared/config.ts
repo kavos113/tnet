@@ -62,7 +62,7 @@ export const normalizeRssGlobalSettings = (
     confirmExternalLinks: settings?.confirmExternalLinks ?? defaults.confirmExternalLinks,
     itemSummaryLineClamp: normalizeInteger(
       settings?.itemSummaryLineClamp,
-      1,
+      0,
       8,
       defaults.itemSummaryLineClamp
     ),

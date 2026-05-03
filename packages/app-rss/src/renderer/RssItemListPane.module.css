@@ -45,7 +45,7 @@
   border: 0;
   border-bottom: 1px solid #edf0f2;
   background: #ffffff;
-  padding: 12px;
+  padding: 6px 12px;
   display: grid;
   gap: 4px;
 }
@@ -59,15 +59,26 @@
   color: #68727d;
 }
 
+.itemHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .itemTitle {
   font-size: 14px;
   font-weight: 650;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .itemMeta,
 .itemSummary,
 .empty {
-  font-size: 12px;
+  font-size: 11px;
   color: #69737d;
 }
 
@@ -76,6 +87,11 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: var(--rss-summary-lines);
+}
+
+.itemMeta {
+  justify-self: end;
+  white-space: nowrap;
 }
 
 .form {

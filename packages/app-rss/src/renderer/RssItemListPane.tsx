@@ -10,6 +10,7 @@ interface RssItemListPaneProps {
   searchQuery: string;
   selectedFeed?: RssFeed;
   selectedItemId?: string;
+  summaryLineClamp: number;
   onDeleteSelectedFeed: () => Promise<void>;
   onLoadMore: () => Promise<void>;
   onMoveSelectedFeed: () => Promise<void>;
@@ -28,6 +29,7 @@ export const RssItemListPane = ({
   searchQuery,
   selectedFeed,
   selectedItemId,
+  summaryLineClamp,
   onDeleteSelectedFeed,
   onLoadMore,
   onMoveSelectedFeed,
@@ -107,14 +109,18 @@ export const RssItemListPane = ({
           ].join(' ')}
           onClick={() => onOpenItem(item.id).catch(onError)}
         >
-          <span className={styles.itemTitle}>
-            {item.starred ? '☆' : ''}
-            {item.title}
+          <span className={styles.itemHeading}>
+            <span className={styles.itemTitle}>
+              {item.starred ? '☆' : ''}
+              {item.title}
+            </span>
+            <span className={styles.itemMeta}>
+              {formatRssDate(item.publishedAt ?? item.fetchedAt)}
+            </span>
           </span>
-          <span className={styles.itemMeta}>
-            {formatRssDate(item.publishedAt ?? item.fetchedAt)}
-          </span>
-          {item.summary ? <span className={styles.itemSummary}>{item.summary}</span> : null}
+          {summaryLineClamp > 0 && item.summary ? (
+            <span className={styles.itemSummary}>{item.summary}</span>
+          ) : null}
         </button>
       ))}
       {nextCursor ? (
