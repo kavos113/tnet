@@ -110,7 +110,7 @@
   cursor: pointer;
 }
 
-.columnSortButton :global(.material-icons) {
+.columnSortButton :global(.material-symbols-rounded) {
   font-size: 14px;
 }
 

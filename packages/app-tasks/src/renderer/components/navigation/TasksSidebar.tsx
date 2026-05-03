@@ -26,13 +26,13 @@ export const TasksSidebar = ({
       <div className={styles.content}>
         <header className={styles.header}>
           <span className={styles.title}>Tasks</span>
-          <span className="material-icons-round" aria-hidden="true">
+          <span className="material-symbols-rounded" aria-hidden="true">
             task_alt
           </span>
         </header>
         <div className={styles.actions}>
           <button type="button" className={styles.subscriptionButton} onClick={onOpenTasksSettings}>
-            <span className="material-icons-round" aria-hidden="true">
+            <span className="material-symbols-rounded" aria-hidden="true">
               add
             </span>
             <span>Add subscription</span>

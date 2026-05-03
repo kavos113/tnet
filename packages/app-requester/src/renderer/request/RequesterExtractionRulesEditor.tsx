@@ -62,7 +62,7 @@ export const RequesterExtractionRulesEditor = ({
             />
             <button
               type="button"
-              className={`${controlStyles.iconButton} material-icons-round`}
+              className={`${controlStyles.iconButton} material-symbols-rounded`}
               aria-label="Remove extraction rule"
               onClick={() => onChange(rules.filter((item) => item.id !== rule.id))}
             >

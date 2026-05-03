@@ -128,7 +128,7 @@ export const SettingsCenterDialog = ({
               <div className={styles.centerAppGroup} key={group.appId}>
                 <div className={styles.centerAppLabel}>
                   <span
-                    className={`material-icons-round ${styles.centerAppIcon}`}
+                    className={`material-symbols-rounded ${styles.centerAppIcon}`}
                     aria-hidden="true"
                   >
                     {group.appIcon}

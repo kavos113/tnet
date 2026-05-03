@@ -112,13 +112,13 @@ export const FileTreeItem = ({
         {item.isDirectory ? (
           <>
             <span
-              className={`material-icons-round ${styles.chevron} ${
+              className={`material-symbols-rounded ${styles.chevron} ${
                 isExpanded ? styles.chevronExpanded : ''
               }`}
             >
               chevron_right
             </span>
-            <span className={`material-icons ${styles.folder}`}>
+            <span className={`material-symbols-rounded ${styles.folder}`}>
               {isExpanded ? 'folder_open' : 'folder'}
             </span>
           </>
@@ -143,12 +143,12 @@ export const FileTreeItem = ({
             <li className={styles.newItem}>
               <div className={styles.treeItem}>
                 <span
-                  className={`${styles.chevron} material-icons-round ${styles.iconPlaceholder}`}
+                  className={`${styles.chevron} material-symbols-rounded ${styles.iconPlaceholder}`}
                 >
                   chevron_right
                 </span>
                 <span
-                  className={`${styles.folder} material-icons ${
+                  className={`${styles.folder} material-symbols-rounded ${
                     newEntry.mode !== 'directory' ? styles.iconPlaceholder : ''
                   }`}
                 >

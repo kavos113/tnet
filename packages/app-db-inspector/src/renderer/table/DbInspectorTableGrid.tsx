@@ -91,7 +91,7 @@ export const DbInspectorTableGrid = ({
           disabled={!selectedCell}
           onClick={copySelectedCell}
         >
-          <span className="material-icons">content_copy</span>
+          <span className="material-symbols-rounded">content_copy</span>
         </button>
         <button
           className={appStyles.iconButton}
@@ -100,7 +100,7 @@ export const DbInspectorTableGrid = ({
           disabled={!selectedRow}
           onClick={copySelectedRow}
         >
-          <span className="material-icons">view_week</span>
+          <span className="material-symbols-rounded">view_week</span>
         </button>
         <button
           className={appStyles.iconButton}
@@ -109,7 +109,7 @@ export const DbInspectorTableGrid = ({
           disabled={activeTable.rows.length === 0}
           onClick={copyCsv}
         >
-          <span className="material-icons">csv</span>
+          <span className="material-symbols-rounded">csv</span>
         </button>
         <button
           className={appStyles.button}
@@ -150,7 +150,7 @@ export const DbInspectorTableGrid = ({
                     >
                       {column.name}
                       {sort?.column === column.name ? (
-                        <span className="material-icons">
+                        <span className="material-symbols-rounded">
                           {sort.direction === 'asc' ? 'arrow_upward' : 'arrow_downward'}
                         </span>
                       ) : null}

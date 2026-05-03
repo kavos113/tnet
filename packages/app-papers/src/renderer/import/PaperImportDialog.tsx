@@ -61,7 +61,7 @@ export const PaperImportDialog = ({
           aria-label="Cancel import"
           onClick={onCancel}
         >
-          <span className="material-icons-round" aria-hidden="true">
+          <span className="material-symbols-rounded" aria-hidden="true">
             close
           </span>
         </button>

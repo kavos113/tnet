@@ -46,7 +46,7 @@
   padding: 0;
 }
 
-.iconButton:global(.material-icons-round) {
+.iconButton:global(.material-symbols-rounded) {
   font-size: 18px;
 }
 

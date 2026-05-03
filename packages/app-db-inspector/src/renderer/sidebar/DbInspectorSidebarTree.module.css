@@ -24,11 +24,11 @@
   background: var(--background-light);
 }
 
-.workspaceTreeButton :global(.material-icons),
-.schemaName :global(.material-icons),
-.treeFolder :global(.material-icons),
-.treeButton :global(.material-icons),
-.treeItem :global(.material-icons) {
+.workspaceTreeButton :global(.material-symbols-rounded),
+.schemaName :global(.material-symbols-rounded),
+.treeFolder :global(.material-symbols-rounded),
+.treeButton :global(.material-symbols-rounded),
+.treeItem :global(.material-symbols-rounded) {
   font-size: 16px;
 }
 

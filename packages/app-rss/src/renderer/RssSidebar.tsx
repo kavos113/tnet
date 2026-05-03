@@ -169,11 +169,11 @@ export const RssSidebar = (): React.JSX.Element => {
               <li className={styles.newItem}>
                 <div className={styles.treeItem}>
                   <span
-                    className={`material-icons-round ${styles.chevron} ${styles.iconPlaceholder}`}
+                    className={`material-symbols-rounded ${styles.chevron} ${styles.iconPlaceholder}`}
                   >
                     chevron_right
                   </span>
-                  <span className={`material-icons ${styles.folderIcon}`}>folder</span>
+                  <span className={`material-symbols-rounded ${styles.folderIcon}`}>folder</span>
                   <input
                     ref={rootInputRef}
                     className={styles.newInput}

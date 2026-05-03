@@ -104,7 +104,7 @@ export const SearchPanel = forwardRef<SearchPanelHandle>((_, ref): React.JSX.Ele
   return (
     <section className={styles.panel} aria-label="Search">
       <div className={styles.inputRow}>
-        <span className={`material-icons-round ${styles.inputIcon}`}>search</span>
+        <span className={`material-symbols-rounded ${styles.inputIcon}`}>search</span>
         <input
           ref={inputRef}
           className={styles.input}

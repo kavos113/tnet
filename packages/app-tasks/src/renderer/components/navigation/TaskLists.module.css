@@ -111,7 +111,7 @@
   border-radius: 4px;
 }
 
-.iconButton:global(.material-icons-round) {
+.iconButton:global(.material-symbols-rounded) {
   font-size: 18px;
 }
 

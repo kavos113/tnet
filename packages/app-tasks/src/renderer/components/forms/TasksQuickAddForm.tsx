@@ -127,7 +127,7 @@ export const TasksQuickAddForm = ({
       )}
       <button
         type="button"
-        className={`${styles.iconButton} material-icons-round`}
+        className={`${styles.iconButton} material-symbols-rounded`}
         aria-label={isTask ? 'Open task details' : 'Open event details'}
         onClick={onOpenDetails}
       >

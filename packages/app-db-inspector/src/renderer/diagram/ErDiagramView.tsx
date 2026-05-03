@@ -94,7 +94,7 @@ export const ErDiagramView = ({
               graph.edges.map((edge) => (
                 <div key={edge.id} className={styles.erEdge}>
                   <span>{nodeNameById.get(edge.fromTableId) ?? edge.fromTableId}</span>
-                  <span className="material-icons">arrow_forward</span>
+                  <span className="material-symbols-rounded">arrow_forward</span>
                   <span>{nodeNameById.get(edge.toTableId) ?? edge.toTableId}</span>
                   <small>
                     {edge.columns.join(', ')} to {edge.referencedColumns.join(', ')}

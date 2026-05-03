@@ -255,7 +255,7 @@ export const PdfViewerApp = (): React.JSX.Element => {
         </button>
         <button
           type="button"
-          className={`${styles.iconButton} material-icons-round`}
+          className={`${styles.iconButton} material-symbols-rounded`}
           aria-label="Copy PDF link"
           disabled={!activePath || !activePath.toLowerCase().endsWith('.pdf')}
           onClick={copyPdfLink}
@@ -264,7 +264,7 @@ export const PdfViewerApp = (): React.JSX.Element => {
         </button>
         <button
           type="button"
-          className={`${styles.iconButton} material-icons-round`}
+          className={`${styles.iconButton} material-symbols-rounded`}
           aria-label="Open PDF externally"
           disabled={!activePath}
           onClick={openExternal}

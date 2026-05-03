@@ -29,7 +29,7 @@ export const TasksPortal = ({
             key={shortcut.id}
             onClick={() => onSelect(shortcut.id)}
           >
-            <span className={`material-icons-round ${styles.icon}`} aria-hidden="true">
+            <span className={`material-symbols-rounded ${styles.icon}`} aria-hidden="true">
               {shortcut.icon}
             </span>
             <span>{shortcut.label}</span>

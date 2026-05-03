@@ -32,7 +32,7 @@ export const RequesterWorkspaceSwitcher = ({
     ))}
     <button
       type="button"
-      className={`${styles.workspaceSwitcherAdd} material-icons-round`}
+      className={`${styles.workspaceSwitcherAdd} material-symbols-rounded`}
       aria-label="Create requester workspace"
       title="Create requester workspace"
       onClick={onCreateWorkspace}

@@ -33,14 +33,14 @@ export const TasksSourceRow = ({
       {source.lastSyncError ? <span className={styles.error}>{source.lastSyncError}</span> : null}
     </div>
     <SettingsIconButton
-      className="material-icons-round"
+      className="material-symbols-rounded"
       aria-label={`Sync ${source.name}`}
       onClick={onSync}
     >
       sync
     </SettingsIconButton>
     <SettingsIconButton
-      className="material-icons-round"
+      className="material-symbols-rounded"
       aria-label={`Edit ${source.name}`}
       onClick={onEdit}
     >
@@ -48,7 +48,7 @@ export const TasksSourceRow = ({
     </SettingsIconButton>
     {source.type === 'google-calendar' ? (
       <SettingsIconButton
-        className="material-icons-round"
+        className="material-symbols-rounded"
         aria-label={`Authorize ${source.name}`}
         onClick={onGoogleAuthorize}
       >
@@ -56,7 +56,7 @@ export const TasksSourceRow = ({
       </SettingsIconButton>
     ) : null}
     <SettingsIconButton
-      className="material-icons-round"
+      className="material-symbols-rounded"
       aria-label={`Remove ${source.name}`}
       onClick={onRemove}
     >

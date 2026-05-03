@@ -114,7 +114,7 @@
   padding: 6px;
 }
 
-.erEdge :global(.material-icons) {
+.erEdge :global(.material-symbols-rounded) {
   color: var(--foreground-muted);
   font-size: 14px;
 }

@@ -22,7 +22,7 @@
   color: var(--foreground);
 }
 
-.icon:global(.material-icons-round) {
+.icon:global(.material-symbols-rounded) {
   font-size: 34px;
 }
 

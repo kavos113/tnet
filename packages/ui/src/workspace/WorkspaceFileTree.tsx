@@ -134,7 +134,7 @@ const WorkspaceFileTreeItem = ({
       >
         {item.isDirectory ? (
           <span
-            className={`material-icons-round ${styles.chevron} ${
+            className={`material-symbols-rounded ${styles.chevron} ${
               isExpanded ? styles.chevronExpanded : ''
             }`}
           >
@@ -142,7 +142,7 @@ const WorkspaceFileTreeItem = ({
           </span>
         ) : null}
         <span
-          className={`material-icons ${styles.icon} ${item.isDirectory ? styles.folder : ''} ${
+          className={`material-symbols-rounded ${styles.icon} ${item.isDirectory ? styles.folder : ''} ${
             !item.isDirectory ? styles.fileIcon : ''
           }`}
         >
@@ -168,12 +168,12 @@ const WorkspaceFileTreeItem = ({
             <li className={styles.newItem}>
               <div className={styles.treeItem}>
                 <span
-                  className={`${styles.chevron} material-icons-round ${styles.iconPlaceholder}`}
+                  className={`${styles.chevron} material-symbols-rounded ${styles.iconPlaceholder}`}
                 >
                   chevron_right
                 </span>
                 <span
-                  className={`${styles.icon} ${styles.folder} material-icons ${
+                  className={`${styles.icon} ${styles.folder} material-symbols-rounded ${
                     newEntry?.mode !== 'directory' ? styles.iconPlaceholder : ''
                   }`}
                 >

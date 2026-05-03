@@ -48,7 +48,7 @@
   border-radius: 4px;
 }
 
-.closeButton:global(.material-icons-round) {
+.closeButton:global(.material-symbols-rounded) {
   font-size: 20px;
 }
 

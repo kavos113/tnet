@@ -113,7 +113,7 @@ export const RequesterCookieSettings = ({
             <span>{cookie.path}</span>
             <span>{cookie.expiresAt ?? 'session'}</span>
             <SettingsIconButton
-              className="material-icons-round"
+              className="material-symbols-rounded"
               aria-label={`Remove cookie ${cookie.name}`}
               onClick={() => onRemove(cookie.id)}
             >

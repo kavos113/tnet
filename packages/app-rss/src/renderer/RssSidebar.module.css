@@ -82,7 +82,7 @@
   font-size: 12px;
 }
 
-.folderIcon:global(.material-icons) {
+.folderIcon:global(.material-symbols-rounded) {
   font-size: 12px;
 }
 

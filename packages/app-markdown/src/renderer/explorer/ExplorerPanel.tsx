@@ -101,7 +101,7 @@ export const ExplorerPanel = (): React.JSX.Element => {
           <div className={styles.actions}>
             <button
               type="button"
-              className={`${styles.iconButton} material-icons-round ${
+              className={`${styles.iconButton} material-symbols-rounded ${
                 activeView === 'files' ? styles.iconButtonActive : ''
               }`}
               aria-label="Show files"
@@ -112,7 +112,7 @@ export const ExplorerPanel = (): React.JSX.Element => {
             </button>
             <button
               type="button"
-              className={`${styles.iconButton} material-icons-round ${
+              className={`${styles.iconButton} material-symbols-rounded ${
                 activeView === 'search' ? styles.iconButtonActive : ''
               }`}
               aria-label="Show search"
@@ -133,12 +133,12 @@ export const ExplorerPanel = (): React.JSX.Element => {
               <li className={styles.newItem}>
                 <div className={treeStyles.treeItem}>
                   <span
-                    className={`material-icons-round ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
+                    className={`material-symbols-rounded ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
                   >
                     chevron_right
                   </span>
                   <span
-                    className={`material-icons ${treeStyles.folder} ${
+                    className={`material-symbols-rounded ${treeStyles.folder} ${
                       newEntry.mode !== 'directory' ? treeStyles.iconPlaceholder : ''
                     }`}
                   >

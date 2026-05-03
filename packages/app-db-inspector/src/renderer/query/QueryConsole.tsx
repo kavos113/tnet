@@ -155,7 +155,9 @@ export const QueryConsole = (): React.JSX.Element => {
             title={isExpanded ? 'Collapse SQL editor' : 'Expand SQL editor'}
             onClick={() => setIsExpanded((current) => !current)}
           >
-            <span className="material-icons">{isExpanded ? 'unfold_less' : 'unfold_more'}</span>
+            <span className="material-symbols-rounded">
+              {isExpanded ? 'unfold_less' : 'unfold_more'}
+            </span>
           </button>
         </div>
         <span className={styles.queryMeta}>

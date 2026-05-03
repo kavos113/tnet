@@ -23,7 +23,7 @@
   border-radius: 6px;
 }
 
-.item:global(.material-icons-round) {
+.item:global(.material-symbols-rounded) {
   font-size: 20px;
 }
 

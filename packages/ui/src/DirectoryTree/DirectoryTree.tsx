@@ -81,13 +81,13 @@ const DirectoryTreeItem = ({
         }}
       >
         <span
-          className={`material-icons-round ${styles.chevron} ${
+          className={`material-symbols-rounded ${styles.chevron} ${
             isExpanded ? styles.chevronExpanded : ''
           } ${childDirectories.length === 0 ? styles.iconPlaceholder : ''}`}
         >
           chevron_right
         </span>
-        <span className={`material-icons ${styles.folder}`}>
+        <span className={`material-symbols-rounded ${styles.folder}`}>
           {isExpanded ? 'folder_open' : 'folder'}
         </span>
         <p className={styles.name}>{item.name}</p>
@@ -98,11 +98,11 @@ const DirectoryTreeItem = ({
             <li className={styles.newItem}>
               <div className={styles.treeItem}>
                 <span
-                  className={`material-icons-round ${styles.chevron} ${styles.iconPlaceholder}`}
+                  className={`material-symbols-rounded ${styles.chevron} ${styles.iconPlaceholder}`}
                 >
                   chevron_right
                 </span>
-                <span className={`material-icons ${styles.folder}`}>folder</span>
+                <span className={`material-symbols-rounded ${styles.folder}`}>folder</span>
                 <input
                   ref={newEntryInputRef}
                   className={styles.newInput}

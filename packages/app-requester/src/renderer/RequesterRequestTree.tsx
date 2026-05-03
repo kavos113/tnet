@@ -69,7 +69,7 @@ const RequesterRequestTreeItem = ({
           <>
             <button
               type="button"
-              className={`material-icons-round ${treeStyles.chevron} ${
+              className={`material-symbols-rounded ${treeStyles.chevron} ${
                 isExpanded ? treeStyles.chevronExpanded : ''
               }`}
               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${node.name}`}
@@ -80,7 +80,7 @@ const RequesterRequestTreeItem = ({
             >
               chevron_right
             </button>
-            <span className={`material-icons ${treeStyles.folder}`}>
+            <span className={`material-symbols-rounded ${treeStyles.folder}`}>
               {isExpanded ? 'folder_open' : 'folder'}
             </span>
           </>
@@ -93,7 +93,7 @@ const RequesterRequestTreeItem = ({
         {!node.isDirectory && node.requestId ? (
           <button
             type="button"
-            className={`${controlStyles.iconButton} material-icons-round ${styles.treeAction}`}
+            className={`${controlStyles.iconButton} material-symbols-rounded ${styles.treeAction}`}
             aria-label={`Rename ${node.name}`}
             title="Rename or move request"
             onClick={(event) => {
@@ -111,11 +111,11 @@ const RequesterRequestTreeItem = ({
             <li className={treeStyles.newItem}>
               <div className={treeStyles.treeItem}>
                 <span
-                  className={`material-icons-round ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
+                  className={`material-symbols-rounded ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
                 >
                   chevron_right
                 </span>
-                <span className={`material-icons ${treeStyles.folder}`}>folder</span>
+                <span className={`material-symbols-rounded ${treeStyles.folder}`}>folder</span>
                 <input
                   className={treeStyles.newInput}
                   value={itemProps.newFolder.name}

@@ -21,8 +21,8 @@
   border-color: var(--gray);
 }
 
-.iconButton :global(.material-icons-round),
-.iconButton:global(.material-icons-round) {
+.iconButton :global(.material-symbols-rounded),
+.iconButton:global(.material-symbols-rounded) {
   font-size: 18px;
 }
 

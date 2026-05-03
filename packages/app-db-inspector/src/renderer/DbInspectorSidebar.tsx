@@ -90,7 +90,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
           disabled={!activeWorkspaceId || isLoading}
           onClick={() => void refreshDbInspectorSchema(dispatch, activeWorkspaceId)}
         >
-          <span className="material-icons">refresh</span>
+          <span className="material-symbols-rounded">refresh</span>
         </button>
         <button
           className={appStyles.iconButton}
@@ -99,12 +99,12 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
           disabled={!activeWorkspace || isLoading}
           onClick={() => setIsEditDialogOpen(true)}
         >
-          <span className="material-icons">settings</span>
+          <span className="material-symbols-rounded">settings</span>
         </button>
       </div>
       <div className={treeStyles.workspaceTree} role="tree" aria-label="DB workspaces">
         <div className={treeStyles.treeFolder}>
-          <span className="material-icons">folder</span>
+          <span className="material-symbols-rounded">folder</span>
           Workspaces
         </div>
         {workspaces.map((workspace) => (
@@ -118,7 +118,7 @@ export const DbInspectorSidebar = (): React.JSX.Element => {
             title={describeConnection(workspace)}
             onClick={() => void selectDbInspectorWorkspace(dispatch, workspace.id)}
           >
-            <span className="material-icons">storage</span>
+            <span className="material-symbols-rounded">storage</span>
             <span className={treeStyles.treeLabel}>{workspace.name}</span>
           </button>
         ))}

@@ -19,7 +19,7 @@ export const AppRail = ({ apps, activeAppId, onSelect }: AppRailProps): React.JS
       <button
         key={app.id}
         type="button"
-        className={`${styles.item} material-icons-round ${
+        className={`${styles.item} material-symbols-rounded ${
           app.id === activeAppId ? styles.active : ''
         }`}
         aria-label={app.label}

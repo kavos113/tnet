@@ -372,7 +372,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
           <span className={shellStyles.title}>Requests</span>
           <button
             type="button"
-            className={`${controlStyles.iconButton} material-icons-round`}
+            className={`${controlStyles.iconButton} material-symbols-rounded`}
             aria-label="Run sequence"
             title="Run sequence"
             disabled={!activeWorkspaceId || requests.length === 0}
@@ -382,7 +382,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
           </button>
           <button
             type="button"
-            className={`${controlStyles.iconButton} material-icons-round`}
+            className={`${controlStyles.iconButton} material-symbols-rounded`}
             aria-label="Create request"
             title="Create request"
             disabled={!activeWorkspaceId}
@@ -396,11 +396,11 @@ export const RequesterSidebar = (): React.JSX.Element => {
             <li className={treeStyles.newItem}>
               <div className={treeStyles.treeItem}>
                 <span
-                  className={`material-icons-round ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
+                  className={`material-symbols-rounded ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
                 >
                   chevron_right
                 </span>
-                <span className={`material-icons ${treeStyles.folder}`}>folder</span>
+                <span className={`material-symbols-rounded ${treeStyles.folder}`}>folder</span>
                 <input
                   className={treeStyles.newInput}
                   value={newFolder.name}

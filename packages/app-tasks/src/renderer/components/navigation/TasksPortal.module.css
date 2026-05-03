@@ -37,6 +37,6 @@
   background: var(--background-light);
 }
 
-.icon:global(.material-icons-round) {
+.icon:global(.material-symbols-rounded) {
   font-size: 16px;
 }

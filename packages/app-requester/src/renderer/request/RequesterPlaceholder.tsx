@@ -13,7 +13,7 @@ export const RequesterPlaceholder = ({
 }: RequesterPlaceholderProps): React.JSX.Element => (
   <main className={styles.placeholder} aria-label="Requester">
     <section className={styles.placeholderContent}>
-      <span className={`material-icons-round ${styles.placeholderIcon}`} aria-hidden="true">
+      <span className={`material-symbols-rounded ${styles.placeholderIcon}`} aria-hidden="true">
         {icon}
       </span>
       <h1>{title}</h1>

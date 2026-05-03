@@ -19,12 +19,12 @@ export const DbInspectorSchemaTree = ({
     {schema?.schemas.map((databaseSchema) => (
       <div key={databaseSchema.name} className={styles.schemaGroup}>
         <div className={styles.schemaName}>
-          <span className="material-icons">account_tree</span>
+          <span className="material-symbols-rounded">account_tree</span>
           {databaseSchema.name}
         </div>
         <div className={styles.treeBranch}>
           <div className={styles.treeFolder}>
-            <span className="material-icons">folder</span>
+            <span className="material-symbols-rounded">folder</span>
             Tables
           </div>
           {databaseSchema.tables.map((table) => (
@@ -37,7 +37,7 @@ export const DbInspectorSchemaTree = ({
               role="treeitem"
               onClick={() => onOpenTable(table, 0)}
             >
-              <span className="material-icons">table_chart</span>
+              <span className="material-symbols-rounded">table_chart</span>
               <span className={styles.treeLabel}>{table.name}</span>
             </button>
           ))}
@@ -45,12 +45,12 @@ export const DbInspectorSchemaTree = ({
         {databaseSchema.views.length > 0 ? (
           <div className={styles.treeBranch}>
             <div className={styles.treeFolder}>
-              <span className="material-icons">folder</span>
+              <span className="material-symbols-rounded">folder</span>
               Views
             </div>
             {databaseSchema.views.map((view) => (
               <div key={view.name} className={styles.treeItem}>
-                <span className="material-icons">view_list</span>
+                <span className="material-symbols-rounded">view_list</span>
                 <span className={styles.treeLabel}>{view.name}</span>
               </div>
             ))}

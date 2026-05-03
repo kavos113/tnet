@@ -251,7 +251,7 @@ export const PapersApp = (): React.JSX.Element => {
     return (
       <main className={placeholderStyles.placeholder} aria-label="Papers">
         <section className={placeholderStyles.content}>
-          <span className={`material-icons-round ${placeholderStyles.icon}`} aria-hidden="true">
+          <span className={`material-symbols-rounded ${placeholderStyles.icon}`} aria-hidden="true">
             article
           </span>
           <h1>Papers</h1>
@@ -265,7 +265,7 @@ export const PapersApp = (): React.JSX.Element => {
     return (
       <main className={placeholderStyles.placeholder} aria-label="Papers">
         <section className={placeholderStyles.content}>
-          <span className={`material-icons-round ${placeholderStyles.icon}`} aria-hidden="true">
+          <span className={`material-symbols-rounded ${placeholderStyles.icon}`} aria-hidden="true">
             article
           </span>
           <h1>Papers</h1>

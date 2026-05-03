@@ -50,7 +50,7 @@ export const TasksCalendar = ({
         <div className={styles.controls}>
           <button
             type="button"
-            className={`${styles.iconButton} material-icons-round`}
+            className={`${styles.iconButton} material-symbols-rounded`}
             aria-label="Previous range"
             onClick={() => onMoveRange(-moveSize)}
           >
@@ -61,7 +61,7 @@ export const TasksCalendar = ({
           </button>
           <button
             type="button"
-            className={`${styles.iconButton} material-icons-round`}
+            className={`${styles.iconButton} material-symbols-rounded`}
             aria-label="Next range"
             onClick={() => onMoveRange(moveSize)}
           >

@@ -45,7 +45,7 @@ export const TaskRow = ({
     </button>
     <button
       type="button"
-      className={`${styles.iconButton} material-icons-round`}
+      className={`${styles.iconButton} material-symbols-rounded`}
       aria-label={`Edit ${task.title}`}
       onClick={() => onEdit(task)}
     >
@@ -53,7 +53,7 @@ export const TaskRow = ({
     </button>
     <button
       type="button"
-      className={`${styles.iconButton} material-icons-round`}
+      className={`${styles.iconButton} material-symbols-rounded`}
       aria-label={`Delete ${task.title}`}
       onClick={() => onDelete(task.id)}
     >

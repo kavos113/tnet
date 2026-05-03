@@ -55,7 +55,7 @@
   background: var(--background-light);
 }
 
-.subscriptionButton :global(.material-icons-round) {
+.subscriptionButton :global(.material-symbols-rounded) {
   font-size: 17px;
 }
 

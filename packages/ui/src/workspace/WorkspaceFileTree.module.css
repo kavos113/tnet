@@ -43,7 +43,7 @@
   transition: transform 0.12s ease;
 }
 
-.chevron:global(.material-icons-round) {
+.chevron:global(.material-symbols-rounded) {
   font-size: 12px;
 }
 
@@ -56,7 +56,7 @@
   font-size: 12px;
 }
 
-.icon:global(.material-icons) {
+.icon:global(.material-symbols-rounded) {
   font-size: 12px;
 }
 

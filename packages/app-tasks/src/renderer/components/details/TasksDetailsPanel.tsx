@@ -64,7 +64,7 @@ export const TasksDetailsPanel = ({
           <button
             ref={closeButtonRef}
             type="button"
-            className={`${styles.closeButton} material-icons-round`}
+            className={`${styles.closeButton} material-symbols-rounded`}
             aria-label="Close details"
             onClick={onClose}
           >

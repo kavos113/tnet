@@ -47,7 +47,7 @@ export const DbInspectorWorkspaceDialog = ({
         <header className={dialogStyles.dialogHeader}>
           <strong>{workspace ? 'Edit Workspace' : 'Create Workspace'}</strong>
           <button className={appStyles.iconButton} type="button" onClick={onClose}>
-            <span className="material-icons">close</span>
+            <span className="material-symbols-rounded">close</span>
           </button>
         </header>
         <label className={styles.label}>

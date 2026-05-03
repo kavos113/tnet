@@ -51,7 +51,7 @@ export const RssItemListPane = ({
             title="Sync selected feed"
             onClick={() => onSyncSelectedFeed().catch(onError)}
           >
-            sync
+            <span className="material-symbols-rounded">sync</span>
           </button>
           <button
             className={controlStyles.iconButton}
@@ -59,7 +59,7 @@ export const RssItemListPane = ({
             title="Rename selected feed"
             onClick={() => onRenameSelectedFeed().catch(onError)}
           >
-            edit
+            <span className="material-symbols-rounded">edit</span>
           </button>
           <button
             className={controlStyles.iconButton}
@@ -67,7 +67,7 @@ export const RssItemListPane = ({
             title="Move selected feed"
             onClick={() => onMoveSelectedFeed().catch(onError)}
           >
-            drive_file_move
+            <span className="material-symbols-rounded">drive_file_move</span>
           </button>
           <button
             className={controlStyles.iconButton}
@@ -75,7 +75,7 @@ export const RssItemListPane = ({
             title="Delete selected feed"
             onClick={() => onDeleteSelectedFeed().catch(onError)}
           >
-            delete
+            <span className="material-symbols-rounded">delete</span>
           </button>
         </div>
       ) : null}

@@ -207,7 +207,7 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
           title="Zoom out"
           onClick={() => updateZoom(zoom / ZOOM_FACTOR)}
         >
-          <span className="material-icons">remove</span>
+          <span className="material-symbols-rounded">remove</span>
         </button>
         <input
           className={styles.zoomInput}
@@ -224,7 +224,7 @@ export const MermaidDiagramView = ({ source }: MermaidDiagramViewProps): React.J
           title="Zoom in"
           onClick={() => updateZoom(zoom * ZOOM_FACTOR)}
         >
-          <span className="material-icons">add</span>
+          <span className="material-symbols-rounded">add</span>
         </button>
         <button className={appStyles.button} type="button" onClick={() => fitDiagram(zoom)}>
           Fit

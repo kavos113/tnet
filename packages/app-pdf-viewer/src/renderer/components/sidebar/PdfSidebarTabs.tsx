@@ -27,7 +27,7 @@ export const PdfSidebarTabs = ({
         aria-label={panel.label}
         onClick={() => onSelectPanel(panel.id)}
       >
-        <span className="material-icons-round" aria-hidden="true">
+        <span className="material-symbols-rounded" aria-hidden="true">
           {panel.icon}
         </span>
       </button>

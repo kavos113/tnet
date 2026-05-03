@@ -61,7 +61,7 @@ const PortalShortcuts = ({
           aria-label={shortcut.label}
           onClick={() => onSelect(shortcut.id)}
         >
-          <span className={`material-icons-round ${styles.portalIcon}`} aria-hidden="true">
+          <span className={`material-symbols-rounded ${styles.portalIcon}`} aria-hidden="true">
             {shortcut.icon}
           </span>
         </button>

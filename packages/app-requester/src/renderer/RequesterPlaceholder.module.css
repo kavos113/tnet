@@ -22,6 +22,6 @@
   color: var(--foreground);
 }
 
-.placeholderIcon:global(.material-icons-round) {
+.placeholderIcon:global(.material-symbols-rounded) {
   font-size: 34px;
 }

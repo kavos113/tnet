@@ -277,7 +277,7 @@ export const PdfViewer = ({ libraryRoot, pdfPath }: PdfViewerProps): React.JSX.E
           aria-label="Open PDF"
           onClick={openExternal}
         >
-          <span className="material-icons-round" aria-hidden="true">
+          <span className="material-symbols-rounded" aria-hidden="true">
             open_in_new
           </span>
         </button>

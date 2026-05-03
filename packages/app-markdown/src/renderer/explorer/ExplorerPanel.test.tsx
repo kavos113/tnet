@@ -187,15 +187,17 @@ describe('ExplorerPanel', () => {
   it('uses the legacy folder icons and spacing for directories and files', () => {
     renderExplorer();
 
-    expect(screen.getByText('chevron_right')).toHaveClass('material-icons-round');
+    expect(screen.getByText('chevron_right')).toHaveClass('material-symbols-rounded');
     expect(
-      screen.getAllByText('folder').some((item) => item.classList.contains('material-icons'))
+      screen
+        .getAllByText('folder')
+        .some((item) => item.classList.contains('material-symbols-rounded'))
     ).toBe(true);
     expect(screen.getByText('docs')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('docs'));
 
-    expect(screen.getByText('folder_open')).toHaveClass('material-icons');
+    expect(screen.getByText('folder_open')).toHaveClass('material-symbols-rounded');
     expect(screen.getByText('note.md')).toBeInTheDocument();
   });
 
@@ -239,7 +241,9 @@ describe('ExplorerPanel', () => {
 
     expect(input).toHaveValue('New Folder');
     expect(
-      screen.getAllByText('folder').some((item) => item.classList.contains('material-icons'))
+      screen
+        .getAllByText('folder')
+        .some((item) => item.classList.contains('material-symbols-rounded'))
     ).toBe(true);
 
     fireEvent.change(input, { target: { value: 'nested' } });

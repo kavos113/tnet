@@ -47,7 +47,7 @@ export const WorkspaceSwitcher = ({
       ))}
       <button
         type="button"
-        className={`${styles.workspaceSwitcherAdd} material-icons-round`}
+        className={`${styles.workspaceSwitcherAdd} material-symbols-rounded`}
         aria-label={openLabel}
         title={openLabel}
         onClick={onOpenRoot}

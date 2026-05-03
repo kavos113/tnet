@@ -60,7 +60,7 @@
   background: var(--background-light);
 }
 
-.portalIcon:global(.material-icons-round) {
+.portalIcon:global(.material-symbols-rounded) {
   font-size: 18px;
 }
 

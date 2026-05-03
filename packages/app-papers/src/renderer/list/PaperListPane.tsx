@@ -60,7 +60,7 @@ export const PaperListPane = ({
             onImportPdf();
           }}
         >
-          <span className="material-icons-round" aria-hidden="true">
+          <span className="material-symbols-rounded" aria-hidden="true">
             upload_file
           </span>
         </button>

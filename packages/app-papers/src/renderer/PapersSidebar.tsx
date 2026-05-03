@@ -141,7 +141,7 @@ export const PapersSidebar = (): React.JSX.Element => {
         ))}
         <button
           type="button"
-          className={`${workspaceStyles.workspaceSwitcherAdd} material-icons-round`}
+          className={`${workspaceStyles.workspaceSwitcherAdd} material-symbols-rounded`}
           aria-label="Open paper library"
           title="Open paper library"
           onClick={() => {
@@ -179,7 +179,9 @@ export const PapersSidebar = (): React.JSX.Element => {
               }`}
               onClick={() => dispatch(setSelectedPapersDirectory(null))}
             >
-              <span className={`material-icons ${treeStyles.folder}`}>folder_special</span>
+              <span className={`material-symbols-rounded ${treeStyles.folder}`}>
+                folder_special
+              </span>
               <p className={treeStyles.itemName}>All papers</p>
             </button>
             <ul className={treeStyles.fileList}>
@@ -187,11 +189,11 @@ export const PapersSidebar = (): React.JSX.Element => {
                 <li className={treeStyles.newItem}>
                   <div className={treeStyles.treeItem}>
                     <span
-                      className={`material-icons-round ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
+                      className={`material-symbols-rounded ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
                     >
                       chevron_right
                     </span>
-                    <span className={`material-icons ${treeStyles.folder}`}>folder</span>
+                    <span className={`material-symbols-rounded ${treeStyles.folder}`}>folder</span>
                     <input
                       ref={rootInputRef}
                       className={treeStyles.newInput}

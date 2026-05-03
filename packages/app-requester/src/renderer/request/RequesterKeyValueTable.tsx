@@ -54,7 +54,7 @@ export const RequesterKeyValueTable = ({
           />
           <button
             type="button"
-            className={`${controlStyles.iconButton} material-icons-round`}
+            className={`${controlStyles.iconButton} material-symbols-rounded`}
             aria-label={`Remove ${label} row`}
             onClick={() => onChange(rows.filter((item) => item.id !== row.id))}
           >

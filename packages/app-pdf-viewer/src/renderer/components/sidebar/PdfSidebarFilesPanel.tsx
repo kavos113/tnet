@@ -44,7 +44,7 @@ export const PdfSidebarFilesPanel = ({
         <span className={sharedStyles.title}>{rootPath ? basename(rootPath) : 'PDFs'}</span>
         <button
           type="button"
-          className={`${sharedStyles.addButton} material-icons-round`}
+          className={`${sharedStyles.addButton} material-symbols-rounded`}
           aria-label="Refresh PDF workspace"
           disabled={!rootPath}
           onClick={onRefresh}
@@ -53,7 +53,7 @@ export const PdfSidebarFilesPanel = ({
         </button>
         <button
           type="button"
-          className={`${sharedStyles.addButton} material-icons-round`}
+          className={`${sharedStyles.addButton} material-symbols-rounded`}
           aria-label="Rename active PDF"
           disabled={!rootPath || !activePdfPath}
           onClick={() => {
@@ -69,7 +69,7 @@ export const PdfSidebarFilesPanel = ({
         </button>
         <button
           type="button"
-          className={`${sharedStyles.addButton} material-icons-round`}
+          className={`${sharedStyles.addButton} material-symbols-rounded`}
           aria-label="Move active PDF"
           disabled={!rootPath || !activePdfPath}
           onClick={() => {
