@@ -29,6 +29,36 @@
   text-transform: uppercase;
 }
 
+.actions {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.subscriptionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 8px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--background);
+  border: 1px solid var(--gray);
+  border-radius: 4px;
+}
+
+.subscriptionButton:hover {
+  background: var(--background-light);
+}
+
+.subscriptionButton :global(.material-icons-round) {
+  font-size: 17px;
+}
+
 .summary {
   display: grid;
   gap: 6px;

@@ -2,7 +2,13 @@ import { useTasksDispatch, useTasksSelector } from '../../state/storeHooks';
 import { setTasksCategoryFilter } from '../../state/tasksSlice';
 import styles from './TasksSidebar.module.css';
 
-export const TasksSidebar = (): React.JSX.Element => {
+export interface TasksSidebarProps {
+  onOpenTasksSettings?: () => void;
+}
+
+export const TasksSidebar = ({
+  onOpenTasksSettings = () => undefined
+}: TasksSidebarProps): React.JSX.Element => {
   const dispatch = useTasksDispatch();
   const tasks = useTasksSelector((state) => state.tasks.tasks);
   const categories = useTasksSelector((state) => state.tasks.categories);
@@ -24,6 +30,14 @@ export const TasksSidebar = (): React.JSX.Element => {
             task_alt
           </span>
         </header>
+        <div className={styles.actions}>
+          <button type="button" className={styles.subscriptionButton} onClick={onOpenTasksSettings}>
+            <span className="material-icons-round" aria-hidden="true">
+              add
+            </span>
+            <span>Add subscription</span>
+          </button>
+        </div>
         <div className={styles.summary}>
           <span className={styles.summaryValue}>{openTasks.length}</span>
           <span className={styles.summaryLabel}>Open Tasks</span>

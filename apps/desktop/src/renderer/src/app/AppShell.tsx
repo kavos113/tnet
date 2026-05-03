@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { normalizeGlobalConfig } from '@tnet/shared/types/config';
 import type { MarkdownAppProps } from '@tnet/app-markdown/renderer';
-import type { TasksAppProps } from '@tnet/app-tasks/renderer';
+import type { TasksAppProps, TasksSidebarProps } from '@tnet/app-tasks/renderer';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
 import { AppRail } from '@tnet/ui/AppRail';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
@@ -23,6 +23,7 @@ export const AppShell = (): React.JSX.Element => {
   const TasksMain = ActiveApp as React.ComponentType<TasksAppProps>;
   const MarkdownMain = ActiveApp as React.ComponentType<MarkdownAppProps>;
   const ActiveSidebar = activeModule.Sidebar;
+  const TasksSidebar = ActiveSidebar as React.ComponentType<TasksSidebarProps>;
   const ActiveRuntime = activeModule.Runtime;
   const portalShortcuts = appRegistry
     .filter((app) => app.id !== 'tasks')
@@ -87,13 +88,18 @@ export const AppShell = (): React.JSX.Element => {
       />
       <Suspense fallback={<main aria-label={activeModule.label} className={styles.loading} />}>
         {isAppRestored && ActiveRuntime ? <ActiveRuntime /> : null}
-        {isAppRestored && ActiveSidebar ? <ActiveSidebar /> : null}
+        {isAppRestored && ActiveSidebar ? (
+          activeAppId === 'tasks' ? (
+            <TasksSidebar onOpenTasksSettings={() => setIsSettingsOpen(true)} />
+          ) : (
+            <ActiveSidebar />
+          )
+        ) : null}
         {isAppRestored ? (
           activeAppId === 'tasks' ? (
             <TasksMain
               portalShortcuts={portalShortcuts}
               onSelectPortalApp={(appId) => dispatch(setActiveApp(appId))}
-              onOpenTasksSettings={() => setIsSettingsOpen(true)}
             />
           ) : activeAppId === 'markdown' ? (
             <MarkdownMain onOpenPdfLink={openPdfLink} />

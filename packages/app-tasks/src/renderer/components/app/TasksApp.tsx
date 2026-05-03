@@ -19,13 +19,11 @@ import styles from './TasksApp.module.css';
 export interface TasksAppProps {
   portalShortcuts?: TasksPortalShortcut[];
   onSelectPortalApp?: (appId: AppId) => void;
-  onOpenTasksSettings?: () => void;
 }
 
 export const TasksApp = ({
   portalShortcuts = [],
-  onSelectPortalApp = () => undefined,
-  onOpenTasksSettings = () => undefined
+  onSelectPortalApp = () => undefined
 }: TasksAppProps): React.JSX.Element => {
   const dispatch = useTasksDispatch();
   const {
@@ -149,11 +147,6 @@ export const TasksApp = ({
         onSelectPortalApp={onSelectPortalApp}
         onViewChange={(view) => dispatch(setTasksView(view))}
       />
-      <div className={styles.subscriptionBar}>
-        <button type="button" className={styles.secondaryButton} onClick={onOpenTasksSettings}>
-          Add subscription
-        </button>
-      </div>
       <TasksQuickAddForm
         categories={categories}
         eventDraft={quickEventDraft}
