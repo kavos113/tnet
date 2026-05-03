@@ -60,7 +60,7 @@
 
 .centerAppGroup {
   display: grid;
-  gap: 4px;
+  gap: 0px;
   margin-bottom: 14px;
 }
 
@@ -81,7 +81,7 @@
 
 .centerNavButton {
   width: 100%;
-  padding: 7px 8px 7px 30px;
+  padding: 2px 8px 2px 30px;
   color: var(--foreground);
   text-align: left;
   cursor: pointer;
