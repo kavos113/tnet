@@ -29,7 +29,6 @@
   "compilerOptions": {
     "composite": true,
     "types": ["electron-vite/node", "node"],
-    "baseUrl": ".",
     "paths": {
       "@main/*": ["./apps/desktop/src/*"],
       "@preload/*": ["./apps/desktop/src/preload/*"],
