@@ -167,6 +167,24 @@ export interface RequesterResponseSnapshot {
   previewType: 'json' | 'html' | 'text' | 'image' | 'pdf' | 'binary';
 }
 
+export interface RequesterRequestSnapshot {
+  workspaceId: string;
+  requestId?: string;
+  requestName: string;
+  requestType: RequesterRequestType;
+  method: RequesterHttpMethod;
+  url: string;
+  executedUrl: string;
+  headers: RequesterKeyValueRow[];
+  bodyMode: RequesterBodyMode;
+  bodyText: string;
+  bodyBase64: string;
+  contentType: string;
+  byteSize: number;
+  isBodyTruncated: boolean;
+  previewType: 'json' | 'html' | 'text' | 'binary';
+}
+
 export interface RequesterExecutionErrorSnapshot {
   name: string;
   message: string;
@@ -175,6 +193,7 @@ export interface RequesterExecutionErrorSnapshot {
 }
 
 export interface RequesterExecutionResult {
+  requestSnapshot: RequesterRequestSnapshot;
   response: RequesterResponseSnapshot;
   historyId?: string;
 }
@@ -192,7 +211,7 @@ export interface RequesterHistoryEntry {
 }
 
 export interface RequesterHistoryDetail extends RequesterHistoryEntry {
-  requestSnapshot: SaveRequesterRequestInput;
+  requestSnapshot: RequesterRequestSnapshot;
   responseSnapshot: RequesterResponseSnapshot;
 }
 

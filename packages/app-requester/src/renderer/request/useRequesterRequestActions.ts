@@ -9,6 +9,7 @@ import {
   setRequesterError,
   setRequesterHistory,
   setRequesterRequests,
+  setRequesterRequestSnapshot,
   setRequesterResponse,
   setRequesterResponseError
 } from '../requesterSlice';
@@ -96,6 +97,7 @@ export const useRequesterRequestActions = ({
       workspaceId: requestInput.workspaceId,
       requestId: saved?.id ?? requestInput.id
     });
+    dispatch(setRequesterRequestSnapshot(result.requestSnapshot));
     dispatch(setRequesterResponse(result.response));
     dispatch(setRequesterResponseError(undefined));
     dispatch(setRequesterHistory(history));
@@ -173,6 +175,7 @@ export const useRequesterRequestActions = ({
       .then((detail) => {
         if (!detail) return;
         setSelectedHistoryId(historyId);
+        dispatch(setRequesterRequestSnapshot(detail.requestSnapshot));
         dispatch(setRequesterResponse(detail.responseSnapshot));
       })
       .catch((error: unknown) => {

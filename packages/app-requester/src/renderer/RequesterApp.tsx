@@ -13,6 +13,9 @@ import styles from './RequesterApp.module.css';
 export const RequesterApp = (): React.JSX.Element => {
   const dispatch = useRequesterDispatch();
   const activeRequest = useRequesterSelector((state) => state.requester.activeRequest);
+  const activeRequestSnapshot = useRequesterSelector(
+    (state) => state.requester.activeRequestSnapshot
+  );
   const activeResponse = useRequesterSelector((state) => state.requester.activeResponse);
   const activeResponseError = useRequesterSelector((state) => state.requester.activeResponseError);
   const activeWorkspaceId = useRequesterSelector((state) => state.requester.activeWorkspaceId);
@@ -198,6 +201,7 @@ export const RequesterApp = (): React.JSX.Element => {
         onIntrospectGraphql={actions.introspectGraphql}
       />
       <RequesterResponsePanel
+        request={activeRequestSnapshot}
         response={activeResponse}
         error={activeResponseError}
         extractionRules={draft.extractionRules}

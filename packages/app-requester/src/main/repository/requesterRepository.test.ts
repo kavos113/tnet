@@ -2,8 +2,10 @@
 import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
+import Database from 'better-sqlite3';
 import { describe, expect, it } from 'vitest';
 import { normalizeRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
+import { requesterDatabasePath } from '../requesterPaths';
 import { openRequesterDatabase } from './requesterDb';
 import { CookieRepository, parseSetCookieHeader } from './cookieRepository';
 import { HistoryRepository } from './historyRepository';
@@ -172,11 +174,21 @@ describe('Requester repositories', () => {
     const historyId = historyRepository.saveExecution({
       startedAt: '2026-05-01T00:00:00.000Z',
       request: {
-        id: savedRequest.id,
         workspaceId: workspace.id,
-        name: 'Health',
+        requestId: savedRequest.id,
+        requestName: 'Health',
+        requestType: 'http',
         method: 'GET',
-        url: 'https://example.test/health'
+        url: 'https://example.test/health',
+        executedUrl: 'https://example.test/health',
+        headers: [{ id: 'accept', enabled: true, key: 'accept', value: 'application/json' }],
+        bodyMode: 'none',
+        bodyText: '',
+        bodyBase64: '',
+        contentType: '',
+        byteSize: 0,
+        isBodyTruncated: false,
+        previewType: 'text'
       },
       response: {
         status: 200,
@@ -213,8 +225,90 @@ describe('Requester repositories', () => {
     ]);
     expect(historyRepository.list(workspace.id, 'other-request')).toEqual([]);
     expect(historyRepository.get(historyId ?? '')?.responseSnapshot.bodyText).toBe('{"ok":true}');
+    expect(historyRepository.get(historyId ?? '')?.requestSnapshot.headers).toEqual([
+      expect.objectContaining({ enabled: true, key: 'accept', value: 'application/json' })
+    ]);
+    historyRepository.saveExecution({
+      startedAt: '2026-05-01T00:00:01.000Z',
+      request: {
+        workspaceId: workspace.id,
+        requestId: savedRequest.id,
+        requestName: 'Health',
+        requestType: 'http',
+        method: 'GET',
+        url: 'https://example.test/health',
+        executedUrl: 'https://example.test/health',
+        headers: [{ id: 'accept', enabled: true, key: 'accept', value: 'application/json' }],
+        bodyMode: 'none',
+        bodyText: '',
+        bodyBase64: '',
+        contentType: '',
+        byteSize: 0,
+        isBodyTruncated: false,
+        previewType: 'text'
+      },
+      response: {
+        status: 204,
+        statusText: 'No Content',
+        headers: [{ id: 'content-type', enabled: true, key: 'content-type', value: 'text/plain' }],
+        bodyText: '',
+        bodyBase64: '',
+        contentType: 'text/plain',
+        byteSize: 0,
+        durationMs: 12,
+        isBodyTruncated: false,
+        previewType: 'text'
+      }
+    });
+    expect(historyRepository.list(workspace.id, savedRequest.id)).toHaveLength(2);
     historyRepository.clear(workspace.id);
     expect(historyRepository.list(workspace.id)).toEqual([]);
+    database.close();
+  });
+
+  it('drops legacy JSON history tables while keeping requester data', async () => {
+    const userDataDir = await tempDir('legacy-history');
+    const databasePath = requesterDatabasePath(userDataDir);
+    await fs.mkdir(path.dirname(databasePath), { recursive: true });
+    const legacyDatabase = new Database(databasePath);
+    legacyDatabase.exec(`
+      CREATE TABLE requester_schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+      CREATE TABLE workspaces (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        settings_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+      CREATE TABLE history_entries (
+        id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL,
+        request_id TEXT,
+        started_at TEXT NOT NULL,
+        duration_ms INTEGER NOT NULL,
+        status INTEGER,
+        request_snapshot_json TEXT NOT NULL,
+        response_snapshot_json TEXT NOT NULL
+      );
+      INSERT INTO workspaces (id, name, settings_json, created_at, updated_at)
+      VALUES ('workspace-1', 'Local', '{}', '2026-05-01T00:00:00.000Z', '2026-05-01T00:00:00.000Z');
+      INSERT INTO history_entries (
+        id, workspace_id, started_at, duration_ms, status, request_snapshot_json, response_snapshot_json
+      ) VALUES (
+        'history-1', 'workspace-1', '2026-05-01T00:00:00.000Z', 1, 200, '{}', '{}'
+      );
+    `);
+    legacyDatabase.close();
+
+    const database = openRequesterDatabase(userDataDir);
+    const columns = database.pragma('table_info(history_entries)') as Array<{ name: string }>;
+
+    expect(columns.map((column) => column.name)).toContain('executed_url');
+    expect(columns.map((column) => column.name)).not.toContain('request_snapshot_json');
+    expect(new WorkspaceRepository(database).list()).toEqual([
+      expect.objectContaining({ id: 'workspace-1', name: 'Local' })
+    ]);
+    expect(new HistoryRepository(database).list('workspace-1')).toEqual([]);
     database.close();
   });
 
@@ -344,7 +438,23 @@ describe('Requester repositories', () => {
     );
     historyRepository.saveExecution({
       startedAt: '2026-05-01T00:00:00.000Z',
-      request,
+      request: {
+        workspaceId: workspace.id,
+        requestId: request.id,
+        requestName: request.name,
+        requestType: request.requestType,
+        method: request.method,
+        url: request.url,
+        executedUrl: request.url,
+        headers: request.headers,
+        bodyMode: request.bodyMode,
+        bodyText: request.bodyText,
+        bodyBase64: '',
+        contentType: 'text/plain',
+        byteSize: 0,
+        isBodyTruncated: false,
+        previewType: 'text'
+      },
       response: {
         status: 200,
         statusText: 'OK',

@@ -9,6 +9,7 @@ import type {
   RequesterExecutionErrorSnapshot,
   RequesterExtractionRule,
   RequesterHistoryEntry,
+  RequesterRequestSnapshot,
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
@@ -25,6 +26,7 @@ hljs.registerLanguage('json', json);
 hljs.registerLanguage('php', php);
 
 interface RequesterResponsePanelProps {
+  request?: RequesterRequestSnapshot;
   response?: RequesterResponseSnapshot;
   error?: RequesterExecutionErrorSnapshot;
   extractionRules: RequesterExtractionRule[];
@@ -36,6 +38,7 @@ interface RequesterResponsePanelProps {
 }
 
 export const RequesterResponsePanel = ({
+  request,
   response,
   error,
   extractionRules,
@@ -44,66 +47,201 @@ export const RequesterResponsePanel = ({
   onSaveResponse,
   onOpenResponse,
   onSelectHistory
-}: RequesterResponsePanelProps): React.JSX.Element => (
-  <section className={styles.root} aria-label="API response">
-    <div className={styles.header}>
-      <h2>Response</h2>
-      {response ? (
-        <div className={styles.headerActions}>
-          <button type="button" className={styles.headerButton} onClick={onSaveResponse}>
-            Save Body
+}: RequesterResponsePanelProps): React.JSX.Element => {
+  const [activePanelTab, setActivePanelTab] = useState<'request' | 'response'>('response');
+
+  return (
+    <section className={styles.root} aria-label="API response">
+      <div className={styles.header}>
+        <h2>Response</h2>
+        {response ? (
+          <div className={styles.headerActions}>
+            <button type="button" className={styles.headerButton} onClick={onSaveResponse}>
+              Save Body
+            </button>
+            <button type="button" className={styles.headerButton} onClick={onOpenResponse}>
+              Open
+            </button>
+          </div>
+        ) : null}
+      </div>
+      {error ? (
+        <section className={styles.error} aria-label="Response error details">
+          <h3>Request failed</h3>
+          <dl className={contentStyles.summary}>
+            <div>
+              <dt>Name</dt>
+              <dd>{error.name}</dd>
+            </div>
+            <div>
+              <dt>Message</dt>
+              <dd>{error.message}</dd>
+            </div>
+            <div>
+              <dt>Cause</dt>
+              <dd>{error.cause ?? '-'}</dd>
+            </div>
+          </dl>
+          {error.stack ? <pre className={contentStyles.body}>{error.stack}</pre> : null}
+        </section>
+      ) : response ? (
+        <>
+          <RequesterExchangeSummary request={request} response={response} />
+          <div className={contentStyles.tabs} role="tablist" aria-label="Exchange view">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activePanelTab === 'request'}
+              className={activePanelTab === 'request' ? contentStyles.tabActive : contentStyles.tab}
+              onClick={() => setActivePanelTab('request')}
+            >
+              Request
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activePanelTab === 'response'}
+              className={
+                activePanelTab === 'response' ? contentStyles.tabActive : contentStyles.tab
+              }
+              onClick={() => setActivePanelTab('response')}
+            >
+              Response
+            </button>
+          </div>
+          {activePanelTab === 'request' ? (
+            request ? (
+              <RequesterRequestContent request={request} />
+            ) : (
+              <p>No request snapshot.</p>
+            )
+          ) : (
+            <RequesterResponseContent response={response} extractionRules={extractionRules} />
+          )}
+        </>
+      ) : (
+        <p>Send a request to view the response.</p>
+      )}
+      <section className={historyStyles.history} aria-label="Request history">
+        <h3>History</h3>
+        {history.slice(0, 5).map((entry) => (
+          <button
+            type="button"
+            className={`${historyStyles.historyRow} ${
+              entry.id === selectedHistoryId ? historyStyles.historyRowSelected : ''
+            }`}
+            key={entry.id}
+            onClick={() => onSelectHistory(entry.id)}
+          >
+            <span>{entry.method}</span>
+            <span>{entry.status ?? '-'}</span>
+            <span>{entry.requestName}</span>
+            <time>{new Date(entry.startedAt).toLocaleTimeString()}</time>
           </button>
-          <button type="button" className={styles.headerButton} onClick={onOpenResponse}>
-            Open
-          </button>
-        </div>
-      ) : null}
-    </div>
-    {error ? (
-      <section className={styles.error} aria-label="Response error details">
-        <h3>Request failed</h3>
-        <dl className={contentStyles.summary}>
-          <div>
-            <dt>Name</dt>
-            <dd>{error.name}</dd>
-          </div>
-          <div>
-            <dt>Message</dt>
-            <dd>{error.message}</dd>
-          </div>
-          <div>
-            <dt>Cause</dt>
-            <dd>{error.cause ?? '-'}</dd>
-          </div>
-        </dl>
-        {error.stack ? <pre className={contentStyles.body}>{error.stack}</pre> : null}
+        ))}
+        {history.length === 0 ? <p>No history yet.</p> : null}
       </section>
-    ) : response ? (
-      <RequesterResponseContent response={response} extractionRules={extractionRules} />
-    ) : (
-      <p>Send a request to view the response.</p>
-    )}
-    <section className={historyStyles.history} aria-label="Request history">
-      <h3>History</h3>
-      {history.slice(0, 5).map((entry) => (
-        <button
-          type="button"
-          className={`${historyStyles.historyRow} ${
-            entry.id === selectedHistoryId ? historyStyles.historyRowSelected : ''
-          }`}
-          key={entry.id}
-          onClick={() => onSelectHistory(entry.id)}
-        >
-          <span>{entry.method}</span>
-          <span>{entry.status ?? '-'}</span>
-          <span>{entry.requestName}</span>
-          <time>{new Date(entry.startedAt).toLocaleTimeString()}</time>
-        </button>
-      ))}
-      {history.length === 0 ? <p>No history yet.</p> : null}
     </section>
-  </section>
+  );
+};
+
+const RequesterExchangeSummary = ({
+  request,
+  response
+}: {
+  request?: RequesterRequestSnapshot;
+  response: RequesterResponseSnapshot;
+}): React.JSX.Element => (
+  <dl className={contentStyles.summary}>
+    <div>
+      <dt>Method</dt>
+      <dd>{request?.method ?? '-'}</dd>
+    </div>
+    <div>
+      <dt>Status</dt>
+      <dd>
+        {response.status} {response.statusText}
+      </dd>
+    </div>
+    <div>
+      <dt>Request MIME</dt>
+      <dd>{request?.contentType || '-'}</dd>
+    </div>
+    <div>
+      <dt>Response MIME</dt>
+      <dd>{response.contentType || '-'}</dd>
+    </div>
+    <div>
+      <dt>Time</dt>
+      <dd>{response.durationMs} ms</dd>
+    </div>
+    <div>
+      <dt>Response Size</dt>
+      <dd>{response.byteSize} bytes</dd>
+    </div>
+    <div className={contentStyles.summaryWide}>
+      <dt>URL</dt>
+      <dd>{request?.executedUrl ?? '-'}</dd>
+    </div>
+  </dl>
 );
+
+const RequesterRequestContent = ({
+  request
+}: {
+  request: RequesterRequestSnapshot;
+}): React.JSX.Element => {
+  const { height: headersHeight, startResize: startHeadersResize } = useVerticalResize(
+    120,
+    72,
+    280
+  );
+
+  return (
+    <>
+      {request.isBodyTruncated ? (
+        <p className={contentStyles.errorText}>Request body preview was truncated at 1 MB.</p>
+      ) : null}
+      <section className={contentStyles.detail} aria-label="Request details">
+        <div>
+          <span>Original URL</span>
+          <strong>{request.url}</strong>
+        </div>
+        <div>
+          <span>Body Mode</span>
+          <strong>{request.bodyMode}</strong>
+        </div>
+        <div>
+          <span>Size</span>
+          <strong>{request.byteSize} bytes</strong>
+        </div>
+      </section>
+      <section className={headersStyles.headers} aria-label="Request headers">
+        <h3>Headers</h3>
+        {request.headers.length > 0 ? (
+          <div className={headersStyles.headerGrid} style={{ height: headersHeight }}>
+            {request.headers.map((header) => (
+              <div className={headersStyles.headerRow} key={header.id}>
+                <span>{header.key}</span>
+                <span>{header.value}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No headers.</p>
+        )}
+        <div
+          className={headersStyles.resizeHandle}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize request headers"
+          onMouseDown={startHeadersResize}
+        />
+      </section>
+      <RequesterRequestBody request={request} />
+    </>
+  );
+};
 
 const RequesterResponseContent = ({
   response,
@@ -121,22 +259,6 @@ const RequesterResponseContent = ({
 
   return (
     <>
-      <dl className={contentStyles.summary}>
-        <div>
-          <dt>Status</dt>
-          <dd>
-            {response.status} {response.statusText}
-          </dd>
-        </div>
-        <div>
-          <dt>Time</dt>
-          <dd>{response.durationMs} ms</dd>
-        </div>
-        <div>
-          <dt>Size</dt>
-          <dd>{response.byteSize} bytes</dd>
-        </div>
-      </dl>
       {response.isBodyTruncated ? (
         <p className={contentStyles.errorText}>Response body preview was truncated at 1 MB.</p>
       ) : null}
@@ -276,6 +398,50 @@ const RequesterResponseBody = ({
   );
 };
 
+const RequesterRequestBody = ({
+  request
+}: {
+  request: RequesterRequestSnapshot;
+}): React.JSX.Element => {
+  const { height: previewHeight, startResize } = useVerticalResize(220, 120, 520);
+  const language = getRequestLanguage(request);
+  const highlightedBody = useMemo(
+    () =>
+      language
+        ? hljs.highlight(request.bodyText, { language, ignoreIllegals: true }).value
+        : escapeHtml(request.bodyText),
+    [language, request.bodyText]
+  );
+
+  return (
+    <section className={contentStyles.viewer} aria-label="Request body">
+      <div className={contentStyles.viewerFrame} style={{ height: previewHeight }}>
+        {request.previewType === 'binary' || !request.bodyText ? (
+          <p className={contentStyles.emptyBody}>
+            {request.previewType === 'binary'
+              ? 'Binary request body cannot be previewed.'
+              : 'No request body.'}
+          </p>
+        ) : (
+          <pre className={`${contentStyles.body} hljs`}>
+            <code
+              className={language ? `language-${language}` : undefined}
+              dangerouslySetInnerHTML={{ __html: highlightedBody }}
+            />
+          </pre>
+        )}
+      </div>
+      <div
+        className={contentStyles.resizeHandle}
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize request preview"
+        onMouseDown={startResize}
+      />
+    </section>
+  );
+};
+
 const ResponsePreview = ({
   response
 }: {
@@ -316,6 +482,16 @@ const getResponseLanguage = (response: RequesterResponseSnapshot): string | unde
   const contentType = response.contentType.toLowerCase();
   if (response.previewType === 'json' || contentType.includes('json')) return 'json';
   if (response.previewType === 'html' || contentType.includes('html')) return 'html';
+  if (contentType.includes('css')) return 'css';
+  if (contentType.includes('javascript') || contentType.includes('ecmascript')) return 'javascript';
+  if (contentType.includes('php')) return 'php';
+  return undefined;
+};
+
+const getRequestLanguage = (request: RequesterRequestSnapshot): string | undefined => {
+  const contentType = request.contentType.toLowerCase();
+  if (request.previewType === 'json' || contentType.includes('json')) return 'json';
+  if (request.previewType === 'html' || contentType.includes('html')) return 'html';
   if (contentType.includes('css')) return 'css';
   if (contentType.includes('javascript') || contentType.includes('ecmascript')) return 'javascript';
   if (contentType.includes('php')) return 'php';

@@ -3,7 +3,10 @@ import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRequesterWorkspaceSettings } from '@tnet/app-requester/shared/config';
-import type { RequesterRequestDetail } from '@tnet/app-requester/shared/requesterTypes';
+import type {
+  RequesterRequestDetail,
+  RequesterRequestSnapshot
+} from '@tnet/app-requester/shared/requesterTypes';
 import { RequesterApp } from './RequesterApp';
 import requesterReducer, { restoreRequester, setActiveRequesterRequest } from './requesterSlice';
 
@@ -58,6 +61,24 @@ const activeRequest: RequesterRequestDetail = {
   grpcMetadata: []
 };
 
+const activeRequestSnapshot: RequesterRequestSnapshot = {
+  workspaceId: 'workspace-1',
+  requestId: 'request-1',
+  requestName: 'Health',
+  requestType: 'http',
+  method: 'GET',
+  url: 'https://example.test/health',
+  executedUrl: 'https://example.test/health',
+  headers: [],
+  bodyMode: 'none',
+  bodyText: '',
+  bodyBase64: '',
+  contentType: '',
+  byteSize: 0,
+  isBodyTruncated: false,
+  previewType: 'text'
+};
+
 const installTnetApi = (): void => {
   Object.defineProperty(window, 'tnet', {
     value: {
@@ -93,6 +114,16 @@ describe('RequesterApp', () => {
     saveRequest.mockImplementation(async (request) => ({ ...activeRequest, ...request }));
     listRequests.mockResolvedValue([{ ...activeRequest }]);
     sendRequest.mockResolvedValue({
+      requestSnapshot: {
+        ...activeRequestSnapshot,
+        headers: [{ id: 'accept', enabled: true, key: 'accept', value: 'application/json' }],
+        bodyMode: 'json',
+        bodyText: '{"name":"Ada"}',
+        bodyBase64: 'eyJuYW1lIjoiQWRhIn0=',
+        contentType: 'application/json',
+        byteSize: 14,
+        previewType: 'json'
+      },
       response: {
         status: 200,
         statusText: 'OK',
@@ -206,7 +237,16 @@ describe('RequesterApp', () => {
       startedAt: '2026-05-01T00:00:00.000Z',
       durationMs: 24,
       status: 201,
-      requestSnapshot: activeRequest,
+      requestSnapshot: {
+        ...activeRequestSnapshot,
+        headers: [{ id: 'accept', enabled: true, key: 'accept', value: 'application/json' }],
+        bodyMode: 'json',
+        bodyText: '{"name":"Ada"}',
+        bodyBase64: 'eyJuYW1lIjoiQWRhIn0=',
+        contentType: 'application/json',
+        byteSize: 14,
+        previewType: 'json'
+      },
       responseSnapshot: {
         status: 201,
         statusText: 'Created',
@@ -245,9 +285,12 @@ describe('RequesterApp', () => {
     fireEvent.click(historyStatus.closest('button') ?? historyStatus);
 
     await waitFor(() => expect(getHistory).toHaveBeenCalledWith({ historyId: 'history-1' }));
-    expect(screen.getByText('201 Created')).toBeInTheDocument();
+    expect(screen.getAllByText('201 Created')[0]).toBeInTheDocument();
     expect(document.querySelector('code.language-json')?.textContent).toBe('{"created":true}');
     expect(screen.getByText('content-type')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Request' }));
+    expect(screen.getByText('accept')).toBeInTheDocument();
+    expect(document.querySelector('code.language-json')?.textContent).toBe('{"name":"Ada"}');
   });
 
   it('shows active variable suggestions and extraction preview', async () => {
@@ -280,6 +323,14 @@ describe('RequesterApp', () => {
       { key: 'baseUrl', value: 'https://example.test', updatedAt: '2026-05-01T00:00:00.000Z' }
     ]);
     sendRequest.mockResolvedValue({
+      requestSnapshot: {
+        ...activeRequestSnapshot,
+        bodyText: '{"token":"abc"}',
+        bodyBase64: 'eyJ0b2tlbiI6ImFiYyJ9',
+        contentType: 'application/json',
+        byteSize: 15,
+        previewType: 'json'
+      },
       response: {
         status: 200,
         statusText: 'OK',
@@ -328,6 +379,7 @@ describe('RequesterApp', () => {
     );
     store.dispatch(setActiveRequesterRequest(activeRequest));
     sendRequest.mockResolvedValue({
+      requestSnapshot: activeRequestSnapshot,
       response: {
         status: 200,
         statusText: 'OK',
@@ -390,6 +442,7 @@ describe('RequesterApp', () => {
     );
     store.dispatch(setActiveRequesterRequest(activeRequest));
     sendRequest.mockResolvedValue({
+      requestSnapshot: activeRequestSnapshot,
       response: {
         status: 200,
         statusText: 'OK',

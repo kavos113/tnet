@@ -57,16 +57,10 @@ export class RequesterBackupService {
       ...set,
       variables: this.repositories.variableSetRepository.listVariables(set.id)
     }));
-    const history = this.repositories.historyRepository
-      .list(workspaceId)
-      .flatMap((entry) => {
-        const detail = this.repositories.historyRepository.get(entry.id);
-        return detail ? [detail] : [];
-      })
-      .map((entry) => ({
-        ...entry,
-        requestSnapshot: redactRequestSecrets(entry.requestSnapshot)
-      }));
+    const history = this.repositories.historyRepository.list(workspaceId).flatMap((entry) => {
+      const detail = this.repositories.historyRepository.get(entry.id);
+      return detail ? [detail] : [];
+    });
 
     const backup: RequesterWorkspaceBackup = {
       schemaVersion: 1,
@@ -125,13 +119,13 @@ export class RequesterBackupService {
     }
 
     for (const entry of backup.history) {
-      const requestSnapshot = redactRequestSecrets(entry.requestSnapshot);
-      const oldRequestId = requestSnapshot.id;
+      const requestSnapshot = entry.requestSnapshot;
+      const oldRequestId = requestSnapshot.requestId;
       this.repositories.historyRepository.saveExecution({
         startedAt: entry.startedAt,
         request: {
           ...requestSnapshot,
-          id: oldRequestId ? requestIdMap.get(oldRequestId) : undefined,
+          requestId: oldRequestId ? requestIdMap.get(oldRequestId) : undefined,
           workspaceId: workspace.id
         },
         response: entry.responseSnapshot

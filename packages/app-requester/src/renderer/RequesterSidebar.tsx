@@ -6,6 +6,7 @@ import {
   setRequesterError,
   setRequesterHistory,
   setRequesterRequests,
+  setRequesterRequestSnapshot,
   setRequesterResponse,
   setRequesterResponseError,
   setRequesterSettings,
@@ -234,6 +235,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
         customCaCertificatePath: settings.customCaCertificatePath,
         variableSetId: settings.defaultVariableSetId
       });
+      dispatch(setRequesterRequestSnapshot(result.requestSnapshot));
       dispatch(setRequesterResponse(result.response));
       dispatch(setRequesterResponseError(undefined));
       lastHistoryRequestId = detail.id;

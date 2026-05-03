@@ -8,6 +8,15 @@ const sensitiveHeaderNames = new Set([
 ]);
 const redactedValue = '********';
 
+export const redactRequesterHeaders = <T extends { key: string; value: string }>(
+  headers: T[]
+): T[] =>
+  headers.map((header) =>
+    sensitiveHeaderNames.has(header.key.trim().toLowerCase())
+      ? { ...header, value: redactedValue }
+      : header
+  );
+
 export const redactRequesterRequest = (
   request: SaveRequesterRequestInput
 ): SaveRequesterRequestInput => ({
@@ -15,9 +24,5 @@ export const redactRequesterRequest = (
   authPassword: request.authPassword ? redactedValue : request.authPassword,
   authToken: request.authToken ? redactedValue : request.authToken,
   authApiKeyValue: request.authApiKeyValue ? redactedValue : request.authApiKeyValue,
-  headers: request.headers?.map((header) =>
-    sensitiveHeaderNames.has(header.key.trim().toLowerCase())
-      ? { ...header, value: redactedValue }
-      : header
-  )
+  headers: request.headers ? redactRequesterHeaders(request.headers) : request.headers
 });

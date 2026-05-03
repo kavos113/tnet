@@ -40,6 +40,13 @@ describe('RequestExecutionService', () => {
       })
     ).resolves.toMatchObject({
       historyId: 'history-1',
+      requestSnapshot: {
+        requestName: 'Create',
+        executedUrl: 'https://example.test/users?page=1',
+        contentType: 'application/json',
+        bodyText: '{"name":"Ada"}',
+        previewType: 'json'
+      },
       response: {
         status: 201,
         statusText: 'Created',
@@ -58,7 +65,11 @@ describe('RequestExecutionService', () => {
     expect(historyStore.saveExecution).toHaveBeenCalledWith(
       expect.objectContaining({
         request: expect.objectContaining({
-          authToken: '********'
+          executedUrl: 'https://example.test/users?page=1',
+          headers: expect.arrayContaining([
+            expect.objectContaining({ key: 'authorization', value: '********' }),
+            expect.objectContaining({ key: 'x-test', value: 'yes' })
+          ])
         })
       })
     );
@@ -396,6 +407,12 @@ describe('RequestExecutionService', () => {
       })
     ).resolves.toMatchObject({
       historyId: 'history-grpc',
+      requestSnapshot: {
+        requestType: 'grpc',
+        executedUrl: 'localhost:50051',
+        contentType: 'application/grpc+json',
+        bodyText: '{}'
+      },
       response: {
         status: 0,
         statusText: 'OK',
@@ -414,7 +431,7 @@ describe('RequestExecutionService', () => {
       expect.objectContaining({
         request: expect.objectContaining({
           requestType: 'grpc',
-          grpcProtoPath: 'C:\\proto\\health.proto'
+          executedUrl: 'localhost:50051'
         })
       })
     );

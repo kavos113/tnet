@@ -3,8 +3,9 @@ import type {
   RequesterExtractionRule,
   RequesterExecutionResult,
   RequesterNetworkOptions,
-  RequesterVariable,
   RequesterResponseSnapshot,
+  RequesterRequestSnapshot,
+  RequesterVariable,
   SaveRequesterRequestInput
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
@@ -13,7 +14,7 @@ import { serializeRequesterRequest } from '../http/requestSerializer';
 import { parseRequesterStreamingResponse } from '../http/responseParser';
 import { GrpcRequestService } from './grpcRequestService';
 import { buildRequesterNetworkOptions } from './networkOptions';
-import { redactRequesterRequest } from './redaction';
+import { createGrpcRequestSnapshot, createHttpRequestSnapshot } from './requestSnapshot';
 
 export interface RequesterTransport {
   fetch(
@@ -31,7 +32,7 @@ export interface RequesterExecutionProgress {
 
 export interface RequesterHistoryStore {
   saveExecution(input: {
-    request: SaveRequesterRequestInput;
+    request: RequesterRequestSnapshot;
     response: RequesterResponseSnapshot;
     startedAt: string;
   }): string | undefined;
@@ -78,6 +79,7 @@ export class RequestExecutionService {
 
     const requestWithCookies = await this.withCookieHeader(interpolatedRequest);
     const serialized = await serializeRequesterRequest(requestWithCookies);
+    const requestSnapshot = await createHttpRequestSnapshot(requestWithCookies, serialized);
     const controller = new AbortController();
     const executionId = request.executionId ?? randomUUID();
     this.controllers.set(executionId, controller);
@@ -112,12 +114,13 @@ export class RequestExecutionService {
     );
     this.extractVariables(interpolatedRequest, snapshot);
     const historyId = this.historyStore.saveExecution({
-      request: redactRequesterRequest(interpolatedRequest),
+      request: requestSnapshot,
       response: snapshot,
       startedAt
     });
 
     return {
+      requestSnapshot,
       response: snapshot,
       historyId
     };
@@ -127,15 +130,17 @@ export class RequestExecutionService {
     request: SaveRequesterRequestInput,
     startedAt: string
   ): Promise<RequesterExecutionResult> {
+    const requestSnapshot = createGrpcRequestSnapshot(request);
     const snapshot = await this.grpcRequestService.unary(request);
     this.extractVariables(request, snapshot);
     const historyId = this.historyStore.saveExecution({
-      request: redactRequesterRequest(request),
+      request: requestSnapshot,
       response: snapshot,
       startedAt
     });
 
     return {
+      requestSnapshot,
       response: snapshot,
       historyId
     };
