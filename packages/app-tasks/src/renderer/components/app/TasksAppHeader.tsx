@@ -1,22 +1,28 @@
+import type { AppId } from '@tnet/shared/app/appTypes';
 import type { TasksDefaultView, TasksGlobalSettings } from '@tnet/app-tasks/shared/config';
+import type { TasksPortalShortcut } from '../navigation/TasksPortal';
 import styles from './TasksApp.module.css';
 
 export interface TasksAppHeaderProps {
   clock: Date;
   currentDate: string;
+  portalShortcuts: TasksPortalShortcut[];
   settings: TasksGlobalSettings;
   view: TasksDefaultView;
+  onSelectPortalApp: (appId: AppId) => void;
   onViewChange: (view: TasksDefaultView) => void;
 }
 
 export const TasksAppHeader = ({
   clock,
   currentDate,
+  portalShortcuts,
   settings,
   view,
+  onSelectPortalApp,
   onViewChange
 }: TasksAppHeaderProps): React.JSX.Element => (
-  <header className={styles.clockHeader}>
+  <header className={styles.clockHeader} aria-label="Tasks header">
     <div className={styles.clockGroup}>
       <time
         className={`${styles.clock} ${settings.clockSize === 'compact' ? styles.clockCompact : ''}`}
@@ -26,9 +32,43 @@ export const TasksAppHeader = ({
       </time>
       <span className={styles.dateLabel}>{formatDateLabel(currentDate)}</span>
     </div>
-    <ViewControls view={view} onViewChange={onViewChange} />
+    <div className={styles.headerActions}>
+      {settings.showPortal ? (
+        <PortalShortcuts shortcuts={portalShortcuts} onSelect={onSelectPortalApp} />
+      ) : null}
+      <ViewControls view={view} onViewChange={onViewChange} />
+    </div>
   </header>
 );
+
+const PortalShortcuts = ({
+  shortcuts,
+  onSelect
+}: {
+  shortcuts: TasksPortalShortcut[];
+  onSelect: (appId: AppId) => void;
+}): React.JSX.Element | null => {
+  if (shortcuts.length === 0) return null;
+
+  return (
+    <div className={styles.portalShortcuts} aria-label="App shortcuts">
+      {shortcuts.map((shortcut) => (
+        <button
+          type="button"
+          className={styles.portalShortcut}
+          key={shortcut.id}
+          title={shortcut.label}
+          aria-label={shortcut.label}
+          onClick={() => onSelect(shortcut.id)}
+        >
+          <span className={`material-icons-round ${styles.portalIcon}`} aria-hidden="true">
+            {shortcut.icon}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+};
 
 const ViewControls = ({
   view,

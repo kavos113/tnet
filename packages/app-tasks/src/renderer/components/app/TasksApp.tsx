@@ -3,7 +3,7 @@ import { toLocalDateString } from '@tnet/app-tasks/shared/dateHelpers';
 import { TasksAppHeader } from './TasksAppHeader';
 import { TasksEditableDetailsPane } from '../details/TasksEditableDetailsPane';
 import { TasksQuickAddForm } from '../forms/TasksQuickAddForm';
-import { TasksPortal, type TasksPortalShortcut } from '../navigation/TasksPortal';
+import type { TasksPortalShortcut } from '../navigation/TasksPortal';
 import { TasksWorkspace } from './TasksWorkspace';
 import { draftFromTask, emptyTaskDraft } from '../../state/tasksDraft';
 import { useTasksDispatch } from '../../state/storeHooks';
@@ -143,13 +143,12 @@ export const TasksApp = ({
       <TasksAppHeader
         clock={clock}
         currentDate={currentDate}
+        portalShortcuts={portalShortcuts}
         settings={settings}
         view={view}
+        onSelectPortalApp={onSelectPortalApp}
         onViewChange={(view) => dispatch(setTasksView(view))}
       />
-      {settings.showPortal ? (
-        <TasksPortal shortcuts={portalShortcuts} onSelect={onSelectPortalApp} />
-      ) : null}
       <div className={styles.subscriptionBar}>
         <button type="button" className={styles.secondaryButton} onClick={onOpenTasksSettings}>
           Add subscription

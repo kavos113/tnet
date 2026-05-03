@@ -240,6 +240,67 @@ describe('TasksApp', () => {
     );
   });
 
+  it('renders portal shortcuts as icon-only header buttons', async () => {
+    const store = createStore();
+    const onSelectPortalApp = vi.fn();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: ['Work'],
+        settings: defaultTasksGlobalSettings()
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp
+          portalShortcuts={[
+            { id: 'markdown', label: 'Markdown', icon: 'edit_note' },
+            { id: 'papers', label: 'Papers', icon: 'article' }
+          ]}
+          onSelectPortalApp={onSelectPortalApp}
+        />
+      </Provider>
+    );
+
+    const header = screen.getByRole('banner', { name: 'Tasks header' });
+    const shortcuts = within(header).getByLabelText('App shortcuts');
+    expect(within(shortcuts).getByRole('button', { name: 'Markdown' })).toHaveAttribute(
+      'title',
+      'Markdown'
+    );
+    expect(within(shortcuts).queryByText('Markdown')).not.toBeInTheDocument();
+
+    fireEvent.click(within(shortcuts).getByRole('button', { name: 'Papers' }));
+    expect(onSelectPortalApp).toHaveBeenCalledWith('papers');
+  });
+
+  it('hides header portal shortcuts when portal shortcuts are disabled', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreTasks({
+        tasks: [],
+        categories: ['Work'],
+        settings: {
+          ...defaultTasksGlobalSettings(),
+          showPortal: false
+        }
+      })
+    );
+    store.dispatch(setTasksCurrentDate('2026-05-02'));
+
+    render(
+      <Provider store={store}>
+        <TasksApp portalShortcuts={[{ id: 'markdown', label: 'Markdown', icon: 'edit_note' }]} />
+      </Provider>
+    );
+
+    expect(
+      within(screen.getByRole('banner', { name: 'Tasks header' })).queryByLabelText('App shortcuts')
+    ).toBeNull();
+  });
+
   it('completes a task from the today list', async () => {
     listTasks.mockResolvedValue([task()]);
     const store = createStore();
