@@ -5,7 +5,6 @@ import type {
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
-import controlStyles from '../RequesterControls.module.css';
 import contentStyles from './RequesterResponseContent.module.css';
 import headersStyles from './RequesterResponseHeaders.module.css';
 import historyStyles from './RequesterResponseHistory.module.css';
@@ -33,7 +32,19 @@ export const RequesterResponsePanel = ({
   onSelectHistory
 }: RequesterResponsePanelProps): React.JSX.Element => (
   <section className={styles.root} aria-label="API response">
-    <h2>Response</h2>
+    <div className={styles.header}>
+      <h2>Response</h2>
+      {response ? (
+        <div className={styles.headerActions}>
+          <button type="button" className={styles.headerButton} onClick={onSaveResponse}>
+            Save Body
+          </button>
+          <button type="button" className={styles.headerButton} onClick={onOpenResponse}>
+            Open
+          </button>
+        </div>
+      ) : null}
+    </div>
     {error ? (
       <section className={styles.error} aria-label="Response error details">
         <h3>Request failed</h3>
@@ -54,12 +65,7 @@ export const RequesterResponsePanel = ({
         {error.stack ? <pre className={contentStyles.body}>{error.stack}</pre> : null}
       </section>
     ) : response ? (
-      <RequesterResponseContent
-        response={response}
-        extractionRules={extractionRules}
-        onSaveResponse={onSaveResponse}
-        onOpenResponse={onOpenResponse}
-      />
+      <RequesterResponseContent response={response} extractionRules={extractionRules} />
     ) : (
       <p>Send a request to view the response.</p>
     )}
@@ -87,14 +93,10 @@ export const RequesterResponsePanel = ({
 
 const RequesterResponseContent = ({
   response,
-  extractionRules,
-  onSaveResponse,
-  onOpenResponse
+  extractionRules
 }: {
   response: RequesterResponseSnapshot;
   extractionRules: RequesterExtractionRule[];
-  onSaveResponse: () => void;
-  onOpenResponse: () => void;
 }): React.JSX.Element => {
   const previewVariables = extractVariablesFromResponse(extractionRules, response);
 
@@ -116,14 +118,6 @@ const RequesterResponseContent = ({
           <dd>{response.byteSize} bytes</dd>
         </div>
       </dl>
-      <div className={contentStyles.actions}>
-        <button type="button" className={controlStyles.openButton} onClick={onSaveResponse}>
-          Save Body
-        </button>
-        <button type="button" className={controlStyles.openButton} onClick={onOpenResponse}>
-          Open
-        </button>
-      </div>
       {response.isBodyTruncated ? (
         <p className={contentStyles.errorText}>Response body preview was truncated at 1 MB.</p>
       ) : null}

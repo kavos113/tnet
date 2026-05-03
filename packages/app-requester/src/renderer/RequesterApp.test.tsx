@@ -14,6 +14,8 @@ const listHistory = vi.fn();
 const getHistory = vi.fn();
 const listVariables = vi.fn();
 const selectGrpcProto = vi.fn();
+const saveResponseBody = vi.fn();
+const openResponseExternally = vi.fn();
 
 interface RequesterTestState {
   requester: ReturnType<typeof requesterReducer>;
@@ -75,7 +77,9 @@ const installTnetApi = (): void => {
           listVariables
         },
         files: {
-          selectGrpcProto
+          selectGrpcProto,
+          saveResponseBody,
+          openResponseExternally
         }
       }
     },
@@ -106,6 +110,8 @@ describe('RequesterApp', () => {
     getHistory.mockResolvedValue(null);
     listVariables.mockResolvedValue([]);
     selectGrpcProto.mockResolvedValue({ path: 'C:\\proto\\health.proto', name: 'health.proto' });
+    saveResponseBody.mockResolvedValue({ path: 'C:\\tmp\\response.txt' });
+    openResponseExternally.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -298,6 +304,13 @@ describe('RequesterApp', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
 
     expect(await screen.findByRole('heading', { name: 'Extraction Preview' })).toBeInTheDocument();
+    const responseHeading = screen.getByRole('heading', { name: 'Response' });
+    expect(screen.getByRole('button', { name: 'Save Body' }).parentElement?.parentElement).toBe(
+      responseHeading.parentElement
+    );
+    expect(screen.getByRole('button', { name: 'Open' }).parentElement?.parentElement).toBe(
+      responseHeading.parentElement
+    );
     expect(screen.getByText('accessToken')).toBeInTheDocument();
     expect(screen.getByText('abc')).toBeInTheDocument();
   });

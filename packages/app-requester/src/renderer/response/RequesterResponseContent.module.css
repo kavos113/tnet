@@ -37,12 +37,6 @@
   white-space: pre-wrap;
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
 .image,
 .pdf {
   display: block;

@@ -9,7 +9,39 @@
 }
 
 .root h2 {
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--foreground);
   font-size: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+  margin-bottom: 8px;
+}
+
+.headerActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.headerButton {
+  min-height: 22px;
+  padding: 2px 7px;
+  color: var(--foreground);
+  cursor: pointer;
+  background: var(--gray);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 11px;
+}
+
+.headerButton:hover {
+  background: var(--main-light);
 }
