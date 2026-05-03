@@ -28,7 +28,6 @@
   "compilerOptions": {
     "composite": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
       "@renderer/*": ["./apps/desktop/src/renderer/src/*"],
       "@preload/*": ["./apps/desktop/src/preload/*"],

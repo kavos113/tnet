@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "build": "pnpm typecheck && node scripts/build-extension.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsgo --noEmit -p tsconfig.json"
   }
 }
