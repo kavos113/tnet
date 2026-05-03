@@ -15,6 +15,19 @@
     "build:linux": "pnpm --dir ../.. papers:server:build && pnpm build && electron-builder --linux"
   },
   "dependencies": {
-    "better-sqlite3": "catalog:"
+    "@google/genai": "^1.50.1",
+    "better-sqlite3": "catalog:",
+    "es-define-property": "^1.0.1",
+    "es-object-atoms": "^1.1.1",
+    "get-proto": "^1.0.1",
+    "googleapis": "^170.0.0",
+    "gopd": "^1.2.0",
+    "has-symbols": "^1.1.0",
+    "hasown": "^2.0.3",
+    "math-intrinsics": "^1.1.0",
+    "openai": "^6.34.0",
+    "string_decoder": "^1.1.1",
+    "util-deprecate": "^1.0.2",
+    "wrappy": "^1.0.2"
   }
 }

@@ -24,6 +24,8 @@
     "start": "pnpm --filter @tnet/desktop start",
     "dev": "pnpm --filter @tnet/desktop dev",
     "verify:dev": "pnpm sqlite:electron && pnpm papers:server:build && pnpm papers:extension:build && powershell -ExecutionPolicy Bypass -File scripts/verify-dev.ps1",
+    "verify:packaged-modules": "powershell -ExecutionPolicy Bypass -File scripts/verify-packaged-node-modules.ps1",
+    "verify:unpacked": "powershell -ExecutionPolicy Bypass -File scripts/verify-unpacked.ps1",
     "build": "pnpm typecheck && pnpm --filter @tnet/desktop build",
     "build:analyze": "pnpm --filter @tnet/desktop build:analyze",
     "postinstall": "electron-builder install-app-deps",
