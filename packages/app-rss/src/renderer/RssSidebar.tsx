@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import type { FileItem } from '@tnet/shared/types/file';
 import {
@@ -31,7 +31,6 @@ const rssFolderDragType = 'application/x-rss-folder-id';
 
 export const RssSidebar = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
-  const rootInputRef = useRef<HTMLInputElement | null>(null);
   const [expandedFolderIds, setExpandedFolderIds] = useState<string[]>([]);
   const [newFolder, setNewFolder] = useState<WorkspaceNewEntryState>(emptyNewFolder);
   const { tree, selectedView, selectedFeedId, selectedFolderId } = useRssSelector(
@@ -41,13 +40,6 @@ export const RssSidebar = (): React.JSX.Element => {
     () => toRssTreeFileItems(tree.folders, tree.feeds),
     [tree.feeds, tree.folders]
   );
-  const shouldShowNewFolderAtRoot = newFolder.isActive && newFolder.parentPath === null;
-
-  useEffect(() => {
-    if (!shouldShowNewFolderAtRoot) return;
-    rootInputRef.current?.focus();
-    rootInputRef.current?.select();
-  }, [shouldShowNewFolderAtRoot]);
 
   const refreshTree = async (): Promise<void> => {
     const [folders, feeds, nextTree] = await Promise.all([
@@ -115,18 +107,6 @@ export const RssSidebar = (): React.JSX.Element => {
     }
     const feedId = feedIdFromPath(item.path);
     if (feedId) dispatch(selectRssFeed(feedId));
-  };
-
-  const onRootNewFolderKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      confirmNewFolder().catch((error: unknown) => {
-        console.error('Failed to create RSS folder', error);
-      });
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      cancelNewFolder();
-    }
   };
 
   const handleDragStartItem = (item: FileItem, event: React.DragEvent<HTMLElement>): void => {
@@ -222,31 +202,6 @@ export const RssSidebar = (): React.JSX.Element => {
         ))}
         <section className={styles.directorySection} aria-label="RSS folders">
           <ul className={styles.fileList}>
-            {shouldShowNewFolderAtRoot ? (
-              <li className={styles.newItem}>
-                <div className={styles.treeItem}>
-                  <span
-                    className={`material-symbols-rounded ${styles.chevron} ${styles.iconPlaceholder}`}
-                  >
-                    chevron_right
-                  </span>
-                  <span className={`material-symbols-rounded ${styles.folderIcon}`}>folder</span>
-                  <input
-                    ref={rootInputRef}
-                    className={styles.newInput}
-                    value={newFolder.name}
-                    onChange={(event) =>
-                      setNewFolder((current) => ({
-                        ...current,
-                        name: event.target.value
-                      }))
-                    }
-                    onKeyDown={onRootNewFolderKeyDown}
-                    onBlur={cancelNewFolder}
-                  />
-                </div>
-              </li>
-            ) : null}
             <WorkspaceFileTree
               items={feedTree}
               selectedPath={selectedFeedId ? feedPath(selectedFeedId) : selectedFolderId}

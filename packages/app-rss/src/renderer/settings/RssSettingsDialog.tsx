@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import { useSettingsDraft } from '@tnet/renderer-core/settings/useSettingsDraft';
 import {
   SettingsActions,
   SettingsDialogShell,
@@ -6,7 +7,7 @@ import {
   SettingsSecondaryButton
 } from '@tnet/ui/settings';
 import type { RssGlobalSettings } from '@tnet/app-rss/shared/config';
-import { defaultRssGlobalSettings, normalizeRssGlobalSettings } from '@tnet/app-rss/shared/config';
+import { normalizeRssGlobalSettings } from '@tnet/app-rss/shared/config';
 import { rssTnetApi } from '../rssTnetApi';
 import { setRssError, setRssSettings } from '../rssSlice';
 import { useRssDispatch, useRssSelector } from '../storeHooks';
@@ -43,29 +44,22 @@ export const RssSettingsDialog = ({
 export const RssGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.JSX.Element => {
   const dispatch = useRssDispatch();
   const currentSettings = useRssSelector((state) => state.rss.settings);
-  const [draft, setDraft] = useState<RssGlobalSettings>(currentSettings);
-
-  useEffect(() => {
-    let canceled = false;
-    rssTnetApi.rss.config
-      .loadGlobal()
-      .then((config) => {
-        if (!canceled) setDraft(config.settings);
-      })
-      .catch(() => {
-        if (!canceled) setDraft(defaultRssGlobalSettings());
-      });
-    return () => {
-      canceled = true;
-    };
-  }, []);
-
-  const update = <Key extends keyof RssGlobalSettings>(
-    key: Key,
-    value: RssGlobalSettings[Key]
-  ): void => {
-    setDraft((prev) => normalizeRssGlobalSettings({ ...prev, [key]: value }));
-  };
+  const loadSettings = useCallback(
+    async () => (await rssTnetApi.rss.config.loadGlobal()).settings,
+    []
+  );
+  const onLoadError = useCallback(
+    (error: unknown) => {
+      dispatch(setRssError(error instanceof Error ? error.message : String(error)));
+    },
+    [dispatch]
+  );
+  const { draft, updateDraft: update } = useSettingsDraft<RssGlobalSettings>({
+    initialDraft: currentSettings,
+    load: loadSettings,
+    normalize: normalizeRssGlobalSettings,
+    onLoadError
+  });
 
   const save = async (): Promise<void> => {
     const settings = normalizeRssGlobalSettings(draft);

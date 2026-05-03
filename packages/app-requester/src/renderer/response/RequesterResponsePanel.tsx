@@ -1,10 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
-import hljs from 'highlight.js/lib/core';
-import css from 'highlight.js/lib/languages/css';
-import javascript from 'highlight.js/lib/languages/javascript';
-import json from 'highlight.js/lib/languages/json';
-import php from 'highlight.js/lib/languages/php';
-import xml from 'highlight.js/lib/languages/xml';
+import { useMemo, useState } from 'react';
 import type {
   RequesterExecutionErrorSnapshot,
   RequesterExtractionRule,
@@ -17,13 +11,14 @@ import 'highlight.js/styles/github.css';
 import contentStyles from './RequesterResponseContent.module.css';
 import headersStyles from './RequesterResponseHeaders.module.css';
 import historyStyles from './RequesterResponseHistory.module.css';
+import { RequesterExchangeSummary } from './RequesterExchangeSummary';
 import styles from './RequesterResponsePanel.module.css';
-
-hljs.registerLanguage('css', css);
-hljs.registerLanguage('html', xml);
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('json', json);
-hljs.registerLanguage('php', php);
+import {
+  getRequestLanguage,
+  getResponseLanguage,
+  highlightRequesterBody
+} from './requesterHighlight';
+import { useVerticalResize } from './useVerticalResize';
 
 interface RequesterResponsePanelProps {
   request?: RequesterRequestSnapshot;
@@ -144,47 +139,6 @@ export const RequesterResponsePanel = ({
     </section>
   );
 };
-
-const RequesterExchangeSummary = ({
-  request,
-  response
-}: {
-  request?: RequesterRequestSnapshot;
-  response: RequesterResponseSnapshot;
-}): React.JSX.Element => (
-  <dl className={contentStyles.summary}>
-    <div>
-      <dt>Method</dt>
-      <dd>{request?.method ?? '-'}</dd>
-    </div>
-    <div>
-      <dt>Status</dt>
-      <dd>
-        {response.status} {response.statusText}
-      </dd>
-    </div>
-    <div>
-      <dt>Request MIME</dt>
-      <dd>{request?.contentType || '-'}</dd>
-    </div>
-    <div>
-      <dt>Response MIME</dt>
-      <dd>{response.contentType || '-'}</dd>
-    </div>
-    <div>
-      <dt>Time</dt>
-      <dd>{response.durationMs} ms</dd>
-    </div>
-    <div>
-      <dt>Response Size</dt>
-      <dd>{response.byteSize} bytes</dd>
-    </div>
-    <div className={contentStyles.summaryWide}>
-      <dt>URL</dt>
-      <dd>{request?.executedUrl ?? '-'}</dd>
-    </div>
-  </dl>
-);
 
 const RequesterRequestContent = ({
   request
@@ -342,10 +296,7 @@ const RequesterResponseBody = ({
   const visibleTab = canShowPreview && activeTab === 'preview' ? 'preview' : 'code';
   const language = getResponseLanguage(response);
   const highlightedBody = useMemo(
-    () =>
-      language
-        ? hljs.highlight(response.bodyText, { language, ignoreIllegals: true }).value
-        : escapeHtml(response.bodyText),
+    () => highlightRequesterBody(response.bodyText, language),
     [language, response.bodyText]
   );
 
@@ -406,10 +357,7 @@ const RequesterRequestBody = ({
   const { height: previewHeight, startResize } = useVerticalResize(220, 120, 520);
   const language = getRequestLanguage(request);
   const highlightedBody = useMemo(
-    () =>
-      language
-        ? hljs.highlight(request.bodyText, { language, ignoreIllegals: true }).value
-        : escapeHtml(request.bodyText),
+    () => highlightRequesterBody(request.bodyText, language),
     [language, request.bodyText]
   );
 
@@ -477,68 +425,3 @@ const ResponsePreview = ({
   }
   return <p className={contentStyles.emptyBody}>No preview available.</p>;
 };
-
-const getResponseLanguage = (response: RequesterResponseSnapshot): string | undefined => {
-  const contentType = response.contentType.toLowerCase();
-  if (response.previewType === 'json' || contentType.includes('json')) return 'json';
-  if (response.previewType === 'html' || contentType.includes('html')) return 'html';
-  if (contentType.includes('css')) return 'css';
-  if (contentType.includes('javascript') || contentType.includes('ecmascript')) return 'javascript';
-  if (contentType.includes('php')) return 'php';
-  return undefined;
-};
-
-const getRequestLanguage = (request: RequesterRequestSnapshot): string | undefined => {
-  const contentType = request.contentType.toLowerCase();
-  if (request.previewType === 'json' || contentType.includes('json')) return 'json';
-  if (request.previewType === 'html' || contentType.includes('html')) return 'html';
-  if (contentType.includes('css')) return 'css';
-  if (contentType.includes('javascript') || contentType.includes('ecmascript')) return 'javascript';
-  if (contentType.includes('php')) return 'php';
-  return undefined;
-};
-
-const useVerticalResize = (
-  defaultHeight: number,
-  minHeight: number,
-  maxHeight: number
-): {
-  height: number;
-  startResize: (event: React.MouseEvent<HTMLElement>) => void;
-} => {
-  const [height, setHeight] = useState(defaultHeight);
-
-  const startResize = useCallback(
-    (event: React.MouseEvent<HTMLElement>): void => {
-      event.preventDefault();
-      const startY = event.clientY;
-      const startHeight = height;
-
-      const handleMouseMove = (moveEvent: MouseEvent): void => {
-        setHeight(clamp(startHeight + moveEvent.clientY - startY, minHeight, maxHeight));
-      };
-
-      const handleMouseUp = (): void => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    },
-    [height, maxHeight, minHeight]
-  );
-
-  return { height, startResize };
-};
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
-
-const escapeHtml = (value: string): string =>
-  value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');

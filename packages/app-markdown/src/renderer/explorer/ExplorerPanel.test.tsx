@@ -293,6 +293,7 @@ describe('ExplorerPanel', () => {
       expect(getFileTree).toHaveBeenCalledWith('/second');
       expect(saveGlobal).toHaveBeenCalledWith({
         activeAppId: 'markdown',
+        fonts: defaultGlobalConfig().fonts,
         apps: {
           markdown: {
             lastOpenedDirectory: '/second',
@@ -348,6 +349,7 @@ describe('ExplorerPanel', () => {
       expect(store.getState().workspace.rootPath).toBe('/second');
       expect(saveGlobal).toHaveBeenCalledWith({
         activeAppId: 'markdown',
+        fonts: defaultGlobalConfig().fonts,
         apps: {
           markdown: {
             lastOpenedDirectory: '/second',
@@ -422,6 +424,7 @@ describe('ExplorerPanel', () => {
       expect(store.getState().workspace.workspaceRoots).toEqual(['/workspace', '/legacy']);
       expect(saveGlobal).toHaveBeenCalledWith({
         activeAppId: 'markdown',
+        fonts: defaultGlobalConfig().fonts,
         apps: {
           markdown: {
             lastOpenedDirectory: '/legacy',

@@ -7,6 +7,10 @@
     "./*": "./src/*"
   },
   "dependencies": {
-    "@tnet/shared": "workspace:*"
+    "@tnet/shared": "workspace:*",
+    "better-sqlite3": "catalog:"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "catalog:"
   }
 }

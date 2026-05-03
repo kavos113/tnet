@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./tnetApi": "./src/tnetApi.ts",
-    "./shortcuts/*": "./src/shortcuts/*"
+    "./shortcuts/*": "./src/shortcuts/*",
+    "./settings/*": "./src/settings/*"
   },
   "dependencies": {
     "@tnet/shared": "workspace:*"

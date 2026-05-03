@@ -421,6 +421,13 @@ importers:
       '@tnet/shared':
         specifier: workspace:*
         version: link:../shared
+      better-sqlite3:
+        specifier: 'catalog:'
+        version: 12.9.0
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: 'catalog:'
+        version: 7.6.13
 
   packages/markdown-editor:
     dependencies:

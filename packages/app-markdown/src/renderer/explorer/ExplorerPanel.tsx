@@ -6,10 +6,8 @@ import { SearchPanel, type SearchPanelHandle } from './SearchPanel';
 import { useExplorerActions } from './useExplorerActions';
 import { useExplorerShortcuts } from './useExplorerShortcuts';
 import styles from './ExplorerPanel.module.css';
-import treeStyles from './FileTreeItem.module.css';
 
 export const ExplorerPanel = (): React.JSX.Element => {
-  const rootInputRef = useRef<HTMLInputElement | null>(null);
   const searchPanelRef = useRef<SearchPanelHandle | null>(null);
   const [activeView, setActiveView] = useState<'files' | 'search'>('files');
   const {
@@ -20,7 +18,6 @@ export const ExplorerPanel = (): React.JSX.Element => {
     selectedTarget,
     newEntry,
     renameEntry,
-    shouldShowNewEntryAtRoot,
     setNewEntryName,
     setRenameEntryName,
     openWorkspace,
@@ -33,12 +30,6 @@ export const ExplorerPanel = (): React.JSX.Element => {
     deleteSelected,
     switchWorkspaceRoot
   } = useExplorerActions();
-
-  useEffect(() => {
-    if (!shouldShowNewEntryAtRoot) return;
-    rootInputRef.current?.focus();
-    rootInputRef.current?.select();
-  }, [shouldShowNewEntryAtRoot]);
 
   useEffect(() => {
     if (activeView !== 'search') return;
@@ -64,18 +55,6 @@ export const ExplorerPanel = (): React.JSX.Element => {
       setActiveView('search');
     }
   });
-
-  const onRootNewEntryKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      confirmNewEntry().catch((error: unknown) => {
-        console.error('Failed to create entry', error);
-      });
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      cancelNewEntry();
-    }
-  };
 
   return (
     <aside className={styles.panel}>
@@ -129,32 +108,6 @@ export const ExplorerPanel = (): React.JSX.Element => {
           <SearchPanel ref={searchPanelRef} />
         ) : rootPath ? (
           <ul className={styles.fileList}>
-            {shouldShowNewEntryAtRoot ? (
-              <li className={styles.newItem}>
-                <div className={treeStyles.treeItem}>
-                  <span
-                    className={`material-symbols-rounded ${treeStyles.chevron} ${treeStyles.iconPlaceholder}`}
-                  >
-                    chevron_right
-                  </span>
-                  <span
-                    className={`material-symbols-rounded ${treeStyles.folder} ${
-                      newEntry.mode !== 'directory' ? treeStyles.iconPlaceholder : ''
-                    }`}
-                  >
-                    folder
-                  </span>
-                  <input
-                    ref={rootInputRef}
-                    className={treeStyles.newInput}
-                    value={newEntry.name}
-                    onChange={(event) => setNewEntryName(event.target.value)}
-                    onKeyDown={onRootNewEntryKeyDown}
-                    onBlur={cancelNewEntry}
-                  />
-                </div>
-              </li>
-            ) : null}
             <FileTree
               items={fileTree}
               newEntry={newEntry}

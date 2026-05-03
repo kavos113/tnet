@@ -34,6 +34,7 @@ describe('config services', () => {
 
     await expect(loadGlobalConfig(userDataDir)).resolves.toEqual({
       activeAppId: 'markdown',
+      fonts: defaultGlobalConfig().fonts,
       apps: {
         tasks: {},
         markdown: {

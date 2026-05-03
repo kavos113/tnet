@@ -66,10 +66,6 @@
   list-style-type: none;
 }
 
-.newItem {
-  list-style-type: none;
-}
-
 .empty {
   display: grid;
   gap: 10px;

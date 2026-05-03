@@ -1,11 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-import { randomUUID } from 'node:crypto';
+import { createFileSecretStore } from '@tnet/main-core/storage/fileSecretStore';
 import { tasksSecretsPath } from './tasksPaths';
-
-interface SecretSnapshot {
-  secrets: Record<string, string>;
-}
 
 export interface TasksSecretStore {
   saveSecret: (value: string) => string;
@@ -15,37 +9,12 @@ export interface TasksSecretStore {
 }
 
 export const createTasksSecretStore = (userDataDir: string): TasksSecretStore => {
-  const filePath = tasksSecretsPath(userDataDir);
-
-  const load = (): SecretSnapshot => {
-    try {
-      return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as SecretSnapshot;
-    } catch {
-      return { secrets: {} };
-    }
-  };
-
-  const save = (snapshot: SecretSnapshot): void => {
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(snapshot), 'utf-8');
-  };
+  const store = createFileSecretStore({ filePath: tasksSecretsPath(userDataDir) });
 
   return {
-    saveSecret: (value) => {
-      const snapshot = load();
-      const secretId = randomUUID();
-      snapshot.secrets[secretId] = value;
-      save(snapshot);
-      return secretId;
-    },
-    replaceSecret: (secretId, value) => {
-      const snapshot = load();
-      const nextSecretId = secretId || randomUUID();
-      snapshot.secrets[nextSecretId] = value;
-      save(snapshot);
-      return nextSecretId;
-    },
-    getSecret: (secretId) => (secretId ? load().secrets[secretId] : undefined),
-    hasSecret: (secretId) => Boolean(secretId && load().secrets[secretId])
+    saveSecret: store.saveSecret,
+    replaceSecret: store.replaceSecret,
+    getSecret: store.getSecret,
+    hasSecret: store.hasSecret
   };
 };

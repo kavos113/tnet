@@ -1,23 +1,26 @@
-import fs from 'fs';
-import path from 'path';
+import { loadNormalizedJsonConfig, writeJsonFile } from '@tnet/main-core/storage/jsonFile';
 import type { DbInspectorGlobalConfig } from '@tnet/app-db-inspector/shared/config';
 import { defaultDbInspectorGlobalConfig } from '@tnet/app-db-inspector/shared/config';
 import { dbInspectorGlobalConfigPath } from './dbInspectorPaths';
 
-export const loadDbInspectorGlobalConfig = (userDataDir: string): DbInspectorGlobalConfig => {
-  const configPath = dbInspectorGlobalConfigPath(userDataDir);
-  if (!fs.existsSync(configPath)) return defaultDbInspectorGlobalConfig();
-  return {
-    ...defaultDbInspectorGlobalConfig(),
-    ...(JSON.parse(fs.readFileSync(configPath, 'utf8')) as Partial<DbInspectorGlobalConfig>)
-  };
-};
+const normalizeDbInspectorGlobalConfig = (
+  config: Partial<DbInspectorGlobalConfig> = {}
+): DbInspectorGlobalConfig => ({
+  ...defaultDbInspectorGlobalConfig(),
+  ...config
+});
+
+export const loadDbInspectorGlobalConfig = async (
+  userDataDir: string
+): Promise<DbInspectorGlobalConfig> =>
+  loadNormalizedJsonConfig({
+    filePath: dbInspectorGlobalConfigPath(userDataDir),
+    defaultValue: defaultDbInspectorGlobalConfig(),
+    normalize: normalizeDbInspectorGlobalConfig
+  });
 
 export const saveDbInspectorGlobalConfig = (
   userDataDir: string,
   config: DbInspectorGlobalConfig
-): void => {
-  const configPath = dbInspectorGlobalConfigPath(userDataDir);
-  fs.mkdirSync(path.dirname(configPath), { recursive: true });
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
-};
+): Promise<void> =>
+  writeJsonFile(dbInspectorGlobalConfigPath(userDataDir), normalizeDbInspectorGlobalConfig(config));

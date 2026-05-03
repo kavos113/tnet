@@ -59,47 +59,6 @@
   list-style: none;
 }
 
-.treeItem {
-  display: flex;
-  gap: 2px;
-  align-items: center;
-  width: 100%;
-  min-height: 18px;
-  color: #253039;
-}
-
-.chevron {
-  flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
-  font-size: 12px;
-  line-height: 1;
-}
-
-.folderIcon {
-  flex: 0 0 auto;
-  color: #5d756b;
-  font-size: 12px;
-}
-
-.folderIcon:global(.material-symbols-rounded) {
-  font-size: 12px;
-}
-
-.newItem {
-  list-style: none;
-}
-
-.newInput {
-  width: 100%;
-  min-width: 0;
-  font-size: 12px;
-}
-
-.iconPlaceholder {
-  visibility: hidden;
-}
-
 .systemNode {
   width: 100%;
   min-width: 0;

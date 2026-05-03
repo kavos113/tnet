@@ -17,6 +17,7 @@ import {
   type GlobalFontSettings
 } from '@tnet/shared/types/config';
 import { tnetApi } from '@tnet/renderer-core/tnetApi';
+import { getAppModule } from './appRegistry';
 import { useAppSelector } from './hooks';
 
 const TasksGlobalSettingsPage = lazy(() =>
@@ -89,6 +90,7 @@ export const AppSettingsCenter = ({
   const dbInspectorWorkspaceId = useAppSelector((state) => state.dbInspector.activeWorkspaceId);
   const pdfViewerRootPath = useAppSelector((state) => state.pdfViewer.rootPath);
   const [activePageId, setActivePageId] = useState(() => getInitialPageId(activeAppId, true));
+  const settingsPage = useSettingsPageFactory();
 
   const pages = useMemo<SettingsCenterPage[]>(
     () => [
@@ -103,96 +105,76 @@ export const AppSettingsCenter = ({
           <GlobalFontSettingsPage onClose={onClose} onFontSettingsChange={onFontSettingsChange} />
         )
       },
-      {
+      settingsPage({
         id: 'tasks-global',
         appId: 'tasks',
-        appLabel: 'Tasks',
-        appIcon: 'task_alt',
         scopeLabel: 'Global',
         title: 'Tasks Global',
         content: lazyContent(<TasksGlobalSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'markdown-workspace',
         appId: 'markdown',
-        appLabel: 'Markdown',
-        appIcon: 'edit_note',
         scopeLabel: 'Workspace',
         title: markdownRootPath ? 'Markdown Workspace' : 'Markdown Workspace',
         content: lazyContent(<MarkdownWorkspaceSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'papers-global',
         appId: 'papers',
-        appLabel: 'Papers',
-        appIcon: 'article',
         scopeLabel: 'Global',
         title: 'Papers Global',
         content: lazyContent(<PapersGlobalSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'papers-workspace',
         appId: 'papers',
-        appLabel: 'Papers',
-        appIcon: 'article',
         scopeLabel: 'Workspace',
         title: papersLibraryRoot ? 'Papers Workspace' : 'Papers Workspace',
         content: lazyContent(<PapersWorkspaceSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'requester-workspace',
         appId: 'requester',
-        appLabel: 'Requester',
-        appIcon: 'api',
         scopeLabel: 'Workspace',
         title: requesterWorkspaceId ? 'Requester Workspace' : 'Requester Workspace',
         content: lazyContent(<RequesterWorkspaceSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'rss-global',
         appId: 'rss',
-        appLabel: 'RSS',
-        appIcon: 'rss_feed',
         scopeLabel: 'Global',
         title: 'RSS Global',
         content: lazyContent(<RssGlobalSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'db-inspector-global',
         appId: 'db-inspector',
-        appLabel: 'DB Inspector',
-        appIcon: 'storage',
         scopeLabel: 'Global',
         title: 'DB Inspector Global',
         content: lazyContent(<DbInspectorGlobalSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'db-inspector-workspace',
         appId: 'db-inspector',
-        appLabel: 'DB Inspector',
-        appIcon: 'storage',
         scopeLabel: 'Workspace',
         title: dbInspectorWorkspaceId ? 'DB Inspector Workspace' : 'DB Inspector Workspace',
         content: lazyContent(<DbInspectorWorkspaceSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'pdf-viewer-global',
         appId: 'pdf-viewer',
-        appLabel: 'PDF Viewer',
-        appIcon: 'picture_as_pdf',
         scopeLabel: 'Global',
         title: 'PDF Viewer Global',
         content: lazyContent(<PdfViewerGlobalSettingsPage onClose={onClose} />)
-      },
-      {
+      }),
+      settingsPage({
         id: 'pdf-viewer-workspace',
         appId: 'pdf-viewer',
-        appLabel: 'PDF Viewer',
-        appIcon: 'picture_as_pdf',
         scopeLabel: 'Workspace',
         title: pdfViewerRootPath ? 'PDF Viewer Workspace' : 'PDF Viewer Workspace',
         content: lazyContent(<PdfViewerWorkspaceSettingsPage onClose={onClose} />)
-      }
+      })
     ],
     [
       dbInspectorWorkspaceId,
@@ -201,7 +183,8 @@ export const AppSettingsCenter = ({
       onFontSettingsChange,
       papersLibraryRoot,
       pdfViewerRootPath,
-      requesterWorkspaceId
+      requesterWorkspaceId,
+      settingsPage
     ]
   );
 
@@ -246,6 +229,21 @@ export const AppSettingsCenter = ({
 const lazyContent = (content: React.ReactNode): React.JSX.Element => (
   <Suspense fallback={null}>{content}</Suspense>
 );
+
+const useSettingsPageFactory = (): ((
+  page: Omit<SettingsCenterPage, 'appLabel' | 'appIcon'> & { appId: AppId }
+) => SettingsCenterPage) =>
+  useMemo(
+    () => (page) => {
+      const app = getAppModule(page.appId);
+      return {
+        ...page,
+        appLabel: app.label,
+        appIcon: app.icon
+      };
+    },
+    []
+  );
 
 const getInitialPageId = (appId: AppId, hasWorkspace: boolean): string => {
   if (appId === 'markdown') return hasWorkspace ? 'markdown-workspace' : 'tnet-fonts';

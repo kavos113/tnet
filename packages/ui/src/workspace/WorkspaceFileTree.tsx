@@ -36,17 +36,101 @@ export interface WorkspaceFileTreeProps {
   onDropOnItem?: (item: FileItem, event: React.DragEvent<HTMLElement>) => void | Promise<void>;
 }
 
-export const WorkspaceFileTree = ({ items, ...itemProps }: WorkspaceFileTreeProps) => {
+export const WorkspaceFileTree = ({
+  items,
+  newEntry,
+  onNewEntryNameChange,
+  onConfirmNewEntry,
+  onCancelNewEntry,
+  ...itemProps
+}: WorkspaceFileTreeProps) => {
+  const shouldShowRootNewEntry = newEntry?.isActive && newEntry.parentPath === null;
+
   return (
     <>
+      {shouldShowRootNewEntry ? (
+        <WorkspaceFileTreeNewEntry
+          newEntry={newEntry}
+          onNewEntryNameChange={onNewEntryNameChange}
+          onConfirmNewEntry={onConfirmNewEntry}
+          onCancelNewEntry={onCancelNewEntry}
+        />
+      ) : null}
       {items.map((item) => (
-        <WorkspaceFileTreeItem key={item.path} item={item} {...itemProps} />
+        <WorkspaceFileTreeItem
+          key={item.path}
+          item={item}
+          newEntry={newEntry}
+          onNewEntryNameChange={onNewEntryNameChange}
+          onConfirmNewEntry={onConfirmNewEntry}
+          onCancelNewEntry={onCancelNewEntry}
+          {...itemProps}
+        />
       ))}
     </>
   );
 };
 
 type WorkspaceFileTreeItemProps = Omit<WorkspaceFileTreeProps, 'items'> & { item: FileItem };
+
+interface WorkspaceFileTreeNewEntryProps {
+  newEntry: WorkspaceNewEntryState;
+  onNewEntryNameChange?: (name: string) => void;
+  onConfirmNewEntry?: () => void | Promise<void>;
+  onCancelNewEntry?: () => void;
+}
+
+const WorkspaceFileTreeNewEntry = ({
+  newEntry,
+  onNewEntryNameChange,
+  onConfirmNewEntry,
+  onCancelNewEntry
+}: WorkspaceFileTreeNewEntryProps): React.JSX.Element => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
+    event.stopPropagation();
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      Promise.resolve(onConfirmNewEntry?.()).catch((error: unknown) => {
+        console.error('Failed to create entry', error);
+      });
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      onCancelNewEntry?.();
+    }
+  };
+
+  return (
+    <li className={styles.newItem}>
+      <div className={styles.treeItem}>
+        <span className={`${styles.chevron} material-symbols-rounded ${styles.iconPlaceholder}`}>
+          chevron_right
+        </span>
+        <span
+          className={`${styles.icon} ${styles.folder} material-symbols-rounded ${
+            newEntry.mode !== 'directory' ? styles.iconPlaceholder : ''
+          }`}
+        >
+          folder
+        </span>
+        <input
+          ref={inputRef}
+          className={styles.newInput}
+          value={newEntry.name}
+          onChange={(event) => onNewEntryNameChange?.(event.target.value)}
+          onKeyDown={onKeyDown}
+          onBlur={onCancelNewEntry}
+        />
+      </div>
+    </li>
+  );
+};
 
 const WorkspaceFileTreeItem = ({
   item,

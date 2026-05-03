@@ -41,4 +41,33 @@ describe('WorkspaceFileTree', () => {
     fireEvent.click(screen.getByText('notes.txt'));
     expect(onActivateItem).toHaveBeenCalledTimes(1);
   });
+
+  it('renders and confirms a root new entry', () => {
+    const onConfirmNewEntry = vi.fn();
+    const onNewEntryNameChange = vi.fn();
+
+    render(
+      <ul>
+        <WorkspaceFileTree
+          items={[]}
+          newEntry={{
+            isActive: true,
+            mode: 'directory',
+            parentPath: null,
+            name: 'New Folder'
+          }}
+          onActivateItem={vi.fn()}
+          onConfirmNewEntry={onConfirmNewEntry}
+          onNewEntryNameChange={onNewEntryNameChange}
+        />
+      </ul>
+    );
+
+    const input = screen.getByDisplayValue('New Folder');
+    fireEvent.change(input, { target: { value: 'Archive' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onNewEntryNameChange).toHaveBeenCalledWith('Archive');
+    expect(onConfirmNewEntry).toHaveBeenCalledTimes(1);
+  });
 });
