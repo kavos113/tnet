@@ -1,5 +1,4 @@
 import type { RequesterExplorerNode } from '@tnet/app-requester/shared/requestPath';
-import controlStyles from './RequesterControls.module.css';
 import styles from './RequesterRequestTree.module.css';
 import treeStyles from './RequesterTree.module.css';
 
@@ -18,7 +17,6 @@ interface RequesterRequestTreeProps {
   onNewFolderNameChange: (name: string) => void;
   onSelectFolder: (folderPath: string) => void;
   onSelectRequest: (requestId: string) => void;
-  onStartRenameRequest: (requestId: string) => void;
   onToggleFolder: (folderPath: string) => void;
 }
 
@@ -33,7 +31,6 @@ const RequesterRequestTreeItem = ({
   node,
   onSelectFolder,
   onSelectRequest,
-  onStartRenameRequest,
   onToggleFolder,
   ...itemProps
 }: RequesterRequestTreeItemProps): React.JSX.Element => {
@@ -90,20 +87,6 @@ const RequesterRequestTreeItem = ({
         <p className={`${treeStyles.name} ${node.isDirectory ? '' : treeStyles.fileName}`}>
           {node.name}
         </p>
-        {!node.isDirectory && node.requestId ? (
-          <button
-            type="button"
-            className={`${controlStyles.iconButton} material-symbols-rounded ${styles.treeAction}`}
-            aria-label={`Rename ${node.name}`}
-            title="Rename or move request"
-            onClick={(event) => {
-              event.stopPropagation();
-              onStartRenameRequest(node.requestId ?? '');
-            }}
-          >
-            edit
-          </button>
-        ) : null}
       </div>
       {node.isDirectory && node.children && isExpanded ? (
         <ul className={treeStyles.children}>
@@ -146,7 +129,6 @@ const RequesterRequestTreeItem = ({
               node={child}
               onSelectFolder={onSelectFolder}
               onSelectRequest={onSelectRequest}
-              onStartRenameRequest={onStartRenameRequest}
               onToggleFolder={onToggleFolder}
               {...itemProps}
             />

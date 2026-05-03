@@ -246,17 +246,6 @@ export const RequesterSidebar = (): React.JSX.Element => {
     dispatch(setRequesterHistory(history));
   };
 
-  const startRenameRequest = (requestId: string): void => {
-    const request = requests.find((request) => request.id === requestId);
-    if (!request) return;
-    setRenameRequest({
-      isActive: true,
-      requestId,
-      name: request.name,
-      folderPath: requestFolderFromPath(request.requestPath) ?? ''
-    });
-  };
-
   const cancelRenameRequest = (): void => {
     setRenameRequest(emptyRenameRequest);
   };
@@ -443,7 +432,6 @@ export const RequesterSidebar = (): React.JSX.Element => {
             }
             onSelectFolder={selectFolder}
             onSelectRequest={(requestId) => runAction(() => selectRequest(requestId))}
-            onStartRenameRequest={startRenameRequest}
             onToggleFolder={(folderPath) => runAction(() => toggleFolder(folderPath))}
           />
         </ul>
