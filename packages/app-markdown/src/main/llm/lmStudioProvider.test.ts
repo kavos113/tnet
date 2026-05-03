@@ -62,7 +62,7 @@ describe('lmStudioProvider', () => {
       apiKey: 'lm-studio',
       baseURL: 'http://localhost:1234/v1',
       maxRetries: 0,
-      timeout: 15000
+      timeout: 60000
     });
     expect(responsesCreate).toHaveBeenCalledWith(
       expect.objectContaining({

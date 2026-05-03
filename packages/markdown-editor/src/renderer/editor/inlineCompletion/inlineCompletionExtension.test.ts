@@ -88,4 +88,36 @@ describe('inlineCompletionExtension', () => {
 
     view.destroy();
   });
+
+  it('ignores aborted inline completion requests without warning', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const requestInlineCompletion = vi
+      .fn()
+      .mockRejectedValue(
+        new Error(
+          "Error invoking remote method 'markdown:llm:getInlineCompletion': Error: Request was aborted."
+        )
+      );
+    const view = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: 'Hello',
+        extensions: [
+          inlineCompletionExtension({
+            requestInlineCompletion,
+            debounceMs: 0
+          })
+        ]
+      })
+    });
+
+    view.dispatch({ selection: { anchor: 5 } });
+    await vi.runAllTimersAsync();
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(parent.querySelector('.inline-completion-ghost')).toBeNull();
+
+    view.destroy();
+    warnSpy.mockRestore();
+  });
 });

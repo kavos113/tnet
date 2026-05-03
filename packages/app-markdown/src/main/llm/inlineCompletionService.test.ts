@@ -109,4 +109,21 @@ describe('getInlineCompletion', () => {
       })
     );
   });
+
+  it('returns null when an inline completion request is aborted', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValue(Object.assign(new Error('Request was aborted.'), { name: 'AbortError' }));
+    vi.stubGlobal('fetch', fetchMock);
+    const workspaceRoot = await createWorkspace({
+      llm: {
+        ...defaultMarkdownProjectConfig().llm,
+        llmProvider: 'local-http',
+        llmModel: 'local-model',
+        llmEndpoint: 'http://localhost:11434/inline'
+      }
+    });
+
+    await expect(getInlineCompletion(createRequest({ workspaceRoot }))).resolves.toBeNull();
+  });
 });

@@ -19,7 +19,7 @@ export const lmStudioProvider: InlineCompletionProvider = {
       apiKey: config.llmApiKey.trim() || 'lm-studio',
       baseURL: config.llmEndpoint.trim() || defaultLmStudioBaseUrl,
       maxRetries: 0,
-      timeout: 15000
+      timeout: config.llmRequestTimeoutMs
     });
 
     const response = await client.responses.create(

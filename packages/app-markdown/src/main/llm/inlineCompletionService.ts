@@ -21,7 +21,22 @@ const providerByType: Record<LlmProviderType, InlineCompletionProvider> = {
   'openai-compatible': openAiCompatibleProvider
 };
 
-const inlineCompletionTimeoutMs = 15000;
+const defaultInlineCompletionTimeoutMs = 60000;
+
+const inlineCompletionTimeoutMs = (value: number): number =>
+  Number.isFinite(value)
+    ? Math.min(Math.max(value, 1000), 300000)
+    : defaultInlineCompletionTimeoutMs;
+
+const isAbortError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) return false;
+  return (
+    error.name === 'AbortError' ||
+    error.message === 'Request was aborted.' ||
+    error.message === 'The operation was aborted.' ||
+    error.message.toLowerCase().includes('aborted')
+  );
+};
 
 export const getInlineCompletion = async (
   request: InlineCompletionRequest
@@ -29,12 +44,20 @@ export const getInlineCompletion = async (
   const { llm } = await loadMarkdownProjectConfig(request.workspaceRoot);
   if (!llm.llmInlineCompletionEnabled) return null;
 
+  const requestTimeoutMs = inlineCompletionTimeoutMs(llm.llmRequestTimeoutMs);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), inlineCompletionTimeoutMs);
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
   try {
     const provider = providerByType[llm.llmProvider] ?? mockInlineCompletionProvider;
-    return await provider.complete(request, llm, controller.signal);
+    return await provider.complete(
+      request,
+      { ...llm, llmRequestTimeoutMs: requestTimeoutMs },
+      controller.signal
+    );
+  } catch (error: unknown) {
+    if (isAbortError(error)) return null;
+    throw error;
   } finally {
     clearTimeout(timeout);
   }

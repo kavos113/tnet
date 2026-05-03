@@ -17,7 +17,7 @@ export const openAiSdkProvider: InlineCompletionProvider = {
       apiKey: config.llmApiKey.trim() || undefined,
       baseURL: config.llmEndpoint.trim() || undefined,
       maxRetries: 0,
-      timeout: 15000
+      timeout: config.llmRequestTimeoutMs
     });
 
     const response = await client.responses.create(

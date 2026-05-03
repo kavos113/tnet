@@ -62,7 +62,7 @@ describe('openAiSdkProvider', () => {
       apiKey: 'test-key',
       baseURL: 'https://example.test/v1',
       maxRetries: 0,
-      timeout: 15000
+      timeout: 60000
     });
     expect(responsesCreate).toHaveBeenCalledWith(
       expect.objectContaining({

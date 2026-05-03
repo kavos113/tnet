@@ -36,6 +36,7 @@ describe('markdown config service', () => {
         llmApiKey: '',
         llmAutomaticTrigger: true,
         llmDebounceMs: 400,
+        llmRequestTimeoutMs: 45000,
         llmMaxPrefixChars: 4000,
         llmMaxSuffixChars: 1000
       }
@@ -78,7 +79,8 @@ describe('markdown config service', () => {
       },
       llm: {
         llmProvider: 'mock',
-        llmDebounceMs: 600
+        llmDebounceMs: 600,
+        llmRequestTimeoutMs: 60000
       }
     });
   });

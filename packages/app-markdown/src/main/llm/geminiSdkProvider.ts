@@ -17,7 +17,7 @@ export const geminiSdkProvider: InlineCompletionProvider = {
       apiKey: config.llmApiKey.trim() || undefined,
       httpOptions: {
         baseUrl: config.llmEndpoint.trim() || undefined,
-        timeout: 15000
+        timeout: config.llmRequestTimeoutMs
       }
     });
 

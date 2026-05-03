@@ -34,6 +34,16 @@ export interface InlineCompletionExtensionOptions {
 
 const defaultInlineCompletionDebounceMs = 600;
 
+const isAbortError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) return false;
+  return (
+    error.name === 'AbortError' ||
+    error.message.includes('Request was aborted') ||
+    error.message.includes('The operation was aborted') ||
+    error.message.toLowerCase().includes('aborted')
+  );
+};
+
 class InlineCompletionPlugin implements PluginValue {
   private timer: number | null = null;
   private requestId = 0;
@@ -102,6 +112,7 @@ class InlineCompletionPlugin implements PluginValue {
         });
       })
       .catch((error: unknown) => {
+        if (isAbortError(error)) return;
         console.warn('Failed to load inline completion', error);
       });
   }

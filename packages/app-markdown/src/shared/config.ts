@@ -40,6 +40,7 @@ export interface LlmSettings {
   llmApiKey: string;
   llmAutomaticTrigger: boolean;
   llmDebounceMs: number;
+  llmRequestTimeoutMs: number;
   llmMaxPrefixChars: number;
   llmMaxSuffixChars: number;
 }
@@ -116,6 +117,7 @@ export const defaultLlmSettings = (): LlmSettings => ({
   llmApiKey: '',
   llmAutomaticTrigger: false,
   llmDebounceMs: 600,
+  llmRequestTimeoutMs: 60000,
   llmMaxPrefixChars: 6000,
   llmMaxSuffixChars: 1500
 });

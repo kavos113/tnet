@@ -108,6 +108,9 @@ describe('SettingsDialog', () => {
       target: { value: 'http://localhost:11434/inline' }
     });
     fireEvent.click(screen.getByLabelText('Automatic trigger'));
+    fireEvent.change(screen.getByLabelText('Request timeout (ms)'), {
+      target: { value: '45000' }
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
@@ -121,7 +124,8 @@ describe('SettingsDialog', () => {
           llm: expect.objectContaining({
             llmProvider: 'local-http',
             llmEndpoint: 'http://localhost:11434/inline',
-            llmAutomaticTrigger: true
+            llmAutomaticTrigger: true,
+            llmRequestTimeoutMs: 45000
           })
         })
       );

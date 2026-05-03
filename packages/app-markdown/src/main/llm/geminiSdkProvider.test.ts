@@ -62,7 +62,7 @@ describe('geminiSdkProvider', () => {
       apiKey: 'gemini-key',
       httpOptions: {
         baseUrl: 'https://example.test',
-        timeout: 15000
+        timeout: 60000
       }
     });
     expect(generateContent).toHaveBeenCalledWith(

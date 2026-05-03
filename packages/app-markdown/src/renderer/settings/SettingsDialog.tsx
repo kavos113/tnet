@@ -241,6 +241,14 @@ const llmFields: ReadonlyArray<SettingsFieldConfig<LlmSettings>> = [
     max: 5000
   },
   {
+    id: 'llm-request-timeout-ms',
+    label: 'Request timeout (ms)',
+    key: 'llmRequestTimeoutMs',
+    type: 'number',
+    min: 1000,
+    max: 300000
+  },
+  {
     id: 'llm-max-prefix-chars',
     label: 'Max prefix chars',
     key: 'llmMaxPrefixChars',
