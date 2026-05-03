@@ -34,4 +34,55 @@ describe('mergeBibtexMetadata', () => {
       }
     });
   });
+
+  it('replaces clean fields and removes empty parsed values', () => {
+    expect(
+      mergeBibtexMetadata({
+        currentTitle: 'Current title',
+        currentMetadata: {
+          authors: ['Old Author'],
+          abstract: 'Old abstract',
+          venue: 'Old Venue',
+          doi: '10.1000/old',
+          arxivId: 'old',
+          url: 'https://old.test'
+        },
+        dirtyFields: {},
+        parsedMetadata: {
+          title: 'Parsed title',
+          authors: [],
+          abstract: '',
+          publishedYear: undefined,
+          venue: 'Parsed Venue',
+          doi: undefined,
+          arxivId: '',
+          url: 'https://example.test'
+        }
+      })
+    ).toEqual({
+      title: 'Parsed title',
+      metadata: {
+        venue: 'Parsed Venue',
+        url: 'https://example.test'
+      }
+    });
+  });
+
+  it('keeps current title when parsed metadata has no title', () => {
+    expect(
+      mergeBibtexMetadata({
+        currentTitle: 'Current title',
+        currentMetadata: {},
+        dirtyFields: {},
+        parsedMetadata: {
+          authors: ['Author']
+        }
+      })
+    ).toEqual({
+      title: 'Current title',
+      metadata: {
+        authors: ['Author']
+      }
+    });
+  });
 });

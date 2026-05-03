@@ -14,8 +14,10 @@ import (
 
 type fakePaperUsecase struct {
 	createdFromBytes paper.CreateFromPDFBytesInput
+	createdFromLocal paper.CreateFromLocalPDFInput
 	papers           []model.Paper
 	paper            model.Paper
+	aiOutput         model.PaperAIOutput
 	ok               bool
 	err              error
 }
@@ -28,7 +30,11 @@ func (usecase fakePaperUsecase) GetPaper(context.Context, string, string) (model
 	return usecase.paper, usecase.ok, usecase.err
 }
 
-func (usecase fakePaperUsecase) CreatePaperFromLocalPDF(context.Context, paper.CreateFromLocalPDFInput) (paper.ImportResult, error) {
+func (usecase *fakePaperUsecase) CreatePaperFromLocalPDF(
+	_ context.Context,
+	input paper.CreateFromLocalPDFInput,
+) (paper.ImportResult, error) {
+	usecase.createdFromLocal = input
 	return paper.ImportResult{Paper: usecase.paper}, usecase.err
 }
 
@@ -61,6 +67,9 @@ func (usecase fakePaperUsecase) SavePaperAIOutput(
 	_ string,
 	output model.PaperAIOutput,
 ) (model.PaperAIOutput, error) {
+	if usecase.aiOutput.PaperID != "" {
+		return usecase.aiOutput, usecase.err
+	}
 	return output, usecase.err
 }
 
@@ -176,6 +185,115 @@ func TestPaperHandlerListGetAndSaveNote(t *testing.T) {
 				papers: []model.Paper{{ID: "paper-1", Title: "Paper", PDFPath: "papers/a.pdf"}},
 				paper:  model.Paper{ID: "paper-1", Title: "Paper", NoteContent: "note"},
 				ok:     true,
+			}}
+			testcase.run(t, handler)
+		})
+	}
+}
+
+func TestPaperHandlerCreatePaperFromLocalPdf(t *testing.T) {
+	testcases := []struct {
+		name string
+	}{
+		{name: "maps request to create from local pdf usecase"},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			usecase := &fakePaperUsecase{
+				paper: model.Paper{ID: "paper-1", Title: "Paper", PDFPath: "papers/paper.pdf"},
+			}
+			handler := &PaperHandler{u: usecase}
+			response, err := handler.CreatePaperFromLocalPdf(
+				context.Background(),
+				connect.NewRequest(&papersv1.CreatePaperFromLocalPdfRequest{
+					LibraryRoot:   "C:/papers",
+					SourcePath:    "C:/Downloads/paper.pdf",
+					DirectoryPath: "articles",
+					Title:         "Paper",
+					Authors:       []string{"Alice"},
+					PublishedYear: 2026,
+					Venue:         "Journal",
+					Doi:           "10.1000/paper",
+					ArxivId:       "2601.00001",
+					Url:           "https://example.test/paper",
+					Tags:          []string{"ai"},
+				}),
+			)
+			if err != nil {
+				t.Fatalf("CreatePaperFromLocalPdf() error = %v", err)
+			}
+			if response.Msg.Paper.Id != "paper-1" || !response.Msg.Paper.HasPdf {
+				t.Fatalf("CreatePaperFromLocalPdf() = %+v", response.Msg)
+			}
+			if usecase.createdFromLocal.SourcePath != "C:/Downloads/paper.pdf" ||
+				usecase.createdFromLocal.DirectoryPath != "articles" ||
+				usecase.createdFromLocal.DOI != "10.1000/paper" {
+				t.Fatalf("createdFromLocal = %+v", usecase.createdFromLocal)
+			}
+		})
+	}
+}
+
+func TestPaperHandlerAIOutputs(t *testing.T) {
+	testcases := []struct {
+		name string
+		run  func(t *testing.T, handler *PaperHandler)
+	}{
+		{
+			name: "lists paper ai outputs",
+			run: func(t *testing.T, handler *PaperHandler) {
+				t.Helper()
+				response, err := handler.ListPaperAiOutputs(
+					context.Background(),
+					connect.NewRequest(&papersv1.ListPaperAiOutputsRequest{LibraryRoot: "C:/papers", PaperId: "paper-1"}),
+				)
+				if err != nil {
+					t.Fatalf("ListPaperAiOutputs() error = %v", err)
+				}
+				if len(response.Msg.Outputs) != 1 || response.Msg.Outputs[0].Content != "summary" {
+					t.Fatalf("ListPaperAiOutputs() = %+v", response.Msg)
+				}
+			},
+		},
+		{
+			name: "saves paper ai output",
+			run: func(t *testing.T, handler *PaperHandler) {
+				t.Helper()
+				response, err := handler.SavePaperAiOutput(
+					context.Background(),
+					connect.NewRequest(&papersv1.SavePaperAiOutputRequest{
+						LibraryRoot: "C:/papers",
+						Output: &papersv1.PaperAiOutput{
+							PaperId:        "paper-1",
+							Operation:      "summary",
+							InputMode:      "abstract",
+							TargetLanguage: "Japanese",
+							Provider:       "mock",
+							Model:          "mock-paper-ai",
+							Content:        "summary",
+						},
+					}),
+				)
+				if err != nil {
+					t.Fatalf("SavePaperAiOutput() error = %v", err)
+				}
+				if response.Msg.PaperId != "paper-1" || response.Msg.Content != "summary" {
+					t.Fatalf("SavePaperAiOutput() = %+v", response.Msg)
+				}
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			handler := &PaperHandler{u: &fakePaperUsecase{
+				paper: model.Paper{
+					ID: "paper-1",
+					AIOutputs: []model.PaperAIOutput{
+						{PaperID: "paper-1", Operation: "summary", Content: "summary"},
+					},
+				},
 			}}
 			testcase.run(t, handler)
 		})

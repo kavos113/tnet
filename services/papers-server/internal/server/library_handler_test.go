@@ -122,3 +122,95 @@ func TestLibraryHandlerListLibraries(t *testing.T) {
 		})
 	}
 }
+
+func TestLibraryHandlerConfigMethods(t *testing.T) {
+	testcases := []struct {
+		name string
+		run  func(t *testing.T, handler *LibraryHandler)
+	}{
+		{
+			name: "loads global config",
+			run: func(t *testing.T, handler *LibraryHandler) {
+				t.Helper()
+				response, err := handler.LoadGlobalConfig(
+					context.Background(),
+					connect.NewRequest(&papersv1.LoadGlobalConfigRequest{UserDataDir: "user-data"}),
+				)
+				if err != nil {
+					t.Fatalf("LoadGlobalConfig() error = %v", err)
+				}
+				if response.Msg.ActiveLibraryRoot != "C:/papers" || len(response.Msg.LibraryRoots) != 1 {
+					t.Fatalf("LoadGlobalConfig() = %+v", response.Msg)
+				}
+			},
+		},
+		{
+			name: "saves global config",
+			run: func(t *testing.T, handler *LibraryHandler) {
+				t.Helper()
+				_, err := handler.SaveGlobalConfig(
+					context.Background(),
+					connect.NewRequest(&papersv1.SaveGlobalConfigRequest{
+						UserDataDir: "user-data",
+						Config: &papersv1.PapersGlobalConfig{
+							LibraryRoots:      []string{"C:/papers"},
+							ActiveLibraryRoot: "C:/papers",
+						},
+					}),
+				)
+				if err != nil {
+					t.Fatalf("SaveGlobalConfig() error = %v", err)
+				}
+			},
+		},
+		{
+			name: "loads library config",
+			run: func(t *testing.T, handler *LibraryHandler) {
+				t.Helper()
+				response, err := handler.LoadLibraryConfig(
+					context.Background(),
+					connect.NewRequest(&papersv1.LoadLibraryConfigRequest{LibraryRoot: "C:/papers"}),
+				)
+				if err != nil {
+					t.Fatalf("LoadLibraryConfig() error = %v", err)
+				}
+				if response.Msg.ListDensity != "comfortable" || response.Msg.PdfZoomMode != "page-width" {
+					t.Fatalf("LoadLibraryConfig() = %+v", response.Msg)
+				}
+			},
+		},
+		{
+			name: "saves library config",
+			run: func(t *testing.T, handler *LibraryHandler) {
+				t.Helper()
+				_, err := handler.SaveLibraryConfig(
+					context.Background(),
+					connect.NewRequest(&papersv1.SaveLibraryConfigRequest{
+						LibraryRoot: "C:/papers",
+						Config: &papersv1.PapersLibraryConfig{
+							ListDensity:            "compact",
+							PdfZoomMode:            "page-fit",
+							NoteEditorMode:         "editor",
+							NoteAutoSaveDebounceMs: 250,
+						},
+					}),
+				)
+				if err != nil {
+					t.Fatalf("SaveLibraryConfig() error = %v", err)
+				}
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			handler := &LibraryHandler{service: fakeLibraryUsecase{
+				globalConfig: model.PapersGlobalConfig{
+					LibraryRoots:      []string{"C:/papers"},
+					ActiveLibraryRoot: "C:/papers",
+				},
+			}}
+			testcase.run(t, handler)
+		})
+	}
+}
