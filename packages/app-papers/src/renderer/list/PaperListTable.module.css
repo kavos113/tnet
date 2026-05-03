@@ -23,7 +23,7 @@
   flex: 0 0 auto;
   height: 28px;
   padding: 0 10px;
-  font-size: 11px;
+  font-size: var(--tnet-font-size);
   font-weight: 700;
   color: var(--foreground-muted);
   text-transform: uppercase;
@@ -32,11 +32,9 @@
 }
 
 .listItem {
-  flex: 0 0 32px;
-  height: 32px;
   padding: 0 10px;
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--tnet-font-size);
   color: var(--foreground);
   text-align: left;
   cursor: pointer;
@@ -58,10 +56,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.title {
-  font-weight: 600;
 }
 
 .year,
