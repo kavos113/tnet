@@ -384,7 +384,9 @@ describe('RequesterSidebar', () => {
       </Provider>
     );
 
-    fireEvent.click(screen.getByLabelText('Rename list.http'));
+    const requestRow = screen.getByText('list.http').closest('[role="button"]');
+    expect(requestRow).not.toBeNull();
+    fireEvent.keyDown(requestRow as HTMLElement, { key: 'F2' });
     fireEvent.change(screen.getByLabelText('Request name'), {
       target: { value: 'Create user' }
     });

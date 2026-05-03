@@ -252,6 +252,17 @@ export const RequesterSidebar = (): React.JSX.Element => {
     setRenameRequest(emptyRenameRequest);
   };
 
+  const startRenameRequest = (requestId: string): void => {
+    const request = requests.find((request) => request.id === requestId);
+    if (!request) return;
+    setRenameRequest({
+      isActive: true,
+      requestId,
+      name: request.name,
+      folderPath: requestFolderFromPath(request.requestPath) ?? ''
+    });
+  };
+
   const confirmRenameRequest = async (): Promise<void> => {
     if (!activeWorkspaceId || !renameRequest.requestId) return;
     const name = renameRequest.name.trim();
@@ -350,6 +361,14 @@ export const RequesterSidebar = (): React.JSX.Element => {
     onTrigger: () => runAction(deleteSelectedRequest)
   });
 
+  useShortcut({
+    key: 'F2',
+    enabled: Boolean(activeRequestId),
+    onTrigger: () => {
+      if (activeRequestId) startRenameRequest(activeRequestId);
+    }
+  });
+
   return (
     <aside className={shellStyles.panel} aria-label="Requester workspace">
       <RequesterWorkspaceSwitcher
@@ -432,6 +451,7 @@ export const RequesterSidebar = (): React.JSX.Element => {
                 name
               }))
             }
+            onRenameRequest={startRenameRequest}
             onSelectFolder={selectFolder}
             onSelectRequest={(requestId) => runAction(() => selectRequest(requestId))}
             onToggleFolder={(folderPath) => runAction(() => toggleFolder(folderPath))}

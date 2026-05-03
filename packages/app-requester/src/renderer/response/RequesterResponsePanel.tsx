@@ -381,7 +381,7 @@ const RequesterResponseBody = ({
         ) : (
           <pre className={`${contentStyles.body} hljs`}>
             <code
-              className={language ? `language-${language}` : undefined}
+              className={`${language ? `language-${language}` : undefined} ${contentStyles.code}`}
               dangerouslySetInnerHTML={{ __html: highlightedBody }}
             />
           </pre>

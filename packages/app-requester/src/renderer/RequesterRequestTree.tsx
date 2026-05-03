@@ -15,6 +15,7 @@ interface RequesterRequestTreeProps {
   onCancelNewFolder: () => void;
   onConfirmNewFolder: () => Promise<void>;
   onNewFolderNameChange: (name: string) => void;
+  onRenameRequest: (requestId: string) => void;
   onSelectFolder: (folderPath: string) => void;
   onSelectRequest: (requestId: string) => void;
   onToggleFolder: (folderPath: string) => void;
@@ -31,6 +32,7 @@ const RequesterRequestTreeItem = ({
   node,
   onSelectFolder,
   onSelectRequest,
+  onRenameRequest,
   onToggleFolder,
   ...itemProps
 }: RequesterRequestTreeItemProps): React.JSX.Element => {
@@ -57,6 +59,12 @@ const RequesterRequestTreeItem = ({
         tabIndex={0}
         onClick={activate}
         onKeyDown={(event) => {
+          if (event.key === 'F2' && !node.isDirectory && node.requestId) {
+            event.preventDefault();
+            event.stopPropagation();
+            onRenameRequest(node.requestId);
+            return;
+          }
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
           activate();
@@ -127,6 +135,7 @@ const RequesterRequestTreeItem = ({
               activeRequestId={activeRequestId}
               expandedPaths={expandedPaths}
               node={child}
+              onRenameRequest={onRenameRequest}
               onSelectFolder={onSelectFolder}
               onSelectRequest={onSelectRequest}
               onToggleFolder={onToggleFolder}
