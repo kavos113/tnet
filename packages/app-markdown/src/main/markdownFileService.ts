@@ -38,7 +38,7 @@ const fileTemplate = `<keyword name="" type="n">
 </keyword>
 
 <details>
-<summary>險ｼ譏・/summary>
+<summary>証明</summary>
 
 </details>`;
 

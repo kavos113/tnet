@@ -16,7 +16,7 @@ const imageLoadDataUrl = vi.fn();
 const toggleTask = vi.fn();
 const openPdfLink = vi.fn();
 
-const renderPreviewPane = (markdown: string): void => {
+const renderPreviewPane = (markdown: string, options: { enableBacklinks?: boolean } = {}): void => {
   render(
     <PreviewPane
       markdown={markdown}
@@ -26,6 +26,7 @@ const renderPreviewPane = (markdown: string): void => {
       onToggleTask={toggleTask}
       loadKeywordContent={keywordGetContent}
       loadImageDataUrl={imageLoadDataUrl}
+      enableBacklinks={options.enableBacklinks}
     />
   );
 };
@@ -53,7 +54,7 @@ describe('PreviewPane', () => {
       })
     );
 
-    renderPreviewPane('See [[/docs/keyword.md|Keyword]].');
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]].', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.mouseOver(link, { clientX: 20, clientY: 30 });
@@ -75,7 +76,7 @@ describe('PreviewPane', () => {
   it('uses a missing message when keyword content is not found', async () => {
     keywordGetContent.mockResolvedValue(null);
 
-    renderPreviewPane('See [[/docs/keyword.md|Missing]].');
+    renderPreviewPane('See [[/docs/keyword.md|Missing]].', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: 'Missing' });
     fireEvent.mouseOver(link);
@@ -86,7 +87,7 @@ describe('PreviewPane', () => {
   it('hides the tooltip when the cursor leaves or the link is clicked', async () => {
     keywordGetContent.mockResolvedValue('Tooltip body');
 
-    renderPreviewPane('See [[/docs/keyword.md|Keyword]].');
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]].', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.mouseOver(link);
@@ -126,7 +127,7 @@ describe('PreviewPane', () => {
       })
     );
 
-    renderPreviewPane('See [[/docs/keyword.md|Keyword]].');
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]].', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: 'Keyword' });
     fireEvent.mouseOver(link);
@@ -145,7 +146,7 @@ describe('PreviewPane', () => {
   });
 
   it('opens an internal link when the click target is the link text node', async () => {
-    renderPreviewPane('See [[/docs/text-target.md|Text Target]].');
+    renderPreviewPane('See [[/docs/text-target.md|Text Target]].', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: 'Text Target' });
     const textNode = link.firstChild;
@@ -161,7 +162,7 @@ describe('PreviewPane', () => {
   });
 
   it('opens standard PDF links through the PDF link handler', async () => {
-    renderPreviewPane('Open [0407](pdf:slides/0407.pdf).');
+    renderPreviewPane('Open [0407](pdf:slides/0407.pdf).', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: '0407' });
     expect(link).toHaveAttribute('data-pdf-link', 'true');
@@ -175,7 +176,7 @@ describe('PreviewPane', () => {
   });
 
   it('opens wiki-style PDF links through the PDF link handler', async () => {
-    renderPreviewPane('Open [[pdf:slides/0407.pdf|0407]].');
+    renderPreviewPane('Open [[pdf:slides/0407.pdf|0407]].', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: '0407' });
     expect(link).toHaveAttribute('data-pdf-link', 'true');
@@ -189,7 +190,7 @@ describe('PreviewPane', () => {
   });
 
   it('opens a PDF link when the click target is the link text node', async () => {
-    renderPreviewPane('Open [0407](pdf:slides/0407.pdf).');
+    renderPreviewPane('Open [0407](pdf:slides/0407.pdf).', { enableBacklinks: true });
 
     const link = await screen.findByRole('link', { name: '0407' });
     const textNode = link.firstChild;
@@ -254,5 +255,32 @@ describe('PreviewPane', () => {
     fireEvent.click(checkbox);
 
     expect(toggleTask).toHaveBeenCalledWith(1, true);
+  });
+
+  it('allows native details disclosure toggles in the preview', async () => {
+    renderPreviewPane('<details>\n<summary>証明</summary>\n\n本文\n\n</details>');
+
+    const details = (await screen.findByText('証明')).closest('details');
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute('open');
+
+    fireEvent.click(screen.getByText('証明'));
+
+    expect(details).toHaveAttribute('open');
+  });
+
+  it('does not install backlink listeners by default', async () => {
+    renderPreviewPane('See [[/docs/keyword.md|Keyword]] and [PDF](pdf:slides/0407.pdf).');
+
+    expect(
+      await screen.findByText('[[/docs/keyword.md|Keyword]]', { exact: false })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Keyword' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: 'PDF' }));
+
+    expect(screen.queryByTestId('internal-link-tooltip')).not.toBeInTheDocument();
+    expect(keywordGetContent).not.toHaveBeenCalled();
+    expect(openInternalLink).not.toHaveBeenCalled();
+    expect(openPdfLink).not.toHaveBeenCalled();
   });
 });

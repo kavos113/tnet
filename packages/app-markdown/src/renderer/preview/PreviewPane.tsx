@@ -22,6 +22,7 @@ interface PreviewPaneProps {
   loadImageDataUrl: (filename: string) => Promise<string | null>;
   onRendered?: () => void;
   renderDebounceMs?: number;
+  enableBacklinks?: boolean;
 }
 
 export type PreviewPaneHandle = MarkdownPreviewPaneHandle;
@@ -37,14 +38,22 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
       loadKeywordContent,
       loadImageDataUrl,
       onRendered,
-      renderDebounceMs
+      renderDebounceMs,
+      enableBacklinks = false
     },
     ref
   ): React.JSX.Element => {
-    const remarkPlugins = useMemo(() => [remarkInternalLinks], []);
+    const remarkPlugins = useMemo(
+      () => (enableBacklinks ? [remarkInternalLinks] : []),
+      [enableBacklinks]
+    );
     const rehypePlugins = useMemo(
-      () => [rehypePdfLinks, rehypeAiChat(markdown), rehypeKeyword(markdown)],
-      [markdown]
+      () => [
+        ...(enableBacklinks ? [rehypePdfLinks] : []),
+        rehypeAiChat(markdown),
+        rehypeKeyword(markdown)
+      ],
+      [enableBacklinks, markdown]
     );
     const openInternalLink = useCallback(
       (filePath: string): void => {
@@ -74,20 +83,24 @@ export const PreviewPane = forwardRef<PreviewPaneHandle, PreviewPaneProps>(
         showOutline={showOutline}
         onToggleTask={onToggleTask}
         resolveImageSrc={loadImageDataUrl}
-        onPreviewClickCapture={openPdfLink}
+        onPreviewClickCapture={enableBacklinks ? openPdfLink : undefined}
         onRendered={onRendered}
         renderDebounceMs={renderDebounceMs}
         remarkPlugins={remarkPlugins}
         rehypePlugins={rehypePlugins}
-        overlays={(containerRef) => (
-          <>
-            <InternalLinkTooltipController
-              containerRef={containerRef}
-              onOpenInternalLink={openInternalLink}
-              loadKeywordContent={loadKeywordContent}
-            />
-          </>
-        )}
+        overlays={
+          enableBacklinks
+            ? (containerRef) => (
+                <>
+                  <InternalLinkTooltipController
+                    containerRef={containerRef}
+                    onOpenInternalLink={openInternalLink}
+                    loadKeywordContent={loadKeywordContent}
+                  />
+                </>
+              )
+            : undefined
+        }
       />
     );
   }

@@ -52,7 +52,7 @@ describe('markdownFileService', () => {
 
     const content = await fs.readFile(filePath, 'utf-8');
     expect(content).toContain('螟画焚繝ｻ譚｡莉ｶ');
-    expect(content).toContain('險ｼ譏・');
+    expect(content).toContain('<summary>証明</summary>');
   });
 
   it('writes keyword indexes and injects generated keyword names', async () => {

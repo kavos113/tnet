@@ -220,6 +220,7 @@ const editorSlice = createSlice({
     },
     setActiveGroup: (state, action: PayloadAction<EditorGroupId>) => {
       if (action.payload === 'secondary' && !state.isSecondaryGroupVisible) return;
+      if (state.activeGroupId === action.payload) return;
       state.activeGroupId = action.payload;
       syncLegacyActiveGroup(state);
     },

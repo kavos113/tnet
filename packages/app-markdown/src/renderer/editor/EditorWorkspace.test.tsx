@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppStore } from '@tnet/app-markdown/renderer/test/createMarkdownTestStore';
-import { openFile, updateActiveContent } from './editorSlice';
+import { openFile, splitActiveTabRight, updateActiveContent } from './editorSlice';
 import { EditorWorkspace } from './EditorWorkspace';
 
 const editorPaneProps = vi.hoisted(
@@ -53,7 +53,7 @@ vi.mock('@tnet/app-markdown/renderer/preview/PreviewPane', () => ({
       useImperativeHandle(ref, () => ({
         getPreviewElement: () => null
       }));
-      return <div data-testid="preview-pane-content" />;
+      return <div className="markdown-preview" data-testid="preview-pane-content" />;
     }
   )
 }));
@@ -170,6 +170,41 @@ describe('EditorWorkspace split resize', () => {
     );
 
     expect(previewPaneProps.at(-1)?.onOpenPdfLink).toBe(openPdfLink);
+  });
+
+  it('does not rerender the active preview pane on mouse down', () => {
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    const renderCount = previewPaneProps.length;
+
+    fireEvent.mouseDown(screen.getByTestId('preview-pane-content'));
+
+    expect(previewPaneProps).toHaveLength(renderCount);
+  });
+
+  it('does not activate an inactive group from preview mouse down', () => {
+    const store = createAppStore();
+    store.dispatch(openFile({ path: '/workspace/note.md', content: '# Note' }));
+    store.dispatch(splitActiveTabRight());
+
+    render(
+      <Provider store={store}>
+        <EditorWorkspace />
+      </Provider>
+    );
+
+    expect(store.getState().editor.activeGroupId).toBe('secondary');
+
+    fireEvent.mouseDown(screen.getAllByTestId('preview-pane-content')[0]);
+
+    expect(store.getState().editor.activeGroupId).toBe('secondary');
   });
 
   it('keeps the inline completion requester stable while editing the same file', () => {

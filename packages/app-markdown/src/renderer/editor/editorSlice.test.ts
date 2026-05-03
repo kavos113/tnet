@@ -3,6 +3,7 @@ import reducer, {
   closeSecondaryGroup,
   closeFile,
   openFile,
+  setActiveGroup,
   splitActiveTabRight,
   switchFile,
   togglePreviewOutline,
@@ -51,6 +52,14 @@ describe('editorSlice', () => {
     const state = reducer(createInitialState(), togglePreviewOutline());
 
     expect(state.isPreviewOutlineVisible).toBe(false);
+  });
+
+  it('keeps state identity when focusing the already active group', () => {
+    let state = reducer(createInitialState(), openFile({ path: '/a.md', content: 'A' }));
+
+    const nextState = reducer(state, setActiveGroup('primary'));
+
+    expect(nextState).toBe(state);
   });
 
   it('opens the same file in the secondary group without duplicating it in the primary group', () => {

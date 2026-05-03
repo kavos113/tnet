@@ -148,12 +148,19 @@ const EditorGroupView = ({ groupId, onOpenPdfLink }: EditorGroupViewProps): Reac
     },
     [activeFile, dispatch, groupId]
   );
+  const activateGroup = useCallback(
+    (event: React.MouseEvent<HTMLElement>): void => {
+      if (event.target instanceof Element && event.target.closest('.markdown-preview')) return;
+      if (!isActiveGroup) dispatch(setActiveGroup(groupId));
+    },
+    [dispatch, groupId, isActiveGroup]
+  );
 
   return (
     <section
       className={`${styles.group} ${isActiveGroup ? styles.activeGroup : ''}`}
       role="presentation"
-      onMouseDown={() => dispatch(setActiveGroup(groupId))}
+      onMouseDown={activateGroup}
     >
       <TabBar groupId={groupId} />
       {activeFile ? (

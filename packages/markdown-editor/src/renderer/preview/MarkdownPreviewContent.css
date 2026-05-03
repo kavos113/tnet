@@ -9,6 +9,8 @@
   font-family: var(--preview-font-family);
   font-size: var(--preview-font-size);
   line-height: 1.6;
+  cursor: text;
+  user-select: text;
 }
 
 .markdown-preview h1 {

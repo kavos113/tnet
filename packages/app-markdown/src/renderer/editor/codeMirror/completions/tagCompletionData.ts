@@ -18,7 +18,7 @@ export const tagCompletions: Completion[] = [
   },
   {
     label: 'details proof',
-    apply: 'details>\n<summary>証昁E/summary>\n\n</details>',
+    apply: 'details>\n<summary>証明</summary>\n\n</details>',
     type: 'keyword'
   }
 ];
