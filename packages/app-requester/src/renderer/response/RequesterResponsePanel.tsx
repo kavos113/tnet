@@ -1,3 +1,10 @@
+import { useCallback, useMemo, useState } from 'react';
+import hljs from 'highlight.js/lib/core';
+import css from 'highlight.js/lib/languages/css';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import php from 'highlight.js/lib/languages/php';
+import xml from 'highlight.js/lib/languages/xml';
 import type {
   RequesterExecutionErrorSnapshot,
   RequesterExtractionRule,
@@ -5,10 +12,17 @@ import type {
   RequesterResponseSnapshot
 } from '@tnet/app-requester/shared/requesterTypes';
 import { extractVariablesFromResponse } from '@tnet/app-requester/shared/responseExtraction';
+import 'highlight.js/styles/github.css';
 import contentStyles from './RequesterResponseContent.module.css';
 import headersStyles from './RequesterResponseHeaders.module.css';
 import historyStyles from './RequesterResponseHistory.module.css';
 import styles from './RequesterResponsePanel.module.css';
+
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('html', xml);
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('php', php);
 
 interface RequesterResponsePanelProps {
   response?: RequesterResponseSnapshot;
@@ -99,6 +113,11 @@ const RequesterResponseContent = ({
   extractionRules: RequesterExtractionRule[];
 }): React.JSX.Element => {
   const previewVariables = extractVariablesFromResponse(extractionRules, response);
+  const { height: headersHeight, startResize: startHeadersResize } = useVerticalResize(
+    120,
+    72,
+    280
+  );
 
   return (
     <>
@@ -138,7 +157,7 @@ const RequesterResponseContent = ({
       <section className={headersStyles.headers} aria-label="Response headers">
         <h3>Headers</h3>
         {response.headers.length > 0 ? (
-          <div className={headersStyles.headerGrid}>
+          <div className={headersStyles.headerGrid} style={{ height: headersHeight }}>
             {response.headers.map((header) => (
               <div className={headersStyles.headerRow} key={header.id}>
                 <span>{header.key}</span>
@@ -149,6 +168,13 @@ const RequesterResponseContent = ({
         ) : (
           <p>No headers.</p>
         )}
+        <div
+          className={headersStyles.resizeHandle}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Resize response headers"
+          onMouseDown={startHeadersResize}
+        />
       </section>
       <section className={headersStyles.extractionPreview} aria-label="Extraction preview">
         <h3>Extraction Preview</h3>
@@ -165,21 +191,178 @@ const RequesterResponseContent = ({
           <p>No extracted variables.</p>
         )}
       </section>
-      {response.previewType === 'image' ? (
-        <img
-          className={contentStyles.image}
-          alt="Response preview"
-          src={`data:${response.contentType};base64,${response.bodyBase64}`}
-        />
-      ) : response.previewType === 'pdf' ? (
-        <iframe
-          className={contentStyles.pdf}
-          title="PDF response preview"
-          src={`data:application/pdf;base64,${response.bodyBase64}`}
-        />
-      ) : (
-        <pre className={contentStyles.body}>{response.bodyText}</pre>
-      )}
+      <RequesterResponseBody response={response} />
     </>
   );
 };
+
+const RequesterResponseBody = ({
+  response
+}: {
+  response: RequesterResponseSnapshot;
+}): React.JSX.Element => {
+  const [activeTab, setActiveTab] = useState<'code' | 'preview'>(
+    response.previewType === 'html' ||
+      response.previewType === 'image' ||
+      response.previewType === 'pdf'
+      ? 'preview'
+      : 'code'
+  );
+  const { height: previewHeight, startResize } = useVerticalResize(260, 160, 640);
+  const canShowCode =
+    response.previewType === 'json' ||
+    response.previewType === 'html' ||
+    response.previewType === 'text';
+  const canShowPreview =
+    response.previewType === 'html' ||
+    response.previewType === 'image' ||
+    response.previewType === 'pdf';
+  const visibleTab = canShowPreview && activeTab === 'preview' ? 'preview' : 'code';
+  const language = getResponseLanguage(response);
+  const highlightedBody = useMemo(
+    () =>
+      language
+        ? hljs.highlight(response.bodyText, { language, ignoreIllegals: true }).value
+        : escapeHtml(response.bodyText),
+    [language, response.bodyText]
+  );
+
+  return (
+    <section className={contentStyles.viewer} aria-label="Response body">
+      {canShowCode && canShowPreview ? (
+        <div className={contentStyles.tabs} role="tablist" aria-label="Response body view">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={visibleTab === 'preview'}
+            className={visibleTab === 'preview' ? contentStyles.tabActive : contentStyles.tab}
+            onClick={() => setActiveTab('preview')}
+          >
+            Preview
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={visibleTab === 'code'}
+            className={visibleTab === 'code' ? contentStyles.tabActive : contentStyles.tab}
+            onClick={() => setActiveTab('code')}
+          >
+            Code
+          </button>
+        </div>
+      ) : null}
+      <div className={contentStyles.viewerFrame} style={{ height: previewHeight }}>
+        {visibleTab === 'preview' ? (
+          <ResponsePreview response={response} />
+        ) : response.previewType === 'binary' && !response.bodyText ? (
+          <p className={contentStyles.emptyBody}>Binary response body cannot be previewed.</p>
+        ) : (
+          <pre className={`${contentStyles.body} hljs`}>
+            <code
+              className={language ? `language-${language}` : undefined}
+              dangerouslySetInnerHTML={{ __html: highlightedBody }}
+            />
+          </pre>
+        )}
+      </div>
+      <div
+        className={contentStyles.resizeHandle}
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label="Resize response preview"
+        onMouseDown={startResize}
+      />
+    </section>
+  );
+};
+
+const ResponsePreview = ({
+  response
+}: {
+  response: RequesterResponseSnapshot;
+}): React.JSX.Element => {
+  if (response.previewType === 'html') {
+    return (
+      <iframe
+        className={contentStyles.htmlPreview}
+        title="HTML response preview"
+        sandbox=""
+        srcDoc={response.bodyText}
+      />
+    );
+  }
+  if (response.previewType === 'image') {
+    return (
+      <img
+        className={contentStyles.image}
+        alt="Response preview"
+        src={`data:${response.contentType};base64,${response.bodyBase64}`}
+      />
+    );
+  }
+  if (response.previewType === 'pdf') {
+    return (
+      <iframe
+        className={contentStyles.pdf}
+        title="PDF response preview"
+        src={`data:application/pdf;base64,${response.bodyBase64}`}
+      />
+    );
+  }
+  return <p className={contentStyles.emptyBody}>No preview available.</p>;
+};
+
+const getResponseLanguage = (response: RequesterResponseSnapshot): string | undefined => {
+  const contentType = response.contentType.toLowerCase();
+  if (response.previewType === 'json' || contentType.includes('json')) return 'json';
+  if (response.previewType === 'html' || contentType.includes('html')) return 'html';
+  if (contentType.includes('css')) return 'css';
+  if (contentType.includes('javascript') || contentType.includes('ecmascript')) return 'javascript';
+  if (contentType.includes('php')) return 'php';
+  return undefined;
+};
+
+const useVerticalResize = (
+  defaultHeight: number,
+  minHeight: number,
+  maxHeight: number
+): {
+  height: number;
+  startResize: (event: React.MouseEvent<HTMLElement>) => void;
+} => {
+  const [height, setHeight] = useState(defaultHeight);
+
+  const startResize = useCallback(
+    (event: React.MouseEvent<HTMLElement>): void => {
+      event.preventDefault();
+      const startY = event.clientY;
+      const startHeight = height;
+
+      const handleMouseMove = (moveEvent: MouseEvent): void => {
+        setHeight(clamp(startHeight + moveEvent.clientY - startY, minHeight, maxHeight));
+      };
+
+      const handleMouseUp = (): void => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    },
+    [height, maxHeight, minHeight]
+  );
+
+  return { height, startResize };
+};
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
+
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');

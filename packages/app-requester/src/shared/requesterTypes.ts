@@ -164,7 +164,7 @@ export interface RequesterResponseSnapshot {
   byteSize: number;
   durationMs: number;
   isBodyTruncated: boolean;
-  previewType: 'json' | 'text' | 'image' | 'pdf' | 'binary';
+  previewType: 'json' | 'html' | 'text' | 'image' | 'pdf' | 'binary';
 }
 
 export interface RequesterExecutionErrorSnapshot {

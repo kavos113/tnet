@@ -246,7 +246,7 @@ describe('RequesterApp', () => {
 
     await waitFor(() => expect(getHistory).toHaveBeenCalledWith({ historyId: 'history-1' }));
     expect(screen.getByText('201 Created')).toBeInTheDocument();
-    expect(screen.getByText('{"created":true}')).toBeInTheDocument();
+    expect(document.querySelector('code.language-json')?.textContent).toBe('{"created":true}');
     expect(screen.getByText('content-type')).toBeInTheDocument();
   });
 
@@ -313,6 +313,109 @@ describe('RequesterApp', () => {
     );
     expect(screen.getByText('accessToken')).toBeInTheDocument();
     expect(screen.getByText('abc')).toBeInTheDocument();
+    expect(document.querySelector('code.language-json')).not.toBeNull();
+  });
+
+  it('shows HTML response code and sandboxed preview tabs with resizable panels', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [activeRequest],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(activeRequest));
+    sendRequest.mockResolvedValue({
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [
+          {
+            id: 'content-type',
+            enabled: true,
+            key: 'content-type',
+            value: 'text/html'
+          }
+        ],
+        bodyText: '<html><body><h1>Hello</h1></body></html>',
+        bodyBase64: 'PGh0bWw+PGJvZHk+PGgxPkhlbGxvPC9oMT48L2JvZHk+PC9odG1sPg==',
+        contentType: 'text/html',
+        byteSize: 40,
+        durationMs: 12,
+        isBodyTruncated: false,
+        previewType: 'html'
+      }
+    });
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    const htmlPreview = await screen.findByTitle('HTML response preview');
+    expect(htmlPreview).toHaveAttribute('sandbox', '');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Code' }));
+    expect(document.querySelector('code.language-html')).not.toBeNull();
+
+    const headersSeparator = screen.getByRole('separator', { name: 'Resize response headers' });
+    const headersGrid = headersSeparator.previousElementSibling as HTMLElement;
+    fireEvent.mouseDown(headersSeparator, { clientY: 120 });
+    fireEvent.mouseMove(document, { clientY: 170 });
+    fireEvent.mouseUp(document);
+    expect(headersGrid).toHaveStyle({ height: '170px' });
+
+    const previewSeparator = screen.getByRole('separator', { name: 'Resize response preview' });
+    const previewFrame = previewSeparator.previousElementSibling as HTMLElement;
+    fireEvent.mouseDown(previewSeparator, { clientY: 260 });
+    fireEvent.mouseMove(document, { clientY: 310 });
+    fireEvent.mouseUp(document);
+    expect(previewFrame).toHaveStyle({ height: '310px' });
+  });
+
+  it('shows image responses as previews', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [activeRequest],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(activeRequest));
+    sendRequest.mockResolvedValue({
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [],
+        bodyText: '',
+        bodyBase64: 'iVBORw0KGgo=',
+        contentType: 'image/png',
+        byteSize: 8,
+        durationMs: 12,
+        isBodyTruncated: false,
+        previewType: 'image'
+      }
+    });
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    expect(await screen.findByAltText('Response preview')).toHaveAttribute(
+      'src',
+      'data:image/png;base64,iVBORw0KGgo='
+    );
   });
 
   it('shows execution errors in the response panel', async () => {

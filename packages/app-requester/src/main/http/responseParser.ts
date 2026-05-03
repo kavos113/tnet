@@ -9,6 +9,9 @@ const previewTypeForContentType = (
   contentType: string
 ): RequesterResponseSnapshot['previewType'] => {
   if (contentType.includes('application/json') || contentType.includes('+json')) return 'json';
+  if (contentType.includes('text/html') || contentType.includes('application/xhtml+xml')) {
+    return 'html';
+  }
   if (contentType.startsWith('text/') || contentType.includes('xml')) return 'text';
   if (contentType.startsWith('image/')) return 'image';
   if (contentType.includes('application/pdf')) return 'pdf';

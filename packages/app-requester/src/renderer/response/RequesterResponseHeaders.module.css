@@ -21,7 +21,6 @@
 
 .headerGrid {
   display: grid;
-  max-height: 120px;
   overflow: auto;
   border: 1px solid var(--gray);
   border-radius: var(--radius-md);
@@ -44,4 +43,15 @@
 .headerRow span {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.resizeHandle {
+  height: 6px;
+  cursor: row-resize;
+  border-radius: var(--radius-sm);
+}
+
+.resizeHandle:hover,
+.resizeHandle:active {
+  background: var(--gray);
 }
