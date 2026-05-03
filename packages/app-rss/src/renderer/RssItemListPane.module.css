@@ -1,7 +1,5 @@
 .listPane {
-  width: 360px;
-  min-width: 360px;
-  max-width: 360px;
+  grid-column: 1 / 2;
   min-height: 0;
   border-right: 1px solid #d8dde3;
   background: #ffffff;

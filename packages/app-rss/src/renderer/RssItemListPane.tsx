@@ -108,7 +108,7 @@ export const RssItemListPane = ({
           onClick={() => onOpenItem(item.id).catch(onError)}
         >
           <span className={styles.itemTitle}>
-            {item.starred ? '笘・' : ''}
+            {item.starred ? '☆' : ''}
             {item.title}
           </span>
           <span className={styles.itemMeta}>

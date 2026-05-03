@@ -1,7 +1,7 @@
 .root {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
   width: 100%;
   min-width: 0;
   height: 100%;
