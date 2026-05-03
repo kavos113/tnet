@@ -46,16 +46,7 @@ export const PapersApp = (): React.JSX.Element => {
   const tags = usePapersSelector((state) => state.papersContent.tags);
   const paperSettings = usePapersSelector((state) => state.papersLibrary.settings);
   const globalPaperSettings = usePapersSelector((state) => state.papersLibrary.globalSettings);
-  const noteSettings = {
-    ...paperSettings,
-    noteEditorFontFamily:
-      globalPaperSettings.noteEditorFontFamily || paperSettings.noteEditorFontFamily,
-    noteEditorFontSize: globalPaperSettings.noteEditorFontSize || paperSettings.noteEditorFontSize,
-    notePreviewFontFamily:
-      globalPaperSettings.notePreviewFontFamily || paperSettings.notePreviewFontFamily,
-    notePreviewFontSize:
-      globalPaperSettings.notePreviewFontSize || paperSettings.notePreviewFontSize
-  };
+  const noteSettings = paperSettings;
   const selectedDirectoryRelativePath = useMemo(() => {
     if (!activeLibraryRoot || selectedDirectoryPath === null) return undefined;
     return toWorkspaceRelativePath(activeLibraryRoot, selectedDirectoryPath);

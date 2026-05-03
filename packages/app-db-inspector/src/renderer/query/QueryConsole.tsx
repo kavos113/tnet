@@ -174,8 +174,6 @@ export const QueryConsole = (): React.JSX.Element => {
             <SqlEditor
               value={sqlText}
               onChange={setSqlText}
-              queryFontFamily={globalSettings.queryFontFamily}
-              queryFontSize={globalSettings.queryFontSize}
               minHeight={150}
               completionSource={sqlCompletionSource}
             />
@@ -222,8 +220,6 @@ export const QueryConsole = (): React.JSX.Element => {
           <SqlEditor
             value={sqlText}
             onChange={setSqlText}
-            queryFontFamily={globalSettings.queryFontFamily}
-            queryFontSize={globalSettings.queryFontSize}
             minHeight={28}
             completionSource={sqlCompletionSource}
           />

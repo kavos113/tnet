@@ -220,6 +220,38 @@ describe('App', () => {
     expect(screen.getByText('Open Tasks')).toBeInTheDocument();
   });
 
+  it('saves common font settings from the settings center', async () => {
+    render(
+      <Provider store={createAppStore()}>
+        <App />
+      </Provider>
+    );
+
+    await screen.findByRole('main', { name: 'Tasks' });
+    fireEvent.keyDown(document, { key: ',', ctrlKey: true });
+    fireEvent.click(await screen.findByRole('button', { name: 'Fonts' }));
+    const familyInputs = screen.getAllByLabelText('Font family');
+    const sizeInputs = screen.getAllByLabelText('Font size (px)');
+    fireEvent.change(familyInputs[0], { target: { value: 'Inter' } });
+    fireEvent.change(sizeInputs[0], { target: { value: '14' } });
+    fireEvent.change(familyInputs[1], { target: { value: 'JetBrains Mono' } });
+    fireEvent.change(sizeInputs[1], { target: { value: '15' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(window.tnet.config.saveGlobal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fonts: {
+            standardFontFamily: 'Inter',
+            standardFontSize: 14,
+            monospaceFontFamily: 'JetBrains Mono',
+            monospaceFontSize: 15
+          }
+        })
+      )
+    );
+  });
+
   it('falls back to Tasks when the stored active app is invalid', async () => {
     vi.mocked(window.tnet.config.loadGlobal).mockResolvedValueOnce({
       activeAppId: 'missing-app' as never

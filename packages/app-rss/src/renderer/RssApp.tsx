@@ -44,11 +44,11 @@ export const RssApp = (): React.JSX.Element => {
   const displayStyle = useMemo<RssDisplayStyle>(
     () => ({
       '--rss-summary-lines': String(settings.itemSummaryLineClamp),
-      '--rss-font-family': settings.fontFamily,
-      '--rss-font-size': `${settings.fontSizePx}px`,
+      '--rss-font-family': 'var(--tnet-font-family)',
+      '--rss-font-size': 'var(--tnet-font-size)',
       '--rss-line-height': String(settings.lineHeight)
     }),
-    [settings.fontFamily, settings.fontSizePx, settings.itemSummaryLineClamp, settings.lineHeight]
+    [settings.itemSummaryLineClamp, settings.lineHeight]
   );
   const feedActions = useRssFeedActions({
     selectedFeed,

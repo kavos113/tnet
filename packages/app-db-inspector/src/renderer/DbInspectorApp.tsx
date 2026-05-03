@@ -53,11 +53,10 @@ export const DbInspectorApp = (): React.JSX.Element => {
   const activeSchemaName = activeTableModel?.schemaName ?? schema?.schemas[0]?.name;
 
   const appStyle = {
-    '--db-inspector-grid-font-family': globalSettings.gridFontFamily || undefined,
-    '--db-inspector-grid-font-size': globalSettings.gridFontSize
-      ? `${globalSettings.gridFontSize}px`
-      : undefined,
-    '--db-inspector-query-font-family': globalSettings.queryFontFamily || undefined
+    '--db-inspector-grid-font-family': 'var(--tnet-font-family)',
+    '--db-inspector-grid-font-size': 'var(--tnet-font-size)',
+    '--db-inspector-query-font-family': 'var(--tnet-monospace-font-family)',
+    '--db-inspector-query-font-size': 'var(--tnet-monospace-font-size)'
   } as React.CSSProperties;
 
   useEffect(() => {

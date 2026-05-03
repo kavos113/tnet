@@ -74,8 +74,11 @@ export const SqlEditor = ({
             },
             '.cm-content': {
               minHeight: `${minHeight}px`,
-              fontFamily: queryFontFamily || 'monospace',
-              fontSize: `${queryFontSize && queryFontSize > 0 ? queryFontSize : 13}px`,
+              fontFamily: queryFontFamily || 'var(--tnet-monospace-font-family)',
+              fontSize:
+                queryFontSize && queryFontSize > 0
+                  ? `${queryFontSize}px`
+                  : 'var(--tnet-monospace-font-size)',
               lineHeight: '1.45',
               padding: '6px 8px'
             },

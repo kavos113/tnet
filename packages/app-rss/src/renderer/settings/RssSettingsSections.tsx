@@ -112,23 +112,6 @@ export const DisplaySettingsSection = ({
       />
     </label>
     <label className={styles.field}>
-      <span>Font family</span>
-      <input
-        value={draft.fontFamily}
-        onChange={(event) => update('fontFamily', event.target.value)}
-      />
-    </label>
-    <label className={styles.field}>
-      <span>Font size px</span>
-      <input
-        type="number"
-        min={1}
-        max={200}
-        value={draft.fontSizePx}
-        onChange={(event) => update('fontSizePx', Number(event.target.value))}
-      />
-    </label>
-    <label className={styles.field}>
       <span>Line height</span>
       <input
         type="number"

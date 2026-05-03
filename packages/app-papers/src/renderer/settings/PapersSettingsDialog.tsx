@@ -82,18 +82,6 @@ export const PapersGlobalSettingsPage = ({ onClose }: SettingsPageProps): React.
   return (
     <>
       <SettingsFieldsSection
-        title="Note Editor Font"
-        draft={draft}
-        fields={globalNoteEditorFontFields}
-        onFieldChange={updateDraft}
-      />
-      <SettingsFieldsSection
-        title="Note Preview Font"
-        draft={draft}
-        fields={globalNotePreviewFontFields}
-        onFieldChange={updateDraft}
-      />
-      <SettingsFieldsSection
         title="AI"
         draft={draft}
         fields={globalAiFields}
@@ -196,40 +184,6 @@ export const PapersWorkspaceSettingsPage = ({ onClose }: SettingsPageProps): Rea
     </>
   );
 };
-
-const globalNoteEditorFontFields: ReadonlyArray<SettingsFieldConfig<PapersGlobalSettings>> = [
-  {
-    id: 'papers-global-note-editor-font-family',
-    label: 'Editor font family',
-    key: 'noteEditorFontFamily',
-    type: 'text'
-  },
-  {
-    id: 'papers-global-note-editor-font-size',
-    label: 'Editor font size (px)',
-    key: 'noteEditorFontSize',
-    type: 'number',
-    min: 10,
-    max: 32
-  }
-];
-
-const globalNotePreviewFontFields: ReadonlyArray<SettingsFieldConfig<PapersGlobalSettings>> = [
-  {
-    id: 'papers-global-note-preview-font-family',
-    label: 'Preview font family',
-    key: 'notePreviewFontFamily',
-    type: 'text'
-  },
-  {
-    id: 'papers-global-note-preview-font-size',
-    label: 'Preview font size (px)',
-    key: 'notePreviewFontSize',
-    type: 'number',
-    min: 10,
-    max: 32
-  }
-];
 
 const globalAiFields: ReadonlyArray<SettingsFieldConfig<PapersGlobalSettings>> = [
   {

@@ -1,5 +1,10 @@
 import { Suspense, useEffect, useState } from 'react';
-import { normalizeGlobalConfig } from '@tnet/shared/types/config';
+import {
+  defaultGlobalFontSettings,
+  getGlobalFontSettings,
+  normalizeGlobalConfig,
+  type GlobalFontSettings
+} from '@tnet/shared/types/config';
 import type { MarkdownAppProps } from '@tnet/app-markdown/renderer';
 import type { TasksAppProps, TasksSidebarProps } from '@tnet/app-tasks/renderer';
 import { useAppDispatch, useAppSelector } from '@renderer/app/hooks';
@@ -17,6 +22,7 @@ export const AppShell = (): React.JSX.Element => {
   const activeAppId = useAppSelector((state) => state.app.activeAppId);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAppRestored, setIsAppRestored] = useState(false);
+  const [fontSettings, setFontSettings] = useState<GlobalFontSettings>(defaultGlobalFontSettings());
   const openPdfLink = useOpenPdfLink();
   const activeModule = getAppModule(activeAppId);
   const ActiveApp = activeModule.Main;
@@ -47,6 +53,7 @@ export const AppShell = (): React.JSX.Element => {
     const restoreApp = async (): Promise<void> => {
       const config = normalizeGlobalConfig(await tnetApi.config.loadGlobal());
       if (canceled) return;
+      setFontSettings(getGlobalFontSettings(config));
       dispatch(restoreActiveApp(config.activeAppId));
     };
 
@@ -80,7 +87,17 @@ export const AppShell = (): React.JSX.Element => {
   }, [activeAppId, isAppRestored]);
 
   return (
-    <div className={styles.root}>
+    <div
+      className={styles.root}
+      style={
+        {
+          '--tnet-font-family': fontSettings.standardFontFamily,
+          '--tnet-font-size': `${fontSettings.standardFontSize}px`,
+          '--tnet-monospace-font-family': fontSettings.monospaceFontFamily,
+          '--tnet-monospace-font-size': `${fontSettings.monospaceFontSize}px`
+        } as React.CSSProperties
+      }
+    >
       <AppRail
         apps={appRegistry}
         activeAppId={activeAppId}
@@ -112,6 +129,7 @@ export const AppShell = (): React.JSX.Element => {
         isOpen={isSettingsOpen}
         activeAppId={activeAppId}
         onClose={() => setIsSettingsOpen(false)}
+        onFontSettingsChange={setFontSettings}
       />
     </div>
   );

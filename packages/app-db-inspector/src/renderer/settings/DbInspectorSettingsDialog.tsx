@@ -192,32 +192,6 @@ export const DbInspectorWorkspaceSettingsPage = ({
 
 const globalFields: ReadonlyArray<SettingsFieldConfig<DbInspectorGlobalSettings>> = [
   {
-    id: 'db-inspector-query-font-family',
-    label: 'Query font family',
-    key: 'queryFontFamily',
-    type: 'text'
-  },
-  {
-    id: 'db-inspector-query-font-size',
-    label: 'Query font size (px)',
-    key: 'queryFontSize',
-    type: 'number',
-    min: 1
-  },
-  {
-    id: 'db-inspector-grid-font-family',
-    label: 'Grid font family',
-    key: 'gridFontFamily',
-    type: 'text'
-  },
-  {
-    id: 'db-inspector-grid-font-size',
-    label: 'Grid font size (px)',
-    key: 'gridFontSize',
-    type: 'number',
-    min: 1
-  },
-  {
     id: 'db-inspector-default-page-size',
     label: 'Default page size',
     key: 'defaultPageSize',

@@ -127,10 +127,6 @@ export const PaperDetailPane = ({
                     content={detail.noteContent}
                     mode={noteSettings.noteEditorMode}
                     autoSaveDebounceMs={noteSettings.noteAutoSaveDebounceMs}
-                    editorFontFamily={noteSettings.noteEditorFontFamily}
-                    editorFontSize={noteSettings.noteEditorFontSize}
-                    previewFontFamily={noteSettings.notePreviewFontFamily}
-                    previewFontSize={noteSettings.notePreviewFontSize}
                     onModeChange={(mode) =>
                       onNoteSettingsChange({ ...noteSettings, noteEditorMode: mode })
                     }

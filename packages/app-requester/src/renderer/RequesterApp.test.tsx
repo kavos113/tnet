@@ -444,7 +444,7 @@ describe('RequesterApp', () => {
     expect(screen.getByLabelText('Response error details')).toBeInTheDocument();
   });
 
-  it('debounces request name autosave and applies requester font settings', async () => {
+  it('debounces request name autosave and uses common requester font variables', async () => {
     vi.useFakeTimers();
     const store = createStore();
     store.dispatch(
@@ -452,13 +452,7 @@ describe('RequesterApp', () => {
         activeWorkspaceId: 'workspace-1',
         workspaces: [{ id: 'workspace-1', name: 'Local' }],
         requests: [activeRequest],
-        settings: {
-          ...defaultRequesterWorkspaceSettings(),
-          codeFontFamily: 'Code Font',
-          codeFontSize: 15,
-          appFontFamily: 'UI Font',
-          appFontSize: 14
-        }
+        settings: defaultRequesterWorkspaceSettings()
       })
     );
     store.dispatch(setActiveRequesterRequest(activeRequest));
@@ -469,12 +463,14 @@ describe('RequesterApp', () => {
       </Provider>
     );
 
-    expect(screen.getByRole('main', { name: 'Requester' })).toHaveStyle({
-      '--requester-code-font-family': 'Code Font',
-      '--requester-code-font-size': '15px',
-      '--requester-app-font-family': 'UI Font',
-      '--requester-app-font-size': '14px'
-    });
+    expect(screen.getByRole('main', { name: 'Requester' })).toHaveAttribute(
+      'style',
+      expect.stringContaining('--requester-code-font-family: var(--tnet-monospace-font-family)')
+    );
+    expect(screen.getByRole('main', { name: 'Requester' })).toHaveAttribute(
+      'style',
+      expect.stringContaining('--requester-app-font-family: var(--tnet-font-family)')
+    );
 
     fireEvent.change(screen.getByLabelText('Request name'), {
       target: { value: 'Create User' }

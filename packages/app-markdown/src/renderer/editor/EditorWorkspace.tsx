@@ -301,8 +301,6 @@ export const EditorWorkspace = ({
   onOpenPdfLink?: (href: string) => void;
 }): React.JSX.Element => {
   const dispatch = useAppDispatch();
-  const markdownSettings = useAppSelector((state) => state.workspace.settings.markdown);
-  const globalSettings = useAppSelector((state) => state.workspace.globalSettings);
   const { activeIndex, groupWidthPercent, isSecondaryGroupVisible } = useAppSelector(
     (state) => state.editor
   );
@@ -371,12 +369,10 @@ export const EditorWorkspace = ({
       className={styles.workspace}
       style={
         {
-          '--editor-font-family':
-            globalSettings.editorFontFamily || markdownSettings.editorFontFamily,
-          '--editor-font-size': `${globalSettings.editorFontSize || markdownSettings.editorFontSize}px`,
-          '--preview-font-family':
-            globalSettings.previewFontFamily || markdownSettings.previewFontFamily,
-          '--preview-font-size': `${globalSettings.previewFontSize || markdownSettings.previewFontSize}px`
+          '--editor-font-family': 'var(--tnet-monospace-font-family)',
+          '--editor-font-size': 'var(--tnet-monospace-font-size)',
+          '--preview-font-family': 'var(--tnet-font-family)',
+          '--preview-font-size': 'var(--tnet-font-size)'
         } as CSSProperties
       }
     >

@@ -8,10 +8,6 @@ export interface PaperNoteEditorProps {
   content: string;
   mode: MarkdownEditorMode;
   autoSaveDebounceMs: number;
-  editorFontFamily: string;
-  editorFontSize: number;
-  previewFontFamily: string;
-  previewFontSize: number;
   onModeChange: (mode: PapersLibraryConfig['noteEditorMode']) => void;
   onSave: (content: string) => Promise<void>;
 }
@@ -21,10 +17,6 @@ export const PaperNoteEditor = ({
   content,
   mode,
   autoSaveDebounceMs,
-  editorFontFamily,
-  editorFontSize,
-  previewFontFamily,
-  previewFontSize,
   onModeChange,
   onSave
 }: PaperNoteEditorProps): React.JSX.Element => {
@@ -65,10 +57,10 @@ export const PaperNoteEditor = ({
       aria-label="Paper note editor"
       style={
         {
-          '--editor-font-family': editorFontFamily,
-          '--editor-font-size': `${editorFontSize}px`,
-          '--preview-font-family': previewFontFamily,
-          '--preview-font-size': `${previewFontSize}px`
+          '--editor-font-family': 'var(--tnet-monospace-font-family)',
+          '--editor-font-size': 'var(--tnet-monospace-font-size)',
+          '--preview-font-family': 'var(--tnet-font-family)',
+          '--preview-font-size': 'var(--tnet-font-size)'
         } as React.CSSProperties
       }
     >

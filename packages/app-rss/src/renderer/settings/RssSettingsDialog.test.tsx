@@ -43,10 +43,6 @@ describe('RssGlobalSettingsPage', () => {
     const interval = await screen.findByLabelText('Sync interval minutes');
     fireEvent.change(interval, { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText('Summary lines'), { target: { value: '99' } });
-    fireEvent.change(screen.getByLabelText('Font family'), {
-      target: { value: 'Inter, sans-serif' }
-    });
-    fireEvent.change(screen.getByLabelText('Font size px'), { target: { value: '20' } });
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() =>
@@ -54,9 +50,7 @@ describe('RssGlobalSettingsPage', () => {
         expect.objectContaining({
           settings: expect.objectContaining({
             syncIntervalMinutes: 5,
-            itemSummaryLineClamp: 8,
-            fontFamily: 'Inter, sans-serif',
-            fontSizePx: 20
+            itemSummaryLineClamp: 8
           })
         })
       )
