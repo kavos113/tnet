@@ -28,6 +28,7 @@
     "build:analyze": "pnpm --filter @tnet/desktop build:analyze",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "pnpm --filter @tnet/desktop build:unpack",
+    "build:win:version": "powershell -ExecutionPolicy Bypass -File scripts/version-build-win.ps1",
     "build:win": "pnpm --filter @tnet/desktop build:win",
     "build:mac": "pnpm --filter @tnet/desktop build:mac",
     "build:linux": "pnpm --filter @tnet/desktop build:linux"
