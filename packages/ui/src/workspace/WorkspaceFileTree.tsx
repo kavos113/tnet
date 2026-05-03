@@ -32,6 +32,8 @@ export interface WorkspaceFileTreeProps {
   onCancelRenameEntry?: () => void;
   getItemIcon?: (item: FileItem, isExpanded: boolean) => string;
   isItemDisabled?: (item: FileItem) => boolean;
+  onDragStartItem?: (item: FileItem, event: React.DragEvent<HTMLElement>) => void;
+  onDropOnItem?: (item: FileItem, event: React.DragEvent<HTMLElement>) => void | Promise<void>;
 }
 
 export const WorkspaceFileTree = ({ items, ...itemProps }: WorkspaceFileTreeProps) => {
@@ -60,7 +62,9 @@ const WorkspaceFileTreeItem = ({
   onConfirmRenameEntry,
   onCancelRenameEntry,
   getItemIcon,
-  isItemDisabled
+  isItemDisabled,
+  onDragStartItem,
+  onDropOnItem
 }: WorkspaceFileTreeItemProps): React.JSX.Element => {
   const newEntryInputRef = useRef<HTMLInputElement | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
@@ -125,7 +129,21 @@ const WorkspaceFileTreeItem = ({
         role="button"
         tabIndex={isDisabled ? -1 : 0}
         aria-disabled={isDisabled || undefined}
+        draggable={Boolean(onDragStartItem) && !isDisabled}
         onClick={activate}
+        onDragStart={(event) => onDragStartItem?.(item, event)}
+        onDragOver={(event) => {
+          if (!onDropOnItem) return;
+          event.preventDefault();
+        }}
+        onDrop={(event) => {
+          if (!onDropOnItem) return;
+          event.preventDefault();
+          event.stopPropagation();
+          Promise.resolve(onDropOnItem(item, event)).catch((error: unknown) => {
+            console.error('Failed to drop workspace file tree item', error);
+          });
+        }}
         onKeyDown={(event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
@@ -205,6 +223,8 @@ const WorkspaceFileTreeItem = ({
             onCancelRenameEntry={onCancelRenameEntry}
             getItemIcon={getItemIcon}
             isItemDisabled={isItemDisabled}
+            onDragStartItem={onDragStartItem}
+            onDropOnItem={onDropOnItem}
           />
         </ul>
       ) : null}

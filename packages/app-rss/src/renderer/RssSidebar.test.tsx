@@ -46,6 +46,13 @@ describe('RssSidebar', () => {
             unreadCount: 3
           }
         ]
+      },
+      {
+        kind: 'folder' as const,
+        id: 'folder-2',
+        name: 'Target',
+        folders: [],
+        feeds: []
       }
     ],
     feeds: []
@@ -71,6 +78,13 @@ describe('RssSidebar', () => {
             sortOrder: 1,
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z'
+          },
+          {
+            id: 'folder-2',
+            name: 'Target',
+            sortOrder: 2,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z'
           }
         ],
         feeds: [],
@@ -83,11 +97,30 @@ describe('RssSidebar', () => {
     vi.mocked(rssTnetApi.rss.feeds.list).mockResolvedValue([]);
     vi.mocked(rssTnetApi.rss.folders.listTree).mockResolvedValue(tree);
     vi.mocked(rssTnetApi.rss.folders.create).mockResolvedValue({
-      id: 'folder-2',
+      id: 'folder-3',
       name: 'Created Folder',
-      sortOrder: 2,
+      sortOrder: 3,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z'
+    });
+    vi.mocked(rssTnetApi.rss.folders.move).mockResolvedValue({
+      id: 'folder-1',
+      name: 'Folder',
+      parentId: 'folder-2',
+      sortOrder: 1,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z'
+    });
+    vi.mocked(rssTnetApi.rss.feeds.move).mockResolvedValue({
+      id: 'feed-1',
+      title: 'Feed',
+      url: 'https://example.com/feed.xml',
+      folderId: 'folder-2',
+      sortOrder: 1,
+      enabled: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      unreadCount: 3
     });
     vi.mocked(rssTnetApi.rss.feeds.sync).mockResolvedValue({
       feeds: [],
@@ -114,7 +147,62 @@ describe('RssSidebar', () => {
         parentId: undefined
       })
     );
-    expect(store.getState().rss.selectedFolderId).toBe('folder-2');
+    expect(store.getState().rss.selectedFolderId).toBe('folder-3');
+  });
+
+  it('opens the subscribe screen with Ctrl+N', () => {
+    renderSidebar();
+
+    fireEvent.keyDown(window, { key: 'n', ctrlKey: true });
+
+    expect(store.getState().rss.isSubscribeOpen).toBe(true);
+  });
+
+  it('creates folders with Ctrl+Shift+N', async () => {
+    renderSidebar();
+
+    fireEvent.keyDown(window, { key: 'N', ctrlKey: true, shiftKey: true });
+    const input = screen.getByDisplayValue('New Folder');
+    fireEvent.change(input, { target: { value: 'Shortcut Folder' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() =>
+      expect(rssTnetApi.rss.folders.create).toHaveBeenCalledWith({
+        name: 'Shortcut Folder',
+        parentId: undefined
+      })
+    );
+  });
+
+  it('moves folders by dragging them onto another folder', async () => {
+    renderSidebar();
+
+    const dataTransfer = createDataTransfer();
+    fireEvent.dragStart(screen.getByText('Folder'), { dataTransfer });
+    fireEvent.drop(screen.getByText('Target'), { dataTransfer });
+
+    await waitFor(() =>
+      expect(rssTnetApi.rss.folders.move).toHaveBeenCalledWith({
+        folderId: 'folder-1',
+        parentId: 'folder-2'
+      })
+    );
+  });
+
+  it('moves feeds by dragging them onto the root', async () => {
+    renderSidebar();
+
+    fireEvent.click(screen.getByText('Folder'));
+    const dataTransfer = createDataTransfer();
+    fireEvent.dragStart(screen.getByText('Feed (3)'), { dataTransfer });
+    fireEvent.drop(screen.getByLabelText('RSS folders'), { dataTransfer });
+
+    await waitFor(() =>
+      expect(rssTnetApi.rss.feeds.move).toHaveBeenCalledWith({
+        feedId: 'feed-1',
+        folderId: undefined
+      })
+    );
   });
 
   it('selects feed nodes without inline feed action buttons', () => {
@@ -145,3 +233,17 @@ describe('RssSidebar', () => {
     );
   };
 });
+
+const createDataTransfer = (): DataTransfer => {
+  const data = new Map<string, string>();
+  return {
+    effectAllowed: 'all',
+    dropEffect: 'move',
+    setData: vi.fn((type: string, value: string) => data.set(type, value)),
+    getData: vi.fn((type: string) => data.get(type) ?? ''),
+    clearData: vi.fn((type?: string) => {
+      if (type) data.delete(type);
+      else data.clear();
+    })
+  } as unknown as DataTransfer;
+};

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useShortcut } from '@tnet/renderer-core/shortcuts/useShortcut';
 import type { FileItem } from '@tnet/shared/types/file';
 import {
   WorkspaceFileTree,
@@ -24,6 +25,9 @@ const emptyNewFolder: WorkspaceNewEntryState = {
   parentPath: null,
   name: ''
 };
+
+const rssFeedDragType = 'application/x-rss-feed-id';
+const rssFolderDragType = 'application/x-rss-folder-id';
 
 export const RssSidebar = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
@@ -68,6 +72,10 @@ export const RssSidebar = (): React.JSX.Element => {
       parentPath: selectedFolderId ?? null,
       name: 'New Folder'
     });
+  };
+
+  const startNewFeed = (): void => {
+    dispatch(openRssSubscribe());
   };
 
   const cancelNewFolder = (): void => {
@@ -121,12 +129,61 @@ export const RssSidebar = (): React.JSX.Element => {
     }
   };
 
+  const handleDragStartItem = (item: FileItem, event: React.DragEvent<HTMLElement>): void => {
+    if (item.isDirectory) {
+      event.dataTransfer.setData(rssFolderDragType, item.path);
+      event.dataTransfer.effectAllowed = 'move';
+      return;
+    }
+    const feedId = feedIdFromPath(item.path);
+    if (!feedId) return;
+    event.dataTransfer.setData(rssFeedDragType, feedId);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
+  const moveDraggedEntry = async (
+    event: React.DragEvent,
+    targetFolderId: string | undefined
+  ): Promise<void> => {
+    const feedId = event.dataTransfer.getData(rssFeedDragType);
+    const folderId = event.dataTransfer.getData(rssFolderDragType);
+    if (feedId) {
+      await rssTnetApi.rss.feeds.move({ feedId, folderId: targetFolderId });
+    } else if (folderId && folderId !== targetFolderId) {
+      await rssTnetApi.rss.folders.move({ folderId, parentId: targetFolderId });
+    } else {
+      return;
+    }
+    await refreshTree();
+    if (targetFolderId) {
+      setExpandedFolderIds((current) =>
+        current.includes(targetFolderId) ? current : [...current, targetFolderId]
+      );
+    }
+  };
+
+  const handleDropOnItem = async (item: FileItem, event: React.DragEvent): Promise<void> => {
+    if (!item.isDirectory) return;
+    await moveDraggedEntry(event, item.path);
+  };
+
   const handleDropOnRoot = async (event: React.DragEvent): Promise<void> => {
     event.preventDefault();
-    const feedId = event.dataTransfer.getData('application/x-rss-feed-id');
-    if (feedId) await rssTnetApi.rss.feeds.move({ feedId });
-    await refreshTree();
+    await moveDraggedEntry(event, undefined);
   };
+
+  useShortcut({
+    key: 'n',
+    ctrlOrMeta: true,
+    onTrigger: startNewFeed
+  });
+
+  useShortcut({
+    key: 'n',
+    ctrlOrMeta: true,
+    shift: true,
+    onTrigger: startNewFolder
+  });
 
   return (
     <aside className={styles.root}>
@@ -207,6 +264,8 @@ export const RssSidebar = (): React.JSX.Element => {
               getItemIcon={(item, isExpanded) =>
                 item.isDirectory ? (isExpanded ? 'folder_open' : 'folder') : 'rss_feed'
               }
+              onDragStartItem={handleDragStartItem}
+              onDropOnItem={handleDropOnItem}
             />
           </ul>
         </section>
