@@ -56,7 +56,6 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 4px;
   color: var(--foreground-muted);
   font-size: 12px;
   font-weight: 600;
@@ -74,8 +73,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 24px;
-  padding: 3px 4px;
   color: var(--foreground-muted);
   font-size: 12px;
 }
@@ -87,7 +84,6 @@
   gap: 6px;
   border: 0;
   border-radius: 4px;
-  padding: 3px 5px;
   color: inherit;
   background: transparent;
   text-align: left;
