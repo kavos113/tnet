@@ -9,8 +9,10 @@ class MermaidHtmlTest {
   fun htmlUsesBundledMermaidAsset() {
     val html = buildMermaidHtml("graph TD\n  App-->Viewer")
 
-    assertTrue(html.contains("file:///android_asset/mermaid.min.js"))
-    assertTrue(html.contains("securityLevel: \"strict\""))
+    assertTrue(html.contains("file:///android_asset/markdown-preview/markdown-preview.css"))
+    assertTrue(html.contains("file:///android_asset/markdown-preview/markdown-preview.js"))
+    assertTrue(html.contains("language-mermaid"))
+    assertFalse(html.contains("mermaid.min.js"))
     assertFalse(html.contains("https://"))
   }
 

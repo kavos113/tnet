@@ -35,6 +35,11 @@ android {
   buildFeatures {
     compose = true
   }
+  sourceSets {
+    getByName("main") {
+      assets.srcDir(layout.buildDirectory.dir("generated/markdownPreviewAssets").get().asFile)
+    }
+  }
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -42,6 +47,20 @@ android {
       excludes += "/META-INF/NOTICE*"
     }
   }
+}
+
+val buildMarkdownPreviewAssets by tasks.registering(Exec::class) {
+  val pnpmExecutable = if (System.getProperty("os.name").lowercase().contains("windows")) {
+    "pnpm.cmd"
+  } else {
+    "pnpm"
+  }
+  workingDir = rootProject.projectDir.parentFile.parentFile
+  commandLine(pnpmExecutable, "--filter", "@tnet/mobile", "build:preview")
+}
+
+tasks.named("preBuild") {
+  dependsOn(buildMarkdownPreviewAssets)
 }
 
 dependencies {

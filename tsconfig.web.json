@@ -4,6 +4,7 @@
     "apps/desktop/src/renderer/src/env.d.ts",
     "apps/desktop/src/renderer/src/**/*",
     "apps/desktop/src/preload/types.ts",
+    "apps/mobile/preview/src/**/*",
     "packages/app-papers/src/renderer/**/*",
     "packages/app-papers/src/shared/**/*",
     "packages/app-papers-extension/src/**/*",
