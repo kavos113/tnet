@@ -2,6 +2,15 @@
 
 package com.github.kavos113.tnet.feature.markdown.model
 
+import com.vladsch.flexmark.ast.BulletList
+import com.vladsch.flexmark.ast.FencedCodeBlock
+import com.vladsch.flexmark.ast.Heading
+import com.vladsch.flexmark.ast.HtmlBlock
+import com.vladsch.flexmark.ast.Image
+import com.vladsch.flexmark.ast.Link
+import com.vladsch.flexmark.ast.ListItem
+import com.vladsch.flexmark.ast.Paragraph
+import com.vladsch.flexmark.ast.util.TextCollectingVisitor
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListItem as GfmTaskListItem
 import com.vladsch.flexmark.ext.tables.TableBlock
@@ -13,63 +22,6 @@ import com.vladsch.flexmark.ext.tables.TablesExtension
 import com.vladsch.flexmark.parser.Parser
 import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.data.MutableDataSet
-import com.vladsch.flexmark.ast.BulletList
-import com.vladsch.flexmark.ast.FencedCodeBlock
-import com.vladsch.flexmark.ast.Heading
-import com.vladsch.flexmark.ast.HtmlBlock
-import com.vladsch.flexmark.ast.Image
-import com.vladsch.flexmark.ast.Link
-import com.vladsch.flexmark.ast.ListItem
-import com.vladsch.flexmark.ast.Paragraph
-import com.vladsch.flexmark.ast.util.TextCollectingVisitor
-
-sealed interface MarkdownBlock {
-  data class Heading(
-    val level: Int,
-    val text: String
-  ) : MarkdownBlock
-
-  data class Paragraph(
-    val text: String
-  ) : MarkdownBlock
-
-  data class BulletList(
-    val items: List<String>
-  ) : MarkdownBlock
-
-  data class TaskList(
-    val items: List<TaskListItem>
-  ) : MarkdownBlock
-
-  data class Table(
-    val headers: List<String>,
-    val rows: List<List<String>>
-  ) : MarkdownBlock
-
-  data class CodeBlock(
-    val language: String?,
-    val code: String
-  ) : MarkdownBlock
-
-  data class ImageBlock(
-    val altText: String,
-    val source: String
-  ) : MarkdownBlock
-
-  data class LinkBlock(
-    val label: String,
-    val target: String
-  ) : MarkdownBlock
-
-  data class MermaidBlock(
-    val source: String
-  ) : MarkdownBlock
-}
-
-data class TaskListItem(
-  val text: String,
-  val checked: Boolean
-)
 
 fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
   val blocks = mutableListOf<MarkdownBlock>()
@@ -200,7 +152,6 @@ private fun TableRow.cells(): List<String> {
   return children().filterIsInstance<TableCell>().map { it.textContent() }.toList()
 }
 
-@Suppress("DEPRECATION")
 private fun Node.textContent(): String {
   return TextCollectingVisitor()
     .collectAndGetText(this)

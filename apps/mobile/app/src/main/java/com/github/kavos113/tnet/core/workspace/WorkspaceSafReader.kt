@@ -5,39 +5,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 
-data class WorkspaceRoot(
-  val uri: String,
-  val name: String
-)
-
-data class WorkspaceFileItem(
-  val name: String,
-  val relativePath: String,
-  val documentUri: String,
-  val isDirectory: Boolean,
-  val children: List<WorkspaceFileItem> = emptyList(),
-  val isChildrenLoaded: Boolean = !isDirectory
-)
-
-fun normalizeWorkspaceRelativePath(path: String): Result<String> {
-  return runCatching {
-    val normalized = path.replace('\\', '/').trim().trimStart('/')
-    require(normalized.isNotBlank()) { "path is required" }
-    require(!normalized.startsWith("/")) { "absolute paths are not allowed" }
-    val segments = normalized.split('/').filter { it.isNotBlank() }
-    require(segments.none { it == "." || it == ".." }) { "path must be inside the workspace" }
-    segments.joinToString("/")
-  }
-}
-
-fun workspaceNameFromTreeUri(uri: Uri): String {
-  return DocumentsContract.getTreeDocumentId(uri)
-    .substringAfterLast(':')
-    .substringAfterLast('/')
-    .ifBlank { uri.lastPathSegment.orEmpty() }
-    .ifBlank { "workspace" }
-}
-
 fun loadWorkspaceFileTree(
   contentResolver: ContentResolver,
   workspaceUri: Uri,
@@ -86,42 +53,6 @@ fun loadWorkspaceDirectoryChildren(
       allowedExtensions = allowedExtensions
     )
   }
-}
-
-fun findWorkspaceFile(
-  items: List<WorkspaceFileItem>,
-  relativePath: String
-): WorkspaceFileItem? {
-  val normalized = normalizeWorkspaceRelativePath(relativePath).getOrNull() ?: return null
-  return items.asSequence()
-    .flatMap { it.flattened() }
-    .firstOrNull { it.relativePath == normalized }
-}
-
-fun replaceWorkspaceDirectoryChildren(
-  items: List<WorkspaceFileItem>,
-  relativePath: String,
-  children: List<WorkspaceFileItem>
-): List<WorkspaceFileItem> {
-  val normalized = normalizeWorkspaceRelativePath(relativePath).getOrNull() ?: return items
-  return items.map { item ->
-    when {
-      item.relativePath == normalized && item.isDirectory -> item.copy(
-        children = children,
-        isChildrenLoaded = true
-      )
-
-      item.isDirectory -> item.copy(
-        children = replaceWorkspaceDirectoryChildren(item.children, normalized, children)
-      )
-
-      else -> item
-    }
-  }
-}
-
-private fun WorkspaceFileItem.flattened(): Sequence<WorkspaceFileItem> {
-  return sequenceOf(this) + children.asSequence().flatMap { it.flattened() }
 }
 
 private fun ContentResolver.loadChildren(
