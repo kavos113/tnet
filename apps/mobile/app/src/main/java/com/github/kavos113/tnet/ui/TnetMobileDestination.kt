@@ -24,6 +24,11 @@ enum class TnetMobileDestination(
     label = "Papers",
     headline = "Papers",
     supportingText = "Read-only papers from a synced workspace."
+  ),
+  Settings(
+    label = "Settings",
+    headline = "Settings",
+    supportingText = "Workspace and app preferences."
   );
 
   companion object {

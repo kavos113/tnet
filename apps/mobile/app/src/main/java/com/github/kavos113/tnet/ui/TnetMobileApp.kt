@@ -1,5 +1,9 @@
 package com.github.kavos113.tnet.ui
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -17,17 +22,30 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.github.kavos113.tnet.core.settings.TnetSettingsRepository
+import com.github.kavos113.tnet.feature.papers.PapersScreen
+import com.github.kavos113.tnet.feature.markdown.MarkdownScreen
+import com.github.kavos113.tnet.feature.papers.PapersWorkspaceValidation
+import com.github.kavos113.tnet.feature.papers.validatePapersWorkspace
+import com.github.kavos113.tnet.feature.rss.RssScreen
+import com.github.kavos113.tnet.feature.tasks.TasksScreen
 import com.github.kavos113.tnet.ui.theme.TnetTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +109,31 @@ private fun DestinationScreen(
     modifier = modifier,
     color = MaterialTheme.colorScheme.background
   ) {
+    if (destination == TnetMobileDestination.Tasks) {
+      TasksScreen(modifier = Modifier.fillMaxSize())
+      return@Surface
+    }
+
+    if (destination == TnetMobileDestination.Rss) {
+      RssScreen(modifier = Modifier.fillMaxSize())
+      return@Surface
+    }
+
+    if (destination == TnetMobileDestination.Markdown) {
+      MarkdownScreen(modifier = Modifier.fillMaxSize())
+      return@Surface
+    }
+
+    if (destination == TnetMobileDestination.Papers) {
+      PapersScreen(modifier = Modifier.fillMaxSize())
+      return@Surface
+    }
+
+    if (destination == TnetMobileDestination.Settings) {
+      SettingsScreen(modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp))
+      return@Surface
+    }
+
     Column(
       modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -134,12 +177,100 @@ private fun PlaceholderPanel(destination: TnetMobileDestination) {
             TnetMobileDestination.Rss -> "Mobile fetch"
             TnetMobileDestination.Markdown -> "Read-only"
             TnetMobileDestination.Papers -> "Workspace"
+            TnetMobileDestination.Settings -> "Preferences"
           },
           style = MaterialTheme.typography.bodyMedium
         )
       }
     }
   }
+}
+
+@Composable
+private fun SettingsScreen(modifier: Modifier = Modifier) {
+  val context = LocalContext.current
+  val settingsRepository = remember(context) {
+    TnetSettingsRepository(context.applicationContext)
+  }
+  val settings by settingsRepository.settings.collectAsState(initial = null)
+  var selectedWorkspaceUri by rememberSaveable { mutableStateOf<String?>(null) }
+  var workspaceValidation by remember { mutableStateOf<PapersWorkspaceValidation?>(null) }
+  LaunchedEffect(settings?.papersWorkspaceUri) {
+    selectedWorkspaceUri = settings?.papersWorkspaceUri
+  }
+
+  val openWorkspace = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.OpenDocumentTree()
+  ) { uri: Uri? ->
+    if (uri == null) return@rememberLauncherForActivityResult
+
+    context.contentResolver.takePersistableUriPermission(
+      uri,
+      Intent.FLAG_GRANT_READ_URI_PERMISSION
+    )
+    selectedWorkspaceUri = uri.toString()
+  }
+  LaunchedEffect(selectedWorkspaceUri) {
+    val uri = selectedWorkspaceUri ?: return@LaunchedEffect
+    if (uri != settings?.papersWorkspaceUri) {
+      settingsRepository.savePapersWorkspaceUri(uri)
+    }
+    workspaceValidation = withContext(Dispatchers.IO) {
+      validatePapersWorkspace(context.contentResolver, Uri.parse(uri))
+    }
+  }
+  val workspaceLabel = remember(selectedWorkspaceUri) {
+    selectedWorkspaceUri ?: "No Papers workspace selected."
+  }
+
+  Column(
+    modifier = modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(16.dp)
+  ) {
+    Text(
+      text = "Papers workspace",
+      style = MaterialTheme.typography.headlineMedium
+    )
+    Text(
+      text = "Select the synced desktop workspace folder. The app will read .tnet/papers/papers.db and PDFs without writing to the workspace.",
+      style = MaterialTheme.typography.bodyLarge,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Button(
+      onClick = { openWorkspace.launch(null) },
+      modifier = Modifier.semantics {
+        contentDescription = "Select Papers workspace"
+      }
+    ) {
+      Text("Select workspace")
+    }
+    Text(
+      text = workspaceLabel,
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    WorkspaceValidationText(workspaceValidation)
+  }
+}
+
+@Composable
+private fun WorkspaceValidationText(validation: PapersWorkspaceValidation?) {
+  val text = when (validation) {
+    null -> "Workspace has not been checked yet."
+    is PapersWorkspaceValidation.Valid -> "Found papers database: ${validation.databaseUri}"
+    is PapersWorkspaceValidation.Invalid -> validation.reason
+  }
+  val color = when (validation) {
+    is PapersWorkspaceValidation.Valid -> MaterialTheme.colorScheme.primary
+    is PapersWorkspaceValidation.Invalid -> MaterialTheme.colorScheme.error
+    null -> MaterialTheme.colorScheme.onSurfaceVariant
+  }
+
+  Text(
+    text = text,
+    style = MaterialTheme.typography.bodyMedium,
+    color = color
+  )
 }
 
 @Preview(showBackground = true)
