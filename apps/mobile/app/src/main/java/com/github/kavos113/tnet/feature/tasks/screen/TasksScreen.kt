@@ -20,11 +20,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.tasks.model.TaskFilter
 import com.github.kavos113.tnet.feature.tasks.model.TaskItem
 import com.github.kavos113.tnet.feature.tasks.model.TaskPriority
+import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
 fun TasksScreen(
@@ -348,4 +350,166 @@ private fun DetailLine(
     style = MaterialTheme.typography.bodyMedium,
     color = MaterialTheme.colorScheme.onSurfaceVariant
   )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskFormPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      TaskForm(
+        title = "Review mobile TODO",
+        dueDate = "2026-05-06",
+        priority = TaskPriority.High,
+        notes = "Check component previews.",
+        isEditing = true,
+        onTitleChange = {},
+        onDueDateChange = {},
+        onPriorityChange = {},
+        onNotesChange = {},
+        onSave = {},
+        onCancel = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PriorityButtonsPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      PriorityButtons(
+        selected = TaskPriority.Normal,
+        onSelected = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskFilterRowPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      TaskFilterRow(
+        selected = TaskFilter.Active,
+        onSelected = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskRowPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      TaskRow(
+        task = TaskItem(
+          id = "task-preview",
+          title = "Add small component previews",
+          dueDate = "2026-05-06",
+          priority = TaskPriority.High,
+          notes = "Preview row state."
+        ),
+        onToggle = {},
+        onEdit = {},
+        onSelect = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaskDetailComponentPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      TaskDetail(
+        task = TaskItem(
+          id = "task-detail-preview",
+          title = "Component-level detail preview",
+          dueDate = "2026-05-08",
+          priority = TaskPriority.Normal,
+          notes = "This is rendered without the whole screen."
+        ),
+        onBack = {},
+        onEdit = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TasksScreenContentPreview() {
+  TnetTheme {
+    TasksScreenContent(
+      uiState = TasksUiState(
+        tasks = listOf(
+          TaskItem(
+            id = "task-1",
+            title = "Read shared papers workspace plan",
+            dueDate = "2026-05-05",
+            priority = TaskPriority.High,
+            notes = "Check read-only constraints."
+          ),
+          TaskItem(
+            id = "task-2",
+            title = "Review Mermaid renderer options",
+            dueDate = "2026-05-07",
+            priority = TaskPriority.Normal,
+            isCompleted = true
+          )
+        ),
+        draftTitle = "Draft local task",
+        draftDueDate = "2026-05-10",
+        draftNotes = "Stored on this device only."
+      ),
+      onTitleChange = {},
+      onDueDateChange = {},
+      onPriorityChange = {},
+      onNotesChange = {},
+      onSave = {},
+      onCancel = {},
+      onFilterSelected = {},
+      onToggle = {},
+      onEdit = {},
+      onSelect = {},
+      onBack = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TasksDetailPreview() {
+  TnetTheme {
+    TasksScreenContent(
+      uiState = TasksUiState(
+        tasks = listOf(
+          TaskItem(
+            id = "task-1",
+            title = "Prepare PDF viewer MVP",
+            dueDate = "2026-05-12",
+            priority = TaskPriority.High,
+            notes = "Keep annotations and PDF writes out of scope."
+          )
+        ),
+        selectedTaskId = "task-1"
+      ),
+      onTitleChange = {},
+      onDueDateChange = {},
+      onPriorityChange = {},
+      onNotesChange = {},
+      onSave = {},
+      onCancel = {},
+      onFilterSelected = {},
+      onToggle = {},
+      onEdit = {},
+      onSelect = {},
+      onBack = {}
+    )
+  }
 }

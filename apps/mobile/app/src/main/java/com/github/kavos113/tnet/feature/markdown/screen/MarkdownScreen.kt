@@ -22,9 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
+import com.github.kavos113.tnet.feature.markdown.model.TaskListItem
+import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
 fun MarkdownScreen(
@@ -193,6 +196,127 @@ private fun MarkdownBlockView(block: MarkdownBlock) {
       style = MaterialTheme.typography.bodyMedium,
       fontFamily = FontFamily.Monospace,
       color = MaterialTheme.colorScheme.primary
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownBlocksPreviewComponentPreview() {
+  TnetTheme {
+    MarkdownBlocksPreview(
+      blocks = listOf(
+        MarkdownBlock.Heading(level = 2, text = "Component Preview"),
+        MarkdownBlock.Paragraph("Preview a compact document block surface."),
+        MarkdownBlock.BulletList(listOf("Read-only", "No editor controls"))
+      ),
+      modifier = Modifier.padding(16.dp)
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownTaskListBlockPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      Column(modifier = Modifier.padding(12.dp)) {
+        MarkdownBlockView(
+          MarkdownBlock.TaskList(
+            listOf(
+              TaskListItem(text = "Add screen previews", checked = true),
+              TaskListItem(text = "Add component previews", checked = true),
+              TaskListItem(text = "Implement Mermaid WebView", checked = false)
+            )
+          )
+        )
+      }
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownTableBlockPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      Column(modifier = Modifier.padding(12.dp)) {
+        MarkdownBlockView(
+          MarkdownBlock.Table(
+            headers = listOf("Item", "State"),
+            rows = listOf(
+              listOf("Screen", "Done"),
+              listOf("Component", "Done")
+            )
+          )
+        )
+      }
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownCodeBlockPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      Column(modifier = Modifier.padding(12.dp)) {
+        MarkdownBlockView(
+          MarkdownBlock.CodeBlock(
+            language = "kotlin",
+            code = "val preview = \"component\""
+          )
+        )
+      }
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownScreenContentPreview() {
+  TnetTheme {
+    MarkdownScreenContent(
+      uiState = MarkdownUiState(
+        selectedUri = "content://workspace/docs/mobile-plan.md",
+        blocks = listOf(
+          MarkdownBlock.Heading(level = 1, text = "Mobile Plan"),
+          MarkdownBlock.Paragraph("Kotlin + Jetpack Compose read-only viewer."),
+          MarkdownBlock.TaskList(
+            listOf(
+              TaskListItem(text = "Use ViewModel and UiState", checked = true),
+              TaskListItem(text = "Render Mermaid with bundled assets", checked = false)
+            )
+          ),
+          MarkdownBlock.Table(
+            headers = listOf("Feature", "Status"),
+            rows = listOf(
+              listOf("Markdown", "Read-only"),
+              listOf("Papers", "SQLite workspace")
+            )
+          ),
+          MarkdownBlock.CodeBlock(
+            language = "kotlin",
+            code = "data class MarkdownUiState(val blocks: List<MarkdownBlock>)"
+          ),
+          MarkdownBlock.MermaidBlock("graph TD\n  App-->Viewer")
+        )
+      ),
+      onOpenDocument = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownLoadingPreview() {
+  TnetTheme {
+    MarkdownScreenContent(
+      uiState = MarkdownUiState(
+        selectedUri = "content://workspace/loading.md",
+        isLoading = true
+      ),
+      onOpenDocument = {}
     )
   }
 }

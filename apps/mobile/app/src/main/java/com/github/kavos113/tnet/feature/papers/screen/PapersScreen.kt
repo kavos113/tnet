@@ -1,5 +1,6 @@
 package com.github.kavos113.tnet.feature.papers.screen
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,11 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.kavos113.tnet.feature.papers.model.PaperAiOutput
 import com.github.kavos113.tnet.feature.papers.model.PaperDetail
 import com.github.kavos113.tnet.feature.papers.model.PaperListItem
 import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
+import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
 fun PapersScreen(
@@ -293,4 +297,140 @@ private fun DetailSection(
     text = body,
     style = MaterialTheme.typography.bodyMedium
   )
+}
+
+private val previewPaperListItem = PaperListItem(
+  id = "paper-preview",
+  title = "Component previews for read-only research tools",
+  publishedYear = 2026,
+  venue = "Mobile Systems Notes",
+  pdfPath = "papers/previews.pdf"
+)
+
+private val previewPaperDetail = PaperDetail(
+  id = "paper-preview",
+  title = "Component previews for read-only research tools",
+  abstract = "A sample paper used to preview smaller Papers UI components.",
+  publishedYear = 2026,
+  venue = "Mobile Systems Notes",
+  doi = "10.0000/example",
+  arxivId = "2605.00001",
+  url = "https://example.com/papers/preview",
+  pdfPath = "papers/previews.pdf",
+  directoryPath = "papers",
+  authors = listOf("Ada Lovelace", "Grace Hopper"),
+  tags = listOf("Android", "Preview"),
+  note = "This note is read-only on mobile.",
+  aiOutputs = listOf(
+    PaperAiOutput(
+      operation = "summary",
+      inputMode = "abstract",
+      targetLanguage = "ja",
+      provider = "local",
+      model = "sample",
+      content = "Sample summary for preview."
+    )
+  )
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun PapersWorkspaceStatusPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      PapersWorkspaceStatus(
+        workspaceUri = "content://workspace/root",
+        validation = PapersWorkspaceValidation.Valid(
+          databaseUri = Uri.parse("content://workspace/root/.tnet/papers/papers.db")
+        )
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PaperRowPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      PaperRow(
+        paper = previewPaperListItem,
+        onClick = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PapersListPreviewComponentPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      PapersListPreview(
+        papers = Result.success(
+          listOf(
+            previewPaperListItem,
+            previewPaperListItem.copy(
+              id = "paper-no-pdf",
+              title = "SQLite-only metadata mode",
+              pdfPath = null
+            )
+          )
+        ),
+        onPaperSelected = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PaperDetailCardPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      PaperDetailCard(previewPaperDetail)
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PapersScreenContentPreview() {
+  TnetTheme {
+    PapersScreenContent(
+      uiState = PapersUiState(
+        workspaceUri = "content://workspace/root",
+        papers = Result.success(
+          listOf(
+            previewPaperListItem,
+            previewPaperListItem.copy(
+              id = "paper-2",
+              title = "SQLite workspace sharing on Android",
+              publishedYear = 2025,
+              venue = "Local-first Workshop",
+              pdfPath = null
+            )
+          )
+        )
+      ),
+      onPaperSelected = {},
+      onBack = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PaperDetailScreenPreview() {
+  TnetTheme {
+    PapersScreenContent(
+      uiState = PapersUiState(
+        workspaceUri = "content://workspace/root",
+        selectedPaperId = "paper-preview",
+        selectedPaper = Result.success(previewPaperDetail)
+      ),
+      onPaperSelected = {},
+      onBack = {}
+    )
+  }
 }

@@ -200,6 +200,21 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
   }
   val workspaceLabel = uiState.selectedWorkspaceUri ?: "No Papers workspace selected."
 
+  SettingsScreenContent(
+    uiState = uiState,
+    workspaceLabel = workspaceLabel,
+    onSelectWorkspace = { openWorkspace.launch(null) },
+    modifier = modifier
+  )
+}
+
+@Composable
+private fun SettingsScreenContent(
+  uiState: SettingsUiState,
+  workspaceLabel: String = uiState.selectedWorkspaceUri ?: "No Papers workspace selected.",
+  onSelectWorkspace: () -> Unit,
+  modifier: Modifier = Modifier
+) {
   Column(
     modifier = modifier.fillMaxSize(),
     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -214,7 +229,7 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Button(
-      onClick = { openWorkspace.launch(null) },
+      onClick = onSelectWorkspace,
       modifier = Modifier.semantics {
         contentDescription = "Select Papers workspace"
       }
@@ -252,8 +267,58 @@ private fun WorkspaceValidationText(validation: PapersWorkspaceValidation?) {
 
 @Preview(showBackground = true)
 @Composable
+private fun TnetNavigationBarPreview() {
+  TnetTheme {
+    TnetNavigationBar(
+      selectedDestination = TnetMobileDestination.Papers,
+      onDestinationSelected = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PlaceholderPanelPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      PlaceholderPanel(TnetMobileDestination.Papers)
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WorkspaceValidationTextPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      WorkspaceValidationText(
+        PapersWorkspaceValidation.Invalid("papers.db was not found in this workspace.")
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
 private fun TnetMobileAppPreview() {
   TnetTheme {
     TnetMobileApp()
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsScreenContentPreview() {
+  TnetTheme {
+    SettingsScreenContent(
+      uiState = SettingsUiState(
+        selectedWorkspaceUri = "content://workspace/root",
+        workspaceValidation = PapersWorkspaceValidation.Valid(
+          databaseUri = Uri.parse("content://workspace/root/.tnet/papers/papers.db")
+        )
+      ),
+      onSelectWorkspace = {},
+      modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp)
+    )
   }
 }
