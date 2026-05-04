@@ -41,7 +41,9 @@ fun PdfScreen(
     onNextPage = viewModel::goToNextPage,
     onZoomOut = viewModel::zoomOut,
     onZoomIn = viewModel::zoomIn,
+    onZoomChange = viewModel::setZoom,
     onRotate = viewModel::rotateClockwise,
+    onOpenExternal = { openPdfInExternalViewer(context, uiState.selectedUri) },
     modifier = modifier
   )
 }

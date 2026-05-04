@@ -181,6 +181,10 @@ class PapersViewModel(application: Application) : AndroidViewModel(application) 
     mutableUiState.update { it.copy(zoom = (it.zoom + 0.25f).coerceAtMost(3f)) }
   }
 
+  fun setZoom(value: Float) {
+    mutableUiState.update { it.copy(zoom = value.coerceIn(0.5f, 5f)) }
+  }
+
   fun rotateClockwise() {
     mutableUiState.update { it.copy(rotation = (it.rotation + 90) % 360) }
   }

@@ -70,7 +70,9 @@ internal fun PapersScreenContent(
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
+  onZoomChange: (Float) -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val drawerState = rememberDrawerState(
@@ -141,7 +143,9 @@ internal fun PapersScreenContent(
             onNextPage = onNextPage,
             onZoomOut = onZoomOut,
             onZoomIn = onZoomIn,
+            onZoomChange = onZoomChange,
             onRotate = onRotate,
+            onOpenExternal = onOpenExternal,
             modifier = Modifier
               .fillMaxSize()
               .padding(if (uiState.detailTab == PapersDetailTab.Pdf) 0.dp else TnetSpace2)
@@ -339,7 +343,9 @@ private fun PapersDetailPanel(
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
+  onZoomChange: (Float) -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -374,7 +380,9 @@ private fun PapersDetailPanel(
         onNextPage = onNextPage,
         onZoomOut = onZoomOut,
         onZoomIn = onZoomIn,
+        onZoomChange = onZoomChange,
         onRotate = onRotate,
+        onOpenExternal = onOpenExternal,
         modifier = Modifier.weight(1f)
       )
 
@@ -396,7 +404,9 @@ private fun PapersPdfDetail(
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
+  onZoomChange: (Float) -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Box(modifier = modifier.fillMaxSize()) {
@@ -425,7 +435,9 @@ private fun PapersPdfDetail(
         onNextPage = onNextPage,
         onZoomOut = onZoomOut,
         onZoomIn = onZoomIn,
+        onZoomChange = onZoomChange,
         onRotate = onRotate,
+        onOpenExternal = onOpenExternal,
         modifier = Modifier.fillMaxSize()
       )
     }
@@ -466,7 +478,9 @@ private fun PapersScreenContentPreview() {
       onNextPage = {},
       onZoomOut = {},
       onZoomIn = {},
-      onRotate = {}
+      onZoomChange = {},
+      onRotate = {},
+      onOpenExternal = {}
     )
   }
 }
@@ -496,7 +510,9 @@ private fun PaperDetailScreenPreview() {
       onNextPage = {},
       onZoomOut = {},
       onZoomIn = {},
-      onRotate = {}
+      onZoomChange = {},
+      onRotate = {},
+      onOpenExternal = {}
     )
   }
 }

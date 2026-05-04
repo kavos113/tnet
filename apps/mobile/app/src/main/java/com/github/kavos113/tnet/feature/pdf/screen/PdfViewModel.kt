@@ -177,6 +177,11 @@ class PdfViewModel(application: Application) : AndroidViewModel(application) {
     persistSession()
   }
 
+  fun setZoom(value: Float) {
+    mutableUiState.update { it.copy(zoom = value.coerceIn(0.5f, 5f)) }
+    persistSession()
+  }
+
   fun rotateClockwise() {
     mutableUiState.update { it.copy(rotation = (it.rotation + 90) % 360) }
     persistSession()

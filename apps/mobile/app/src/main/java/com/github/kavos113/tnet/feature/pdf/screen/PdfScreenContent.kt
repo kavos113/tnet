@@ -1,12 +1,16 @@
 package com.github.kavos113.tnet.feature.pdf.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DrawerValue
@@ -17,17 +21,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
-import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
 import com.github.kavos113.tnet.ui.components.TnetStateMessage
+import com.github.kavos113.tnet.ui.theme.TnetSurface
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -44,7 +55,9 @@ internal fun PdfScreenContent(
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
+  onZoomChange: (Float) -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val drawerState = rememberDrawerState(
@@ -90,7 +103,9 @@ internal fun PdfScreenContent(
       onNextPage = onNextPage,
       onZoomOut = onZoomOut,
       onZoomIn = onZoomIn,
+      onZoomChange = onZoomChange,
       onRotate = onRotate,
+      onOpenExternal = onOpenExternal,
       modifier = modifier
     )
   }
@@ -148,7 +163,9 @@ private fun PdfDocumentSurface(
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
+  onZoomChange: (Float) -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -189,7 +206,9 @@ private fun PdfDocumentSurface(
           onNextPage = onNextPage,
           onZoomOut = onZoomOut,
           onZoomIn = onZoomIn,
+          onZoomChange = onZoomChange,
           onRotate = onRotate,
+          onOpenExternal = onOpenExternal,
           modifier = Modifier.fillMaxSize()
         )
       }
@@ -204,32 +223,51 @@ internal fun PdfPagePreview(
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
+  onZoomChange: (Float) -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val bitmap = uiState.pageBitmap ?: return
-  TnetPanel(
+  var offset by remember(uiState.selectedUri, uiState.pageIndex) { mutableStateOf(Offset.Zero) }
+  val transformableState = rememberTransformableState { zoomChange, panChange, _ ->
+    onZoomChange((uiState.zoom * zoomChange).coerceIn(0.5f, 5f))
+    offset += panChange
+  }
+  Column(
     modifier = modifier
       .fillMaxWidth()
-      .verticalScroll(rememberScrollState())
+      .background(TnetSurface),
+    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
-    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace3)) {
-      PdfToolbar(
-        uiState = uiState,
-        onPreviousPage = onPreviousPage,
-        onNextPage = onNextPage,
-        onZoomOut = onZoomOut,
-        onZoomIn = onZoomIn,
-        onRotate = onRotate
-      )
+    PdfToolbar(
+      uiState = uiState,
+      onPreviousPage = onPreviousPage,
+      onNextPage = onNextPage,
+      onZoomOut = onZoomOut,
+      onZoomIn = onZoomIn,
+      onRotate = onRotate,
+      onOpenExternal = onOpenExternal,
+      modifier = Modifier.padding(horizontal = TnetSpace3, vertical = TnetSpace3)
+    )
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .weight(1f)
+        .transformable(transformableState),
+      contentAlignment = Alignment.TopCenter
+    ) {
       Image(
         bitmap = bitmap.asImageBitmap(),
         contentDescription = "PDF page ${uiState.pageIndex + 1}",
         modifier = Modifier
           .fillMaxWidth()
+          .sizeIn(minHeight = 1.dp)
           .graphicsLayer {
             scaleX = uiState.zoom
             scaleY = uiState.zoom
+            translationX = offset.x
+            translationY = offset.y
             rotationZ = uiState.rotation.toFloat()
           }
       )
@@ -257,7 +295,9 @@ private fun PdfScreenContentPreview() {
       onNextPage = {},
       onZoomOut = {},
       onZoomIn = {},
-      onRotate = {}
+      onZoomChange = {},
+      onRotate = {},
+      onOpenExternal = {}
     )
   }
 }

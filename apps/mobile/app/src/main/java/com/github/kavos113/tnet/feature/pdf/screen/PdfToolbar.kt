@@ -24,6 +24,7 @@ internal fun PdfToolbar(
   onZoomOut: () -> Unit,
   onZoomIn: () -> Unit,
   onRotate: () -> Unit,
+  onOpenExternal: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -49,6 +50,9 @@ internal fun PdfToolbar(
       TnetSecondaryButton(text = "-", onClick = onZoomOut)
       TnetSecondaryButton(text = "+", onClick = onZoomIn)
       TnetSecondaryButton(text = "Rotate", onClick = onRotate)
+      if (onOpenExternal != null) {
+        TnetSecondaryButton(text = "Open app", onClick = onOpenExternal)
+      }
     }
   }
 }
