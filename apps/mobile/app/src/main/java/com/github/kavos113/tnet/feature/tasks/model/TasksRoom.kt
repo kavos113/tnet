@@ -33,12 +33,14 @@ interface TaskDao {
 
 @Database(
   entities = [TaskEntity::class],
-  version = 1,
+  version = TASKS_DATABASE_VERSION,
   exportSchema = false
 )
 abstract class TasksDatabase : RoomDatabase() {
   abstract fun taskDao(): TaskDao
 }
+
+const val TASKS_DATABASE_VERSION = 1
 
 fun TaskItem.toEntity(): TaskEntity {
   return TaskEntity(

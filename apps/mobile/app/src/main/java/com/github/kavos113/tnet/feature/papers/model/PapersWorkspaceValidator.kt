@@ -44,7 +44,9 @@ fun validatePapersWorkspace(
       databaseUri = DocumentsContract.buildDocumentUriUsingTree(workspaceUri, database.documentId)
     )
   }.getOrElse { error ->
-    PapersWorkspaceValidation.Invalid(error.message ?: "Unable to inspect workspace.")
+    PapersWorkspaceValidation.Invalid(
+      error.message ?: "Permission lost or workspace unavailable. Re-select the workspace in Settings."
+    )
   }
 }
 

@@ -6,7 +6,13 @@ data class RssFeed(
   val id: String,
   val title: String,
   val url: String,
+  val folderId: String? = null,
   val lastRefreshLabel: String? = null
+)
+
+data class RssFolder(
+  val id: String,
+  val title: String
 )
 
 fun createRssFeed(
@@ -52,6 +58,16 @@ fun markFeedRefreshed(
 ): List<RssFeed> {
   return feeds.map { feed ->
     if (feed.id == feedId) feed.copy(lastRefreshLabel = label) else feed
+  }
+}
+
+fun moveRssFeedToFolder(
+  feeds: List<RssFeed>,
+  feedId: String,
+  folderId: String?
+): List<RssFeed> {
+  return feeds.map { feed ->
+    if (feed.id == feedId) feed.copy(folderId = folderId) else feed
   }
 }
 

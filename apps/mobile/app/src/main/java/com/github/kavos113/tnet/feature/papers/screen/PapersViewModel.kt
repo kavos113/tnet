@@ -53,6 +53,26 @@ class PapersViewModel(application: Application) : AndroidViewModel(application) 
     }
   }
 
+  fun updateSearchQuery(value: String) {
+    mutableUiState.update { it.copy(searchQuery = value) }
+  }
+
+  fun updateTagFilter(value: String) {
+    mutableUiState.update { it.copy(tagFilter = value) }
+  }
+
+  fun updateDirectoryFilter(value: String) {
+    mutableUiState.update { it.copy(directoryFilter = value) }
+  }
+
+  fun updateSortMode(value: PapersSortMode) {
+    mutableUiState.update { it.copy(sortMode = value) }
+  }
+
+  internal fun replacePapersForTest(papers: List<PaperListItem>) {
+    mutableUiState.update { it.copy(papers = Result.success(papers)) }
+  }
+
   private suspend fun loadPapersSource(
     workspaceUri: String?,
     databaseUri: String?

@@ -3,6 +3,7 @@ package com.github.kavos113.tnet.feature.papers.screen
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 import com.github.kavos113.tnet.feature.papers.model.resolvePaperPdfPath
 import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace2
 import com.github.kavos113.tnet.ui.components.TnetSpace3
@@ -44,6 +46,9 @@ fun PapersScreen(
     uiState = uiState,
     onPaperSelected = viewModel::selectPaper,
     onBack = viewModel::closeDetail,
+    onSearchQueryChange = viewModel::updateSearchQuery,
+    onDirectoryFilterChange = viewModel::updateDirectoryFilter,
+    onSortModeChange = viewModel::updateSortMode,
     modifier = modifier
   )
 }
@@ -53,6 +58,9 @@ private fun PapersScreenContent(
   uiState: PapersUiState,
   onPaperSelected: (PaperListItem) -> Unit,
   onBack: () -> Unit,
+  onSearchQueryChange: (String) -> Unit,
+  onDirectoryFilterChange: (String) -> Unit,
+  onSortModeChange: (PapersSortMode) -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -77,14 +85,57 @@ private fun PapersScreenContent(
       validation = uiState.validation
     )
     if (uiState.selectedPaperId == null) {
+      PapersFilterBar(
+        uiState = uiState,
+        onSearchQueryChange = onSearchQueryChange,
+        onDirectoryFilterChange = onDirectoryFilterChange,
+        onSortModeChange = onSortModeChange
+      )
       PapersListPreview(
-        papers = uiState.papers,
+        papers = uiState.visiblePapers,
         onPaperSelected = onPaperSelected
       )
     } else {
       PaperDetailPreview(
         paper = uiState.selectedPaper,
         onBack = onBack
+      )
+    }
+  }
+}
+
+@Composable
+private fun PapersFilterBar(
+  uiState: PapersUiState,
+  onSearchQueryChange: (String) -> Unit,
+  onDirectoryFilterChange: (String) -> Unit,
+  onSortModeChange: (PapersSortMode) -> Unit
+) {
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetCompactTextField(
+        value = uiState.searchQuery,
+        onValueChange = onSearchQueryChange,
+        label = "Search"
+      )
+      TnetCompactTextField(
+        value = uiState.directoryFilter,
+        onValueChange = onDirectoryFilterChange,
+        label = "Directory"
+      )
+      Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+        PapersSortMode.entries.forEach { mode ->
+          TnetSecondaryButton(
+            text = mode.name,
+            onClick = { onSortModeChange(mode) },
+            selected = uiState.sortMode == mode
+          )
+        }
+      }
+      Text(
+        text = "FTS search uses the same search input when the synced database exposes paper_search.",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
       )
     }
   }
@@ -446,7 +497,10 @@ private fun PapersScreenContentPreview() {
         )
       ),
       onPaperSelected = {},
-      onBack = {}
+      onBack = {},
+      onSearchQueryChange = {},
+      onDirectoryFilterChange = {},
+      onSortModeChange = {}
     )
   }
 }
@@ -462,7 +516,10 @@ private fun PaperDetailScreenPreview() {
         selectedPaper = Result.success(previewPaperDetail)
       ),
       onPaperSelected = {},
-      onBack = {}
+      onBack = {},
+      onSearchQueryChange = {},
+      onDirectoryFilterChange = {},
+      onSortModeChange = {}
     )
   }
 }

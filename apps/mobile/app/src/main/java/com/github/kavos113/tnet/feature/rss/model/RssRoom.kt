@@ -81,19 +81,21 @@ interface RssDao {
 
 @Database(
   entities = [RssFolderEntity::class, RssFeedEntity::class, RssItemEntity::class],
-  version = 1,
+  version = RSS_DATABASE_VERSION,
   exportSchema = false
 )
 abstract class RssDatabase : RoomDatabase() {
   abstract fun rssDao(): RssDao
 }
 
+const val RSS_DATABASE_VERSION = 1
+
 fun RssFeed.toEntity(folderId: String? = null): RssFeedEntity {
   return RssFeedEntity(
     id = id,
     title = title,
     url = url,
-    folderId = folderId,
+    folderId = folderId ?: this.folderId,
     lastRefreshLabel = lastRefreshLabel
   )
 }
@@ -103,6 +105,7 @@ fun RssFeedEntity.toRssFeed(): RssFeed {
     id = id,
     title = title,
     url = url,
+    folderId = folderId,
     lastRefreshLabel = lastRefreshLabel
   )
 }

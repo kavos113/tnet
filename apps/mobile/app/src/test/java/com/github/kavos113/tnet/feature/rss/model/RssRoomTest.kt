@@ -10,6 +10,7 @@ class RssRoomTest {
       id = "feed-1",
       title = "TNET updates",
       url = "https://example.com/feed.xml",
+      folderId = "folder-1",
       lastRefreshLabel = "2026-05-04 10:00"
     )
 
@@ -27,6 +28,6 @@ class RssRoomTest {
     val entity = feed.toEntity(folderId = "research")
 
     assertEquals("research", entity.folderId)
-    assertEquals(feed, entity.toRssFeed())
+    assertEquals(feed.copy(folderId = "research"), entity.toRssFeed())
   }
 }

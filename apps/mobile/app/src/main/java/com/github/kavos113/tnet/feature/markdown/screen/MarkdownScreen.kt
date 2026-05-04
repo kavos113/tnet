@@ -34,6 +34,7 @@ import com.github.kavos113.tnet.feature.markdown.model.buildMermaidHtml
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
 import com.github.kavos113.tnet.feature.markdown.model.TaskListItem
 import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
@@ -62,6 +63,7 @@ fun MarkdownScreen(
   MarkdownScreenContent(
     uiState = uiState,
     onOpenDocument = { openMarkdown.launch(arrayOf("text/*", "application/octet-stream")) },
+    onSearchQueryChange = viewModel::updateSearchQuery,
     modifier = modifier
   )
 }
@@ -70,6 +72,7 @@ fun MarkdownScreen(
 private fun MarkdownScreenContent(
   uiState: MarkdownUiState,
   onOpenDocument: () -> Unit,
+  onSearchQueryChange: (String) -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -88,6 +91,12 @@ private fun MarkdownScreenContent(
       color = TnetTextMuted
     )
     TnetPrimaryButton(text = "Open document", onClick = onOpenDocument)
+    TnetCompactTextField(
+      value = uiState.searchQuery,
+      onValueChange = onSearchQueryChange,
+      label = "Search document"
+    )
+    MarkdownNavigationSummary(uiState)
     uiState.selectedUri?.let {
       Text(
         text = it,
@@ -113,6 +122,39 @@ private fun MarkdownScreenContent(
       MarkdownBlocksPreview(
         blocks = uiState.blocks,
         modifier = Modifier.weight(1f)
+      )
+    }
+  }
+}
+
+@Composable
+private fun MarkdownNavigationSummary(uiState: MarkdownUiState) {
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Text(
+        text = "File tree: ${uiState.fileTreeEntries.joinToString(", ").ifBlank { "No files" }}",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
+      )
+      Text(
+        text = "Recent files: ${uiState.recentUris.size}",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
+      )
+      Text(
+        text = "Outline: ${uiState.outline.joinToString(" > ").ifBlank { "No headings" }}",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
+      )
+      Text(
+        text = "Search matches: ${uiState.searchMatches}",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
+      )
+      Text(
+        text = "Viewer position: ${uiState.viewerPosition}",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
       )
     }
   }
@@ -367,6 +409,7 @@ private fun MarkdownScreenContentPreview() {
     MarkdownScreenContent(
       uiState = MarkdownUiState(
         selectedUri = "content://workspace/docs/mobile-plan.md",
+        searchQuery = "viewer",
         blocks = listOf(
           MarkdownBlock.Heading(level = 1, text = "Mobile Plan"),
           MarkdownBlock.Paragraph("Kotlin + Jetpack Compose read-only viewer."),
@@ -390,7 +433,8 @@ private fun MarkdownScreenContentPreview() {
           MarkdownBlock.MermaidBlock("graph TD\n  App-->Viewer")
         )
       ),
-      onOpenDocument = {}
+      onOpenDocument = {},
+      onSearchQueryChange = {}
     )
   }
 }
@@ -404,7 +448,8 @@ private fun MarkdownLoadingPreview() {
         selectedUri = "content://workspace/loading.md",
         isLoading = true
       ),
-      onOpenDocument = {}
+      onOpenDocument = {},
+      onSearchQueryChange = {}
     )
   }
 }

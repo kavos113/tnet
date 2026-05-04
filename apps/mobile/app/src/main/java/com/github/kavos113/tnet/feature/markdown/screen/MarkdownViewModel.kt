@@ -23,6 +23,7 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
     mutableUiState.update {
       it.copy(
         selectedUri = uriText,
+        recentUris = (listOf(uriText) + it.recentUris).distinct().take(10),
         blocks = emptyList(),
         error = null,
         isLoading = true
@@ -52,5 +53,13 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
         )
       }
     }
+  }
+
+  fun updateSearchQuery(value: String) {
+    mutableUiState.update { it.copy(searchQuery = value) }
+  }
+
+  fun saveViewerPosition(position: Int) {
+    mutableUiState.update { it.copy(viewerPosition = position.coerceAtLeast(0)) }
   }
 }

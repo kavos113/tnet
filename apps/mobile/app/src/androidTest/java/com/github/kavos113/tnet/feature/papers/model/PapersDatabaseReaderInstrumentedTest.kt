@@ -35,6 +35,16 @@ class PapersDatabaseReaderInstrumentedTest {
     assertTrue(result.exceptionOrNull() is UnsupportedPapersSchemaException)
   }
 
+  @Test
+  fun copiesWalSidecarForFileDatabaseUri() {
+    val databaseFile = createPapersDatabase(schemaVersion = 1)
+    File("${databaseFile.absolutePath}-wal").writeText("wal")
+
+    loadPaperList(context, Uri.fromFile(databaseFile)).getOrThrow()
+
+    assertTrue(File(context.cacheDir, "papers-readonly.db-wal").isFile)
+  }
+
   private fun createPapersDatabase(schemaVersion: Int): File {
     val databaseFile = File.createTempFile("papers-reader", ".db", context.cacheDir)
     SQLiteDatabase.openOrCreateDatabase(databaseFile, null).use { database ->

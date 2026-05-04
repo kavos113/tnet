@@ -5,6 +5,32 @@ import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
 data class MarkdownUiState(
   val selectedUri: String? = null,
   val blocks: List<MarkdownBlock> = emptyList(),
+  val recentUris: List<String> = emptyList(),
+  val searchQuery: String = "",
+  val viewerPosition: Int = 0,
   val error: String? = null,
   val isLoading: Boolean = false
-)
+) {
+  val fileTreeEntries: List<String> = recentUris.map { it.substringAfterLast('/') }
+  val outline: List<String> = blocks.filterIsInstance<MarkdownBlock.Heading>().map { it.text }
+  val searchMatches: Int = if (searchQuery.isBlank()) {
+    0
+  } else {
+    blocks.count { block ->
+      when (block) {
+        is MarkdownBlock.Heading -> block.text.contains(searchQuery, ignoreCase = true)
+        is MarkdownBlock.Paragraph -> block.text.contains(searchQuery, ignoreCase = true)
+        is MarkdownBlock.BulletList -> block.items.any { it.contains(searchQuery, ignoreCase = true) }
+        is MarkdownBlock.TaskList -> block.items.any { it.text.contains(searchQuery, ignoreCase = true) }
+        is MarkdownBlock.Table -> block.headers.any { it.contains(searchQuery, ignoreCase = true) } ||
+          block.rows.flatten().any { it.contains(searchQuery, ignoreCase = true) }
+        is MarkdownBlock.CodeBlock -> block.code.contains(searchQuery, ignoreCase = true)
+        is MarkdownBlock.ImageBlock -> block.altText.contains(searchQuery, ignoreCase = true) ||
+          block.source.contains(searchQuery, ignoreCase = true)
+        is MarkdownBlock.LinkBlock -> block.label.contains(searchQuery, ignoreCase = true) ||
+          block.target.contains(searchQuery, ignoreCase = true)
+        is MarkdownBlock.MermaidBlock -> block.source.contains(searchQuery, ignoreCase = true)
+      }
+    }
+  }
+}

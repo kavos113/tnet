@@ -74,4 +74,17 @@ class RssModelsTest {
 
     assertNull(updateRssFeed(feeds, "feed-1", "B", "ftp://b.example/feed.xml"))
   }
+
+  @Test
+  fun moveRssFeedToFolderUpdatesOnlyMatchingFeed() {
+    val feeds = listOf(
+      RssFeed(id = "feed-1", title = "A", url = "https://a.example/feed.xml"),
+      RssFeed(id = "feed-2", title = "B", url = "https://b.example/feed.xml")
+    )
+
+    val moved = moveRssFeedToFolder(feeds, feedId = "feed-1", folderId = "folder-1")
+
+    assertEquals("folder-1", moved[0].folderId)
+    assertNull(moved[1].folderId)
+  }
 }
