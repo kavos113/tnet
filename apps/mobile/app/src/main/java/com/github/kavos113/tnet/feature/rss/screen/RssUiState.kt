@@ -26,7 +26,8 @@ data class RssUiState(
   val isItemsLoading: Boolean = true,
   val isRefreshing: Boolean = false,
   val syncingFeedIds: Set<String> = emptySet(),
-  val isArticlePanelOpen: Boolean = false
+  val isArticlePanelOpen: Boolean = false,
+  val visibleItemLimit: Int = RSS_ITEM_PAGE_SIZE
 ) {
   val isEditing: Boolean = editingFeedId != null
   val selectedSourceTitle: String = when (val source = selectedSource) {
@@ -44,7 +45,7 @@ data class RssUiState(
     is RssSource.Folder -> feeds.filter { it.folderId == source.folderId }
     is RssSource.Feed -> feeds.filter { it.id == source.feedId }
   }
-  val visibleItems: List<RssItem> = items
+  private val filteredItems: List<RssItem> = items
     .filter { item -> visibleFeeds.any { it.id == item.feedId } }
     .filter { item -> selectedSource != RssSource.Unread || !item.isRead }
     .filter { item ->
@@ -52,12 +53,16 @@ data class RssUiState(
         item.title.contains(searchQuery, ignoreCase = true) ||
         item.contentHtml.orEmpty().contains(searchQuery, ignoreCase = true)
     }
+  val visibleItems: List<RssItem> = filteredItems.take(visibleItemLimit)
+  val canLoadMoreItems: Boolean = filteredItems.size > visibleItemLimit
   fun unreadCount(feedId: String): Int = items.count { it.feedId == feedId && !it.isRead }
   fun unreadCountForFolder(folderId: String): Int {
     val feedIds = feeds.filter { it.folderId == folderId }.map { it.id }.toSet()
     return items.count { it.feedId in feedIds && !it.isRead }
   }
 }
+
+const val RSS_ITEM_PAGE_SIZE = 50
 
 sealed interface RssSource {
   data object All : RssSource

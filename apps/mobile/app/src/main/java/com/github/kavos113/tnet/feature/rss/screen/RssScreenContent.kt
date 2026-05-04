@@ -90,6 +90,7 @@ internal fun RssScreenContent(
   onCloseDrawer: () -> Unit,
   onItemSelected: (RssItem) -> Unit,
   onItemBack: () -> Unit,
+  onLoadMoreItems: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   val drawerState = rememberDrawerState(
@@ -142,6 +143,7 @@ internal fun RssScreenContent(
         onRemove = onRemove,
         onSearchQueryChange = onSearchQueryChange,
         onItemSelected = onItemSelected,
+        onLoadMoreItems = onLoadMoreItems,
         modifier = Modifier.fillMaxSize()
       )
       if (uiState.isArticlePanelOpen) {
@@ -366,6 +368,7 @@ private fun RssArticleListSurface(
   onRemove: (RssFeed) -> Unit,
   onSearchQueryChange: (String) -> Unit,
   onItemSelected: (RssItem) -> Unit,
+  onLoadMoreItems: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -436,10 +439,12 @@ private fun RssArticleListSurface(
       else -> RssItemList(
         selectedFeedTitle = uiState.selectedSourceTitle,
         items = uiState.visibleItems,
+        canLoadMore = uiState.canLoadMoreItems,
         modifier = Modifier
           .fillMaxWidth()
           .weight(1f),
-        onItemSelected = onItemSelected
+        onItemSelected = onItemSelected,
+        onLoadMore = onLoadMoreItems
       )
     }
   }
@@ -520,7 +525,8 @@ private fun RssScreenContentPreview() {
       onOpenDrawer = {},
       onCloseDrawer = {},
       onItemSelected = {},
-      onItemBack = {}
+      onItemBack = {},
+      onLoadMoreItems = {}
     )
   }
 }
@@ -549,7 +555,8 @@ private fun RssScreenContentDrawerPreview() {
       onOpenDrawer = {},
       onCloseDrawer = {},
       onItemSelected = {},
-      onItemBack = {}
+      onItemBack = {},
+      onLoadMoreItems = {}
     )
   }
 }
@@ -582,7 +589,8 @@ private fun RssScreenContentDetailPreview() {
       onOpenDrawer = {},
       onCloseDrawer = {},
       onItemSelected = {},
-      onItemBack = {}
+      onItemBack = {},
+      onLoadMoreItems = {}
     )
   }
 }
@@ -622,6 +630,7 @@ private fun RssArticleListSurfacePreview() {
       onRemove = {},
       onSearchQueryChange = {},
       onItemSelected = {},
+      onLoadMoreItems = {},
       modifier = Modifier.fillMaxSize()
     )
   }
@@ -640,6 +649,7 @@ private fun RssArticleListSurfaceEmptyPreview() {
       onRemove = {},
       onSearchQueryChange = {},
       onItemSelected = {},
+      onLoadMoreItems = {},
       modifier = Modifier.fillMaxSize()
     )
   }

@@ -70,7 +70,9 @@ class RssViewModel(
     it.copy(bulkImportDraft = value, importMessage = null, error = null)
   }
 
-  fun updateSearchQuery(value: String) = mutableUiState.update { it.copy(searchQuery = value) }
+  fun updateSearchQuery(value: String) = mutableUiState.update {
+    it.copy(searchQuery = value, visibleItemLimit = RSS_ITEM_PAGE_SIZE)
+  }
 
   fun openDrawer() = mutableUiState.update { it.copy(isDrawerOpen = true) }
 
@@ -83,6 +85,7 @@ class RssViewModel(
         selectedItem = null,
         isArticlePanelOpen = false,
         isDrawerOpen = false,
+        visibleItemLimit = RSS_ITEM_PAGE_SIZE,
         selectedFeedTitle = when (source) {
           RssSource.All -> null
           RssSource.Unread -> null
@@ -347,6 +350,14 @@ class RssViewModel(
   }
 
   fun closeItem() = mutableUiState.update { it.copy(selectedItem = null, isArticlePanelOpen = false) }
+
+  fun loadMoreItems() = mutableUiState.update { state ->
+    if (state.canLoadMoreItems) {
+      state.copy(visibleItemLimit = state.visibleItemLimit + RSS_ITEM_PAGE_SIZE)
+    } else {
+      state
+    }
+  }
 
   internal fun replaceItemsForTest(items: List<RssItem>) {
     mutableUiState.update { it.copy(items = items) }

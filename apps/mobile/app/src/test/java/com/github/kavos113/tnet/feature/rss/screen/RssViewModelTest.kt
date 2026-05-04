@@ -164,6 +164,50 @@ class RssViewModelTest {
   }
 
   @Test
+  fun loadMoreItemsIncreasesVisibleItemLimit() {
+    val viewModel = newRssViewModel()
+    viewModel.updateUrlDraft("https://example.com/feed.xml")
+    viewModel.saveFeed()
+    waitUntil { viewModel.uiState.value.feeds.size == 1 }
+    val feed = viewModel.uiState.value.feeds.single()
+    viewModel.replaceItemsForTest(
+      (1..75).map { index ->
+        RssItem(id = "item-$index", feedId = feed.id, title = "Item $index", link = null, publishedAt = null)
+      }
+    )
+    waitUntil { viewModel.uiState.value.items.size == 75 }
+
+    assertEquals(RSS_ITEM_PAGE_SIZE, viewModel.uiState.value.visibleItems.size)
+    assertTrue(viewModel.uiState.value.canLoadMoreItems)
+
+    viewModel.loadMoreItems()
+
+    assertEquals(75, viewModel.uiState.value.visibleItems.size)
+    assertEquals(false, viewModel.uiState.value.canLoadMoreItems)
+  }
+
+  @Test
+  fun selectSourceResetsVisibleItemLimit() {
+    val viewModel = newRssViewModel()
+    viewModel.updateUrlDraft("https://example.com/feed.xml")
+    viewModel.saveFeed()
+    waitUntil { viewModel.uiState.value.feeds.size == 1 }
+    val feed = viewModel.uiState.value.feeds.single()
+    viewModel.replaceItemsForTest(
+      (1..75).map { index ->
+        RssItem(id = "item-$index", feedId = feed.id, title = "Item $index", link = null, publishedAt = null)
+      }
+    )
+    waitUntil { viewModel.uiState.value.items.size == 75 }
+    viewModel.loadMoreItems()
+    assertEquals(75, viewModel.uiState.value.visibleItems.size)
+
+    viewModel.selectSource(RssSource.Feed(feed.id))
+
+    assertEquals(RSS_ITEM_PAGE_SIZE, viewModel.uiState.value.visibleItems.size)
+  }
+
+  @Test
   fun refreshSelectedSourceFetchesFeedsInParallel() {
     val activeFetches = AtomicInteger(0)
     val maxActiveFetches = AtomicInteger(0)

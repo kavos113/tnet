@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -47,13 +50,26 @@ import java.util.TimeZone
 internal fun RssItemList(
   selectedFeedTitle: String?,
   items: List<RssItem>,
+  canLoadMore: Boolean,
   modifier: Modifier = Modifier,
-  onItemSelected: (RssItem) -> Unit
+  onItemSelected: (RssItem) -> Unit,
+  onLoadMore: () -> Unit
 ) {
   if (selectedFeedTitle == null || items.isEmpty()) return
+  val listState = rememberLazyListState()
+
+  LaunchedEffect(canLoadMore, items.size, listState) {
+    snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+      .collect { lastVisibleIndex ->
+        if (canLoadMore && lastVisibleIndex != null && lastVisibleIndex >= items.lastIndex - 5) {
+          onLoadMore()
+        }
+      }
+  }
 
   LazyColumn(
     modifier = modifier,
+    state = listState,
     contentPadding = PaddingValues(0.dp),
     verticalArrangement = Arrangement.spacedBy(0.dp)
   ) {
@@ -87,6 +103,18 @@ internal fun RssItemList(
               maxLines = 1
             )
           }
+        }
+      }
+    }
+    if (canLoadMore) {
+      item(key = "rss-load-more") {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(TnetSpace2),
+          contentAlignment = Alignment.Center
+        ) {
+          Text(text = "Loading more...", style = MaterialTheme.typography.bodySmall, color = TnetTextMuted)
         }
       }
     }
@@ -295,7 +323,9 @@ private fun RssItemListPreview() {
       RssItemList(
         selectedFeedTitle = "Mobile Android",
         items = previewRssItems,
-        onItemSelected = {}
+        canLoadMore = false,
+        onItemSelected = {},
+        onLoadMore = {}
       )
     }
   }
@@ -315,7 +345,9 @@ private fun RssItemListEmptyReadStatePreview() {
             contentHtml = "<p>${item.title} summary text for previewing the compact list row.</p>"
           )
         },
-        onItemSelected = {}
+        canLoadMore = true,
+        onItemSelected = {},
+        onLoadMore = {}
       )
     }
   }

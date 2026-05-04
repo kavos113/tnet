@@ -79,6 +79,7 @@ fun RssScreen(
     onCloseDrawer = rssViewModel::closeDrawer,
     onItemSelected = rssViewModel::selectItem,
     onItemBack = rssViewModel::closeItem,
+    onLoadMoreItems = rssViewModel::loadMoreItems,
     modifier = modifier
   )
 }
