@@ -9,6 +9,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.Upsert
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "rss_folders")
@@ -55,6 +57,7 @@ data class RssItemEntity(
   val title: String,
   val link: String?,
   val publishedAt: String?,
+  val contentHtml: String?,
   val isRead: Boolean
 )
 
@@ -97,7 +100,13 @@ abstract class RssDatabase : RoomDatabase() {
   abstract fun rssDao(): RssDao
 }
 
-const val RSS_DATABASE_VERSION = 1
+const val RSS_DATABASE_VERSION = 2
+
+val RSS_MIGRATION_1_2 = object : Migration(1, 2) {
+  override fun migrate(db: SupportSQLiteDatabase) {
+    db.execSQL("ALTER TABLE rss_items ADD COLUMN contentHtml TEXT")
+  }
+}
 
 fun RssFeed.toEntity(folderId: String? = null): RssFeedEntity {
   return RssFeedEntity(
@@ -140,6 +149,7 @@ fun RssItem.toEntity(): RssItemEntity {
     title = title,
     link = link,
     publishedAt = publishedAt,
+    contentHtml = contentHtml,
     isRead = isRead
   )
 }
@@ -151,6 +161,7 @@ fun RssItemEntity.toRssItem(): RssItem {
     title = title,
     link = link,
     publishedAt = publishedAt,
+    contentHtml = contentHtml,
     isRead = isRead
   )
 }

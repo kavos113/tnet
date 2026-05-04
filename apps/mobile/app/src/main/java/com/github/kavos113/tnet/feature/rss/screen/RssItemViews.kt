@@ -82,24 +82,27 @@ internal fun RssItemDetail(
         color = TnetTextMuted
       )
     }
-    val link = item.link
-    if (link == null) {
+    item.link?.let {
+      Text(
+        text = it,
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetPrimary
+      )
+    }
+    val contentHtml = item.contentHtml
+    if (contentHtml == null) {
       TnetPanel {
         Text(
-          text = "No article link for this RSS item.",
+          text = "No article content for this RSS item.",
           style = MaterialTheme.typography.bodyMedium,
           color = TnetTextMuted
         )
       }
     } else {
-      Text(
-        text = link,
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetPrimary
-      )
       Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
         RssArticleWebView(
-          url = link,
+          html = contentHtml,
+          baseUrl = item.link,
           modifier = Modifier.fillMaxSize()
         )
       }
@@ -109,7 +112,8 @@ internal fun RssItemDetail(
 
 @Composable
 private fun RssArticleWebView(
-  url: String,
+  html: String,
+  baseUrl: String?,
   modifier: Modifier = Modifier
 ) {
   AndroidView(
@@ -120,15 +124,58 @@ private fun RssArticleWebView(
         settings.domStorageEnabled = true
         settings.allowContentAccess = false
         settings.allowFileAccess = false
-        loadUrl(url)
+        loadDataWithBaseURL(
+          baseUrl,
+          buildRssArticleHtml(html),
+          "text/html",
+          "UTF-8",
+          null
+        )
       }
     },
     update = { webView ->
-      if (webView.url != url) {
-        webView.loadUrl(url)
-      }
+      webView.loadDataWithBaseURL(
+        baseUrl,
+        buildRssArticleHtml(html),
+        "text/html",
+        "UTF-8",
+        null
+      )
     }
   )
+}
+
+private fun buildRssArticleHtml(contentHtml: String): String {
+  return """
+    <!doctype html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+          body {
+            margin: 0;
+            padding: 16px;
+            font-family: sans-serif;
+            line-height: 1.55;
+            color: #111827;
+            background: #ffffff;
+          }
+          img, video, iframe {
+            max-width: 100%;
+            height: auto;
+          }
+          pre, code {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+          }
+          a {
+            color: #1d4ed8;
+          }
+        </style>
+      </head>
+      <body>$contentHtml</body>
+    </html>
+  """.trimIndent()
 }
 
 @Preview(showBackground = true)

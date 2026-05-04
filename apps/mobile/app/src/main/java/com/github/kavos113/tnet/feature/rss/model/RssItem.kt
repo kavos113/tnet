@@ -6,5 +6,6 @@ data class RssItem(
   val title: String,
   val link: String?,
   val publishedAt: String?,
+  val contentHtml: String? = null,
   val isRead: Boolean = false
 )

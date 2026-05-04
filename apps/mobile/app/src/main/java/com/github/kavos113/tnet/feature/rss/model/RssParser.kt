@@ -1,6 +1,8 @@
 package com.github.kavos113.tnet.feature.rss.model
 
 import org.w3c.dom.Element
+import org.xml.sax.ErrorHandler
+import org.xml.sax.SAXParseException
 import java.io.ByteArrayInputStream
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
@@ -28,6 +30,9 @@ private fun parseXmlFeedItems(xml: String): List<RssItem> {
       isExpandEntityReferences = false
     }
     .newDocumentBuilder()
+    .apply {
+      setErrorHandler(SilentThrowingXmlErrorHandler)
+    }
     .parse(ByteArrayInputStream(xml.toByteArray(Charsets.UTF_8)))
 
   val rootName = document.documentElement?.localName?.lowercase()
@@ -42,8 +47,22 @@ private fun parseXmlFeedItems(xml: String): List<RssItem> {
     RssItem(
       title = title,
       link = element.childText("link"),
-      publishedAt = element.childText("pubDate") ?: element.childText("dc:date")
+      publishedAt = element.childText("pubDate") ?: element.childText("dc:date"),
+      contentHtml = element.childText("content:encoded")?.sanitizeFeedHtml()
+        ?: element.childText("description")?.sanitizeFeedHtml()
     )
+  }
+}
+
+private object SilentThrowingXmlErrorHandler : ErrorHandler {
+  override fun warning(exception: SAXParseException) = Unit
+
+  override fun error(exception: SAXParseException) {
+    throw exception
+  }
+
+  override fun fatalError(exception: SAXParseException) {
+    throw exception
   }
 }
 
@@ -55,7 +74,9 @@ private fun parseAtomEntries(root: Element): List<RssItem> {
     RssItem(
       title = title,
       link = element.atomLink(),
-      publishedAt = element.childText("published") ?: element.childText("updated")
+      publishedAt = element.childText("published") ?: element.childText("updated"),
+      contentHtml = element.childText("content")?.sanitizeFeedHtml()
+        ?: element.childText("summary")?.sanitizeFeedHtml()
     )
   }
 }
@@ -75,7 +96,12 @@ private fun parseJsonFeedItems(json: String): List<RssItem> {
       RssItem(
         title = title,
         link = body.jsonStringValue("url") ?: body.jsonStringValue("external_url"),
-        publishedAt = body.jsonStringValue("date_published") ?: body.jsonStringValue("date_modified")
+        publishedAt = body.jsonStringValue("date_published") ?: body.jsonStringValue("date_modified"),
+        contentHtml = (
+          body.jsonStringValue("content_html")
+            ?: body.jsonStringValue("content_text")
+            ?: body.jsonStringValue("summary")
+          )?.sanitizeFeedHtml()
       )
     }
     .toList()
@@ -90,7 +116,9 @@ private fun parseTolerantFeedItems(xml: String): List<RssItem> {
       RssItem(
         title = title,
         link = body.tagText("link"),
-        publishedAt = body.tagText("pubDate") ?: body.tagText("dc:date")
+        publishedAt = body.tagText("pubDate") ?: body.tagText("dc:date"),
+        contentHtml = body.tagHtml("content:encoded")?.sanitizeFeedHtml()
+          ?: body.tagHtml("description")?.sanitizeFeedHtml()
       )
     }
     .toList()
@@ -104,7 +132,9 @@ private fun parseTolerantFeedItems(xml: String): List<RssItem> {
       RssItem(
         title = title,
         link = body.atomLinkText(),
-        publishedAt = body.tagText("published") ?: body.tagText("updated")
+        publishedAt = body.tagText("published") ?: body.tagText("updated"),
+        contentHtml = body.tagHtml("content")?.sanitizeFeedHtml()
+          ?: body.tagHtml("summary")?.sanitizeFeedHtml()
       )
     }
     .toList()
@@ -120,11 +150,17 @@ private fun DocumentBuilderFactory.enableFeatureIfSupported(
 }
 
 private fun String.tagText(tagName: String): String? {
+  return tagHtml(tagName)?.cleanFeedText()
+}
+
+private fun String.tagHtml(tagName: String): String? {
   return Regex("""(?is)<$tagName\b[^>]*>(.*?)</$tagName>""")
     .find(this)
     ?.groupValues
     ?.get(1)
-    ?.cleanFeedText()
+    ?.removeCdata()
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
 }
 
 private fun String.atomLinkText(): String? {
@@ -158,14 +194,29 @@ private fun String.jsonStringValue(name: String): String? {
 }
 
 private fun String.cleanFeedText(): String? {
-  return replace("<![CDATA[", "")
-    .replace("]]>", "")
+  return removeCdata()
     .replace(Regex("""(?is)<script\b.*?</script>"""), "")
     .replace(Regex("""(?is)<style\b.*?</style>"""), "")
     .replace(Regex("""(?is)<[^>]+>"""), "")
     .decodeXmlEntities()
     .trim()
     .takeIf { it.isNotEmpty() }
+}
+
+private fun String.sanitizeFeedHtml(): String? {
+  val sanitized = removeCdata()
+    .replace(Regex("""(?is)<script\b.*?</script>"""), "")
+    .replace(Regex("""(?is)<style\b.*?</style>"""), "")
+    .replace(Regex("(?i)\\son[a-z]+\\s*=\\s*\"[^\"]*\""), "")
+    .replace(Regex("""(?i)\son[a-z]+\s*=\s*'[^']*'"""), "")
+    .decodeXmlEntities()
+    .trim()
+  return sanitized.takeIf { it.isNotEmpty() }
+}
+
+private fun String.removeCdata(): String {
+  return replace("<![CDATA[", "")
+    .replace("]]>", "")
 }
 
 private fun String.decodeXmlEntities(): String {

@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.room.Room
 import com.github.kavos113.tnet.feature.rss.model.RoomRssRepository
 import com.github.kavos113.tnet.feature.rss.model.RssDatabase
+import com.github.kavos113.tnet.feature.rss.model.RSS_MIGRATION_1_2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -31,7 +32,7 @@ fun RssScreen(
       context.applicationContext,
       RssDatabase::class.java,
       "tnet-rss.db"
-    ).build()
+    ).addMigrations(RSS_MIGRATION_1_2).build()
   }
   val rssViewModel: RssViewModel = providedViewModel ?: viewModel(
     factory = viewModelFactory {

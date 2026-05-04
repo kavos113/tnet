@@ -6,6 +6,6 @@ import org.junit.Test
 class RssMigrationTest {
   @Test
   fun initialDatabaseVersionIsPinnedForMigrationTests() {
-    assertEquals(1, RSS_DATABASE_VERSION)
+    assertEquals(2, RSS_DATABASE_VERSION)
   }
 }

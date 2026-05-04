@@ -46,6 +46,7 @@ class RssRoomTest {
       title = "Article",
       link = "https://example.com/article",
       publishedAt = "2026-05-04",
+      contentHtml = "<p>Body</p>",
       isRead = true
     )
 
