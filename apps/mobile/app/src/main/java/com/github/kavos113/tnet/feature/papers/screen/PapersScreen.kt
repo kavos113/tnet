@@ -1,6 +1,5 @@
 package com.github.kavos113.tnet.feature.papers.screen
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,64 +12,36 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.github.kavos113.tnet.core.settings.TnetSettingsRepository
-import com.github.kavos113.tnet.feature.papers.data.PaperDetail
-import com.github.kavos113.tnet.feature.papers.data.PaperListItem
-import com.github.kavos113.tnet.feature.papers.data.PapersWorkspaceValidation
-import com.github.kavos113.tnet.feature.papers.data.loadPaperDetail
-import com.github.kavos113.tnet.feature.papers.data.loadPaperList
-import com.github.kavos113.tnet.feature.papers.data.validatePapersWorkspace
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.kavos113.tnet.feature.papers.model.PaperDetail
+import com.github.kavos113.tnet.feature.papers.model.PaperListItem
+import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 
 @Composable
-fun PapersScreen(modifier: Modifier = Modifier) {
-  val context = LocalContext.current
-  val settingsRepository = remember(context) {
-    TnetSettingsRepository(context.applicationContext)
-  }
-  val settings by settingsRepository.settings.collectAsState(initial = null)
-  var validation by remember { mutableStateOf<PapersWorkspaceValidation?>(null) }
-  var papers by remember { mutableStateOf<Result<List<PaperListItem>>?>(null) }
-  var selectedPaperId by remember { mutableStateOf<String?>(null) }
-  var selectedPaper by remember { mutableStateOf<Result<PaperDetail?>?>(null) }
-  val workspaceUri = settings?.papersWorkspaceUri
+fun PapersScreen(
+  modifier: Modifier = Modifier,
+  viewModel: PapersViewModel = viewModel()
+) {
+  val uiState by viewModel.uiState.collectAsState()
+  PapersScreenContent(
+    uiState = uiState,
+    onPaperSelected = viewModel::selectPaper,
+    onBack = viewModel::closeDetail,
+    modifier = modifier
+  )
+}
 
-  LaunchedEffect(workspaceUri) {
-    validation = null
-    papers = null
-    selectedPaperId = null
-    selectedPaper = null
-    val uri = workspaceUri ?: return@LaunchedEffect
-    val nextValidation = withContext(Dispatchers.IO) {
-      validatePapersWorkspace(context.contentResolver, Uri.parse(uri))
-    }
-    validation = nextValidation
-    if (nextValidation is PapersWorkspaceValidation.Valid) {
-      papers = withContext(Dispatchers.IO) {
-        loadPaperList(context, nextValidation.databaseUri)
-      }
-    }
-  }
-
-  LaunchedEffect(workspaceUri, selectedPaperId, validation) {
-    selectedPaper = null
-    val paperId = selectedPaperId ?: return@LaunchedEffect
-    val validWorkspace = validation as? PapersWorkspaceValidation.Valid ?: return@LaunchedEffect
-    selectedPaper = withContext(Dispatchers.IO) {
-      loadPaperDetail(context, validWorkspace.databaseUri, paperId)
-    }
-  }
-
+@Composable
+private fun PapersScreenContent(
+  uiState: PapersUiState,
+  onPaperSelected: (PaperListItem) -> Unit,
+  onBack: () -> Unit,
+  modifier: Modifier = Modifier
+) {
   Column(
     modifier = modifier
       .fillMaxSize()
@@ -87,21 +58,18 @@ fun PapersScreen(modifier: Modifier = Modifier) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     PapersWorkspaceStatus(
-      workspaceUri = workspaceUri,
-      validation = validation
+      workspaceUri = uiState.workspaceUri,
+      validation = uiState.validation
     )
-    if (selectedPaperId == null) {
+    if (uiState.selectedPaperId == null) {
       PapersListPreview(
-        papers = papers,
-        onPaperSelected = { selectedPaperId = it.id }
+        papers = uiState.papers,
+        onPaperSelected = onPaperSelected
       )
     } else {
       PaperDetailPreview(
-        paper = selectedPaper,
-        onBack = {
-          selectedPaperId = null
-          selectedPaper = null
-        }
+        paper = uiState.selectedPaper,
+        onBack = onBack
       )
     }
   }

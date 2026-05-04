@@ -1,6 +1,5 @@
 package com.github.kavos113.tnet.feature.markdown.screen
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,28 +16,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
-import com.github.kavos113.tnet.feature.markdown.model.parseMarkdownBlocks
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
-fun MarkdownScreen(modifier: Modifier = Modifier) {
+fun MarkdownScreen(
+  modifier: Modifier = Modifier,
+  viewModel: MarkdownViewModel = viewModel()
+) {
   val context = LocalContext.current
-  var selectedUri by rememberSaveable { mutableStateOf<String?>(null) }
-  var content by remember { mutableStateOf<String?>(null) }
-  var error by remember { mutableStateOf<String?>(null) }
+  val uiState by viewModel.uiState.collectAsState()
   val openMarkdown = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.OpenDocument()
   ) { uri: Uri? ->
@@ -48,25 +42,22 @@ fun MarkdownScreen(modifier: Modifier = Modifier) {
       uri,
       Intent.FLAG_GRANT_READ_URI_PERMISSION
     )
-    selectedUri = uri.toString()
+    viewModel.openDocument(uri)
   }
 
-  LaunchedEffect(selectedUri) {
-    val uri = selectedUri ?: return@LaunchedEffect
-    val result = withContext(Dispatchers.IO) {
-      readTextDocument(context, Uri.parse(uri))
-    }
-    result
-      .onSuccess {
-        content = it
-        error = null
-      }
-      .onFailure {
-        content = null
-        error = it.message ?: "Unable to read document."
-      }
-  }
+  MarkdownScreenContent(
+    uiState = uiState,
+    onOpenDocument = { openMarkdown.launch(arrayOf("text/*", "application/octet-stream")) },
+    modifier = modifier
+  )
+}
 
+@Composable
+private fun MarkdownScreenContent(
+  uiState: MarkdownUiState,
+  onOpenDocument: () -> Unit,
+  modifier: Modifier = Modifier
+) {
   Column(
     modifier = modifier
       .fillMaxSize()
@@ -83,27 +74,34 @@ fun MarkdownScreen(modifier: Modifier = Modifier) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Button(
-      onClick = { openMarkdown.launch(arrayOf("text/*", "application/octet-stream")) }
+      onClick = onOpenDocument
     ) {
       Text("Open document")
     }
-    selectedUri?.let {
+    uiState.selectedUri?.let {
       Text(
         text = it,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
     }
-    error?.let {
+    if (uiState.isLoading) {
+      Text(
+        text = "Loading document...",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
+    }
+    uiState.error?.let {
       Text(
         text = it,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.error
       )
     }
-    content?.let { markdown ->
+    if (uiState.blocks.isNotEmpty()) {
       MarkdownBlocksPreview(
-        blocks = parseMarkdownBlocks(markdown),
+        blocks = uiState.blocks,
         modifier = Modifier.weight(1f)
       )
     }
@@ -196,14 +194,5 @@ private fun MarkdownBlockView(block: MarkdownBlock) {
       fontFamily = FontFamily.Monospace,
       color = MaterialTheme.colorScheme.primary
     )
-  }
-}
-
-private fun readTextDocument(context: Context, uri: Uri): Result<String> {
-  return runCatching {
-    context.contentResolver.openInputStream(uri).use { input ->
-      requireNotNull(input) { "Unable to open document stream." }
-      input.readBytes().toString(Charsets.UTF_8)
-    }
   }
 }

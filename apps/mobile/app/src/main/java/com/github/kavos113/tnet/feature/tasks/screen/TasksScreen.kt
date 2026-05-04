@@ -15,36 +15,56 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.tasks.model.TaskFilter
 import com.github.kavos113.tnet.feature.tasks.model.TaskItem
 import com.github.kavos113.tnet.feature.tasks.model.TaskPriority
-import com.github.kavos113.tnet.feature.tasks.model.createTask
-import com.github.kavos113.tnet.feature.tasks.model.updateTask
-import com.github.kavos113.tnet.feature.tasks.model.visibleTasks
 
 @Composable
-fun TasksScreen(modifier: Modifier = Modifier) {
-  val tasks = remember { mutableStateListOf<TaskItem>() }
-  var nextTaskNumber by remember { mutableIntStateOf(1) }
-  var draftTitle by remember { mutableStateOf("") }
-  var draftDueDate by remember { mutableStateOf("") }
-  var draftPriority by remember { mutableStateOf(TaskPriority.Normal) }
-  var draftNotes by remember { mutableStateOf("") }
-  var editingTaskId by remember { mutableStateOf<String?>(null) }
-  var selectedTaskId by remember { mutableStateOf<String?>(null) }
-  var filter by remember { mutableStateOf(TaskFilter.All) }
-  var error by remember { mutableStateOf<String?>(null) }
+fun TasksScreen(
+  modifier: Modifier = Modifier,
+  viewModel: TasksViewModel = viewModel()
+) {
+  val uiState by viewModel.uiState.collectAsState()
+  TasksScreenContent(
+    uiState = uiState,
+    onTitleChange = viewModel::updateDraftTitle,
+    onDueDateChange = viewModel::updateDraftDueDate,
+    onPriorityChange = viewModel::updateDraftPriority,
+    onNotesChange = viewModel::updateDraftNotes,
+    onSave = viewModel::saveTask,
+    onCancel = viewModel::cancelEditing,
+    onFilterSelected = viewModel::selectFilter,
+    onToggle = viewModel::toggleTask,
+    onEdit = viewModel::editTask,
+    onSelect = viewModel::selectTask,
+    onBack = viewModel::closeDetail,
+    modifier = modifier
+  )
+}
 
+@Composable
+private fun TasksScreenContent(
+  uiState: TasksUiState,
+  onTitleChange: (String) -> Unit,
+  onDueDateChange: (String) -> Unit,
+  onPriorityChange: (TaskPriority) -> Unit,
+  onNotesChange: (String) -> Unit,
+  onSave: () -> Unit,
+  onCancel: () -> Unit,
+  onFilterSelected: (TaskFilter) -> Unit,
+  onToggle: (TaskItem) -> Unit,
+  onEdit: (TaskItem) -> Unit,
+  onSelect: (TaskItem) -> Unit,
+  onBack: () -> Unit,
+  modifier: Modifier = Modifier
+) {
   Column(
     modifier = modifier
       .fillMaxSize()
@@ -61,62 +81,19 @@ fun TasksScreen(modifier: Modifier = Modifier) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     TaskForm(
-      title = draftTitle,
-      dueDate = draftDueDate,
-      priority = draftPriority,
-      notes = draftNotes,
-      isEditing = editingTaskId != null,
-      onTitleChange = { draftTitle = it },
-      onDueDateChange = { draftDueDate = it },
-      onPriorityChange = { draftPriority = it },
-      onNotesChange = { draftNotes = it },
-      onSave = {
-        val taskId = editingTaskId
-        if (taskId == null) {
-          val task = createTask(
-            id = "task-${nextTaskNumber}",
-            title = draftTitle,
-            dueDate = draftDueDate,
-            priority = draftPriority,
-            notes = draftNotes
-          ) ?: run {
-            error = "Enter a task title."
-            return@TaskForm
-          }
-          tasks.add(0, task)
-          nextTaskNumber += 1
-        } else {
-          val updatedTasks = updateTask(
-            tasks = tasks,
-            taskId = taskId,
-            title = draftTitle,
-            dueDate = draftDueDate,
-            priority = draftPriority,
-            notes = draftNotes
-          ) ?: run {
-            error = "Enter a task title."
-            return@TaskForm
-          }
-          tasks.clear()
-          tasks.addAll(updatedTasks)
-          editingTaskId = null
-        }
-        draftTitle = ""
-        draftDueDate = ""
-        draftPriority = TaskPriority.Normal
-        draftNotes = ""
-        error = null
-      },
-      onCancel = {
-        editingTaskId = null
-        draftTitle = ""
-        draftDueDate = ""
-        draftPriority = TaskPriority.Normal
-        draftNotes = ""
-        error = null
-      }
+      title = uiState.draftTitle,
+      dueDate = uiState.draftDueDate,
+      priority = uiState.draftPriority,
+      notes = uiState.draftNotes,
+      isEditing = uiState.isEditing,
+      onTitleChange = onTitleChange,
+      onDueDateChange = onDueDateChange,
+      onPriorityChange = onPriorityChange,
+      onNotesChange = onNotesChange,
+      onSave = onSave,
+      onCancel = onCancel
     )
-    error?.let {
+    uiState.error?.let {
       Text(
         text = it,
         style = MaterialTheme.typography.bodyMedium,
@@ -124,42 +101,22 @@ fun TasksScreen(modifier: Modifier = Modifier) {
       )
     }
     TaskFilterRow(
-      selected = filter,
-      onSelected = { filter = it }
+      selected = uiState.filter,
+      onSelected = onFilterSelected
     )
-    val selectedTask = tasks.firstOrNull { it.id == selectedTaskId }
+    val selectedTask = uiState.selectedTask
     if (selectedTask == null) {
       TaskList(
-        tasks = visibleTasks(tasks, filter),
-        onToggle = { task ->
-          val index = tasks.indexOfFirst { it.id == task.id }
-          if (index >= 0) {
-            tasks[index] = task.copy(isCompleted = !task.isCompleted)
-          }
-        },
-        onEdit = { task ->
-          selectedTaskId = null
-          editingTaskId = task.id
-          draftTitle = task.title
-          draftDueDate = task.dueDate.orEmpty()
-          draftPriority = task.priority
-          draftNotes = task.notes
-          error = null
-        },
-        onSelect = { selectedTaskId = it.id }
+        tasks = uiState.visibleTasks,
+        onToggle = onToggle,
+        onEdit = onEdit,
+        onSelect = onSelect
       )
     } else {
       TaskDetail(
         task = selectedTask,
-        onBack = { selectedTaskId = null },
-        onEdit = {
-          editingTaskId = selectedTask.id
-          draftTitle = selectedTask.title
-          draftDueDate = selectedTask.dueDate.orEmpty()
-          draftPriority = selectedTask.priority
-          draftNotes = selectedTask.notes
-          selectedTaskId = null
-        }
+        onBack = onBack,
+        onEdit = { onEdit(selectedTask) }
       )
     }
   }

@@ -1,4 +1,4 @@
-package com.github.kavos113.tnet.feature.papers.data
+package com.github.kavos113.tnet.feature.papers.model
 
 import android.content.ContentResolver
 import android.database.Cursor

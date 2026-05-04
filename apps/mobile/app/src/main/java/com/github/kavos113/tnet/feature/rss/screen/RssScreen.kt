@@ -13,37 +13,49 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.github.kavos113.tnet.feature.rss.data.fetchRssItems
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssItem
-import com.github.kavos113.tnet.feature.rss.model.createRssFeed
-import com.github.kavos113.tnet.feature.rss.model.updateRssFeed
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
-fun RssScreen(modifier: Modifier = Modifier) {
-  val feeds = remember { mutableStateListOf<RssFeed>() }
-  var nextFeedNumber by remember { mutableIntStateOf(1) }
-  var titleDraft by remember { mutableStateOf("") }
-  var urlDraft by remember { mutableStateOf("") }
-  var error by remember { mutableStateOf<String?>(null) }
-  var selectedFeedTitle by remember { mutableStateOf<String?>(null) }
-  var editingFeedId by remember { mutableStateOf<String?>(null) }
-  var selectedItem by remember { mutableStateOf<RssItem?>(null) }
-  var items by remember { mutableStateOf<List<RssItem>>(emptyList()) }
-  val scope = rememberCoroutineScope()
+fun RssScreen(
+  modifier: Modifier = Modifier,
+  viewModel: RssViewModel = viewModel()
+) {
+  val uiState by viewModel.uiState.collectAsState()
+  RssScreenContent(
+    uiState = uiState,
+    onTitleChange = viewModel::updateTitleDraft,
+    onUrlChange = viewModel::updateUrlDraft,
+    onSave = viewModel::saveFeed,
+    onCancel = viewModel::cancelEditing,
+    onRefresh = viewModel::refreshFeed,
+    onEdit = viewModel::editFeed,
+    onRemove = viewModel::removeFeed,
+    onItemSelected = viewModel::selectItem,
+    onItemBack = viewModel::closeItem,
+    modifier = modifier
+  )
+}
 
+@Composable
+private fun RssScreenContent(
+  uiState: RssUiState,
+  onTitleChange: (String) -> Unit,
+  onUrlChange: (String) -> Unit,
+  onSave: () -> Unit,
+  onCancel: () -> Unit,
+  onRefresh: (RssFeed) -> Unit,
+  onEdit: (RssFeed) -> Unit,
+  onRemove: (RssFeed) -> Unit,
+  onItemSelected: (RssItem) -> Unit,
+  onItemBack: () -> Unit,
+  modifier: Modifier = Modifier
+) {
   Column(
     modifier = modifier
       .fillMaxSize()
@@ -60,20 +72,20 @@ fun RssScreen(modifier: Modifier = Modifier) {
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     OutlinedTextField(
-      value = titleDraft,
-      onValueChange = { titleDraft = it },
+      value = uiState.titleDraft,
+      onValueChange = onTitleChange,
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
       label = { Text("Title") }
     )
     OutlinedTextField(
-      value = urlDraft,
-      onValueChange = { urlDraft = it },
+      value = uiState.urlDraft,
+      onValueChange = onUrlChange,
       modifier = Modifier.fillMaxWidth(),
       singleLine = true,
       label = { Text("Feed URL") }
     )
-    editingFeedId?.let {
+    uiState.editingFeedId?.let {
       Text(
         text = "Editing feed",
         style = MaterialTheme.typography.bodySmall,
@@ -82,115 +94,52 @@ fun RssScreen(modifier: Modifier = Modifier) {
     }
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
       Button(
-        onClick = {
-          val feedId = editingFeedId
-          if (feedId != null) {
-            val updatedFeeds = updateRssFeed(feeds, feedId, titleDraft, urlDraft)
-            if (updatedFeeds == null) {
-              error = "Enter an http or https feed URL."
-              return@Button
-            }
-            feeds.clear()
-            feeds.addAll(updatedFeeds)
-            editingFeedId = null
-            titleDraft = ""
-            urlDraft = ""
-            error = null
-            return@Button
-          }
-
-          val feed = createRssFeed("feed-${nextFeedNumber}", titleDraft, urlDraft)
-          if (feed == null) {
-            error = "Enter an http or https feed URL."
-            return@Button
-          }
-          feeds.add(0, feed)
-          nextFeedNumber += 1
-          titleDraft = ""
-          urlDraft = ""
-          error = null
-        }
+        onClick = onSave
       ) {
-        Text(if (editingFeedId == null) "Add feed" else "Save feed")
+        Text(if (uiState.isEditing) "Save feed" else "Add feed")
       }
-      if (editingFeedId != null) {
+      if (uiState.isEditing) {
         TextButton(
-          onClick = {
-            editingFeedId = null
-            titleDraft = ""
-            urlDraft = ""
-            error = null
-          }
+          onClick = onCancel
         ) {
           Text("Cancel")
         }
       }
     }
-    error?.let {
+    uiState.error?.let {
       Text(
         text = it,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.error
       )
     }
-    if (feeds.isEmpty()) {
+    if (uiState.feeds.isEmpty()) {
       Text(
         text = "No feeds yet.",
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
     } else {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        feeds.forEachIndexed { index, feed ->
+        uiState.feeds.forEach { feed ->
           RssFeedRow(
             feed = feed,
-            onRefresh = {
-              feeds[index] = feed.copy(lastRefreshLabel = "Refresh requested")
-              selectedFeedTitle = feed.title
-              selectedItem = null
-              scope.launch {
-                val result = withContext(Dispatchers.IO) {
-                  fetchRssItems(feed.url)
-                }
-                result
-                  .onSuccess {
-                    items = it
-                    feeds[index] = feed.copy(lastRefreshLabel = "Fetched ${it.size} items")
-                    error = null
-                  }
-                  .onFailure {
-                    items = emptyList()
-                    error = it.message ?: "Feed refresh failed."
-                  }
-              }
-            },
-            onEdit = {
-              editingFeedId = feed.id
-              titleDraft = feed.title
-              urlDraft = feed.url
-              error = null
-            },
-            onRemove = {
-              feeds.removeAt(index)
-              if (selectedFeedTitle == feed.title) {
-                selectedFeedTitle = null
-                selectedItem = null
-                items = emptyList()
-              }
-            }
+            onRefresh = { onRefresh(feed) },
+            onEdit = { onEdit(feed) },
+            onRemove = { onRemove(feed) }
           )
         }
       }
     }
-    if (selectedItem == null) {
+    if (uiState.selectedItem == null) {
       RssItemList(
-        selectedFeedTitle = selectedFeedTitle,
-        items = items,
-        onItemSelected = { selectedItem = it }
+        selectedFeedTitle = uiState.selectedFeedTitle,
+        items = uiState.items,
+        onItemSelected = onItemSelected
       )
     } else {
       RssItemDetail(
-        item = selectedItem,
-        onBack = { selectedItem = null }
+        item = uiState.selectedItem,
+        onBack = onItemBack
       )
     }
   }

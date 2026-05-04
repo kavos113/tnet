@@ -1,6 +1,5 @@
-package com.github.kavos113.tnet.feature.rss.data
+package com.github.kavos113.tnet.feature.rss.model
 
-import com.github.kavos113.tnet.feature.rss.model.RssItem
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

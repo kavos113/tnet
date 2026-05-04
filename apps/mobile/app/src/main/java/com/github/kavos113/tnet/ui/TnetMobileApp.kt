@@ -22,13 +22,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
@@ -36,38 +31,38 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.kavos113.tnet.core.settings.TnetSettingsRepository
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.markdown.screen.MarkdownScreen
-import com.github.kavos113.tnet.feature.papers.data.PapersWorkspaceValidation
-import com.github.kavos113.tnet.feature.papers.data.validatePapersWorkspace
+import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 import com.github.kavos113.tnet.feature.papers.screen.PapersScreen
 import com.github.kavos113.tnet.feature.rss.screen.RssScreen
 import com.github.kavos113.tnet.feature.tasks.screen.TasksScreen
 import com.github.kavos113.tnet.ui.theme.TnetTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TnetMobileApp(modifier: Modifier = Modifier) {
-  var selectedDestination by rememberSaveable { mutableStateOf(TnetMobileDestination.Tasks) }
+fun TnetMobileApp(
+  modifier: Modifier = Modifier,
+  viewModel: TnetMobileViewModel = viewModel()
+) {
+  val uiState by viewModel.uiState.collectAsState()
 
   Scaffold(
     modifier = modifier.fillMaxSize(),
     topBar = {
       TopAppBar(
-        title = { Text(selectedDestination.label) }
+        title = { Text(uiState.selectedDestination.label) }
       )
     },
     bottomBar = {
       TnetNavigationBar(
-        selectedDestination = selectedDestination,
-        onDestinationSelected = { selectedDestination = it }
+        selectedDestination = uiState.selectedDestination,
+        onDestinationSelected = viewModel::selectDestination
       )
     }
   ) { innerPadding ->
     DestinationScreen(
-      destination = selectedDestination,
+      destination = uiState.selectedDestination,
       modifier = Modifier
         .fillMaxSize()
         .padding(innerPadding)
@@ -189,15 +184,8 @@ private fun PlaceholderPanel(destination: TnetMobileDestination) {
 @Composable
 private fun SettingsScreen(modifier: Modifier = Modifier) {
   val context = LocalContext.current
-  val settingsRepository = remember(context) {
-    TnetSettingsRepository(context.applicationContext)
-  }
-  val settings by settingsRepository.settings.collectAsState(initial = null)
-  var selectedWorkspaceUri by rememberSaveable { mutableStateOf<String?>(null) }
-  var workspaceValidation by remember { mutableStateOf<PapersWorkspaceValidation?>(null) }
-  LaunchedEffect(settings?.papersWorkspaceUri) {
-    selectedWorkspaceUri = settings?.papersWorkspaceUri
-  }
+  val viewModel: SettingsViewModel = viewModel()
+  val uiState by viewModel.uiState.collectAsState()
 
   val openWorkspace = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.OpenDocumentTree()
@@ -208,20 +196,9 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
       uri,
       Intent.FLAG_GRANT_READ_URI_PERMISSION
     )
-    selectedWorkspaceUri = uri.toString()
+    viewModel.selectWorkspace(uri)
   }
-  LaunchedEffect(selectedWorkspaceUri) {
-    val uri = selectedWorkspaceUri ?: return@LaunchedEffect
-    if (uri != settings?.papersWorkspaceUri) {
-      settingsRepository.savePapersWorkspaceUri(uri)
-    }
-    workspaceValidation = withContext(Dispatchers.IO) {
-      validatePapersWorkspace(context.contentResolver, Uri.parse(uri))
-    }
-  }
-  val workspaceLabel = remember(selectedWorkspaceUri) {
-    selectedWorkspaceUri ?: "No Papers workspace selected."
-  }
+  val workspaceLabel = uiState.selectedWorkspaceUri ?: "No Papers workspace selected."
 
   Column(
     modifier = modifier.fillMaxSize(),
@@ -249,7 +226,7 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
       style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    WorkspaceValidationText(workspaceValidation)
+    WorkspaceValidationText(uiState.workspaceValidation)
   }
 }
 
