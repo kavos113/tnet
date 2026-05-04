@@ -5,5 +5,7 @@ import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 data class SettingsUiState(
   val selectedWorkspaceUri: String? = null,
   val selectedDatabaseUri: String? = null,
+  val selectedMarkdownWorkspaceUri: String? = null,
+  val selectedPdfWorkspaceUri: String? = null,
   val workspaceValidation: PapersWorkspaceValidation? = null
 )

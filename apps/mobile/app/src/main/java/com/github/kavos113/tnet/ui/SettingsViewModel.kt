@@ -26,7 +26,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         mutableUiState.update { state ->
           state.copy(
             selectedWorkspaceUri = uri,
-            selectedDatabaseUri = it.papersDatabaseUri
+            selectedDatabaseUri = it.papersDatabaseUri,
+            selectedMarkdownWorkspaceUri = it.activeMarkdownWorkspaceUri,
+            selectedPdfWorkspaceUri = it.activePdfWorkspaceUri
           )
         }
         if (uri != null) validateWorkspace(uri)
@@ -53,6 +55,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     mutableUiState.update { it.copy(selectedDatabaseUri = uriText) }
     viewModelScope.launch {
       settingsRepository.savePapersDatabaseUri(uriText)
+    }
+  }
+
+  fun selectMarkdownWorkspace(uri: Uri) {
+    val uriText = uri.toString()
+    mutableUiState.update { it.copy(selectedMarkdownWorkspaceUri = uriText) }
+    viewModelScope.launch {
+      settingsRepository.saveMarkdownWorkspaceUri(uriText)
+    }
+  }
+
+  fun selectPdfWorkspace(uri: Uri) {
+    val uriText = uri.toString()
+    mutableUiState.update { it.copy(selectedPdfWorkspaceUri = uriText) }
+    viewModelScope.launch {
+      settingsRepository.savePdfWorkspaceUri(uriText)
     }
   }
 

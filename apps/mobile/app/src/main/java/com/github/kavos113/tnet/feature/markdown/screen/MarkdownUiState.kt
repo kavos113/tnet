@@ -1,8 +1,15 @@
 package com.github.kavos113.tnet.feature.markdown.screen
 
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
+import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
+import com.github.kavos113.tnet.core.workspace.WorkspaceRoot
 
 data class MarkdownUiState(
+  val workspaceRoots: List<WorkspaceRoot> = emptyList(),
+  val activeWorkspace: WorkspaceRoot? = null,
+  val fileTree: List<WorkspaceFileItem> = emptyList(),
+  val openedFiles: List<String> = emptyList(),
+  val selectedPath: String? = null,
   val selectedUri: String? = null,
   val blocks: List<MarkdownBlock> = emptyList(),
   val recentUris: List<String> = emptyList(),
@@ -11,7 +18,7 @@ data class MarkdownUiState(
   val error: String? = null,
   val isLoading: Boolean = false
 ) {
-  val fileTreeEntries: List<String> = recentUris.map { it.substringAfterLast('/') }
+  val fileTreeEntries: List<String> = fileTree.flatMap { it.flattenedNames() }
   val outline: List<String> = blocks.filterIsInstance<MarkdownBlock.Heading>().map { it.text }
   val searchMatches: Int = if (searchQuery.isBlank()) {
     0
@@ -32,5 +39,13 @@ data class MarkdownUiState(
         is MarkdownBlock.MermaidBlock -> block.source.contains(searchQuery, ignoreCase = true)
       }
     }
+  }
+}
+
+private fun WorkspaceFileItem.flattenedNames(): List<String> {
+  return if (isDirectory) {
+    children.flatMap { it.flattenedNames() }
+  } else {
+    listOf(relativePath)
   }
 }

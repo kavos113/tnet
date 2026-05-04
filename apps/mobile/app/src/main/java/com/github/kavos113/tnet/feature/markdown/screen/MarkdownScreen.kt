@@ -33,9 +33,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.markdown.model.buildMermaidHtml
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
 import com.github.kavos113.tnet.feature.markdown.model.TaskListItem
+import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
 import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
@@ -49,7 +51,7 @@ fun MarkdownScreen(
   val context = LocalContext.current
   val uiState by viewModel.uiState.collectAsState()
   val openMarkdown = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.OpenDocument()
+    contract = ActivityResultContracts.OpenDocumentTree()
   ) { uri: Uri? ->
     if (uri == null) return@rememberLauncherForActivityResult
 
@@ -57,12 +59,14 @@ fun MarkdownScreen(
       uri,
       Intent.FLAG_GRANT_READ_URI_PERMISSION
     )
-    viewModel.openDocument(uri)
+    viewModel.selectWorkspace(uri)
   }
 
   MarkdownScreenContent(
     uiState = uiState,
-    onOpenDocument = { openMarkdown.launch(arrayOf("text/*", "application/octet-stream")) },
+    onOpenWorkspace = { openMarkdown.launch(null) },
+    onOpenFile = viewModel::openWorkspaceFile,
+    onReopenPath = viewModel::reopenPath,
     onSearchQueryChange = viewModel::updateSearchQuery,
     modifier = modifier
   )
@@ -71,7 +75,9 @@ fun MarkdownScreen(
 @Composable
 private fun MarkdownScreenContent(
   uiState: MarkdownUiState,
-  onOpenDocument: () -> Unit,
+  onOpenWorkspace: () -> Unit,
+  onOpenFile: (WorkspaceFileItem) -> Unit,
+  onReopenPath: (String) -> Unit,
   onSearchQueryChange: (String) -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -86,17 +92,30 @@ private fun MarkdownScreenContent(
       style = MaterialTheme.typography.headlineMedium
     )
     Text(
-      text = "Open a Markdown document in read-only mode.",
+      text = "Open Markdown files from a synced desktop workspace in read-only mode.",
       style = MaterialTheme.typography.bodyLarge,
       color = TnetTextMuted
     )
-    TnetPrimaryButton(text = "Open document", onClick = onOpenDocument)
+    TnetPrimaryButton(text = "Open workspace", onClick = onOpenWorkspace)
+    Text(
+      text = uiState.activeWorkspace?.name ?: "No Markdown workspace selected.",
+      style = MaterialTheme.typography.bodySmall,
+      color = TnetTextMuted
+    )
     TnetCompactTextField(
       value = uiState.searchQuery,
       onValueChange = onSearchQueryChange,
       label = "Search document"
     )
-    MarkdownNavigationSummary(uiState)
+    MarkdownNavigationSummary(
+      uiState = uiState,
+      onReopenPath = onReopenPath
+    )
+    WorkspaceFileTree(
+      items = uiState.fileTree,
+      selectedPath = uiState.selectedPath,
+      onOpenFile = onOpenFile
+    )
     uiState.selectedUri?.let {
       Text(
         text = it,
@@ -128,19 +147,30 @@ private fun MarkdownScreenContent(
 }
 
 @Composable
-private fun MarkdownNavigationSummary(uiState: MarkdownUiState) {
+private fun MarkdownNavigationSummary(
+  uiState: MarkdownUiState,
+  onReopenPath: (String) -> Unit
+) {
   TnetPanel {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
       Text(
-        text = "File tree: ${uiState.fileTreeEntries.joinToString(", ").ifBlank { "No files" }}",
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetTextMuted
+        text = "Opened files",
+        style = MaterialTheme.typography.titleMedium
       )
-      Text(
-        text = "Recent files: ${uiState.recentUris.size}",
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetTextMuted
-      )
+      if (uiState.openedFiles.isEmpty()) {
+        Text(
+          text = "No files opened.",
+          style = MaterialTheme.typography.bodySmall,
+          color = TnetTextMuted
+        )
+      }
+      uiState.openedFiles.forEach { path ->
+        TnetSecondaryButton(
+          text = path.substringAfterLast('/'),
+          selected = uiState.selectedPath == path,
+          onClick = { onReopenPath(path) }
+        )
+      }
       Text(
         text = "Outline: ${uiState.outline.joinToString(" > ").ifBlank { "No headings" }}",
         style = MaterialTheme.typography.bodySmall,
@@ -151,10 +181,59 @@ private fun MarkdownNavigationSummary(uiState: MarkdownUiState) {
         style = MaterialTheme.typography.bodySmall,
         color = TnetTextMuted
       )
+    }
+  }
+}
+
+@Composable
+private fun WorkspaceFileTree(
+  items: List<WorkspaceFileItem>,
+  selectedPath: String?,
+  onOpenFile: (WorkspaceFileItem) -> Unit
+) {
+  if (items.isEmpty()) return
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
       Text(
-        text = "Viewer position: ${uiState.viewerPosition}",
-        style = MaterialTheme.typography.bodySmall,
+        text = "Workspace files",
+        style = MaterialTheme.typography.titleMedium
+      )
+      items.forEach { item ->
+        WorkspaceFileTreeItem(
+          item = item,
+          selectedPath = selectedPath,
+          onOpenFile = onOpenFile
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun WorkspaceFileTreeItem(
+  item: WorkspaceFileItem,
+  selectedPath: String?,
+  onOpenFile: (WorkspaceFileItem) -> Unit
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    if (item.isDirectory) {
+      Text(
+        text = item.relativePath,
+        style = MaterialTheme.typography.labelSmall,
         color = TnetTextMuted
+      )
+      item.children.forEach { child ->
+        WorkspaceFileTreeItem(
+          item = child,
+          selectedPath = selectedPath,
+          onOpenFile = onOpenFile
+        )
+      }
+    } else {
+      TnetSecondaryButton(
+        text = item.relativePath,
+        selected = selectedPath == item.relativePath,
+        onClick = { onOpenFile(item) }
       )
     }
   }
@@ -433,7 +512,9 @@ private fun MarkdownScreenContentPreview() {
           MarkdownBlock.MermaidBlock("graph TD\n  App-->Viewer")
         )
       ),
-      onOpenDocument = {},
+      onOpenWorkspace = {},
+      onOpenFile = {},
+      onReopenPath = {},
       onSearchQueryChange = {}
     )
   }
@@ -448,7 +529,9 @@ private fun MarkdownLoadingPreview() {
         selectedUri = "content://workspace/loading.md",
         isLoading = true
       ),
-      onOpenDocument = {},
+      onOpenWorkspace = {},
+      onOpenFile = {},
+      onReopenPath = {},
       onSearchQueryChange = {}
     )
   }

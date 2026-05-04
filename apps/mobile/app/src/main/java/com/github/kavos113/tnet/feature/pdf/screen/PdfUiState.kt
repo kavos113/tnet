@@ -1,8 +1,16 @@
 package com.github.kavos113.tnet.feature.pdf.screen
 
 import android.graphics.Bitmap
+import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
+import com.github.kavos113.tnet.core.workspace.WorkspaceRoot
 
 data class PdfUiState(
+  val workspaceRoots: List<WorkspaceRoot> = emptyList(),
+  val activeWorkspace: WorkspaceRoot? = null,
+  val fileTree: List<WorkspaceFileItem> = emptyList(),
+  val openedFiles: List<String> = emptyList(),
+  val activeIndex: Int = -1,
+  val selectedPath: String? = null,
   val selectedUri: String? = null,
   val pageBitmap: Bitmap? = null,
   val pageIndex: Int = 0,

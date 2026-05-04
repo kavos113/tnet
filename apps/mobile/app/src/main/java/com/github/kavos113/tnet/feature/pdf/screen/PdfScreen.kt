@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
 import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
@@ -43,19 +44,21 @@ fun PdfScreen(
   val context = LocalContext.current
   val uiState by viewModel.uiState.collectAsState()
   val openPdf = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.OpenDocument()
+    contract = ActivityResultContracts.OpenDocumentTree()
   ) { uri: Uri? ->
     if (uri == null) return@rememberLauncherForActivityResult
     context.contentResolver.takePersistableUriPermission(
       uri,
       Intent.FLAG_GRANT_READ_URI_PERMISSION
     )
-    viewModel.openPdf(uri)
+    viewModel.selectWorkspace(uri)
   }
 
   PdfScreenContent(
     uiState = uiState,
-    onOpenPdf = { openPdf.launch(arrayOf("application/pdf")) },
+    onOpenWorkspace = { openPdf.launch(null) },
+    onOpenFile = viewModel::openWorkspaceFile,
+    onReopenPath = viewModel::reopenPath,
     onPreviousPage = viewModel::goToPreviousPage,
     onNextPage = viewModel::goToNextPage,
     onZoomOut = viewModel::zoomOut,
@@ -68,7 +71,9 @@ fun PdfScreen(
 @Composable
 private fun PdfScreenContent(
   uiState: PdfUiState,
-  onOpenPdf: () -> Unit,
+  onOpenWorkspace: () -> Unit,
+  onOpenFile: (WorkspaceFileItem) -> Unit,
+  onReopenPath: (String) -> Unit,
   onPreviousPage: () -> Unit,
   onNextPage: () -> Unit,
   onZoomOut: () -> Unit,
@@ -87,11 +92,25 @@ private fun PdfScreenContent(
       style = MaterialTheme.typography.headlineMedium
     )
     Text(
-      text = "Open a PDF file in read-only mode.",
+      text = "Open PDF files from a synced desktop workspace in read-only mode.",
       style = MaterialTheme.typography.bodyLarge,
       color = TnetTextMuted
     )
-    TnetPrimaryButton(text = "Open PDF", onClick = onOpenPdf)
+    TnetPrimaryButton(text = "Open workspace", onClick = onOpenWorkspace)
+    Text(
+      text = uiState.activeWorkspace?.name ?: "No PDF workspace selected.",
+      style = MaterialTheme.typography.bodySmall,
+      color = TnetTextMuted
+    )
+    PdfOpenedFiles(
+      uiState = uiState,
+      onReopenPath = onReopenPath
+    )
+    PdfWorkspaceFileTree(
+      items = uiState.fileTree,
+      selectedPath = uiState.selectedPath,
+      onOpenFile = onOpenFile
+    )
     uiState.selectedUri?.let {
       Text(
         text = it,
@@ -108,7 +127,7 @@ private fun PdfScreenContent(
     if (!uiState.isLoading && uiState.error == null && uiState.pageBitmap == null) {
       TnetStateMessage(
         title = "No PDF selected",
-        detail = "Choose a PDF file to open it in read-only mode."
+        detail = "Choose a PDF from a workspace to open it in read-only mode."
       )
     }
     uiState.pageBitmap?.let { bitmap ->
@@ -139,6 +158,75 @@ private fun PdfScreenContent(
           )
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun PdfOpenedFiles(
+  uiState: PdfUiState,
+  onReopenPath: (String) -> Unit
+) {
+  if (uiState.openedFiles.isEmpty()) return
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace3)) {
+      Text(
+        text = "Opened files",
+        style = MaterialTheme.typography.titleMedium
+      )
+      uiState.openedFiles.forEach { path ->
+        TnetSecondaryButton(
+          text = path.substringAfterLast('/'),
+          selected = path == uiState.selectedPath,
+          onClick = { onReopenPath(path) }
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun PdfWorkspaceFileTree(
+  items: List<WorkspaceFileItem>,
+  selectedPath: String?,
+  onOpenFile: (WorkspaceFileItem) -> Unit
+) {
+  if (items.isEmpty()) return
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace3)) {
+      Text(
+        text = "Workspace files",
+        style = MaterialTheme.typography.titleMedium
+      )
+      items.forEach { item ->
+        PdfWorkspaceFileTreeItem(item, selectedPath, onOpenFile)
+      }
+    }
+  }
+}
+
+@Composable
+private fun PdfWorkspaceFileTreeItem(
+  item: WorkspaceFileItem,
+  selectedPath: String?,
+  onOpenFile: (WorkspaceFileItem) -> Unit
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    if (item.isDirectory) {
+      Text(
+        text = item.relativePath,
+        style = MaterialTheme.typography.labelSmall,
+        color = TnetTextMuted
+      )
+      item.children.forEach { child ->
+        PdfWorkspaceFileTreeItem(child, selectedPath, onOpenFile)
+      }
+    } else {
+      TnetSecondaryButton(
+        text = item.relativePath,
+        selected = selectedPath == item.relativePath,
+        onClick = { onOpenFile(item) }
+      )
     }
   }
 }
@@ -190,7 +278,9 @@ private fun PdfScreenContentPreview() {
         pageIndex = 0,
         pageCount = 12
       ),
-      onOpenPdf = {},
+      onOpenWorkspace = {},
+      onOpenFile = {},
+      onReopenPath = {},
       onPreviousPage = {},
       onNextPage = {},
       onZoomOut = {},

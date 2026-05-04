@@ -263,6 +263,26 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
     )
     viewModel.selectDatabase(uri)
   }
+  val openMarkdownWorkspace = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.OpenDocumentTree()
+  ) { uri: Uri? ->
+    if (uri == null) return@rememberLauncherForActivityResult
+    context.contentResolver.takePersistableUriPermission(
+      uri,
+      Intent.FLAG_GRANT_READ_URI_PERMISSION
+    )
+    viewModel.selectMarkdownWorkspace(uri)
+  }
+  val openPdfWorkspace = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.OpenDocumentTree()
+  ) { uri: Uri? ->
+    if (uri == null) return@rememberLauncherForActivityResult
+    context.contentResolver.takePersistableUriPermission(
+      uri,
+      Intent.FLAG_GRANT_READ_URI_PERMISSION
+    )
+    viewModel.selectPdfWorkspace(uri)
+  }
   val workspaceLabel = uiState.selectedWorkspaceUri ?: "No Papers workspace selected."
 
   SettingsScreenContent(
@@ -270,6 +290,8 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
     workspaceLabel = workspaceLabel,
     onSelectWorkspace = { openWorkspace.launch(null) },
     onSelectDatabase = { openDatabase.launch(arrayOf("*/*")) },
+    onSelectMarkdownWorkspace = { openMarkdownWorkspace.launch(null) },
+    onSelectPdfWorkspace = { openPdfWorkspace.launch(null) },
     modifier = modifier
   )
 }
@@ -280,6 +302,8 @@ private fun SettingsScreenContent(
   workspaceLabel: String = uiState.selectedWorkspaceUri ?: "No Papers workspace selected.",
   onSelectWorkspace: () -> Unit,
   onSelectDatabase: () -> Unit,
+  onSelectMarkdownWorkspace: () -> Unit,
+  onSelectPdfWorkspace: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -287,12 +311,30 @@ private fun SettingsScreenContent(
     verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
-      text = "Papers workspace",
+      text = "Workspaces",
       style = MaterialTheme.typography.headlineMedium
     )
     Text(
-      text = "Select the synced desktop workspace folder. The app will read .tnet/papers/papers.db and PDFs without writing to the workspace.",
+      text = "Select synced desktop workspaces. Markdown, PDF, and Papers are read-only on mobile.",
       style = MaterialTheme.typography.bodyLarge,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    TnetSecondaryButton(
+      text = "Select Markdown workspace",
+      onClick = onSelectMarkdownWorkspace
+    )
+    Text(
+      text = uiState.selectedMarkdownWorkspaceUri ?: "No Markdown workspace selected.",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    TnetSecondaryButton(
+      text = "Select PDF workspace",
+      onClick = onSelectPdfWorkspace
+    )
+    Text(
+      text = uiState.selectedPdfWorkspaceUri ?: "No PDF workspace selected.",
+      style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Box(
@@ -397,6 +439,8 @@ private fun SettingsScreenContentPreview() {
       ),
       onSelectWorkspace = {},
       onSelectDatabase = {},
+      onSelectMarkdownWorkspace = {},
+      onSelectPdfWorkspace = {},
       modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp)
     )
   }
