@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
+import com.github.kavos113.tnet.feature.rss.model.RssFolder
 import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetPanel
@@ -28,6 +30,7 @@ internal fun RssFeedForm(
   uiState: RssUiState,
   onTitleChange: (String) -> Unit,
   onUrlChange: (String) -> Unit,
+  onFolderSelected: (String?) -> Unit,
   onBulkImportChange: (String) -> Unit,
   onSave: () -> Unit,
   onImportBulk: () -> Unit,
@@ -47,6 +50,11 @@ internal fun RssFeedForm(
         onValueChange = onUrlChange,
         modifier = Modifier.fillMaxWidth(),
         label = "Feed URL"
+      )
+      RssFolderPicker(
+        folders = uiState.folders,
+        selectedFolderId = uiState.selectedFolderIdDraft,
+        onFolderSelected = onFolderSelected
       )
       uiState.editingFeedId?.let {
         Text(
@@ -80,13 +88,63 @@ internal fun RssFeedForm(
 }
 
 @Composable
+internal fun RssFolderForm(
+  title: String,
+  onTitleChange: (String) -> Unit,
+  onSave: () -> Unit
+) {
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetCompactTextField(
+        value = title,
+        onValueChange = onTitleChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = "Folder title"
+      )
+      TnetSecondaryButton(text = "Create folder", onClick = onSave)
+    }
+  }
+}
+
+@Composable
+private fun RssFolderPicker(
+  folders: List<RssFolder>,
+  selectedFolderId: String?,
+  onFolderSelected: (String?) -> Unit
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Text(
+      text = "Folder",
+      style = MaterialTheme.typography.bodySmall,
+      color = TnetTextMuted
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      FilterChip(
+        selected = selectedFolderId == null,
+        onClick = { onFolderSelected(null) },
+        label = { Text("None") }
+      )
+    }
+    folders.forEach { folder ->
+      FilterChip(
+        selected = selectedFolderId == folder.id,
+        onClick = { onFolderSelected(folder.id) },
+        label = { Text(folder.title, maxLines = 1) }
+      )
+    }
+  }
+}
+
+@Composable
 internal fun RssFeedRow(
   feed: RssFeed,
+  selected: Boolean = false,
+  onClick: (() -> Unit)? = null,
   onRefresh: () -> Unit,
   onEdit: () -> Unit,
   onRemove: () -> Unit
 ) {
-  TnetListRow {
+  TnetListRow(selected = selected, onClick = onClick) {
     Column(
       verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -122,6 +180,7 @@ private fun RssFeedRowPreview() {
     Surface(modifier = Modifier.padding(16.dp)) {
       RssFeedRow(
         feed = previewRssFeed,
+        onClick = {},
         onRefresh = {},
         onEdit = {},
         onRemove = {}

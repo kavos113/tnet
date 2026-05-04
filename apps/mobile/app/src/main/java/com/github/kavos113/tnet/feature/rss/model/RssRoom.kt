@@ -63,6 +63,12 @@ interface RssDao {
   @Query("SELECT * FROM rss_feeds ORDER BY title ASC")
   fun observeFeeds(): Flow<List<RssFeedEntity>>
 
+  @Query("SELECT * FROM rss_folders ORDER BY title ASC")
+  fun observeFolders(): Flow<List<RssFolderEntity>>
+
+  @Query("SELECT * FROM rss_items ORDER BY publishedAt DESC")
+  fun observeAllItems(): Flow<List<RssItemEntity>>
+
   @Query("SELECT * FROM rss_items WHERE feedId = :feedId ORDER BY publishedAt DESC")
   fun observeItems(feedId: String): Flow<List<RssItemEntity>>
 
@@ -77,6 +83,9 @@ interface RssDao {
 
   @Query("DELETE FROM rss_feeds WHERE id = :feedId")
   suspend fun deleteFeed(feedId: String)
+
+  @Query("UPDATE rss_items SET isRead = 1 WHERE id = :itemId")
+  suspend fun markItemRead(itemId: String)
 }
 
 @Database(
@@ -107,5 +116,41 @@ fun RssFeedEntity.toRssFeed(): RssFeed {
     url = url,
     folderId = folderId,
     lastRefreshLabel = lastRefreshLabel
+  )
+}
+
+fun RssFolder.toEntity(): RssFolderEntity {
+  return RssFolderEntity(
+    id = id,
+    title = title
+  )
+}
+
+fun RssFolderEntity.toRssFolder(): RssFolder {
+  return RssFolder(
+    id = id,
+    title = title
+  )
+}
+
+fun RssItem.toEntity(): RssItemEntity {
+  return RssItemEntity(
+    id = id,
+    feedId = feedId,
+    title = title,
+    link = link,
+    publishedAt = publishedAt,
+    isRead = isRead
+  )
+}
+
+fun RssItemEntity.toRssItem(): RssItem {
+  return RssItem(
+    id = id,
+    feedId = feedId,
+    title = title,
+    link = link,
+    publishedAt = publishedAt,
+    isRead = isRead
   )
 }

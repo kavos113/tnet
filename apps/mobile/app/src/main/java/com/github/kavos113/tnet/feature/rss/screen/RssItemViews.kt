@@ -1,7 +1,11 @@
 package com.github.kavos113.tnet.feature.rss.screen
 
+import android.webkit.WebView
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -9,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import com.github.kavos113.tnet.ui.components.TnetListRow
@@ -31,7 +36,7 @@ internal fun RssItemList(
       text = selectedFeedTitle,
       style = MaterialTheme.typography.titleMedium
     )
-    items.take(20).forEach { item ->
+    items.forEach { item ->
       TnetListRow(onClick = { onItemSelected(item) }) {
         Column(
           verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -61,31 +66,69 @@ internal fun RssItemDetail(
 ) {
   if (item == null) return
 
-  TnetSecondaryButton(text = "Back to articles", onClick = onBack)
-  TnetPanel {
-    Column(
-      verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+  Column(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(8.dp)
+  ) {
+    TnetSecondaryButton(text = "Back to articles", onClick = onBack)
+    Text(
+      text = item.title,
+      style = MaterialTheme.typography.titleMedium
+    )
+    item.publishedAt?.let {
       Text(
-        text = item.title,
-        style = MaterialTheme.typography.titleMedium
+        text = it,
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
       )
-      item.publishedAt?.let {
+    }
+    val link = item.link
+    if (link == null) {
+      TnetPanel {
         Text(
-          text = it,
-          style = MaterialTheme.typography.bodySmall,
+          text = "No article link for this RSS item.",
+          style = MaterialTheme.typography.bodyMedium,
           color = TnetTextMuted
         )
       }
-      item.link?.let {
-        Text(
-          text = it,
-          style = MaterialTheme.typography.bodyMedium,
-          color = TnetPrimary
+    } else {
+      Text(
+        text = link,
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetPrimary
+      )
+      Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        RssArticleWebView(
+          url = link,
+          modifier = Modifier.fillMaxSize()
         )
       }
     }
   }
+}
+
+@Composable
+private fun RssArticleWebView(
+  url: String,
+  modifier: Modifier = Modifier
+) {
+  AndroidView(
+    modifier = modifier,
+    factory = { context ->
+      WebView(context).apply {
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        settings.allowContentAccess = false
+        settings.allowFileAccess = false
+        loadUrl(url)
+      }
+    },
+    update = { webView ->
+      if (webView.url != url) {
+        webView.loadUrl(url)
+      }
+    }
+  )
 }
 
 @Preview(showBackground = true)

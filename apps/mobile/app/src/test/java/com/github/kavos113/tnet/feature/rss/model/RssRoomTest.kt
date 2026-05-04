@@ -30,4 +30,25 @@ class RssRoomTest {
     assertEquals("research", entity.folderId)
     assertEquals(feed.copy(folderId = "research"), entity.toRssFeed())
   }
+
+  @Test
+  fun rssFolderRoundTripsThroughEntity() {
+    val folder = RssFolder(id = "folder-1", title = "Research")
+
+    assertEquals(folder, folder.toEntity().toRssFolder())
+  }
+
+  @Test
+  fun rssItemRoundTripsThroughEntity() {
+    val item = RssItem(
+      id = "item-1",
+      feedId = "feed-1",
+      title = "Article",
+      link = "https://example.com/article",
+      publishedAt = "2026-05-04",
+      isRead = true
+    )
+
+    assertEquals(item, item.toEntity().toRssItem())
+  }
 }

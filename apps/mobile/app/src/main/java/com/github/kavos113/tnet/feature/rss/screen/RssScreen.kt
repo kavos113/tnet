@@ -6,10 +6,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.room.Room
+import com.github.kavos113.tnet.feature.rss.model.RoomRssRepository
+import com.github.kavos113.tnet.feature.rss.model.RssDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -17,11 +23,25 @@ import kotlinx.coroutines.withContext
 @Composable
 fun RssScreen(
   modifier: Modifier = Modifier,
-  viewModel: RssViewModel = viewModel()
+  providedViewModel: RssViewModel? = null
 ) {
   val context = LocalContext.current
+  val database = remember {
+    Room.databaseBuilder(
+      context.applicationContext,
+      RssDatabase::class.java,
+      "tnet-rss.db"
+    ).build()
+  }
+  val rssViewModel: RssViewModel = providedViewModel ?: viewModel(
+    factory = viewModelFactory {
+      initializer {
+        RssViewModel(RoomRssRepository(database.rssDao()))
+      }
+    }
+  )
   val coroutineScope = rememberCoroutineScope()
-  val uiState by viewModel.uiState.collectAsState()
+  val uiState by rssViewModel.uiState.collectAsState()
   val openTextFile = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.OpenDocument()
   ) { uri: Uri? ->
@@ -33,24 +53,31 @@ fun RssScreen(
           input.bufferedReader().use { it.readText() }
         }
       }
-      viewModel.importFeedsFromText(text.orEmpty())
+      rssViewModel.importFeedsFromText(text.orEmpty())
     }
   }
 
   RssScreenContent(
     uiState = uiState,
-    onTitleChange = viewModel::updateTitleDraft,
-    onUrlChange = viewModel::updateUrlDraft,
-    onBulkImportChange = viewModel::updateBulkImportDraft,
-    onSave = viewModel::saveFeed,
-    onImportBulk = { viewModel.importFeedsFromText() },
+    onTitleChange = rssViewModel::updateTitleDraft,
+    onUrlChange = rssViewModel::updateUrlDraft,
+    onFolderTitleChange = rssViewModel::updateFolderTitleDraft,
+    onFolderDraftSelected = rssViewModel::selectFolderDraft,
+    onBulkImportChange = rssViewModel::updateBulkImportDraft,
+    onSave = rssViewModel::saveFeed,
+    onSaveFolder = rssViewModel::saveFolder,
+    onImportBulk = { rssViewModel.importFeedsFromText() },
     onImportTextFile = { openTextFile.launch(arrayOf("text/plain", "text/*")) },
-    onCancel = viewModel::cancelEditing,
-    onRefresh = viewModel::refreshFeed,
-    onEdit = viewModel::editFeed,
-    onRemove = viewModel::removeFeed,
-    onItemSelected = viewModel::selectItem,
-    onItemBack = viewModel::closeItem,
+    onCancel = rssViewModel::cancelEditing,
+    onRefresh = rssViewModel::refreshFeed,
+    onRefreshSelected = rssViewModel::refreshSelectedSource,
+    onEdit = rssViewModel::editFeed,
+    onRemove = rssViewModel::removeFeed,
+    onSourceSelected = rssViewModel::selectSource,
+    onOpenDrawer = rssViewModel::openDrawer,
+    onCloseDrawer = rssViewModel::closeDrawer,
+    onItemSelected = rssViewModel::selectItem,
+    onItemBack = rssViewModel::closeItem,
     modifier = modifier
   )
 }

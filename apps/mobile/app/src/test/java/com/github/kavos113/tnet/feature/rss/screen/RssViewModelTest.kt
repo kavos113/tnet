@@ -84,6 +84,41 @@ class RssViewModelTest {
   }
 
   @Test
+  fun importFeedsFromTextUsesSelectedFolder() {
+    val viewModel = RssViewModel()
+    viewModel.updateFolderTitleDraft("Research")
+    viewModel.saveFolder()
+    val folderId = viewModel.uiState.value.folders.single().id
+    viewModel.selectSource(RssSource.Folder(folderId))
+
+    viewModel.importFeedsFromText("https://example.com/feed.xml")
+
+    assertEquals(folderId, viewModel.uiState.value.feeds.single().folderId)
+  }
+
+  @Test
+  fun selectSourceFiltersVisibleItems() {
+    val viewModel = RssViewModel()
+    viewModel.updateTitleDraft("A")
+    viewModel.updateUrlDraft("https://a.example/feed.xml")
+    viewModel.saveFeed()
+    viewModel.updateTitleDraft("B")
+    viewModel.updateUrlDraft("https://b.example/feed.xml")
+    viewModel.saveFeed()
+    val selectedFeed = viewModel.uiState.value.feeds.first()
+    viewModel.replaceItemsForTest(
+      listOf(
+        RssItem(id = "item-1", feedId = selectedFeed.id, title = "Visible", link = null, publishedAt = null),
+        RssItem(id = "item-2", feedId = "other-feed", title = "Hidden", link = null, publishedAt = null)
+      )
+    )
+
+    viewModel.selectSource(RssSource.Feed(selectedFeed.id))
+
+    assertEquals(listOf("Visible"), viewModel.uiState.value.visibleItems.map { it.title })
+  }
+
+  @Test
   fun importFeedsFromTextReportsEmptyInput() {
     val viewModel = RssViewModel()
 
@@ -105,6 +140,7 @@ class RssViewModelTest {
     viewModel.selectItem(item)
 
     val state = viewModel.uiState.value
+    assertTrue(state.isArticlePanelOpen)
     assertTrue(requireNotNull(state.selectedItem).isRead)
     assertTrue(state.items.single().isRead)
   }

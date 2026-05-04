@@ -3,13 +3,17 @@ package com.github.kavos113.tnet.feature.rss.screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
+import com.github.kavos113.tnet.feature.rss.model.RssFolder
+import com.github.kavos113.tnet.feature.rss.model.InMemoryRssRepository
 import com.github.kavos113.tnet.feature.rss.model.RssItem
+import com.github.kavos113.tnet.feature.rss.model.RssRepository
 import com.github.kavos113.tnet.feature.rss.model.createRssFeed
 import com.github.kavos113.tnet.feature.rss.model.fetchRssItems
 import com.github.kavos113.tnet.feature.rss.model.normalizeRssFeedUrl
 import com.github.kavos113.tnet.feature.rss.model.parseRssFeedUrlList
 import com.github.kavos113.tnet.feature.rss.model.updateRssFeed
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,19 +21,92 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class RssViewModel : ViewModel() {
+class RssViewModel(
+  private val repository: RssRepository = InMemoryRssRepository(),
+  private val feedFetcher: (String) -> Result<List<RssItem>> = ::fetchRssItems
+) : ViewModel() {
   private val mutableUiState = MutableStateFlow(RssUiState())
   val uiState: StateFlow<RssUiState> = mutableUiState.asStateFlow()
+
+  init {
+    viewModelScope.launch {
+      combine(repository.feeds, repository.folders, repository.items) { feeds, folders, items ->
+        Triple(feeds, folders, items)
+      }.collect { (feeds, folders, items) ->
+        mutableUiState.update { state ->
+          state.copy(
+            feeds = feeds,
+            folders = folders,
+            items = items,
+            nextFeedNumber = nextNumberAfter(feeds.map { it.id }, "feed-"),
+            nextFolderNumber = nextNumberAfter(folders.map { it.id }, "folder-"),
+            selectedSource = state.selectedSource.keepExistingSelection(feeds, folders)
+          )
+        }
+      }
+    }
+  }
 
   fun updateTitleDraft(value: String) = mutableUiState.update { it.copy(titleDraft = value) }
 
   fun updateUrlDraft(value: String) = mutableUiState.update { it.copy(urlDraft = value) }
 
+  fun updateFolderTitleDraft(value: String) = mutableUiState.update { it.copy(folderTitleDraft = value) }
+
+  fun selectFolderDraft(folderId: String?) = mutableUiState.update { it.copy(selectedFolderIdDraft = folderId) }
+
   fun updateBulkImportDraft(value: String) = mutableUiState.update {
     it.copy(bulkImportDraft = value, importMessage = null, error = null)
   }
 
+  fun openDrawer() = mutableUiState.update { it.copy(isDrawerOpen = true) }
+
+  fun closeDrawer() = mutableUiState.update { it.copy(isDrawerOpen = false) }
+
+  fun selectSource(source: RssSource) {
+    mutableUiState.update {
+      it.copy(
+        selectedSource = source,
+        selectedItem = null,
+        isArticlePanelOpen = false,
+        isDrawerOpen = false,
+        selectedFeedTitle = when (source) {
+          RssSource.All -> null
+          is RssSource.Folder -> it.folders.firstOrNull { folder -> folder.id == source.folderId }?.title
+          is RssSource.Feed -> it.feeds.firstOrNull { feed -> feed.id == source.feedId }?.title
+        }
+      )
+    }
+    if (source is RssSource.Feed) {
+      mutableUiState.value.feeds.firstOrNull { it.id == source.feedId }?.let { feed ->
+        if (mutableUiState.value.items.none { it.feedId == feed.id }) refreshFeed(feed)
+      }
+    }
+  }
+
+  fun saveFolder() {
+    val folder = mutableUiState.updateAndReturn { state ->
+      val title = state.folderTitleDraft.trim()
+      if (title.isBlank()) {
+        return@updateAndReturn null to state.copy(error = "Enter a folder title.")
+      }
+      val folder = RssFolder(
+        id = "folder-${state.nextFolderNumber}",
+        title = title
+      )
+      folder to state.copy(
+        folders = listOf(folder) + state.folders,
+        nextFolderNumber = state.nextFolderNumber + 1,
+        folderTitleDraft = "",
+        selectedFolderIdDraft = folder.id,
+        error = null
+      )
+    } ?: return
+    viewModelScope.launch { repository.upsertFolder(folder) }
+  }
+
   fun saveFeed() {
+    var feedToSave: RssFeed? = null
     mutableUiState.update { state ->
       val editingFeedId = state.editingFeedId
       if (editingFeedId != null) {
@@ -44,8 +121,13 @@ class RssViewModel : ViewModel() {
           title = state.titleDraft,
           url = state.urlDraft
         ) ?: return@update state.copy(error = "Enter an http or https feed URL.")
+        val updatedFeed = updatedFeeds.first { it.id == editingFeedId }.copy(folderId = state.selectedFolderIdDraft)
+        feedToSave = updatedFeed
 
-        state.copy(feeds = updatedFeeds, editingFeedId = null).clearDraft()
+        state.copy(
+          feeds = updatedFeeds.map { if (it.id == editingFeedId) updatedFeed else it },
+          editingFeedId = null
+        ).clearDraft()
       } else {
         val normalizedUrl = normalizeRssFeedUrl(state.urlDraft)
           ?: return@update state.copy(error = "Enter an http or https feed URL.")
@@ -57,18 +139,22 @@ class RssViewModel : ViewModel() {
           title = state.titleDraft,
           url = state.urlDraft
         ) ?: return@update state.copy(error = "Enter an http or https feed URL.")
+        val feedWithFolder = feed.copy(folderId = state.selectedFolderIdDraft)
+        feedToSave = feedWithFolder
 
         state
           .copy(
-            feeds = listOf(feed) + state.feeds,
+            feeds = listOf(feedWithFolder) + state.feeds,
             nextFeedNumber = state.nextFeedNumber + 1
           )
           .clearDraft()
       }
     }
+    feedToSave?.let { feed -> viewModelScope.launch { repository.upsertFeed(feed) } }
   }
 
   fun importFeedsFromText(text: String? = null) {
+    var feedsToSave = emptyList<RssFeed>()
     mutableUiState.update { state ->
       val source = text ?: state.bulkImportDraft
       val parsed = parseRssFeedUrlList(source)
@@ -84,8 +170,9 @@ class RssViewModel : ViewModel() {
           id = "feed-${state.nextFeedNumber + index}",
           title = "",
           url = url
-        )
+        )?.copy(folderId = state.importFolderId())
       }
+      feedsToSave = feeds
       val skipped = existingSkipped + parsed.duplicateLines
       val invalid = parsed.invalidLines.size
       val messageParts = buildList {
@@ -102,6 +189,9 @@ class RssViewModel : ViewModel() {
         error = if (feeds.isEmpty() && invalid > 0) "No valid new feed URLs found." else null
       )
     }
+    feedsToSave.forEach { feed ->
+      viewModelScope.launch { repository.upsertFeed(feed) }
+    }
   }
 
   fun cancelEditing() = mutableUiState.update { it.copy(editingFeedId = null).clearDraft() }
@@ -112,6 +202,7 @@ class RssViewModel : ViewModel() {
         editingFeedId = feed.id,
         titleDraft = feed.title,
         urlDraft = feed.url,
+        selectedFolderIdDraft = feed.folderId,
         error = null
       )
     }
@@ -131,6 +222,7 @@ class RssViewModel : ViewModel() {
         it.copy(feeds = nextFeeds)
       }
     }
+    viewModelScope.launch { repository.deleteFeed(feed.id) }
   }
 
   fun refreshFeed(feed: RssFeed) {
@@ -144,14 +236,18 @@ class RssViewModel : ViewModel() {
 
     viewModelScope.launch {
       val result = withContext(Dispatchers.IO) {
-        fetchRssItems(feed.url)
+        feedFetcher(feed.url)
       }
       mutableUiState.update { state ->
         result.fold(
           onSuccess = { items ->
+            val itemsWithIds = items.withStableIds(feed.id)
+            viewModelScope.launch { repository.upsertItems(itemsWithIds) }
+            val updatedFeed = feed.copy(lastRefreshLabel = "Fetched ${items.size} items")
+            viewModelScope.launch { repository.upsertFeed(updatedFeed) }
             state.copy(
               feeds = state.feeds.markFeed(feed.id, "Fetched ${items.size} items"),
-              items = items,
+              items = itemsWithIds + state.items.filterNot { it.feedId == feed.id },
               error = null
             )
           },
@@ -166,11 +262,46 @@ class RssViewModel : ViewModel() {
     }
   }
 
+  fun refreshSelectedSource() {
+    val feeds = mutableUiState.value.visibleFeeds
+    if (feeds.isEmpty()) return
+    mutableUiState.update { it.copy(isRefreshing = true) }
+    viewModelScope.launch {
+      feeds.forEach { feed ->
+        val result = withContext(Dispatchers.IO) { feedFetcher(feed.url) }
+        mutableUiState.update { state ->
+          result.fold(
+            onSuccess = { items ->
+              val itemsWithIds = items.withStableIds(feed.id)
+              viewModelScope.launch { repository.upsertItems(itemsWithIds) }
+              val updatedFeed = feed.copy(lastRefreshLabel = "Fetched ${items.size} items")
+              viewModelScope.launch { repository.upsertFeed(updatedFeed) }
+              state.copy(
+                feeds = state.feeds.markFeed(feed.id, "Fetched ${items.size} items"),
+                items = itemsWithIds + state.items.filterNot { it.feedId == feed.id },
+                error = null
+              )
+            },
+            onFailure = {
+              state.copy(error = it.message ?: "Feed refresh failed.")
+            }
+          )
+        }
+      }
+      mutableUiState.update { it.copy(isRefreshing = false) }
+    }
+  }
+
   fun selectItem(item: RssItem) = mutableUiState.update { state ->
+    val readItem = item.copy(isRead = true)
+    if (item.id.isNotBlank()) {
+      viewModelScope.launch { repository.markItemRead(item.id) }
+    }
     state.copy(
-      selectedItem = item.copy(isRead = true),
+      selectedItem = readItem,
+      isArticlePanelOpen = true,
       items = state.items.map { candidate ->
-        if (candidate.link == item.link && candidate.title == item.title) {
+        if (candidate.id == item.id) {
           candidate.copy(isRead = true)
         } else {
           candidate
@@ -179,17 +310,30 @@ class RssViewModel : ViewModel() {
     )
   }
 
-  fun closeItem() = mutableUiState.update { it.copy(selectedItem = null) }
+  fun closeItem() = mutableUiState.update { it.copy(selectedItem = null, isArticlePanelOpen = false) }
 
   internal fun replaceItemsForTest(items: List<RssItem>) {
     mutableUiState.update { it.copy(items = items) }
   }
 }
 
+private fun <T> MutableStateFlow<RssUiState>.updateAndReturn(
+  transform: (RssUiState) -> Pair<T?, RssUiState>
+): T? {
+  var result: T? = null
+  update { state ->
+    val (value, nextState) = transform(state)
+    result = value
+    nextState
+  }
+  return result
+}
+
 private fun RssUiState.clearDraft(): RssUiState {
   return copy(
     titleDraft = "",
     urlDraft = "",
+    selectedFolderIdDraft = null,
     importMessage = null,
     error = null
   )
@@ -201,5 +345,38 @@ private fun List<RssFeed>.markFeed(
 ): List<RssFeed> {
   return map { feed ->
     if (feed.id == feedId) feed.copy(lastRefreshLabel = label) else feed
+  }
+}
+
+private fun RssUiState.importFolderId(): String? {
+  return when (val source = selectedSource) {
+    RssSource.All -> selectedFolderIdDraft
+    is RssSource.Folder -> source.folderId
+    is RssSource.Feed -> selectedFolderIdDraft
+  }
+}
+
+private fun RssSource.keepExistingSelection(
+  feeds: List<RssFeed>,
+  folders: List<RssFolder>
+): RssSource {
+  return when (this) {
+    RssSource.All -> this
+    is RssSource.Folder -> if (folders.any { it.id == folderId }) this else RssSource.All
+    is RssSource.Feed -> if (feeds.any { it.id == feedId }) this else RssSource.All
+  }
+}
+
+private fun nextNumberAfter(ids: List<String>, prefix: String): Int {
+  return (ids.mapNotNull { it.removePrefix(prefix).toIntOrNull() }.maxOrNull() ?: 0) + 1
+}
+
+private fun List<RssItem>.withStableIds(feedId: String): List<RssItem> {
+  return mapIndexed { index, item ->
+    val identity = item.link ?: "${item.title}-${item.publishedAt.orEmpty()}-$index"
+    item.copy(
+      id = "$feedId-${identity.hashCode()}",
+      feedId = feedId
+    )
   }
 }
