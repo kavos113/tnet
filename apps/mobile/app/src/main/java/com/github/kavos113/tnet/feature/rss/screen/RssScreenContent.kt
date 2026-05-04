@@ -399,23 +399,30 @@ private fun RssArticleListSurface(
         onValueChange = onSearchQueryChange,
         modifier = Modifier.weight(1f)
       )
-      uiState.selectedFeed?.let { feed ->
-        RssToolbarIconButton(
-          imageVector = Icons.Rounded.Refresh,
-          contentDescription = if (feed.id in uiState.syncingFeedIds) "Syncing" else "Refresh",
-          onClick = { onRefresh(feed) }
-        )
-        RssToolbarIconButton(
-          imageVector = Icons.Rounded.Edit,
-          contentDescription = "Edit",
-          onClick = { onEdit(feed) }
-        )
-        RssToolbarIconButton(
-          imageVector = Icons.Rounded.Delete,
-          contentDescription = "Delete",
-          onClick = { onRemove(feed) }
-        )
-      }
+      val selectedFeed = uiState.selectedFeed
+      RssToolbarIconButton(
+        imageVector = Icons.Rounded.Refresh,
+        contentDescription = if (uiState.isRefreshing) "Syncing" else "Refresh",
+        onClick = {
+          if (selectedFeed == null) {
+            onRefreshSelected()
+          } else {
+            onRefresh(selectedFeed)
+          }
+        }
+      )
+      RssToolbarIconButton(
+        imageVector = Icons.Rounded.Edit,
+        contentDescription = "Edit",
+        enabled = selectedFeed != null,
+        onClick = { selectedFeed?.let(onEdit) }
+      )
+      RssToolbarIconButton(
+        imageVector = Icons.Rounded.Delete,
+        contentDescription = "Delete",
+        enabled = selectedFeed != null,
+        onClick = { selectedFeed?.let(onRemove) }
+      )
     }
     when {
       uiState.visibleFeeds.isEmpty() -> TnetStateMessage(
@@ -482,6 +489,7 @@ private fun RssListSearchField(
 private fun RssToolbarIconButton(
   imageVector: ImageVector,
   contentDescription: String,
+  enabled: Boolean = true,
   onClick: () -> Unit
 ) {
   Box(
@@ -489,14 +497,14 @@ private fun RssToolbarIconButton(
       .size(30.dp)
       .background(TnetSurface, RoundedCornerShape(TnetRadiusSmall))
       .border(BorderStroke(1.dp, TnetBorder), RoundedCornerShape(TnetRadiusSmall))
-      .clickable(onClick = onClick),
+      .clickable(enabled = enabled, onClick = onClick),
     contentAlignment = Alignment.Center
   ) {
     Icon(
       imageVector = imageVector,
       contentDescription = contentDescription,
       modifier = Modifier.size(18.dp),
-      tint = TnetTextMuted
+      tint = if (enabled) TnetTextMuted else TnetTextMuted.copy(alpha = 0.38f)
     )
   }
 }
