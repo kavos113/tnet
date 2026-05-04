@@ -3,8 +3,14 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRssGlobalSettings } from '@tnet/app-rss/shared/config';
+import type { RssSyncResult } from '@tnet/app-rss/shared/rssTypes';
 import { RssApp } from './RssApp';
-import rssReducer, { restoreRss, selectRssFeed, setRssSettings } from './rssSlice';
+import rssReducer, {
+  restoreRss,
+  selectRssFeed,
+  selectRssSystemView,
+  setRssSettings
+} from './rssSlice';
 import { rssTnetApi } from './rssTnetApi';
 
 vi.mock('./rssTnetApi', () => ({
@@ -241,6 +247,70 @@ describe('RssApp', () => {
         title: 'Renamed Feed'
       })
     );
+  });
+
+  it('shows sync-all progress while feeds are syncing', async () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [
+          {
+            id: 'feed-1',
+            title: 'Example Feed',
+            url: 'https://example.com/feed.xml',
+            sortOrder: 1,
+            enabled: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            unreadCount: 1
+          },
+          {
+            id: 'feed-2',
+            title: 'Second Feed',
+            url: 'https://example.org/rss',
+            sortOrder: 2,
+            enabled: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            unreadCount: 0
+          }
+        ],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+    store.dispatch(selectRssSystemView('all'));
+    let resolveFirstSync: (result: RssSyncResult) => void = () => {};
+    vi.mocked(rssTnetApi.rss.feeds.sync)
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirstSync = resolve;
+        })
+      )
+      .mockResolvedValueOnce({
+        feeds: [],
+        syncedFeedIds: ['feed-2'],
+        failedFeedIds: []
+      });
+    renderApp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sync All' }));
+
+    expect(await screen.findByText('Syncing 1/2: Example Feed')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Syncing' })).toBeDisabled();
+    resolveFirstSync({
+      feeds: [],
+      syncedFeedIds: ['feed-1'],
+      failedFeedIds: []
+    });
+
+    await waitFor(() =>
+      expect(rssTnetApi.rss.feeds.sync).toHaveBeenNthCalledWith(2, { feedId: 'feed-2' })
+    );
+    await waitFor(() => expect(screen.queryByText(/Syncing 2\/2/)).not.toBeInTheDocument());
+    expect(rssTnetApi.rss.feeds.sync).toHaveBeenNthCalledWith(1, { feedId: 'feed-1' });
   });
 
   it('shows the subscribe form when no feed is selected', () => {

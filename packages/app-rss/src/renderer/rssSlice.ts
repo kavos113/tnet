@@ -24,7 +24,14 @@ interface RssState {
   settings: RssGlobalSettings;
   isRestored: boolean;
   isSyncing: boolean;
+  syncProgress?: RssSyncProgress;
   error?: string;
+}
+
+export interface RssSyncProgress {
+  current: number;
+  total: number;
+  currentFeedTitle?: string;
 }
 
 const initialState: RssState = {
@@ -112,6 +119,10 @@ const rssSlice = createSlice({
     },
     setRssSyncing: (state, action: PayloadAction<boolean>) => {
       state.isSyncing = action.payload;
+      if (!action.payload) state.syncProgress = undefined;
+    },
+    setRssSyncProgress: (state, action: PayloadAction<RssSyncProgress | undefined>) => {
+      state.syncProgress = action.payload;
     },
     setRssError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
@@ -137,6 +148,7 @@ export const {
   setRssFolders,
   setRssItems,
   setRssSettings,
+  setRssSyncProgress,
   setRssSyncing,
   setRssTree,
   upsertRssItem

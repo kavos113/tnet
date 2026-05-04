@@ -1,9 +1,17 @@
 import type { RssFeed, RssSystemView } from '@tnet/app-rss/shared/rssTypes';
 import { rssTnetApi } from './rssTnetApi';
-import { openRssSubscribe, setRssFeeds, setRssItems, setRssSyncing, setRssTree } from './rssSlice';
+import {
+  openRssSubscribe,
+  setRssFeeds,
+  setRssItems,
+  setRssSyncProgress,
+  setRssSyncing,
+  setRssTree
+} from './rssSlice';
 import { useRssDispatch } from './storeHooks';
 
 interface RssFeedActionsInput {
+  feeds: RssFeed[];
   selectedFeed?: RssFeed;
   selectedFeedId?: string;
   selectedFolderId?: string;
@@ -20,6 +28,7 @@ export interface RssFeedActions {
 }
 
 export const useRssFeedActions = ({
+  feeds,
   selectedFeed,
   selectedFeedId,
   selectedFolderId,
@@ -40,6 +49,35 @@ export const useRssFeedActions = ({
   const sync = async (feedId?: string): Promise<void> => {
     dispatch(setRssSyncing(true));
     try {
+      if (!feedId) {
+        const enabledFeeds = feeds.filter((feed) => feed.enabled);
+        let latestFeeds = feeds;
+        for (const [index, feed] of enabledFeeds.entries()) {
+          dispatch(
+            setRssSyncProgress({
+              current: index + 1,
+              total: enabledFeeds.length,
+              currentFeedTitle: feed.title
+            })
+          );
+          const result = await rssTnetApi.rss.feeds.sync({ feedId: feed.id });
+          latestFeeds = result.feeds;
+        }
+        const [tree, listResult] = await Promise.all([
+          rssTnetApi.rss.folders.listTree(),
+          rssTnetApi.rss.items.list({
+            view: selectedView,
+            feedId: selectedFeedId,
+            folderId: selectedFolderId,
+            searchQuery
+          })
+        ]);
+        dispatch(setRssFeeds(latestFeeds));
+        dispatch(setRssTree(tree));
+        dispatch(setRssItems(listResult));
+        return;
+      }
+
       const result = await rssTnetApi.rss.feeds.sync(feedId ? { feedId } : undefined);
       const [tree, listResult] = await Promise.all([
         rssTnetApi.rss.folders.listTree(),

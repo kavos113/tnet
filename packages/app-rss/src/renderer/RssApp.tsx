@@ -30,6 +30,7 @@ export const RssApp = (): React.JSX.Element => {
     isSubscribeOpen,
     settings,
     isSyncing,
+    syncProgress,
     error
   } = useRssSelector((state) => state.rss);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,6 +52,7 @@ export const RssApp = (): React.JSX.Element => {
     [settings.itemSummaryLineClamp, settings.lineHeight]
   );
   const feedActions = useRssFeedActions({
+    feeds,
     selectedFeed,
     selectedFeedId,
     selectedFolderId,
@@ -116,6 +118,7 @@ export const RssApp = (): React.JSX.Element => {
             searchQuery={searchQuery}
             selectedFeed={selectedFeed}
             selectedItemId={selectedItemId}
+            syncProgress={syncProgress}
             summaryLineClamp={settings.itemSummaryLineClamp}
             onDeleteSelectedFeed={feedActions.deleteSelectedFeed}
             onLoadMore={loadMore}

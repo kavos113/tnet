@@ -1,5 +1,6 @@
 import type { RssFeed, RssItem } from '@tnet/app-rss/shared/rssTypes';
 import { formatRssDate } from './formatRssDate';
+import type { RssSyncProgress } from './rssSlice';
 import controlStyles from './RssControls.module.css';
 import styles from './RssItemListPane.module.css';
 
@@ -10,6 +11,7 @@ interface RssItemListPaneProps {
   searchQuery: string;
   selectedFeed?: RssFeed;
   selectedItemId?: string;
+  syncProgress?: RssSyncProgress;
   summaryLineClamp: number;
   onDeleteSelectedFeed: () => Promise<void>;
   onLoadMore: () => Promise<void>;
@@ -29,6 +31,7 @@ export const RssItemListPane = ({
   searchQuery,
   selectedFeed,
   selectedItemId,
+  syncProgress,
   summaryLineClamp,
   onDeleteSelectedFeed,
   onLoadMore,
@@ -82,11 +85,21 @@ export const RssItemListPane = ({
       <button
         className={controlStyles.secondaryButton}
         type="button"
+        disabled={isSyncing}
         onClick={() => onSyncAll().catch(onError)}
       >
         {isSyncing ? 'Syncing' : 'Sync All'}
       </button>
     </div>
+    {isSyncing && syncProgress && syncProgress.total > 0 ? (
+      <div className={styles.syncProgress} role="status">
+        <span>
+          Syncing {syncProgress.current}/{syncProgress.total}
+          {syncProgress.currentFeedTitle ? `: ${syncProgress.currentFeedTitle}` : ''}
+        </span>
+        <progress value={syncProgress.current} max={syncProgress.total} />
+      </div>
+    ) : null}
     <div className={styles.form}>
       <input
         className={controlStyles.input}

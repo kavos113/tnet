@@ -14,6 +14,7 @@ import reducer, {
   setRssFolders,
   setRssItems,
   setRssSettings,
+  setRssSyncProgress,
   setRssSyncing,
   setRssTree,
   upsertRssItem
@@ -89,6 +90,7 @@ describe('rssSlice', () => {
       setRssSettings({ ...defaultRssGlobalSettings(), markReadOnOpen: false })
     );
     state = reducer(state, setRssSyncing(true));
+    state = reducer(state, setRssSyncProgress({ current: 1, total: 2, currentFeedTitle: 'Feed' }));
     state = reducer(state, setRssError('failed'));
     state = reducer(state, openRssSubscribe());
 
@@ -99,8 +101,18 @@ describe('rssSlice', () => {
     expect(state.selectedItemId).toBeUndefined();
     expect(state.isSubscribeOpen).toBe(true);
     expect(state.isSyncing).toBe(true);
+    expect(state.syncProgress).toEqual({ current: 1, total: 2, currentFeedTitle: 'Feed' });
     expect(state.error).toBe('failed');
     expect(state.settings.markReadOnOpen).toBe(false);
+  });
+
+  it('clears sync progress when syncing finishes', () => {
+    let state = reducer(undefined, setRssSyncing(true));
+    state = reducer(state, setRssSyncProgress({ current: 1, total: 1 }));
+    state = reducer(state, setRssSyncing(false));
+
+    expect(state.isSyncing).toBe(false);
+    expect(state.syncProgress).toBeUndefined();
   });
 
   it('upserts only existing items', () => {
