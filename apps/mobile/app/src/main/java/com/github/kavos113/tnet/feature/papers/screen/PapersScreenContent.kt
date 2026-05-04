@@ -130,8 +130,7 @@ internal fun PapersScreenContent(
         Box(
           modifier = Modifier
             .fillMaxHeight()
-            .fillMaxWidth(0.94f)
-            .padding(start = TnetSpace2)
+            .fillMaxWidth()
             .background(TnetSurface)
         ) {
           PapersDetailPanel(
@@ -145,7 +144,7 @@ internal fun PapersScreenContent(
             onRotate = onRotate,
             modifier = Modifier
               .fillMaxSize()
-              .padding(TnetSpace2)
+              .padding(if (uiState.detailTab == PapersDetailTab.Pdf) 0.dp else TnetSpace2)
           )
         }
       }
@@ -325,7 +324,8 @@ private fun PapersListSurface(
     )
     PapersListPreview(
       papers = uiState.visiblePapers,
-      onPaperSelected = onPaperSelected
+      onPaperSelected = onPaperSelected,
+      modifier = Modifier.weight(1f)
     )
   }
 }
@@ -346,7 +346,14 @@ private fun PapersDetailPanel(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(TnetSpace2)
   ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+      modifier = Modifier.padding(
+        horizontal = if (uiState.detailTab == PapersDetailTab.Pdf) TnetSpace2 else 0.dp,
+        vertical = if (uiState.detailTab == PapersDetailTab.Pdf) TnetSpace1 else 0.dp
+      ),
+      horizontalArrangement = Arrangement.spacedBy(TnetSpace2),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
       TnetSecondaryButton(text = "Back", onClick = onBack)
       FilterChip(
         selected = uiState.detailTab == PapersDetailTab.Pdf,
