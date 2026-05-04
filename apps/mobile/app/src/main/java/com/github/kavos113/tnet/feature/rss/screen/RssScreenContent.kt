@@ -22,7 +22,10 @@ internal fun RssScreenContent(
   uiState: RssUiState,
   onTitleChange: (String) -> Unit,
   onUrlChange: (String) -> Unit,
+  onBulkImportChange: (String) -> Unit,
   onSave: () -> Unit,
+  onImportBulk: () -> Unit,
+  onImportTextFile: () -> Unit,
   onCancel: () -> Unit,
   onRefresh: (RssFeed) -> Unit,
   onEdit: (RssFeed) -> Unit,
@@ -50,9 +53,19 @@ internal fun RssScreenContent(
       uiState = uiState,
       onTitleChange = onTitleChange,
       onUrlChange = onUrlChange,
+      onBulkImportChange = onBulkImportChange,
       onSave = onSave,
+      onImportBulk = onImportBulk,
+      onImportTextFile = onImportTextFile,
       onCancel = onCancel
     )
+    uiState.importMessage?.let {
+      Text(
+        text = it,
+        style = MaterialTheme.typography.bodyMedium,
+        color = TnetTextMuted
+      )
+    }
     uiState.error?.let {
       Text(
         text = it,
@@ -106,7 +119,10 @@ private fun RssScreenContentPreview() {
       ),
       onTitleChange = {},
       onUrlChange = {},
+      onBulkImportChange = {},
       onSave = {},
+      onImportBulk = {},
+      onImportTextFile = {},
       onCancel = {},
       onRefresh = {},
       onEdit = {},
@@ -129,7 +145,10 @@ private fun RssItemDetailPreview() {
       ),
       onTitleChange = {},
       onUrlChange = {},
+      onBulkImportChange = {},
       onSave = {},
+      onImportBulk = {},
+      onImportTextFile = {},
       onCancel = {},
       onRefresh = {},
       onEdit = {},

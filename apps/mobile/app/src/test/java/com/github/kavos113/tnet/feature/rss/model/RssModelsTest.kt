@@ -25,6 +25,45 @@ class RssModelsTest {
   }
 
   @Test
+  fun createRssFeedNormalizesFeedUrl() {
+    val feed = createRssFeed("feed-1", "", " HTTP://EXAMPLE.COM/feed.xml#top ")
+
+    assertEquals("http://example.com/feed.xml", feed?.url)
+  }
+
+  @Test
+  fun parseRssFeedUrlListKeepsValidUrlsAndReportsInvalidLines() {
+    val result = parseRssFeedUrlList(
+      """
+      https://example.com/feed.xml
+      ftp://example.com/feed.xml
+
+      https://second.example/rss
+      """.trimIndent()
+    )
+
+    assertEquals(
+      listOf("https://example.com/feed.xml", "https://second.example/rss"),
+      result.urls
+    )
+    assertEquals(listOf("ftp://example.com/feed.xml"), result.invalidLines)
+    assertEquals(0, result.duplicateLines)
+  }
+
+  @Test
+  fun parseRssFeedUrlListSkipsDuplicateLines() {
+    val result = parseRssFeedUrlList(
+      """
+      https://example.com/feed.xml
+      https://example.com/feed.xml
+      """.trimIndent()
+    )
+
+    assertEquals(listOf("https://example.com/feed.xml"), result.urls)
+    assertEquals(1, result.duplicateLines)
+  }
+
+  @Test
   fun removeRssFeedDropsMatchingFeed() {
     val feeds = listOf(
       RssFeed(id = "feed-1", title = "A", url = "https://a.example/feed.xml"),

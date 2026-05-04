@@ -8,6 +8,8 @@ data class RssUiState(
   val nextFeedNumber: Int = 1,
   val titleDraft: String = "",
   val urlDraft: String = "",
+  val bulkImportDraft: String = "",
+  val importMessage: String? = null,
   val error: String? = null,
   val selectedFeedTitle: String? = null,
   val editingFeedId: String? = null,

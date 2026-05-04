@@ -2,8 +2,8 @@ package com.github.kavos113.tnet.feature.rss.screen
 
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RssViewModelTest {
@@ -38,6 +38,58 @@ class RssViewModelTest {
     assertEquals("Updated", feed.title)
     assertEquals("https://example.com/updated.xml", feed.url)
     assertNull(viewModel.uiState.value.editingFeedId)
+  }
+
+  @Test
+  fun saveFeedSkipsDuplicateFeedUrl() {
+    val viewModel = RssViewModel()
+    viewModel.updateTitleDraft("Example")
+    viewModel.updateUrlDraft("https://example.com/feed.xml")
+    viewModel.saveFeed()
+
+    viewModel.updateTitleDraft("Duplicate")
+    viewModel.updateUrlDraft("https://example.com/feed.xml")
+    viewModel.saveFeed()
+
+    val state = viewModel.uiState.value
+    assertEquals(1, state.feeds.size)
+    assertEquals("Feed URL is already subscribed.", state.error)
+  }
+
+  @Test
+  fun importFeedsFromTextAddsValidUrlsAndSkipsDuplicates() {
+    val viewModel = RssViewModel()
+    viewModel.updateTitleDraft("Example")
+    viewModel.updateUrlDraft("https://example.com/feed.xml")
+    viewModel.saveFeed()
+
+    viewModel.updateBulkImportDraft(
+      """
+      https://example.com/feed.xml
+      https://second.example/rss
+      https://second.example/rss
+      invalid
+      """.trimIndent()
+    )
+    viewModel.importFeedsFromText()
+
+    val state = viewModel.uiState.value
+    assertEquals(2, state.feeds.size)
+    assertEquals("https://second.example/rss", state.feeds[0].url)
+    assertEquals("", state.bulkImportDraft)
+    assertEquals(
+      "Imported 1 feeds. Skipped 2 duplicate feeds. Ignored 1 invalid lines.",
+      state.importMessage
+    )
+  }
+
+  @Test
+  fun importFeedsFromTextReportsEmptyInput() {
+    val viewModel = RssViewModel()
+
+    viewModel.importFeedsFromText("  \n ")
+
+    assertEquals("Enter one feed URL per line.", viewModel.uiState.value.error)
   }
 
   @Test

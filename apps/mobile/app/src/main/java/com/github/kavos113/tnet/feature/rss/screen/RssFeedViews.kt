@@ -28,7 +28,10 @@ internal fun RssFeedForm(
   uiState: RssUiState,
   onTitleChange: (String) -> Unit,
   onUrlChange: (String) -> Unit,
+  onBulkImportChange: (String) -> Unit,
   onSave: () -> Unit,
+  onImportBulk: () -> Unit,
+  onImportTextFile: () -> Unit,
   onCancel: () -> Unit
 ) {
   TnetPanel {
@@ -56,6 +59,20 @@ internal fun RssFeedForm(
         TnetPrimaryButton(text = if (uiState.isEditing) "Save feed" else "Add feed", onClick = onSave)
         if (uiState.isEditing) {
           TnetSecondaryButton(text = "Cancel", onClick = onCancel)
+        }
+      }
+      if (!uiState.isEditing) {
+        TnetCompactTextField(
+          value = uiState.bulkImportDraft,
+          onValueChange = onBulkImportChange,
+          modifier = Modifier.fillMaxWidth(),
+          label = "Bulk import URLs",
+          singleLine = false,
+          minLines = 4
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+          TnetSecondaryButton(text = "Import URLs", onClick = onImportBulk)
+          TnetSecondaryButton(text = "Import .txt", onClick = onImportTextFile)
         }
       }
     }

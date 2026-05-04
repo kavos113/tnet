@@ -6,6 +6,8 @@ import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import com.github.kavos113.tnet.feature.rss.model.createRssFeed
 import com.github.kavos113.tnet.feature.rss.model.fetchRssItems
+import com.github.kavos113.tnet.feature.rss.model.normalizeRssFeedUrl
+import com.github.kavos113.tnet.feature.rss.model.parseRssFeedUrlList
 import com.github.kavos113.tnet.feature.rss.model.updateRssFeed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,10 +25,19 @@ class RssViewModel : ViewModel() {
 
   fun updateUrlDraft(value: String) = mutableUiState.update { it.copy(urlDraft = value) }
 
+  fun updateBulkImportDraft(value: String) = mutableUiState.update {
+    it.copy(bulkImportDraft = value, importMessage = null, error = null)
+  }
+
   fun saveFeed() {
     mutableUiState.update { state ->
       val editingFeedId = state.editingFeedId
       if (editingFeedId != null) {
+        val normalizedUrl = normalizeRssFeedUrl(state.urlDraft)
+          ?: return@update state.copy(error = "Enter an http or https feed URL.")
+        if (state.feeds.any { it.id != editingFeedId && normalizeRssFeedUrl(it.url) == normalizedUrl }) {
+          return@update state.copy(error = "Feed URL is already subscribed.")
+        }
         val updatedFeeds = updateRssFeed(
           feeds = state.feeds,
           feedId = editingFeedId,
@@ -36,6 +47,11 @@ class RssViewModel : ViewModel() {
 
         state.copy(feeds = updatedFeeds, editingFeedId = null).clearDraft()
       } else {
+        val normalizedUrl = normalizeRssFeedUrl(state.urlDraft)
+          ?: return@update state.copy(error = "Enter an http or https feed URL.")
+        if (state.feeds.any { normalizeRssFeedUrl(it.url) == normalizedUrl }) {
+          return@update state.copy(error = "Feed URL is already subscribed.")
+        }
         val feed = createRssFeed(
           id = "feed-${state.nextFeedNumber}",
           title = state.titleDraft,
@@ -49,6 +65,42 @@ class RssViewModel : ViewModel() {
           )
           .clearDraft()
       }
+    }
+  }
+
+  fun importFeedsFromText(text: String? = null) {
+    mutableUiState.update { state ->
+      val source = text ?: state.bulkImportDraft
+      val parsed = parseRssFeedUrlList(source)
+      if (parsed.urls.isEmpty() && parsed.invalidLines.isEmpty()) {
+        return@update state.copy(error = "Enter one feed URL per line.", importMessage = null)
+      }
+
+      val existingUrls = state.feeds.mapNotNull { normalizeRssFeedUrl(it.url) }.toSet()
+      val urlsToImport = parsed.urls.filterNot { it in existingUrls }
+      val existingSkipped = parsed.urls.size - urlsToImport.size
+      val feeds = urlsToImport.mapIndexedNotNull { index, url ->
+        createRssFeed(
+          id = "feed-${state.nextFeedNumber + index}",
+          title = "",
+          url = url
+        )
+      }
+      val skipped = existingSkipped + parsed.duplicateLines
+      val invalid = parsed.invalidLines.size
+      val messageParts = buildList {
+        add("Imported ${feeds.size} feeds.")
+        if (skipped > 0) add("Skipped $skipped duplicate feeds.")
+        if (invalid > 0) add("Ignored $invalid invalid lines.")
+      }
+
+      state.copy(
+        feeds = feeds + state.feeds,
+        nextFeedNumber = state.nextFeedNumber + feeds.size,
+        bulkImportDraft = if (text == null) "" else state.bulkImportDraft,
+        importMessage = messageParts.joinToString(" "),
+        error = if (feeds.isEmpty() && invalid > 0) "No valid new feed URLs found." else null
+      )
     }
   }
 
@@ -138,6 +190,7 @@ private fun RssUiState.clearDraft(): RssUiState {
   return copy(
     titleDraft = "",
     urlDraft = "",
+    importMessage = null,
     error = null
   )
 }
