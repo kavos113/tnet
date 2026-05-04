@@ -21,7 +21,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.papers.model.PaperAiOutput
 import com.github.kavos113.tnet.feature.papers.model.PaperDetail
 import com.github.kavos113.tnet.feature.papers.model.PaperListItem
+import com.github.kavos113.tnet.feature.papers.model.PaperPdfPathState
 import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
+import com.github.kavos113.tnet.feature.papers.model.resolvePaperPdfPath
 import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
@@ -237,7 +239,7 @@ private fun PaperDetailCard(paper: PaperDetail) {
       DetailLine("arXiv", paper.arxivId)
       DetailLine("URL", paper.url)
       DetailLine("Directory", paper.directoryPath.ifBlank { null })
-      DetailLine("PDF", paper.pdfPath ?: "Unavailable")
+      PaperPdfPathLine(resolvePaperPdfPath(paper.pdfPath))
       DetailSection("Abstract", paper.abstract)
       DetailSection("Note", paper.note)
       if (paper.aiOutputs.isNotEmpty()) {
@@ -254,6 +256,24 @@ private fun PaperDetailCard(paper: PaperDetail) {
       }
     }
   }
+}
+
+@Composable
+private fun PaperPdfPathLine(state: PaperPdfPathState) {
+  val text = when (state) {
+    is PaperPdfPathState.Available -> "PDF: ${state.relativePath}"
+    PaperPdfPathState.Missing -> "PDF: Unavailable in SQLite-only mode."
+    is PaperPdfPathState.Rejected -> "PDF: ${state.reason}"
+  }
+  val color = when (state) {
+    is PaperPdfPathState.Rejected -> MaterialTheme.colorScheme.error
+    else -> TnetTextMuted
+  }
+  Text(
+    text = text,
+    style = MaterialTheme.typography.bodyMedium,
+    color = color
+  )
 }
 
 @Composable
@@ -375,6 +395,20 @@ private fun PaperDetailCardPreview() {
   TnetTheme {
     Surface(modifier = Modifier.padding(16.dp)) {
       PaperDetailCard(previewPaperDetail)
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PaperPdfPathLinePreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PaperPdfPathLine(PaperPdfPathState.Available("papers/previews.pdf"))
+        PaperPdfPathLine(PaperPdfPathState.Missing)
+        PaperPdfPathLine(PaperPdfPathState.Rejected("PDF path escapes the selected workspace."))
+      }
     }
   }
 }

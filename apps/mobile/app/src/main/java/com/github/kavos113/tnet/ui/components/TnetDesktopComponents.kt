@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.ui.theme.TnetBorder
 import com.github.kavos113.tnet.ui.theme.TnetPrimary
@@ -33,6 +34,7 @@ import com.github.kavos113.tnet.ui.theme.TnetSurfaceMuted
 import com.github.kavos113.tnet.ui.theme.TnetText
 import com.github.kavos113.tnet.ui.theme.TnetTextInverse
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
+import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 val TnetRadiusSmall = 4.dp
 val TnetRadiusMedium = 6.dp
@@ -193,4 +195,34 @@ fun TnetSectionHeader(
     style = MaterialTheme.typography.labelSmall,
     color = TnetTextMuted
   )
+}
+
+@Composable
+fun TnetStateMessage(
+  title: String,
+  modifier: Modifier = Modifier,
+  detail: String? = null,
+  isError: Boolean = false
+) {
+  TnetPanel(
+    modifier = modifier,
+    background = if (isError) MaterialTheme.colorScheme.errorContainer else TnetSurfaceMuted
+  ) {
+    Text(
+      text = if (detail == null) title else "$title\n$detail",
+      style = MaterialTheme.typography.bodyMedium,
+      color = if (isError) MaterialTheme.colorScheme.onErrorContainer else TnetTextMuted
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TnetStateMessagePreview() {
+  TnetTheme {
+    TnetStateMessage(
+      title = "No document selected",
+      detail = "Choose a read-only file to preview it here."
+    )
+  }
 }

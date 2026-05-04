@@ -36,6 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.markdown.screen.MarkdownScreen
 import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 import com.github.kavos113.tnet.feature.papers.screen.PapersScreen
+import com.github.kavos113.tnet.feature.pdf.screen.PdfScreen
 import com.github.kavos113.tnet.feature.rss.screen.RssScreen
 import com.github.kavos113.tnet.feature.tasks.screen.TasksScreen
 import com.github.kavos113.tnet.ui.components.TnetPanel
@@ -155,6 +156,11 @@ private fun DestinationScreen(
       return@Surface
     }
 
+    if (destination == TnetMobileDestination.Pdf) {
+      PdfScreen(modifier = Modifier.fillMaxSize())
+      return@Surface
+    }
+
     if (destination == TnetMobileDestination.Settings) {
       SettingsScreen(modifier = Modifier.padding(horizontal = TnetSpace4, vertical = TnetSpace3))
       return@Surface
@@ -196,6 +202,7 @@ private fun PlaceholderPanel(destination: TnetMobileDestination) {
             TnetMobileDestination.Tasks -> "Local"
             TnetMobileDestination.Rss -> "Mobile fetch"
             TnetMobileDestination.Markdown -> "Read-only"
+            TnetMobileDestination.Pdf -> "Read-only"
             TnetMobileDestination.Papers -> "Workspace"
             TnetMobileDestination.Settings -> "Preferences"
           },

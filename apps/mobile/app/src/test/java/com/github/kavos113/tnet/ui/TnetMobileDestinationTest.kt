@@ -9,7 +9,7 @@ class TnetMobileDestinationTest {
   fun primaryDestinationsKeepExpectedOrder() {
     val labels = TnetMobileDestination.primaryDestinations.map { it.label }
 
-    assertEquals(listOf("Tasks", "RSS", "Markdown", "Papers", "Settings"), labels)
+    assertEquals(listOf("Tasks", "RSS", "Markdown", "PDF", "Papers", "Settings"), labels)
   }
 
   @Test

@@ -20,6 +20,11 @@ enum class TnetMobileDestination(
     headline = "Markdown",
     supportingText = "Read-only documents from selected files or folders."
   ),
+  Pdf(
+    label = "PDF",
+    headline = "PDF",
+    supportingText = "Read-only PDF files from selected files or workspace."
+  ),
   Papers(
     label = "Papers",
     headline = "Papers",

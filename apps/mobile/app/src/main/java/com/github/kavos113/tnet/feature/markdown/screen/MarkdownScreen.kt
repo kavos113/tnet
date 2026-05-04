@@ -2,12 +2,14 @@ package com.github.kavos113.tnet.feature.markdown.screen
 
 import android.content.Intent
 import android.net.Uri
+import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,15 +25,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.kavos113.tnet.feature.markdown.model.buildMermaidHtml
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
 import com.github.kavos113.tnet.feature.markdown.model.TaskListItem
 import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
-import com.github.kavos113.tnet.ui.theme.TnetPrimary
-import com.github.kavos113.tnet.ui.theme.TnetSurfaceMuted
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -187,13 +189,42 @@ private fun MarkdownBlockView(block: MarkdownBlock) {
       fontFamily = FontFamily.Monospace
     )
 
-    is MarkdownBlock.MermaidBlock -> Text(
-      text = "Mermaid diagram\n${block.source}",
-      style = MaterialTheme.typography.bodyMedium,
-      fontFamily = FontFamily.Monospace,
-      color = TnetPrimary
-    )
+    is MarkdownBlock.MermaidBlock -> MermaidBlockView(block.source)
   }
+}
+
+@Composable
+private fun MermaidBlockView(source: String) {
+  AndroidView(
+    modifier = Modifier
+      .fillMaxWidth()
+      .heightIn(min = 160.dp, max = 420.dp),
+    factory = { context ->
+      WebView(context).apply {
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = false
+        settings.allowFileAccess = true
+        settings.allowContentAccess = false
+        settings.blockNetworkLoads = true
+        loadDataWithBaseURL(
+          "file:///android_asset/",
+          buildMermaidHtml(source),
+          "text/html",
+          "UTF-8",
+          null
+        )
+      }
+    },
+    update = { webView ->
+      webView.loadDataWithBaseURL(
+        "file:///android_asset/",
+        buildMermaidHtml(source),
+        "text/html",
+        "UTF-8",
+        null
+      )
+    }
+  )
 }
 
 @Preview(showBackground = true)
