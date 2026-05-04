@@ -5,6 +5,7 @@ import {
   setRssFeeds,
   setRssItems,
   setRssSyncProgress,
+  setRssSyncingFeedIds,
   setRssSyncing,
   setRssTree
 } from './rssSlice';
@@ -51,18 +52,15 @@ export const useRssFeedActions = ({
     try {
       if (!feedId) {
         const enabledFeeds = feeds.filter((feed) => feed.enabled);
-        let latestFeeds = feeds;
-        for (const [index, feed] of enabledFeeds.entries()) {
-          dispatch(
-            setRssSyncProgress({
-              current: index + 1,
-              total: enabledFeeds.length,
-              currentFeedTitle: feed.title
-            })
-          );
-          const result = await rssTnetApi.rss.feeds.sync({ feedId: feed.id });
-          latestFeeds = result.feeds;
-        }
+        dispatch(setRssSyncingFeedIds(enabledFeeds.map((feed) => feed.id)));
+        dispatch(
+          setRssSyncProgress({
+            current: 0,
+            total: enabledFeeds.length,
+            currentFeedTitle: `${enabledFeeds.length} feeds`
+          })
+        );
+        const result = await rssTnetApi.rss.feeds.sync();
         const [tree, listResult] = await Promise.all([
           rssTnetApi.rss.folders.listTree(),
           rssTnetApi.rss.items.list({
@@ -72,12 +70,23 @@ export const useRssFeedActions = ({
             searchQuery
           })
         ]);
-        dispatch(setRssFeeds(latestFeeds));
+        dispatch(setRssFeeds(result.feeds));
         dispatch(setRssTree(tree));
         dispatch(setRssItems(listResult));
         return;
       }
 
+      if (feedId && selectedFeed) {
+        dispatch(setRssSyncingFeedIds([selectedFeed.id]));
+        dispatch(
+          setRssSyncProgress({
+            current: 1,
+            total: 1,
+            currentFeedId: selectedFeed.id,
+            currentFeedTitle: selectedFeed.title
+          })
+        );
+      }
       const result = await rssTnetApi.rss.feeds.sync(feedId ? { feedId } : undefined);
       const [tree, listResult] = await Promise.all([
         rssTnetApi.rss.folders.listTree(),

@@ -352,35 +352,26 @@ describe('RssApp', () => {
       })
     );
     store.dispatch(selectRssSystemView('all'));
-    let resolveFirstSync: (result: RssSyncResult) => void = () => {};
-    vi.mocked(rssTnetApi.rss.feeds.sync)
-      .mockReturnValueOnce(
-        new Promise((resolve) => {
-          resolveFirstSync = resolve;
-        })
-      )
-      .mockResolvedValueOnce({
-        feeds: [],
-        syncedFeedIds: ['feed-2'],
-        failedFeedIds: []
-      });
+    let resolveSync: (result: RssSyncResult) => void = () => {};
+    vi.mocked(rssTnetApi.rss.feeds.sync).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSync = resolve;
+      })
+    );
     renderApp();
 
     fireEvent.click(screen.getByRole('button', { name: 'Sync All' }));
 
-    expect(await screen.findByText('Syncing 1/2: Example Feed')).toBeInTheDocument();
+    expect(await screen.findByText('Syncing 2: 2 feeds')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Syncing' })).toBeDisabled();
-    resolveFirstSync({
+    resolveSync({
       feeds: [],
-      syncedFeedIds: ['feed-1'],
+      syncedFeedIds: ['feed-1', 'feed-2'],
       failedFeedIds: []
     });
 
-    await waitFor(() =>
-      expect(rssTnetApi.rss.feeds.sync).toHaveBeenNthCalledWith(2, { feedId: 'feed-2' })
-    );
-    await waitFor(() => expect(screen.queryByText(/Syncing 2\/2/)).not.toBeInTheDocument());
-    expect(rssTnetApi.rss.feeds.sync).toHaveBeenNthCalledWith(1, { feedId: 'feed-1' });
+    await waitFor(() => expect(rssTnetApi.rss.feeds.sync).toHaveBeenCalledWith());
+    await waitFor(() => expect(screen.queryByText(/Syncing 2: 2 feeds/)).not.toBeInTheDocument());
   });
 
   it('shows the subscribe form when no feed is selected', () => {

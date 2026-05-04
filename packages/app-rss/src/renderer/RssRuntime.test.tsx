@@ -47,9 +47,31 @@ describe('RssRuntime', () => {
       syncedFeedIds: [],
       failedFeedIds: []
     });
-    vi.mocked(rssTnetApi.rss.feeds.listBasic).mockResolvedValue([]);
+    vi.mocked(rssTnetApi.rss.feeds.listBasic).mockResolvedValue([
+      {
+        id: 'feed-1',
+        title: 'Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 0
+      }
+    ]);
     vi.mocked(rssTnetApi.rss.folders.list).mockResolvedValue([]);
-    vi.mocked(rssTnetApi.rss.feeds.list).mockResolvedValue([]);
+    vi.mocked(rssTnetApi.rss.feeds.list).mockResolvedValue([
+      {
+        id: 'feed-1',
+        title: 'Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 1
+      }
+    ]);
     vi.mocked(rssTnetApi.rss.folders.listTree).mockResolvedValue({ folders: [], feeds: [] });
     vi.mocked(rssTnetApi.rss.items.list).mockResolvedValue({ items: [] });
   });
@@ -62,7 +84,7 @@ describe('RssRuntime', () => {
     );
 
     await waitFor(() => expect(store.getState().rss.isRestored).toBe(true));
-    expect(rssTnetApi.rss.feeds.sync).toHaveBeenCalled();
+    await waitFor(() => expect(rssTnetApi.rss.feeds.sync).toHaveBeenCalled());
 
     await waitFor(
       () => expect(vi.mocked(rssTnetApi.rss.feeds.sync).mock.calls.length).toBeGreaterThan(1),
@@ -70,6 +92,38 @@ describe('RssRuntime', () => {
         timeout: 1000
       }
     );
+    rendered.unmount();
+  });
+
+  it('restores unread counts before startup sync finishes', async () => {
+    vi.mocked(rssTnetApi.rss.config.loadGlobal).mockResolvedValue({
+      settings: {
+        ...defaultRssGlobalSettings(),
+        syncIntervalMinutes: 60,
+        syncOnStartup: true
+      }
+    });
+    let resolveSync: () => void = () => {};
+    vi.mocked(rssTnetApi.rss.feeds.sync).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSync = () =>
+          resolve({
+            feeds: [],
+            syncedFeedIds: ['feed-1'],
+            failedFeedIds: []
+          });
+      })
+    );
+
+    const rendered = render(
+      <Provider store={store}>
+        <RssRuntime />
+      </Provider>
+    );
+
+    await waitFor(() => expect(store.getState().rss.feeds[0]?.unreadCount).toBe(1));
+    expect(store.getState().rss.syncingFeedIds).toEqual(['feed-1']);
+    resolveSync();
     rendered.unmount();
   });
 

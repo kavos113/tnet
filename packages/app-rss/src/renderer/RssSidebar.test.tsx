@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRssGlobalSettings } from '@tnet/app-rss/shared/config';
 import { RssSidebar } from './RssSidebar';
-import rssReducer, { restoreRss, restoreRssFeedList } from './rssSlice';
+import rssReducer, { restoreRss, restoreRssFeedList, setRssSyncingFeedIds } from './rssSlice';
 import { rssTnetApi } from './rssTnetApi';
 
 vi.mock('./rssTnetApi', () => ({
@@ -215,6 +215,16 @@ describe('RssSidebar', () => {
     expect(store.getState().rss.selectedFeedId).toBe('feed-1');
     expect(screen.queryByTitle('Sync feed')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Rename feed')).not.toBeInTheDocument();
+  });
+
+  it('shows a sync icon on the feed currently syncing', () => {
+    store.dispatch(setRssSyncingFeedIds(['feed-1']));
+    renderSidebar();
+
+    fireEvent.click(screen.getByText('Folder'));
+
+    const feedRow = screen.getByText('Feed (3)').closest('[role="button"]');
+    expect(feedRow).toHaveTextContent('sync');
   });
 
   it('opens the subscribe screen from the new feed button', () => {

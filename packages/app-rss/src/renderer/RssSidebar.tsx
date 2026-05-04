@@ -33,8 +33,15 @@ export const RssSidebar = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
   const [expandedFolderIds, setExpandedFolderIds] = useState<string[]>([]);
   const [newFolder, setNewFolder] = useState<WorkspaceNewEntryState>(emptyNewFolder);
-  const { tree, selectedView, selectedFeedId, selectedFolderId, isSidebarDetailsLoading } =
-    useRssSelector((state) => state.rss);
+  const {
+    tree,
+    selectedView,
+    selectedFeedId,
+    selectedFolderId,
+    isSidebarDetailsLoading,
+    syncingFeedIds
+  } = useRssSelector((state) => state.rss);
+  const syncingFeedIdSet = useMemo(() => new Set(syncingFeedIds), [syncingFeedIds]);
   const feedTree = useMemo(
     () => toRssTreeFileItems(tree.folders, tree.feeds),
     [tree.feeds, tree.folders]
@@ -220,9 +227,11 @@ export const RssSidebar = (): React.JSX.Element => {
               }
               onConfirmNewEntry={confirmNewFolder}
               onCancelNewEntry={cancelNewFolder}
-              getItemIcon={(item, isExpanded) =>
-                item.isDirectory ? (isExpanded ? 'folder_open' : 'folder') : 'rss_feed'
-              }
+              getItemIcon={(item, isExpanded) => {
+                if (item.isDirectory) return isExpanded ? 'folder_open' : 'folder';
+                const feedId = feedIdFromPath(item.path);
+                return feedId && syncingFeedIdSet.has(feedId) ? 'sync' : 'rss_feed';
+              }}
               onDragStartItem={handleDragStartItem}
               onDropOnItem={handleDropOnItem}
             />

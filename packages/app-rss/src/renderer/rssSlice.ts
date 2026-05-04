@@ -25,6 +25,7 @@ interface RssState {
   isRestored: boolean;
   isSidebarDetailsLoading: boolean;
   isSyncing: boolean;
+  syncingFeedIds: string[];
   syncProgress?: RssSyncProgress;
   error?: string;
 }
@@ -32,6 +33,7 @@ interface RssState {
 export interface RssSyncProgress {
   current: number;
   total: number;
+  currentFeedId?: string;
   currentFeedTitle?: string;
 }
 
@@ -45,7 +47,8 @@ const initialState: RssState = {
   settings: defaultRssGlobalSettings(),
   isRestored: false,
   isSidebarDetailsLoading: false,
-  isSyncing: false
+  isSyncing: false,
+  syncingFeedIds: []
 };
 
 const rssSlice = createSlice({
@@ -140,7 +143,13 @@ const rssSlice = createSlice({
     },
     setRssSyncing: (state, action: PayloadAction<boolean>) => {
       state.isSyncing = action.payload;
-      if (!action.payload) state.syncProgress = undefined;
+      if (!action.payload) {
+        state.syncProgress = undefined;
+        state.syncingFeedIds = [];
+      }
+    },
+    setRssSyncingFeedIds: (state, action: PayloadAction<string[]>) => {
+      state.syncingFeedIds = action.payload;
     },
     setRssSyncProgress: (state, action: PayloadAction<RssSyncProgress | undefined>) => {
       state.syncProgress = action.payload;
@@ -171,6 +180,7 @@ export const {
   setRssItems,
   setRssSettings,
   setRssSidebarDetailsLoading,
+  setRssSyncingFeedIds,
   setRssSyncProgress,
   setRssSyncing,
   setRssTree,

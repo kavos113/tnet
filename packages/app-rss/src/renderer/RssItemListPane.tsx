@@ -129,7 +129,8 @@ export const RssItemListPane = ({
       {isSyncing && syncProgress && syncProgress.total > 0 ? (
         <div className={styles.syncProgress} role="status">
           <span>
-            Syncing {syncProgress.current}/{syncProgress.total}
+            Syncing {syncProgress.current > 0 ? `${syncProgress.current}/` : ''}
+            {syncProgress.total}
             {syncProgress.currentFeedTitle ? `: ${syncProgress.currentFeedTitle}` : ''}
           </span>
           <progress value={syncProgress.current} max={syncProgress.total} />

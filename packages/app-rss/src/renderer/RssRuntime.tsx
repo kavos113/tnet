@@ -8,6 +8,8 @@ import {
   setRssFeeds,
   setRssItems,
   setRssSidebarDetailsLoading,
+  setRssSyncProgress,
+  setRssSyncingFeedIds,
   setRssSyncing,
   setRssTree
 } from './rssSlice';
@@ -19,6 +21,7 @@ export const RssRuntime = (): null => {
   useEffect(() => {
     let canceled = false;
     let intervalId: number | undefined;
+    let isRuntimeSyncing = false;
 
     const restore = async (): Promise<void> => {
       const config = await rssTnetApi.rss.config.loadGlobal();
@@ -31,37 +34,57 @@ export const RssRuntime = (): null => {
           settings: config.settings
         })
       );
-      if (config.settings.syncOnStartup) {
-        dispatch(setRssSyncing(true));
-        await rssTnetApi.rss.feeds.sync().finally(() => dispatch(setRssSyncing(false)));
-      }
-      const [folders, feeds, tree, items] = await Promise.all([
+      const [folders, feeds, items] = await Promise.all([
         rssTnetApi.rss.folders.list(),
         rssTnetApi.rss.feeds.list(),
-        rssTnetApi.rss.folders.listTree(),
         rssTnetApi.rss.items.list({ view: config.settings.defaultFilter })
       ]);
       if (canceled) return;
+      const tree = buildRssTree(folders, feeds);
       dispatch(restoreRss({ folders, feeds, tree, items, settings: config.settings }));
       dispatch(setRssSidebarDetailsLoading(false));
+
+      const syncFeeds = async (): Promise<void> => {
+        if (isRuntimeSyncing) return;
+        isRuntimeSyncing = true;
+        try {
+          const feedsToSync = (await rssTnetApi.rss.feeds.listBasic()).filter(
+            (feed) => feed.enabled
+          );
+          dispatch(setRssSyncing(true));
+          dispatch(setRssSyncingFeedIds(feedsToSync.map((feed) => feed.id)));
+          dispatch(
+            setRssSyncProgress({
+              current: 0,
+              total: feedsToSync.length,
+              currentFeedTitle: `${feedsToSync.length} feeds`
+            })
+          );
+          const result = await rssTnetApi.rss.feeds.sync();
+          if (canceled) return;
+          const [nextFolders, nextItems] = await Promise.all([
+            rssTnetApi.rss.folders.list(),
+            rssTnetApi.rss.items.list({ view: config.settings.defaultFilter })
+          ]);
+          dispatch(setRssFeeds(result.feeds));
+          dispatch(setRssTree(buildRssTree(nextFolders, result.feeds)));
+          dispatch(setRssItems(nextItems));
+        } finally {
+          isRuntimeSyncing = false;
+          dispatch(setRssSyncing(false));
+        }
+      };
+
+      if (config.settings.syncOnStartup) {
+        syncFeeds().catch((error: unknown) => {
+          console.error('Startup RSS sync failed', error);
+        });
+      }
       intervalId = window.setInterval(
         () => {
-          dispatch(setRssSyncing(true));
-          rssTnetApi.rss.feeds
-            .sync()
-            .then(async (result) => {
-              dispatch(setRssFeeds(result.feeds));
-              const [nextTree, nextItems] = await Promise.all([
-                rssTnetApi.rss.folders.listTree(),
-                rssTnetApi.rss.items.list({ view: config.settings.defaultFilter })
-              ]);
-              dispatch(setRssTree(nextTree));
-              dispatch(setRssItems(nextItems));
-            })
-            .catch((error: unknown) => {
-              console.error('Periodic RSS sync failed', error);
-            })
-            .finally(() => dispatch(setRssSyncing(false)));
+          syncFeeds().catch((error: unknown) => {
+            console.error('Periodic RSS sync failed', error);
+          });
         },
         config.settings.syncIntervalMinutes * 60 * 1000
       );

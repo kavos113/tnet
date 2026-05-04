@@ -49,6 +49,37 @@ describe('FeedSyncService', () => {
     ]);
     expect(feedRepository.updateSyncError).toHaveBeenCalledWith('bad', 'network failed');
   });
+
+  it('fetches feeds concurrently and persists results after fetches complete', async () => {
+    const pendingFetches = new Map<string, () => void>();
+    fetchService.fetch.mockImplementation(
+      (rssFeed: RssFeed) =>
+        new Promise((resolve) => {
+          pendingFetches.set(rssFeed.id, () =>
+            resolve({
+              status: 'ok',
+              body: `<rss><channel><title>${rssFeed.id}</title><item><guid>${rssFeed.id}</guid><title>${rssFeed.id}</title></item></channel></rss>`
+            })
+          );
+        })
+    );
+    const service = new FeedSyncService(
+      feedRepository as never,
+      itemRepository as never,
+      fetchService as never,
+      { maxConcurrentFetches: 2 }
+    );
+
+    const syncPromise = service.sync();
+    await vi.waitFor(() => expect(fetchService.fetch).toHaveBeenCalledTimes(2));
+
+    expect(itemRepository.saveMany).not.toHaveBeenCalled();
+    pendingFetches.get('ok')?.();
+    pendingFetches.get('bad')?.();
+    await syncPromise;
+
+    expect(itemRepository.saveMany).toHaveBeenCalledTimes(2);
+  });
 });
 
 const feed = (overrides: Partial<RssFeed>): RssFeed => ({
