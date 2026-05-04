@@ -1,4 +1,4 @@
-package com.github.kavos113.tnet.feature.rss
+package com.github.kavos113.tnet.feature.rss.model
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -42,5 +42,36 @@ class RssModelsTest {
       listOf(feeds[0].copy(lastRefreshLabel = "Refresh requested")),
       markFeedRefreshed(feeds, "feed-1", "Refresh requested")
     )
+  }
+
+  @Test
+  fun updateRssFeedUpdatesMatchingFeedAndKeepsRefreshLabel() {
+    val feeds = listOf(
+      RssFeed(
+        id = "feed-1",
+        title = "A",
+        url = "https://a.example/feed.xml",
+        lastRefreshLabel = "Fetched 2 items"
+      )
+    )
+
+    assertEquals(
+      listOf(
+        RssFeed(
+          id = "feed-1",
+          title = "B",
+          url = "https://b.example/feed.xml",
+          lastRefreshLabel = "Fetched 2 items"
+        )
+      ),
+      updateRssFeed(feeds, "feed-1", "B", "https://b.example/feed.xml")
+    )
+  }
+
+  @Test
+  fun updateRssFeedRejectsUnsupportedUrl() {
+    val feeds = listOf(RssFeed(id = "feed-1", title = "A", url = "https://a.example/feed.xml"))
+
+    assertNull(updateRssFeed(feeds, "feed-1", "B", "ftp://b.example/feed.xml"))
   }
 }

@@ -1,4 +1,4 @@
-package com.github.kavos113.tnet.feature.markdown
+package com.github.kavos113.tnet.feature.markdown.model
 
 sealed interface MarkdownBlock {
   data class Heading(
@@ -14,6 +14,15 @@ sealed interface MarkdownBlock {
     val items: List<String>
   ) : MarkdownBlock
 
+  data class TaskList(
+    val items: List<TaskListItem>
+  ) : MarkdownBlock
+
+  data class Table(
+    val headers: List<String>,
+    val rows: List<List<String>>
+  ) : MarkdownBlock
+
   data class CodeBlock(
     val language: String?,
     val code: String
@@ -23,6 +32,11 @@ sealed interface MarkdownBlock {
     val source: String
   ) : MarkdownBlock
 }
+
+data class TaskListItem(
+  val text: String,
+  val checked: Boolean
+)
 
 fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
   val lines = markdown.replace("\r\n", "\n").split("\n")
@@ -63,6 +77,31 @@ fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
       continue
     }
 
+    if (isTableStart(lines, index)) {
+      val tableLines = mutableListOf<String>()
+      tableLines += lines[index]
+      index += 2
+      while (index < lines.size && lines[index].trim().startsWith("|")) {
+        tableLines += lines[index]
+        index += 1
+      }
+      blocks += MarkdownBlock.Table(
+        headers = splitTableRow(tableLines.first()),
+        rows = tableLines.drop(1).map(::splitTableRow)
+      )
+      continue
+    }
+
+    if (isTaskListItem(line)) {
+      val items = mutableListOf<TaskListItem>()
+      while (index < lines.size && isTaskListItem(lines[index])) {
+        items += parseTaskListItem(lines[index])
+        index += 1
+      }
+      blocks += MarkdownBlock.TaskList(items)
+      continue
+    }
+
     if (line.trimStart().startsWith("- ")) {
       val items = mutableListOf<String>()
       while (index < lines.size && lines[index].trimStart().startsWith("- ")) {
@@ -79,6 +118,8 @@ fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
       lines[index].isNotBlank() &&
       codeFenceLanguage(lines[index]) == null &&
       headingLevel(lines[index]) == null &&
+      !isTableStart(lines, index) &&
+      !isTaskListItem(lines[index]) &&
       !lines[index].trimStart().startsWith("- ")
     ) {
       paragraphLines += lines[index].trim()
@@ -101,4 +142,40 @@ private fun headingLevel(line: String): Int? {
   if (level !in 1..6) return null
   if (line.getOrNull(level) != ' ') return null
   return level
+}
+
+private fun isTaskListItem(line: String): Boolean {
+  val trimmed = line.trimStart()
+  return trimmed.startsWith("- [ ] ") ||
+    trimmed.startsWith("- [x] ") ||
+    trimmed.startsWith("- [X] ")
+}
+
+private fun parseTaskListItem(line: String): TaskListItem {
+  val trimmed = line.trimStart()
+  return TaskListItem(
+    text = trimmed.drop(6).trim(),
+    checked = trimmed[3] == 'x' || trimmed[3] == 'X'
+  )
+}
+
+private fun isTableStart(lines: List<String>, index: Int): Boolean {
+  if (index + 1 >= lines.size) return false
+  val header = lines[index].trim()
+  val separator = lines[index + 1].trim()
+  return header.startsWith("|") &&
+    header.endsWith("|") &&
+    separator.startsWith("|") &&
+    separator.endsWith("|") &&
+    separator.trim('|').split("|").all { cell ->
+      cell.trim().matches(Regex(":?-{3,}:?"))
+    }
+}
+
+private fun splitTableRow(line: String): List<String> {
+  return line
+    .trim()
+    .trim('|')
+    .split("|")
+    .map { it.trim() }
 }

@@ -1,4 +1,4 @@
-package com.github.kavos113.tnet.feature.rss
+package com.github.kavos113.tnet.feature.rss.model
 
 import java.net.URI
 
@@ -27,6 +27,22 @@ fun createRssFeed(
 
 fun removeRssFeed(feeds: List<RssFeed>, feedId: String): List<RssFeed> {
   return feeds.filterNot { it.id == feedId }
+}
+
+fun updateRssFeed(
+  feeds: List<RssFeed>,
+  feedId: String,
+  title: String,
+  url: String
+): List<RssFeed>? {
+  val currentFeed = feeds.firstOrNull { it.id == feedId } ?: return feeds
+  val updatedFeed = createRssFeed(feedId, title, url)?.copy(
+    lastRefreshLabel = currentFeed.lastRefreshLabel
+  ) ?: return null
+
+  return feeds.map { feed ->
+    if (feed.id == feedId) updatedFeed else feed
+  }
 }
 
 fun markFeedRefreshed(

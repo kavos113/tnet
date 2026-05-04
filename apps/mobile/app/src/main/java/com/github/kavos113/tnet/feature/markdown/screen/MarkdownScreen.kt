@@ -1,4 +1,4 @@
-package com.github.kavos113.tnet.feature.markdown
+package com.github.kavos113.tnet.feature.markdown.screen
 
 import android.content.Context
 import android.content.Intent
@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
+import com.github.kavos113.tnet.feature.markdown.model.parseMarkdownBlocks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -155,6 +157,29 @@ private fun MarkdownBlockView(block: MarkdownBlock) {
         Text(
           text = "- $item",
           style = MaterialTheme.typography.bodyLarge
+        )
+      }
+    }
+
+    is MarkdownBlock.TaskList -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      block.items.forEach { item ->
+        Text(
+          text = "${if (item.checked) "[x]" else "[ ]"} ${item.text}",
+          style = MaterialTheme.typography.bodyLarge
+        )
+      }
+    }
+
+    is MarkdownBlock.Table -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      Text(
+        text = block.headers.joinToString(" | "),
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold
+      )
+      block.rows.forEach { row ->
+        Text(
+          text = row.joinToString(" | "),
+          style = MaterialTheme.typography.bodyMedium
         )
       }
     }

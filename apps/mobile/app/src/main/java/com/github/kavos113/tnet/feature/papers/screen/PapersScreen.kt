@@ -1,4 +1,4 @@
-package com.github.kavos113.tnet.feature.papers
+package com.github.kavos113.tnet.feature.papers.screen
 
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,6 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.core.settings.TnetSettingsRepository
+import com.github.kavos113.tnet.feature.papers.data.PaperDetail
+import com.github.kavos113.tnet.feature.papers.data.PaperListItem
+import com.github.kavos113.tnet.feature.papers.data.PapersWorkspaceValidation
+import com.github.kavos113.tnet.feature.papers.data.loadPaperDetail
+import com.github.kavos113.tnet.feature.papers.data.loadPaperList
+import com.github.kavos113.tnet.feature.papers.data.validatePapersWorkspace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -32,11 +41,15 @@ fun PapersScreen(modifier: Modifier = Modifier) {
   val settings by settingsRepository.settings.collectAsState(initial = null)
   var validation by remember { mutableStateOf<PapersWorkspaceValidation?>(null) }
   var papers by remember { mutableStateOf<Result<List<PaperListItem>>?>(null) }
+  var selectedPaperId by remember { mutableStateOf<String?>(null) }
+  var selectedPaper by remember { mutableStateOf<Result<PaperDetail?>?>(null) }
   val workspaceUri = settings?.papersWorkspaceUri
 
   LaunchedEffect(workspaceUri) {
     validation = null
     papers = null
+    selectedPaperId = null
+    selectedPaper = null
     val uri = workspaceUri ?: return@LaunchedEffect
     val nextValidation = withContext(Dispatchers.IO) {
       validatePapersWorkspace(context.contentResolver, Uri.parse(uri))
@@ -46,6 +59,15 @@ fun PapersScreen(modifier: Modifier = Modifier) {
       papers = withContext(Dispatchers.IO) {
         loadPaperList(context, nextValidation.databaseUri)
       }
+    }
+  }
+
+  LaunchedEffect(workspaceUri, selectedPaperId, validation) {
+    selectedPaper = null
+    val paperId = selectedPaperId ?: return@LaunchedEffect
+    val validWorkspace = validation as? PapersWorkspaceValidation.Valid ?: return@LaunchedEffect
+    selectedPaper = withContext(Dispatchers.IO) {
+      loadPaperDetail(context, validWorkspace.databaseUri, paperId)
     }
   }
 
@@ -68,7 +90,20 @@ fun PapersScreen(modifier: Modifier = Modifier) {
       workspaceUri = workspaceUri,
       validation = validation
     )
-    PapersListPreview(papers)
+    if (selectedPaperId == null) {
+      PapersListPreview(
+        papers = papers,
+        onPaperSelected = { selectedPaperId = it.id }
+      )
+    } else {
+      PaperDetailPreview(
+        paper = selectedPaper,
+        onBack = {
+          selectedPaperId = null
+          selectedPaper = null
+        }
+      )
+    }
   }
 }
 
@@ -116,7 +151,10 @@ private fun PapersWorkspaceStatus(
 }
 
 @Composable
-private fun PapersListPreview(papers: Result<List<PaperListItem>>?) {
+private fun PapersListPreview(
+  papers: Result<List<PaperListItem>>?,
+  onPaperSelected: (PaperListItem) -> Unit
+) {
   when {
     papers == null -> return
     papers.isFailure -> Text(
@@ -136,7 +174,10 @@ private fun PapersListPreview(papers: Result<List<PaperListItem>>?) {
       } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           items.forEach { paper ->
-            PaperRow(paper)
+            PaperRow(
+              paper = paper,
+              onClick = { onPaperSelected(paper) }
+            )
           }
         }
       }
@@ -145,9 +186,13 @@ private fun PapersListPreview(papers: Result<List<PaperListItem>>?) {
 }
 
 @Composable
-private fun PaperRow(paper: PaperListItem) {
+private fun PaperRow(
+  paper: PaperListItem,
+  onClick: () -> Unit
+) {
   Surface(
     modifier = Modifier.fillMaxWidth(),
+    onClick = onClick,
     tonalElevation = 1.dp,
     shape = MaterialTheme.shapes.medium,
     color = MaterialTheme.colorScheme.surfaceContainer
@@ -167,11 +212,117 @@ private fun PaperRow(paper: PaperListItem) {
       )
       if (details.isNotEmpty()) {
         Text(
-          text = details.joinToString(" · "),
+          text = details.joinToString(" - "),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant
         )
       }
     }
   }
+}
+
+@Composable
+private fun PaperDetailPreview(
+  paper: Result<PaperDetail?>?,
+  onBack: () -> Unit
+) {
+  Button(onClick = onBack) {
+    Text("Back to list")
+  }
+
+  when {
+    paper == null -> Text(
+      text = "Loading paper...",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
+    paper.isFailure -> Text(
+      text = paper.exceptionOrNull()?.message ?: "Unable to read paper.",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.error
+    )
+
+    paper.getOrNull() == null -> Text(
+      text = "Paper not found.",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
+    else -> PaperDetailCard(requireNotNull(paper.getOrThrow()))
+  }
+}
+
+@Composable
+private fun PaperDetailCard(paper: PaperDetail) {
+  Surface(
+    modifier = Modifier.fillMaxWidth(),
+    tonalElevation = 1.dp,
+    shape = MaterialTheme.shapes.medium,
+    color = MaterialTheme.colorScheme.surfaceContainer
+  ) {
+    Column(
+      modifier = Modifier
+        .padding(14.dp)
+        .verticalScroll(rememberScrollState()),
+      verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+      Text(
+        text = paper.title,
+        style = MaterialTheme.typography.titleLarge
+      )
+      DetailLine("Authors", paper.authors.joinToString(", "))
+      DetailLine("Tags", paper.tags.joinToString(", "))
+      DetailLine("Year", paper.publishedYear?.toString())
+      DetailLine("Venue", paper.venue)
+      DetailLine("DOI", paper.doi)
+      DetailLine("arXiv", paper.arxivId)
+      DetailLine("URL", paper.url)
+      DetailLine("Directory", paper.directoryPath.ifBlank { null })
+      DetailLine("PDF", paper.pdfPath ?: "Unavailable")
+      DetailSection("Abstract", paper.abstract)
+      DetailSection("Note", paper.note)
+      if (paper.aiOutputs.isNotEmpty()) {
+        Text(
+          text = "AI outputs",
+          style = MaterialTheme.typography.titleMedium
+        )
+        paper.aiOutputs.forEach { output ->
+          DetailSection(
+            title = "${output.operation} / ${output.model}",
+            body = output.content
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun DetailLine(
+  label: String,
+  value: String?
+) {
+  if (value.isNullOrBlank()) return
+  Text(
+    text = "$label: $value",
+    style = MaterialTheme.typography.bodyMedium,
+    color = MaterialTheme.colorScheme.onSurfaceVariant
+  )
+}
+
+@Composable
+private fun DetailSection(
+  title: String,
+  body: String?
+) {
+  if (body.isNullOrBlank()) return
+  Text(
+    text = title,
+    style = MaterialTheme.typography.titleMedium
+  )
+  Text(
+    text = body,
+    style = MaterialTheme.typography.bodyMedium
+  )
 }
