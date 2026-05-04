@@ -115,6 +115,31 @@ describe('calendar view helpers', () => {
     expect(grouped[1].events.map((item) => item.id)).toEqual(['multi']);
   });
 
+  it('treats all-day midnight end timestamps as exclusive display bounds', () => {
+    const grouped = groupVisibleCalendarItems({
+      dates: ['2026-05-02', '2026-05-03', '2026-05-04'],
+      currentDate: '2026-05-02',
+      tasks: [],
+      localEvents: [],
+      events: [
+        {
+          ...event('single-day', '2026-05-02T00:00:00.000', '2026-05-03T00:00:00.000'),
+          allDay: true
+        },
+        {
+          ...event('two-day', '2026-05-02T00:00:00.000', '2026-05-04T00:00:00.000'),
+          allDay: true
+        }
+      ]
+    });
+
+    expect(grouped.map((day) => day.events.map((item) => item.id))).toEqual([
+      ['single-day', 'two-day'],
+      ['two-day'],
+      []
+    ]);
+  });
+
   it('derives holidays from holiday subscription all-day events', () => {
     const grouped = groupVisibleCalendarItems({
       dates: ['2026-05-02'],

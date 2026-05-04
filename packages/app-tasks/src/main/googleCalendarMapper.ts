@@ -2,6 +2,7 @@ import type {
   CalendarEventOccurrence,
   SubscribedTaskOccurrence
 } from '@tnet/app-tasks/shared/tasksTypes';
+import { addLocalDays } from '@tnet/app-tasks/shared/dateHelpers';
 import type { GoogleCalendarEvent } from './googleCalendarService';
 
 export const googleEventToOccurrence = (
@@ -10,7 +11,7 @@ export const googleEventToOccurrence = (
 ): CalendarEventOccurrence[] => {
   const start = googleEventDateTime(event.start);
   if (!start) return [];
-  const end = googleEventDateTime(event.end) ?? start;
+  const end = normalizeGoogleEventEnd(start, googleEventDateTime(event.end));
   const now = new Date().toISOString();
   return [
     {
@@ -66,5 +67,22 @@ const googleEventDateTime = (
   return {
     value: Number.isNaN(date.getTime()) ? value.dateTime : date.toISOString(),
     allDay: false
+  };
+};
+
+const normalizeGoogleEventEnd = (
+  start: { value: string; allDay: boolean },
+  end: { value: string; allDay: boolean } | undefined
+): { value: string; allDay: boolean } => {
+  if (!end) return start;
+  if (!start.allDay || !end.allDay) return end;
+
+  const startDate = start.value.slice(0, 10);
+  const endDate = end.value.slice(0, 10);
+  if (endDate <= startDate) return end;
+
+  return {
+    value: `${addLocalDays(endDate, -1)}T23:59:59.999`,
+    allDay: true
   };
 };

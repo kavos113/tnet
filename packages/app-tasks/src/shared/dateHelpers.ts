@@ -47,6 +47,25 @@ export const doesDateRangeOverlap = (
   return startDate <= rangeEndDate && normalizedEndDate >= rangeStartDate;
 };
 
+export const calendarEventDisplayDateRange = (event: {
+  startsAt: string;
+  endsAt: string;
+  allDay: boolean;
+}): { startDate: string; endDate: string } => {
+  const startDate = event.startsAt.slice(0, 10);
+  const endDate = event.endsAt.slice(0, 10);
+  if (event.allDay && startDate < endDate && isMidnightTimestamp(event.endsAt)) {
+    return {
+      startDate,
+      endDate: addLocalDays(endDate, -1)
+    };
+  }
+  return {
+    startDate,
+    endDate
+  };
+};
+
 export const taskHasDeadline = (task: Pick<TaskItem, 'deadlineDate'>): boolean =>
   Boolean(task.deadlineDate);
 
@@ -92,3 +111,6 @@ const compareStableTaskFields = (first: TaskItem, second: TaskItem): number => {
   if (titleComparison !== 0) return titleComparison;
   return first.id.localeCompare(second.id);
 };
+
+const isMidnightTimestamp = (value: string): boolean =>
+  /^T00:00:00\.000(?:Z)?$/.test(value.slice(10));

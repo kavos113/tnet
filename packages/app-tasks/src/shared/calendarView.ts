@@ -1,5 +1,6 @@
 import {
   addLocalDays,
+  calendarEventDisplayDateRange,
   doesDateRangeOverlap,
   toLocalDateString
 } from '@tnet/app-tasks/shared/dateHelpers';
@@ -112,9 +113,7 @@ export const groupVisibleCalendarItems = ({
   return dates.map((date) => {
     const holidayEvents = events.filter(
       (event) =>
-        event.allDay &&
-        holidaySourceIds.has(event.sourceId) &&
-        doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+        event.allDay && holidaySourceIds.has(event.sourceId) && doesEventOverlapDate(event, date)
     );
     return {
       date,
@@ -125,16 +124,20 @@ export const groupVisibleCalendarItems = ({
       isSunday: getLocalDayOfWeek(date) === 0,
       isWeekend: isWeekendDate(date),
       tasks: tasks.filter((task) => task.deadlineDate === date),
-      localEvents: localEvents.filter((event) =>
-        doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
-      ),
+      localEvents: localEvents.filter((event) => doesEventOverlapDate(event, date)),
       events: events.filter(
-        (event) =>
-          !holidaySourceIds.has(event.sourceId) &&
-          doesDateRangeOverlap(event.startsAt.slice(0, 10), event.endsAt.slice(0, 10), date, date)
+        (event) => !holidaySourceIds.has(event.sourceId) && doesEventOverlapDate(event, date)
       )
     };
   });
+};
+
+const doesEventOverlapDate = (
+  event: Pick<CalendarEventOccurrence | LocalEvent, 'startsAt' | 'endsAt' | 'allDay'>,
+  date: string
+): boolean => {
+  const range = calendarEventDisplayDateRange(event);
+  return doesDateRangeOverlap(range.startDate, range.endDate, date, date);
 };
 
 export const buildVisibleCalendarItems = ({

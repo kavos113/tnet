@@ -3,7 +3,11 @@ import {
   buildVisibleCalendarItems,
   type CalendarDateRange
 } from '@tnet/app-tasks/shared/calendarView';
-import { compareTaskDeadlines, compareUndatedTasks } from '@tnet/app-tasks/shared/dateHelpers';
+import {
+  calendarEventDisplayDateRange,
+  compareTaskDeadlines,
+  compareUndatedTasks
+} from '@tnet/app-tasks/shared/dateHelpers';
 import type { TasksGlobalSettings } from '@tnet/app-tasks/shared/config';
 import type {
   CalendarEventOccurrence,
@@ -78,10 +82,10 @@ export const useTasksAgendaData = ({
   const todayEvents = useMemo(
     () =>
       [...localEvents, ...calendarOccurrences]
-        .filter(
-          (event) =>
-            event.startsAt.slice(0, 10) <= currentDate && event.endsAt.slice(0, 10) >= currentDate
-        )
+        .filter((event) => {
+          const range = calendarEventDisplayDateRange(event);
+          return range.startDate <= currentDate && range.endDate >= currentDate;
+        })
         .sort((left, right) => left.startsAt.localeCompare(right.startsAt)),
     [calendarOccurrences, currentDate, localEvents]
   );
