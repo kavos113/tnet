@@ -139,6 +139,7 @@ private fun RssFolderPicker(
 internal fun RssFeedRow(
   feed: RssFeed,
   selected: Boolean = false,
+  isSyncing: Boolean = false,
   onClick: (() -> Unit)? = null,
   onRefresh: () -> Unit,
   onEdit: () -> Unit,
@@ -159,7 +160,14 @@ internal fun RssFeedRow(
       )
       feed.lastRefreshLabel?.let {
         Text(
-          text = it,
+          text = if (isSyncing) "Syncing..." else it,
+          style = MaterialTheme.typography.bodySmall,
+          color = TnetPrimary
+        )
+      }
+      if (isSyncing && feed.lastRefreshLabel == null) {
+        Text(
+          text = "Syncing...",
           style = MaterialTheme.typography.bodySmall,
           color = TnetPrimary
         )

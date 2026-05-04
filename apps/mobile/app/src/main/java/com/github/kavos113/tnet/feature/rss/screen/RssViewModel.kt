@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.joinAll
 
 class RssViewModel(
   private val repository: RssRepository = InMemoryRssRepository(),
@@ -30,17 +31,26 @@ class RssViewModel(
 
   init {
     viewModelScope.launch {
-      combine(repository.feeds, repository.folders, repository.items) { feeds, folders, items ->
-        Triple(feeds, folders, items)
-      }.collect { (feeds, folders, items) ->
+      combine(repository.feeds, repository.folders) { feeds, folders -> feeds to folders }
+        .collect { (feeds, folders) ->
+          mutableUiState.update { state ->
+            state.copy(
+              feeds = feeds,
+              folders = folders,
+              nextFeedNumber = nextNumberAfter(feeds.map { it.id }, "feed-"),
+              nextFolderNumber = nextNumberAfter(folders.map { it.id }, "folder-"),
+              selectedSource = state.selectedSource.keepExistingSelection(feeds, folders),
+              isFeedListLoading = false
+            )
+          }
+        }
+    }
+    viewModelScope.launch {
+      repository.items.collect { items ->
         mutableUiState.update { state ->
           state.copy(
-            feeds = feeds,
-            folders = folders,
             items = items,
-            nextFeedNumber = nextNumberAfter(feeds.map { it.id }, "feed-"),
-            nextFolderNumber = nextNumberAfter(folders.map { it.id }, "folder-"),
-            selectedSource = state.selectedSource.keepExistingSelection(feeds, folders)
+            isItemsLoading = false
           )
         }
       }
@@ -59,6 +69,8 @@ class RssViewModel(
     it.copy(bulkImportDraft = value, importMessage = null, error = null)
   }
 
+  fun updateSearchQuery(value: String) = mutableUiState.update { it.copy(searchQuery = value) }
+
   fun openDrawer() = mutableUiState.update { it.copy(isDrawerOpen = true) }
 
   fun closeDrawer() = mutableUiState.update { it.copy(isDrawerOpen = false) }
@@ -72,6 +84,7 @@ class RssViewModel(
         isDrawerOpen = false,
         selectedFeedTitle = when (source) {
           RssSource.All -> null
+          RssSource.Unread -> null
           is RssSource.Folder -> it.folders.firstOrNull { folder -> folder.id == source.folderId }?.title
           is RssSource.Feed -> it.feeds.firstOrNull { feed -> feed.id == source.feedId }?.title
         }
@@ -229,6 +242,8 @@ class RssViewModel(
     mutableUiState.update {
       it.copy(
         feeds = it.feeds.markFeed(feed.id, "Refresh requested"),
+        syncingFeedIds = it.syncingFeedIds + feed.id,
+        isRefreshing = true,
         selectedFeedTitle = feed.title,
         selectedItem = null
       )
@@ -238,25 +253,11 @@ class RssViewModel(
       val result = withContext(Dispatchers.IO) {
         feedFetcher(feed.url)
       }
-      mutableUiState.update { state ->
-        result.fold(
-          onSuccess = { items ->
-            val itemsWithIds = items.withStableIds(feed.id)
-            viewModelScope.launch { repository.upsertItems(itemsWithIds) }
-            val updatedFeed = feed.copy(lastRefreshLabel = "Fetched ${items.size} items")
-            viewModelScope.launch { repository.upsertFeed(updatedFeed) }
-            state.copy(
-              feeds = state.feeds.markFeed(feed.id, "Fetched ${items.size} items"),
-              items = itemsWithIds + state.items.filterNot { it.feedId == feed.id },
-              error = null
-            )
-          },
-          onFailure = {
-            state.copy(
-              items = emptyList(),
-              error = it.message ?: "Feed refresh failed."
-            )
-          }
+      applyFeedSyncResult(feed, result)
+      mutableUiState.update {
+        it.copy(
+          syncingFeedIds = it.syncingFeedIds - feed.id,
+          isRefreshing = it.syncingFeedIds.minus(feed.id).isNotEmpty()
         )
       }
     }
@@ -265,30 +266,48 @@ class RssViewModel(
   fun refreshSelectedSource() {
     val feeds = mutableUiState.value.visibleFeeds
     if (feeds.isEmpty()) return
-    mutableUiState.update { it.copy(isRefreshing = true) }
+    val feedIds = feeds.map { it.id }.toSet()
+    mutableUiState.update {
+      it.copy(
+        isRefreshing = true,
+        syncingFeedIds = it.syncingFeedIds + feedIds
+      )
+    }
     viewModelScope.launch {
-      feeds.forEach { feed ->
-        val result = withContext(Dispatchers.IO) { feedFetcher(feed.url) }
-        mutableUiState.update { state ->
-          result.fold(
-            onSuccess = { items ->
-              val itemsWithIds = items.withStableIds(feed.id)
-              viewModelScope.launch { repository.upsertItems(itemsWithIds) }
-              val updatedFeed = feed.copy(lastRefreshLabel = "Fetched ${items.size} items")
-              viewModelScope.launch { repository.upsertFeed(updatedFeed) }
-              state.copy(
-                feeds = state.feeds.markFeed(feed.id, "Fetched ${items.size} items"),
-                items = itemsWithIds + state.items.filterNot { it.feedId == feed.id },
-                error = null
-              )
-            },
-            onFailure = {
-              state.copy(error = it.message ?: "Feed refresh failed.")
-            }
-          )
+      feeds.map { feed ->
+        launch {
+          val result = withContext(Dispatchers.IO) { feedFetcher(feed.url) }
+          applyFeedSyncResult(feed, result)
+          mutableUiState.update { state ->
+            state.copy(
+              syncingFeedIds = state.syncingFeedIds - feed.id,
+              isRefreshing = state.syncingFeedIds.minus(feed.id).isNotEmpty()
+            )
+          }
         }
-      }
-      mutableUiState.update { it.copy(isRefreshing = false) }
+      }.joinAll()
+      mutableUiState.update { it.copy(isRefreshing = false, syncingFeedIds = it.syncingFeedIds - feedIds) }
+    }
+  }
+
+  private fun applyFeedSyncResult(feed: RssFeed, result: Result<List<RssItem>>) {
+    mutableUiState.update { state ->
+      result.fold(
+        onSuccess = { items ->
+          val itemsWithIds = items.withStableIds(feed.id)
+          viewModelScope.launch { repository.upsertItems(itemsWithIds) }
+          val updatedFeed = feed.copy(lastRefreshLabel = "Fetched ${items.size} items")
+          viewModelScope.launch { repository.upsertFeed(updatedFeed) }
+          state.copy(
+            feeds = state.feeds.markFeed(feed.id, "Fetched ${items.size} items"),
+            items = itemsWithIds + state.items.filterNot { it.feedId == feed.id },
+            error = null
+          )
+        },
+        onFailure = {
+          state.copy(error = it.message ?: "Feed refresh failed.")
+        }
+      )
     }
   }
 
@@ -351,6 +370,7 @@ private fun List<RssFeed>.markFeed(
 private fun RssUiState.importFolderId(): String? {
   return when (val source = selectedSource) {
     RssSource.All -> selectedFolderIdDraft
+    RssSource.Unread -> selectedFolderIdDraft
     is RssSource.Folder -> source.folderId
     is RssSource.Feed -> selectedFolderIdDraft
   }
@@ -362,6 +382,7 @@ private fun RssSource.keepExistingSelection(
 ): RssSource {
   return when (this) {
     RssSource.All -> this
+    RssSource.Unread -> this
     is RssSource.Folder -> if (folders.any { it.id == folderId }) this else RssSource.All
     is RssSource.Feed -> if (feeds.any { it.id == feedId }) this else RssSource.All
   }

@@ -65,6 +65,7 @@ fun RssScreen(
     onFolderTitleChange = rssViewModel::updateFolderTitleDraft,
     onFolderDraftSelected = rssViewModel::selectFolderDraft,
     onBulkImportChange = rssViewModel::updateBulkImportDraft,
+    onSearchQueryChange = rssViewModel::updateSearchQuery,
     onSave = rssViewModel::saveFeed,
     onSaveFolder = rssViewModel::saveFolder,
     onImportBulk = { rssViewModel.importFeedsFromText() },

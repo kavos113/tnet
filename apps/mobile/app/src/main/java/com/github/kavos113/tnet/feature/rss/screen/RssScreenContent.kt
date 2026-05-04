@@ -7,13 +7,22 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Inbox
+import androidx.compose.material.icons.rounded.MarkEmailUnread
+import androidx.compose.material.icons.rounded.RssFeed
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -28,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import com.github.kavos113.tnet.ui.components.TnetListRow
+import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace2
@@ -46,6 +56,7 @@ internal fun RssScreenContent(
   onFolderTitleChange: (String) -> Unit,
   onFolderDraftSelected: (String?) -> Unit,
   onBulkImportChange: (String) -> Unit,
+  onSearchQueryChange: (String) -> Unit,
   onSave: () -> Unit,
   onSaveFolder: () -> Unit,
   onImportBulk: () -> Unit,
@@ -110,6 +121,7 @@ internal fun RssScreenContent(
         uiState = uiState,
         onOpenDrawer = onOpenDrawer,
         onRefreshSelected = onRefreshSelected,
+        onSearchQueryChange = onSearchQueryChange,
         onItemSelected = onItemSelected,
         modifier = Modifier.fillMaxSize()
       )
@@ -174,15 +186,48 @@ private fun RssDrawerPanel(
     Text(text = "RSS", style = MaterialTheme.typography.titleLarge)
     RssSourceRow(
       title = "All feeds",
+      icon = { Icon(Icons.Rounded.Inbox, contentDescription = null) },
       selected = uiState.selectedSource == RssSource.All,
       onClick = { onSourceSelected(RssSource.All) }
     )
+    RssSourceRow(
+      title = "Unread",
+      icon = { Icon(Icons.Rounded.MarkEmailUnread, contentDescription = null) },
+      selected = uiState.selectedSource == RssSource.Unread,
+      onClick = { onSourceSelected(RssSource.Unread) }
+    )
+    if (uiState.isFeedListLoading) {
+      Text(
+        text = "Loading feeds...",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted
+      )
+    }
     uiState.folders.forEach { folder ->
       RssSourceRow(
         title = folder.title,
+        icon = {
+          Icon(
+            if (uiState.selectedSource == RssSource.Folder(folder.id)) {
+              Icons.Rounded.FolderOpen
+            } else {
+              Icons.Rounded.Folder
+            },
+            contentDescription = null
+          )
+        },
         selected = uiState.selectedSource == RssSource.Folder(folder.id),
         onClick = { onSourceSelected(RssSource.Folder(folder.id)) }
       )
+      uiState.feeds.filter { it.folderId == folder.id }.forEach { feed ->
+        RssFeedTreeRow(
+          feed = feed,
+          selected = uiState.selectedSource == RssSource.Feed(feed.id),
+          indent = true,
+          isSyncing = feed.id in uiState.syncingFeedIds,
+          onClick = { onSourceSelected(RssSource.Feed(feed.id)) }
+        )
+      }
     }
     RssFolderForm(
       title = uiState.folderTitleDraft,
@@ -210,10 +255,11 @@ private fun RssDrawerPanel(
     if (uiState.feeds.isEmpty()) {
       Text(text = "No feeds yet.", color = TnetTextMuted)
     } else {
-      uiState.feeds.forEach { feed ->
+      uiState.feeds.filter { it.folderId == null }.forEach { feed ->
         RssFeedRow(
           feed = feed,
           selected = uiState.selectedSource == RssSource.Feed(feed.id),
+          isSyncing = feed.id in uiState.syncingFeedIds,
           onClick = { onSourceSelected(RssSource.Feed(feed.id)) },
           onRefresh = { onRefresh(feed) },
           onEdit = { onEdit(feed) },
@@ -227,11 +273,37 @@ private fun RssDrawerPanel(
 @Composable
 private fun RssSourceRow(
   title: String,
+  icon: @Composable () -> Unit,
   selected: Boolean,
   onClick: () -> Unit
 ) {
   TnetListRow(selected = selected, onClick = onClick) {
-    Text(text = title, style = MaterialTheme.typography.bodyLarge)
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      icon()
+      Text(text = title, style = MaterialTheme.typography.bodyLarge)
+    }
+  }
+}
+
+@Composable
+private fun RssFeedTreeRow(
+  feed: RssFeed,
+  selected: Boolean,
+  indent: Boolean,
+  isSyncing: Boolean,
+  onClick: () -> Unit
+) {
+  TnetListRow(selected = selected, onClick = onClick) {
+    Row(
+      modifier = Modifier.padding(start = if (indent) TnetSpace4 else 0.dp),
+      horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
+    ) {
+      Icon(if (isSyncing) Icons.Rounded.Sync else Icons.Rounded.RssFeed, contentDescription = null)
+      Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(text = feed.title, style = MaterialTheme.typography.bodyMedium)
+        Text(text = feed.url, style = MaterialTheme.typography.bodySmall, color = TnetTextMuted, maxLines = 1)
+      }
+    }
   }
 }
 
@@ -240,6 +312,7 @@ private fun RssArticleListSurface(
   uiState: RssUiState,
   onOpenDrawer: () -> Unit,
   onRefreshSelected: () -> Unit,
+  onSearchQueryChange: (String) -> Unit,
   onItemSelected: (RssItem) -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -250,16 +323,30 @@ private fun RssArticleListSurface(
       .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
     verticalArrangement = Arrangement.spacedBy(TnetSpace2)
   ) {
-    TnetSecondaryButton(text = "Feeds", onClick = onOpenDrawer)
-    Text(text = uiState.selectedSourceTitle, style = MaterialTheme.typography.headlineSmall)
-    TnetPrimaryButton(
-      text = if (uiState.isRefreshing) "Refreshing..." else "Refresh",
-      onClick = onRefreshSelected
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetSecondaryButton(text = "Feeds", onClick = onOpenDrawer)
+      TnetPrimaryButton(
+        text = if (uiState.isRefreshing) "Syncing" else "Sync All",
+        onClick = onRefreshSelected
+      )
+    }
+    Text(text = uiState.selectedSourceTitle, style = MaterialTheme.typography.titleLarge)
+    TnetCompactTextField(
+      value = uiState.searchQuery,
+      onValueChange = onSearchQueryChange,
+      label = "Search items",
+      modifier = Modifier.fillMaxWidth()
     )
     when {
       uiState.visibleFeeds.isEmpty() -> TnetStateMessage(
         title = "No feeds selected",
         detail = "Swipe from the left edge or open the feeds panel.",
+        modifier = Modifier.fillMaxWidth()
+      )
+
+      uiState.isItemsLoading -> TnetStateMessage(
+        title = "Loading cached RSS items...",
+        detail = "Feeds are available while article counts load.",
         modifier = Modifier.fillMaxWidth()
       )
 
@@ -295,6 +382,7 @@ private fun RssScreenContentPreview() {
       onFolderTitleChange = {},
       onFolderDraftSelected = {},
       onBulkImportChange = {},
+      onSearchQueryChange = {},
       onSave = {},
       onSaveFolder = {},
       onImportBulk = {},

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,7 +20,6 @@ import com.github.kavos113.tnet.feature.rss.model.RssItem
 import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
-import com.github.kavos113.tnet.ui.theme.TnetPrimary
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -39,18 +39,31 @@ internal fun RssItemList(
     items.forEach { item ->
       TnetListRow(onClick = { onItemSelected(item) }) {
         Column(
-          verticalArrangement = Arrangement.spacedBy(4.dp)
+          verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-          Text(
-            text = if (item.isRead) item.title else "Unread - ${item.title}",
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (item.isRead) TnetTextMuted else MaterialTheme.colorScheme.onSurface
-          )
-          item.publishedAt?.let {
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+              text = item.title,
+              modifier = Modifier.weight(1f),
+              style = MaterialTheme.typography.bodyMedium,
+              color = if (item.isRead) TnetTextMuted else MaterialTheme.colorScheme.onSurface,
+              maxLines = 1
+            )
+            item.publishedAt?.let {
+              Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = TnetTextMuted,
+                maxLines = 1
+              )
+            }
+          }
+          item.contentHtml?.readablePreview()?.let {
             Text(
               text = it,
               style = MaterialTheme.typography.bodySmall,
-              color = TnetTextMuted
+              color = TnetTextMuted,
+              maxLines = 2
             )
           }
         }
@@ -73,20 +86,14 @@ internal fun RssItemDetail(
     TnetSecondaryButton(text = "Back to articles", onClick = onBack)
     Text(
       text = item.title,
-      style = MaterialTheme.typography.titleMedium
+      style = MaterialTheme.typography.headlineSmall
     )
-    item.publishedAt?.let {
+    val meta = listOfNotNull(item.publishedAt, item.link).joinToString(" - ")
+    if (meta.isNotBlank()) {
       Text(
-        text = it,
+        text = meta,
         style = MaterialTheme.typography.bodySmall,
         color = TnetTextMuted
-      )
-    }
-    item.link?.let {
-      Text(
-        text = it,
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetPrimary
       )
     }
     val contentHtml = item.contentHtml
@@ -154,10 +161,11 @@ private fun buildRssArticleHtml(contentHtml: String): String {
         <style>
           body {
             margin: 0;
-            padding: 16px;
+            padding: 20px;
             font-family: sans-serif;
-            line-height: 1.55;
-            color: #111827;
+            font-size: 16px;
+            line-height: 1.65;
+            color: #202428;
             background: #ffffff;
           }
           img, video, iframe {
@@ -169,13 +177,22 @@ private fun buildRssArticleHtml(contentHtml: String): String {
             overflow-wrap: anywhere;
           }
           a {
-            color: #1d4ed8;
+            color: #166a55;
           }
         </style>
       </head>
       <body>$contentHtml</body>
     </html>
   """.trimIndent()
+}
+
+private fun String.readablePreview(): String? {
+  return replace(Regex("""(?is)<script\b.*?</script>"""), "")
+    .replace(Regex("""(?is)<style\b.*?</style>"""), "")
+    .replace(Regex("""(?is)<[^>]+>"""), " ")
+    .replace(Regex("""\s+"""), " ")
+    .trim()
+    .takeIf { it.isNotEmpty() }
 }
 
 @Preview(showBackground = true)
