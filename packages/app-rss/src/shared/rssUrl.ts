@@ -15,3 +15,32 @@ export const isValidRssUrl = (value: string): boolean => {
     return false;
   }
 };
+
+export interface ParseRssUrlListResult {
+  urls: string[];
+  invalidLines: string[];
+}
+
+export const parseRssUrlList = (value: string): ParseRssUrlListResult => {
+  const urls: string[] = [];
+  const seenUrls = new Set<string>();
+  const invalidLines: string[] = [];
+
+  value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      try {
+        const url = normalizeRssUrl(line);
+        if (!seenUrls.has(url)) {
+          seenUrls.add(url);
+          urls.push(url);
+        }
+      } catch {
+        invalidLines.push(line);
+      }
+    });
+
+  return { urls, invalidLines };
+};

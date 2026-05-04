@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { parseRssUrlList } from '@tnet/app-rss/shared/rssUrl';
 import { rssTnetApi } from './rssTnetApi';
 import { setRssError, setRssFeeds, setRssTree } from './rssSlice';
 import { useRssDispatch } from './storeHooks';
@@ -17,6 +18,10 @@ export const RssSubscribePane = ({
   const dispatch = useRssDispatch();
   const [feedUrl, setFeedUrl] = useState('');
   const [feedTitle, setFeedTitle] = useState('');
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [bulkUrls, setBulkUrls] = useState('');
+  const [bulkMessage, setBulkMessage] = useState('');
+  const [isImportingBulkUrls, setIsImportingBulkUrls] = useState(false);
 
   const refreshNavigation = async (): Promise<void> => {
     const [feeds, tree] = await Promise.all([
@@ -38,6 +43,54 @@ export const RssSubscribePane = ({
     setFeedTitle('');
     await refreshNavigation();
     await onFeedReady(feed.id);
+  };
+
+  const importBulkUrls = async (): Promise<void> => {
+    const parsed = parseRssUrlList(bulkUrls);
+    if (parsed.urls.length === 0) {
+      setBulkMessage(
+        parsed.invalidLines.length > 0
+          ? `No valid URLs found. Invalid: ${parsed.invalidLines.join(', ')}`
+          : 'Enter one feed URL per line.'
+      );
+      return;
+    }
+
+    setIsImportingBulkUrls(true);
+    setBulkMessage('');
+    const failedLines = [...parsed.invalidLines];
+    let importedCount = 0;
+
+    try {
+      for (const url of parsed.urls) {
+        try {
+          await rssTnetApi.rss.feeds.create({
+            url,
+            folderId: selectedFolderId
+          });
+          importedCount += 1;
+        } catch {
+          failedLines.push(url);
+        }
+      }
+
+      if (importedCount > 0) await refreshNavigation();
+
+      if (failedLines.length === 0) {
+        setBulkUrls('');
+        setBulkMessage(`Imported ${importedCount} feed${importedCount === 1 ? '' : 's'}.`);
+        return;
+      }
+
+      setBulkUrls(failedLines.join('\n'));
+      setBulkMessage(
+        importedCount > 0
+          ? `Imported ${importedCount} feed${importedCount === 1 ? '' : 's'}. Failed: ${failedLines.join(', ')}`
+          : `Failed to import: ${failedLines.join(', ')}`
+      );
+    } finally {
+      setIsImportingBulkUrls(false);
+    }
   };
 
   const importLocalXml = async (): Promise<void> => {
@@ -145,12 +198,72 @@ export const RssSubscribePane = ({
           <button
             className={controlStyles.secondaryButton}
             type="button"
+            onClick={() => {
+              setIsBulkImportOpen((current) => !current);
+              setBulkMessage('');
+            }}
+          >
+            Bulk Import URLs
+          </button>
+          <button
+            className={controlStyles.secondaryButton}
+            type="button"
             onClick={() => exportOpml().catch(reportError)}
           >
             Export OPML
           </button>
         </div>
       </form>
+      {isBulkImportOpen ? (
+        <form
+          className={styles.bulkImportForm}
+          aria-label="Bulk import feed URLs"
+          onSubmit={(event) => {
+            event.preventDefault();
+            importBulkUrls().catch(reportError);
+          }}
+        >
+          <label className={styles.field}>
+            <span>Feed URLs</span>
+            <textarea
+              className={`${controlStyles.input} ${styles.bulkUrlInput}`}
+              value={bulkUrls}
+              onChange={(event) => {
+                setBulkUrls(event.target.value);
+                setBulkMessage('');
+              }}
+              placeholder="https://example.com/feed.xml"
+              aria-label="Feed URLs"
+              rows={7}
+            />
+          </label>
+          {bulkMessage ? (
+            <div className={styles.bulkImportMessage} role="status">
+              {bulkMessage}
+            </div>
+          ) : null}
+          <div className={styles.subscribeActions}>
+            <button
+              className={controlStyles.button}
+              type="submit"
+              disabled={isImportingBulkUrls || !bulkUrls.trim()}
+            >
+              {isImportingBulkUrls ? 'Importing...' : 'Import URLs'}
+            </button>
+            <button
+              className={controlStyles.secondaryButton}
+              type="button"
+              disabled={isImportingBulkUrls}
+              onClick={() => {
+                setIsBulkImportOpen(false);
+                setBulkMessage('');
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : null}
     </section>
   );
 };

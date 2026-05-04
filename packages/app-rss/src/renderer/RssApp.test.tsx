@@ -284,6 +284,109 @@ describe('RssApp', () => {
     });
   });
 
+  it('bulk imports newline-delimited feed URLs', async () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+    vi.mocked(rssTnetApi.rss.feeds.create)
+      .mockResolvedValueOnce({
+        id: 'feed-2',
+        title: 'First Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 0
+      })
+      .mockResolvedValueOnce({
+        id: 'feed-3',
+        title: 'Second Feed',
+        url: 'https://example.org/rss',
+        sortOrder: 2,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 0
+      });
+    renderApp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bulk Import URLs' }));
+    fireEvent.change(screen.getByLabelText('Feed URLs'), {
+      target: {
+        value: 'https://example.com/feed.xml#top\n\nhttps://example.org/rss'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Import URLs' }));
+
+    await waitFor(() => expect(rssTnetApi.rss.feeds.create).toHaveBeenCalledTimes(2));
+    expect(rssTnetApi.rss.feeds.create).toHaveBeenNthCalledWith(1, {
+      url: 'https://example.com/feed.xml',
+      folderId: undefined
+    });
+    expect(rssTnetApi.rss.feeds.create).toHaveBeenNthCalledWith(2, {
+      url: 'https://example.org/rss',
+      folderId: undefined
+    });
+    expect(await screen.findByText('Imported 2 feeds.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Feed URLs')).toHaveValue('');
+  });
+
+  it('keeps failed URLs after a partial bulk import', async () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+    vi.mocked(rssTnetApi.rss.feeds.create)
+      .mockResolvedValueOnce({
+        id: 'feed-2',
+        title: 'First Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 0
+      })
+      .mockRejectedValueOnce(new Error('duplicate feed'))
+      .mockResolvedValueOnce({
+        id: 'feed-4',
+        title: 'Third Feed',
+        url: 'https://example.net/rss',
+        sortOrder: 3,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 0
+      });
+    renderApp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bulk Import URLs' }));
+    fireEvent.change(screen.getByLabelText('Feed URLs'), {
+      target: {
+        value: 'https://example.com/feed.xml\nhttps://example.org/rss\nhttps://example.net/rss'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Import URLs' }));
+
+    await waitFor(() => expect(rssTnetApi.rss.feeds.create).toHaveBeenCalledTimes(3));
+    expect(await screen.findByText(/Imported 2 feeds\. Failed:/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Feed URLs')).toHaveValue('https://example.org/rss');
+  });
+
   const renderApp = (): void => {
     render(
       <Provider store={store}>
