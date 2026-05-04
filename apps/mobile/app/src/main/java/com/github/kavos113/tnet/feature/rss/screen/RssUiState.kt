@@ -9,7 +9,6 @@ data class RssUiState(
   val folders: List<RssFolder> = emptyList(),
   val nextFeedNumber: Int = 1,
   val nextFolderNumber: Int = 1,
-  val titleDraft: String = "",
   val urlDraft: String = "",
   val folderTitleDraft: String = "",
   val selectedFolderIdDraft: String? = null,

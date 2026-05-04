@@ -1,14 +1,15 @@
 package com.github.kavos113.tnet.feature.rss.screen
 
 import android.webkit.WebView
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -20,9 +21,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssItem
-import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetRadiusSmall
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace1
+import com.github.kavos113.tnet.ui.components.TnetSpace2
+import com.github.kavos113.tnet.ui.theme.TnetBorder
+import com.github.kavos113.tnet.ui.theme.TnetSurface
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -41,9 +46,9 @@ internal fun RssItemList(
     verticalArrangement = Arrangement.spacedBy(0.dp)
   ) {
     items(items, key = { it.id.ifBlank { "${it.feedId}-${it.title}-${it.publishedAt}" } }) { item ->
-      TnetListRow(onClick = { onItemSelected(item) }) {
+      RssCompactItemRow(onClick = { onItemSelected(item) }) {
         Column(
-          verticalArrangement = Arrangement.spacedBy(3.dp)
+          verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
           Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
@@ -67,7 +72,7 @@ internal fun RssItemList(
               text = it,
               style = MaterialTheme.typography.bodySmall,
               color = TnetTextMuted,
-              maxLines = 2
+              maxLines = 1
             )
           }
         }
@@ -85,13 +90,17 @@ internal fun RssItemDetail(
 
   Column(
     modifier = Modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.spacedBy(8.dp)
+    verticalArrangement = Arrangement.spacedBy(TnetSpace1)
   ) {
-    TnetSecondaryButton(text = "Back to articles", onClick = onBack)
-    Text(
-      text = item.title,
-      style = MaterialTheme.typography.headlineSmall
-    )
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetSecondaryButton(text = "Back", onClick = onBack)
+      Text(
+        text = item.title,
+        modifier = Modifier.weight(1f),
+        style = MaterialTheme.typography.titleLarge,
+        maxLines = 2
+      )
+    }
     val meta = listOfNotNull(item.publishedAt, item.link).joinToString(" - ")
     if (meta.isNotBlank()) {
       Text(
@@ -117,6 +126,26 @@ internal fun RssItemDetail(
           modifier = Modifier.fillMaxSize()
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun RssCompactItemRow(
+  onClick: () -> Unit,
+  content: @Composable () -> Unit
+) {
+  Surface(
+    modifier = Modifier.fillMaxWidth(),
+    onClick = onClick,
+    color = TnetSurface,
+    border = BorderStroke(0.5.dp, TnetBorder),
+    shape = androidx.compose.foundation.shape.RoundedCornerShape(TnetRadiusSmall),
+    tonalElevation = 0.dp,
+    shadowElevation = 0.dp
+  ) {
+    Box(modifier = Modifier.padding(horizontal = TnetSpace2, vertical = 4.dp)) {
+      content()
     }
   }
 }
@@ -165,10 +194,10 @@ private fun buildRssArticleHtml(contentHtml: String): String {
         <style>
           body {
             margin: 0;
-            padding: 20px;
+            padding: 8px 10px;
             font-family: sans-serif;
-            font-size: 16px;
-            line-height: 1.65;
+            font-size: 15px;
+            line-height: 1.45;
             color: #202428;
             background: #ffffff;
           }

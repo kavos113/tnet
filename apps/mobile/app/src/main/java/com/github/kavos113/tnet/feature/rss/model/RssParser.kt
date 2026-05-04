@@ -7,18 +7,25 @@ import java.io.ByteArrayInputStream
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 
-fun parseRssItems(xml: String): List<RssItem> {
+data class ParsedRssFeed(
+  val title: String?,
+  val items: List<RssItem>
+)
+
+fun parseRssFeed(xml: String): ParsedRssFeed {
   val source = xml.trim()
-  if (source.startsWith("{")) return parseJsonFeedItems(source)
+  if (source.startsWith("{")) return parseJsonFeed(source)
 
   return runCatching {
-    parseXmlFeedItems(source)
+    parseXmlFeed(source)
   }.getOrElse {
-    parseTolerantFeedItems(source)
+    parseTolerantFeed(source)
   }
 }
 
-private fun parseXmlFeedItems(xml: String): List<RssItem> {
+fun parseRssItems(xml: String): List<RssItem> = parseRssFeed(xml).items
+
+private fun parseXmlFeed(xml: String): ParsedRssFeed {
   val document = DocumentBuilderFactory
     .newInstance()
     .apply {
@@ -37,21 +44,30 @@ private fun parseXmlFeedItems(xml: String): List<RssItem> {
 
   val rootName = document.documentElement?.localName?.lowercase()
   val rootTagName = document.documentElement?.tagName?.lowercase()
-  if (rootName == "feed") return parseAtomEntries(document.documentElement)
-  if (rootName != "rss" && rootName != "rdf" && rootTagName != "rdf:rdf") return emptyList()
-
-  val rssItems = document.getElementsByTagName("item")
-  return (0 until rssItems.length).mapNotNull { index ->
-    val element = rssItems.item(index) as? Element ?: return@mapNotNull null
-    val title = element.childText("title") ?: return@mapNotNull null
-    RssItem(
-      title = title,
-      link = element.childText("link"),
-      publishedAt = element.childText("pubDate") ?: element.childText("dc:date"),
-      contentHtml = element.childText("content:encoded")?.sanitizeFeedHtml()
-        ?: element.childText("description")?.sanitizeFeedHtml()
+  if (rootName == "feed") {
+    return ParsedRssFeed(
+      title = document.documentElement.childText("title"),
+      items = parseAtomEntries(document.documentElement)
     )
   }
+  if (rootName != "rss" && rootName != "rdf" && rootTagName != "rdf:rdf") return ParsedRssFeed(null, emptyList())
+
+  val feedTitle = (document.getElementsByTagName("channel").item(0) as? Element)?.childText("title")
+  val rssItems = document.getElementsByTagName("item")
+  return ParsedRssFeed(
+    title = feedTitle,
+    items = (0 until rssItems.length).mapNotNull { index ->
+      val element = rssItems.item(index) as? Element ?: return@mapNotNull null
+      val title = element.childText("title") ?: return@mapNotNull null
+      RssItem(
+        title = title,
+        link = element.childText("link"),
+        publishedAt = element.childText("pubDate") ?: element.childText("dc:date"),
+        contentHtml = element.childText("content:encoded")?.sanitizeFeedHtml()
+          ?: element.childText("description")?.sanitizeFeedHtml()
+      )
+    }
+  )
 }
 
 private object SilentThrowingXmlErrorHandler : ErrorHandler {
@@ -81,33 +97,47 @@ private fun parseAtomEntries(root: Element): List<RssItem> {
   }
 }
 
-private fun parseJsonFeedItems(json: String): List<RssItem> {
+private fun parseJsonFeed(json: String): ParsedRssFeed {
   val itemsBody = Regex(""""items"\s*:\s*\[(.*)]""", RegexOption.DOT_MATCHES_ALL)
     .find(json)
     ?.groupValues
     ?.get(1)
-    ?: return emptyList()
+    ?: return ParsedRssFeed(json.jsonStringValue("title"), emptyList())
 
-  return Regex("""\{(.*?)}""", RegexOption.DOT_MATCHES_ALL)
-    .findAll(itemsBody)
-    .mapNotNull { match ->
-      val body = match.groupValues[1]
-      val title = body.jsonStringValue("title") ?: body.jsonStringValue("summary") ?: return@mapNotNull null
-      RssItem(
-        title = title,
-        link = body.jsonStringValue("url") ?: body.jsonStringValue("external_url"),
-        publishedAt = body.jsonStringValue("date_published") ?: body.jsonStringValue("date_modified"),
-        contentHtml = (
-          body.jsonStringValue("content_html")
-            ?: body.jsonStringValue("content_text")
-            ?: body.jsonStringValue("summary")
-          )?.sanitizeFeedHtml()
-      )
-    }
-    .toList()
+  return ParsedRssFeed(
+    title = json.jsonStringValue("title"),
+    items = Regex("""\{(.*?)}""", RegexOption.DOT_MATCHES_ALL)
+      .findAll(itemsBody)
+      .mapNotNull { match ->
+        val body = match.groupValues[1]
+        val title = body.jsonStringValue("title") ?: body.jsonStringValue("summary") ?: return@mapNotNull null
+        RssItem(
+          title = title,
+          link = body.jsonStringValue("url") ?: body.jsonStringValue("external_url"),
+          publishedAt = body.jsonStringValue("date_published") ?: body.jsonStringValue("date_modified"),
+          contentHtml = (
+            body.jsonStringValue("content_html")
+              ?: body.jsonStringValue("content_text")
+              ?: body.jsonStringValue("summary")
+            )?.sanitizeFeedHtml()
+        )
+      }
+      .toList()
+  )
 }
 
-private fun parseTolerantFeedItems(xml: String): List<RssItem> {
+private fun parseTolerantFeed(xml: String): ParsedRssFeed {
+  val feedTitle = Regex("""(?is)<channel\b[^>]*>(.*?)</channel>""")
+    .find(xml)
+    ?.groupValues
+    ?.get(1)
+    ?.tagText("title")
+    ?: Regex("""(?is)<feed\b[^>]*>(.*?)</feed>""")
+      .find(xml)
+      ?.groupValues
+      ?.get(1)
+      ?.tagText("title")
+
   val rssItems = Regex("""(?is)<item\b[^>]*>(.*?)</item>""")
     .findAll(xml)
     .mapNotNull { match ->
@@ -122,22 +152,25 @@ private fun parseTolerantFeedItems(xml: String): List<RssItem> {
       )
     }
     .toList()
-  if (rssItems.isNotEmpty()) return rssItems
+  if (rssItems.isNotEmpty()) return ParsedRssFeed(feedTitle, rssItems)
 
-  return Regex("""(?is)<entry\b[^>]*>(.*?)</entry>""")
-    .findAll(xml)
-    .mapNotNull { match ->
-      val body = match.groupValues[1]
-      val title = body.tagText("title") ?: return@mapNotNull null
-      RssItem(
-        title = title,
-        link = body.atomLinkText(),
-        publishedAt = body.tagText("published") ?: body.tagText("updated"),
-        contentHtml = body.tagHtml("content")?.sanitizeFeedHtml()
-          ?: body.tagHtml("summary")?.sanitizeFeedHtml()
-      )
-    }
-    .toList()
+  return ParsedRssFeed(
+    title = feedTitle,
+    items = Regex("""(?is)<entry\b[^>]*>(.*?)</entry>""")
+      .findAll(xml)
+      .mapNotNull { match ->
+        val body = match.groupValues[1]
+        val title = body.tagText("title") ?: return@mapNotNull null
+        RssItem(
+          title = title,
+          link = body.atomLinkText(),
+          publishedAt = body.tagText("published") ?: body.tagText("updated"),
+          contentHtml = body.tagHtml("content")?.sanitizeFeedHtml()
+            ?: body.tagHtml("summary")?.sanitizeFeedHtml()
+        )
+      }
+      .toList()
+  )
 }
 
 private fun DocumentBuilderFactory.enableFeatureIfSupported(

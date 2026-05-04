@@ -4,6 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +15,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Folder
@@ -37,22 +43,23 @@ import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssFolder
 import com.github.kavos113.tnet.feature.rss.model.RssItem
-import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetRadiusSmall
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace1
 import com.github.kavos113.tnet.ui.components.TnetSpace2
-import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
 import com.github.kavos113.tnet.ui.components.TnetStateMessage
+import com.github.kavos113.tnet.ui.theme.TnetBorder
 import com.github.kavos113.tnet.ui.theme.TnetSurface
+import com.github.kavos113.tnet.ui.theme.TnetSurfaceHover
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
 internal fun RssScreenContent(
   uiState: RssUiState,
-  onTitleChange: (String) -> Unit,
   onUrlChange: (String) -> Unit,
   onFolderTitleChange: (String) -> Unit,
   onFolderDraftSelected: (String?) -> Unit,
@@ -95,7 +102,6 @@ internal fun RssScreenContent(
       ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.88f)) {
         RssDrawerPanel(
           uiState = uiState,
-          onTitleChange = onTitleChange,
           onUrlChange = onUrlChange,
           onFolderTitleChange = onFolderTitleChange,
           onFolderDraftSelected = onFolderDraftSelected,
@@ -110,7 +116,7 @@ internal fun RssScreenContent(
           modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = TnetSpace3, vertical = TnetSpace2)
+            .padding(horizontal = TnetSpace2, vertical = TnetSpace1)
         )
       }
     }
@@ -148,7 +154,7 @@ internal fun RssScreenContent(
             Box(
               modifier = Modifier
                 .fillMaxSize()
-                .padding(TnetSpace3)
+                .padding(TnetSpace2)
             ) {
               RssItemDetail(
                 item = uiState.selectedItem,
@@ -165,7 +171,6 @@ internal fun RssScreenContent(
 @Composable
 private fun RssDrawerPanel(
   uiState: RssUiState,
-  onTitleChange: (String) -> Unit,
   onUrlChange: (String) -> Unit,
   onFolderTitleChange: (String) -> Unit,
   onFolderDraftSelected: (String?) -> Unit,
@@ -181,14 +186,14 @@ private fun RssDrawerPanel(
 ) {
   Column(
     modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(TnetSpace2)
+    verticalArrangement = Arrangement.spacedBy(TnetSpace1)
   ) {
     Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(TnetSpace2),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      Text(text = "RSS Feeds", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+      Text(text = "RSS Feeds", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
       TnetPrimaryButton(text = if (uiState.isRefreshing) "Syncing" else "Sync All", onClick = onSyncAll)
     }
     RssSourceRow(
@@ -244,7 +249,6 @@ private fun RssDrawerPanel(
     )
     RssFeedForm(
       uiState = uiState,
-      onTitleChange = onTitleChange,
       onUrlChange = onUrlChange,
       onFolderSelected = onFolderDraftSelected,
       onBulkImportChange = onBulkImportChange,
@@ -259,7 +263,7 @@ private fun RssDrawerPanel(
     uiState.error?.let {
       Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
     }
-    Text(text = "Feeds", style = MaterialTheme.typography.titleMedium)
+    Text(text = "Feeds", style = MaterialTheme.typography.labelLarge)
     if (uiState.feeds.isEmpty()) {
       Text(text = "No feeds yet.", color = TnetTextMuted)
     } else {
@@ -284,10 +288,12 @@ private fun RssSourceRow(
   selected: Boolean,
   onClick: () -> Unit
 ) {
-  TnetListRow(selected = selected, onClick = onClick) {
+  RssCompactTreeRow(selected = selected, onClick = onClick) {
     Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
-      icon()
-      Text(text = title, style = MaterialTheme.typography.bodyLarge)
+      Box(modifier = Modifier.size(18.dp)) {
+        icon()
+      }
+      Text(text = title, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
     }
   }
 }
@@ -301,14 +307,42 @@ private fun RssFeedTreeRow(
   unreadCount: Int,
   onClick: () -> Unit
 ) {
-  TnetListRow(selected = selected, onClick = onClick) {
+  RssCompactTreeRow(selected = selected, onClick = onClick) {
     Row(
       modifier = Modifier.padding(start = if (indent) TnetSpace4 else 0.dp),
       horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
     ) {
-      Icon(if (isSyncing) Icons.Rounded.Sync else Icons.Rounded.RssFeed, contentDescription = null)
+      Icon(
+        if (isSyncing) Icons.Rounded.Sync else Icons.Rounded.RssFeed,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp)
+      )
       Text(text = "${feed.title} ($unreadCount)", style = MaterialTheme.typography.bodyMedium, maxLines = 1)
     }
+  }
+}
+
+@Composable
+private fun RssCompactTreeRow(
+  selected: Boolean,
+  onClick: () -> Unit,
+  content: @Composable () -> Unit
+) {
+  Box(
+    modifier = Modifier
+      .fillMaxWidth()
+      .background(
+        color = if (selected) TnetSurfaceHover else TnetSurface,
+        shape = RoundedCornerShape(TnetRadiusSmall)
+      )
+      .border(
+        BorderStroke(0.5.dp, TnetBorder),
+        RoundedCornerShape(TnetRadiusSmall)
+      )
+      .clickable(onClick = onClick)
+      .padding(horizontal = TnetSpace2, vertical = 1.dp)
+  ) {
+    content()
   }
 }
 
@@ -328,17 +362,17 @@ private fun RssArticleListSurface(
     modifier = modifier
       .fillMaxSize()
       .padding(0.dp),
-    verticalArrangement = Arrangement.spacedBy(TnetSpace2)
+    verticalArrangement = Arrangement.spacedBy(TnetSpace1)
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = TnetSpace3, vertical = TnetSpace2),
+        .padding(horizontal = TnetSpace2, vertical = TnetSpace1),
       horizontalArrangement = Arrangement.spacedBy(TnetSpace2),
       verticalAlignment = Alignment.CenterVertically
     ) {
       TnetSecondaryButton(text = "Feeds", onClick = onOpenDrawer)
-      Text(text = uiState.selectedSourceTitle, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+      Text(text = uiState.selectedSourceTitle, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
     }
     TnetCompactTextField(
       value = uiState.searchQuery,
@@ -346,17 +380,17 @@ private fun RssArticleListSurface(
       label = "Search items",
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = TnetSpace3)
+        .padding(horizontal = TnetSpace2)
     )
     uiState.selectedFeed?.let { feed ->
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = TnetSpace3),
+          .padding(horizontal = TnetSpace2),
         horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
       ) {
         TnetSecondaryButton(text = if (feed.id in uiState.syncingFeedIds) "Syncing" else "Refresh", onClick = { onRefresh(feed) })
-        TnetSecondaryButton(text = "Rename", onClick = { onEdit(feed) })
+        TnetSecondaryButton(text = "Edit", onClick = { onEdit(feed) })
         TnetSecondaryButton(text = "Delete", onClick = { onRemove(feed) })
       }
     }
@@ -397,7 +431,6 @@ private fun RssScreenContentPreview() {
   TnetTheme {
     RssScreenContent(
       uiState = previewRssUiState(isDrawerOpen = false),
-      onTitleChange = {},
       onUrlChange = {},
       onFolderTitleChange = {},
       onFolderDraftSelected = {},
@@ -427,7 +460,6 @@ private fun RssScreenContentDrawerPreview() {
   TnetTheme {
     RssScreenContent(
       uiState = previewRssUiState(isDrawerOpen = true, syncingFeedIds = setOf("feed-preview")),
-      onTitleChange = {},
       onUrlChange = {},
       onFolderTitleChange = {},
       onFolderDraftSelected = {},
@@ -461,7 +493,6 @@ private fun RssScreenContentDetailPreview() {
         selectedItem = previewRssItems.first(),
         isArticlePanelOpen = true
       ),
-      onTitleChange = {},
       onUrlChange = {},
       onFolderTitleChange = {},
       onFolderDraftSelected = {},
@@ -491,7 +522,6 @@ private fun RssDrawerPanelPreview() {
   TnetTheme {
     RssDrawerPanel(
       uiState = previewRssUiState(syncingFeedIds = setOf("feed-preview")),
-      onTitleChange = {},
       onUrlChange = {},
       onFolderTitleChange = {},
       onFolderDraftSelected = {},
@@ -560,7 +590,6 @@ private fun previewRssUiState(
   return RssUiState(
     feeds = listOf(feed, engineeringFeed),
     folders = listOf(folder),
-    titleDraft = "New feed",
     urlDraft = "https://example.com/feed.xml",
     folderTitleDraft = "Product",
     bulkImportDraft = "https://example.com/news.xml",

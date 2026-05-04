@@ -4,6 +4,10 @@ import java.net.HttpURLConnection
 import java.net.URI
 
 fun fetchRssItems(url: String): Result<List<RssItem>> {
+  return fetchRssFeed(url).map { it.items }
+}
+
+fun fetchRssFeed(url: String): Result<ParsedRssFeed> {
   return runCatching {
     val connection = URI(url).toURL().openConnection() as HttpURLConnection
     connection.connectTimeout = 10_000
@@ -12,7 +16,7 @@ fun fetchRssItems(url: String): Result<List<RssItem>> {
     connection.setRequestProperty("User-Agent", "tnet-mobile")
 
     connection.inputStream.use { input ->
-      parseRssItems(input.bufferedReader().readText())
+      parseRssFeed(input.bufferedReader().readText())
     }
   }
 }

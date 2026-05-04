@@ -60,7 +60,6 @@ fun RssScreen(
 
   RssScreenContent(
     uiState = uiState,
-    onTitleChange = rssViewModel::updateTitleDraft,
     onUrlChange = rssViewModel::updateUrlDraft,
     onFolderTitleChange = rssViewModel::updateFolderTitleDraft,
     onFolderDraftSelected = rssViewModel::selectFolderDraft,

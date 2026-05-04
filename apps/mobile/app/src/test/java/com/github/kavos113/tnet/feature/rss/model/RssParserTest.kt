@@ -6,6 +6,63 @@ import org.junit.Test
 
 class RssParserTest {
   @Test
+  fun parseRssFeedReadsRssFeedTitle() {
+    val feed = parseRssFeed(
+      """
+      <rss>
+        <channel>
+          <title>Example RSS</title>
+          <item>
+            <title>First</title>
+          </item>
+        </channel>
+      </rss>
+      """.trimIndent()
+    )
+
+    assertEquals("Example RSS", feed.title)
+    assertEquals(listOf("First"), feed.items.map { it.title })
+  }
+
+  @Test
+  fun parseRssFeedReadsAtomFeedTitle() {
+    val feed = parseRssFeed(
+      """
+      <feed>
+        <title>Example Atom</title>
+        <entry>
+          <title>Atom item</title>
+        </entry>
+      </feed>
+      """.trimIndent()
+    )
+
+    assertEquals("Example Atom", feed.title)
+    assertEquals(listOf("Atom item"), feed.items.map { it.title })
+  }
+
+  @Test
+  fun parseRssFeedReadsJsonFeedTitle() {
+    val feed = parseRssFeed(
+      """
+      {
+        "version": "https://jsonfeed.org/version/1.1",
+        "title": "Example JSON Feed",
+        "items": [
+          {
+            "id": "json-1",
+            "title": "JSON Item"
+          }
+        ]
+      }
+      """.trimIndent()
+    )
+
+    assertEquals("Example JSON Feed", feed.title)
+    assertEquals(listOf("JSON Item"), feed.items.map { it.title })
+  }
+
+  @Test
   fun parseRssItemsReadsRssItems() {
     val items = parseRssItems(
       """

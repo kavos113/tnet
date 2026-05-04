@@ -1,5 +1,6 @@
 package com.github.kavos113.tnet.feature.rss.screen
 
+import com.github.kavos113.tnet.feature.rss.model.ParsedRssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
@@ -10,47 +11,44 @@ import org.junit.Test
 class RssViewModelTest {
   @Test
   fun saveFeedCreatesFeedAndClearsDraft() {
-    val viewModel = RssViewModel()
+    val viewModel = newRssViewModel()
 
-    viewModel.updateTitleDraft("Example")
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
+    waitUntil { viewModel.uiState.value.feeds.size == 1 }
 
     val state = viewModel.uiState.value
     assertEquals(1, state.feeds.size)
-    assertEquals("Example", state.feeds[0].title)
-    assertEquals("", state.titleDraft)
+    assertEquals("Feed for https://example.com/feed.xml", state.feeds[0].title)
+    assertEquals("", state.urlDraft)
     assertNull(state.error)
   }
 
   @Test
   fun editFeedUpdatesExistingFeed() {
-    val viewModel = RssViewModel()
-    viewModel.updateTitleDraft("Example")
+    val viewModel = newRssViewModel()
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.isNotEmpty() }
 
     viewModel.editFeed(viewModel.uiState.value.feeds[0])
-    viewModel.updateTitleDraft("Updated")
     viewModel.updateUrlDraft("https://example.com/updated.xml")
     viewModel.saveFeed()
-    waitUntil { viewModel.uiState.value.feeds.firstOrNull()?.title == "Updated" }
+    waitUntil { viewModel.uiState.value.feeds.firstOrNull()?.title == "Feed for https://example.com/updated.xml" }
 
     val feed = viewModel.uiState.value.feeds[0]
-    assertEquals("Updated", feed.title)
+    assertEquals("Feed for https://example.com/updated.xml", feed.title)
     assertEquals("https://example.com/updated.xml", feed.url)
     assertNull(viewModel.uiState.value.editingFeedId)
   }
 
   @Test
   fun saveFeedSkipsDuplicateFeedUrl() {
-    val viewModel = RssViewModel()
-    viewModel.updateTitleDraft("Example")
+    val viewModel = newRssViewModel()
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
+    waitUntil { viewModel.uiState.value.feeds.size == 1 }
 
-    viewModel.updateTitleDraft("Duplicate")
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
 
@@ -61,10 +59,10 @@ class RssViewModelTest {
 
   @Test
   fun importFeedsFromTextAddsValidUrlsAndSkipsDuplicates() {
-    val viewModel = RssViewModel()
-    viewModel.updateTitleDraft("Example")
+    val viewModel = newRssViewModel()
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
+    waitUntil { viewModel.uiState.value.feeds.size == 1 }
 
     viewModel.updateBulkImportDraft(
       """
@@ -75,20 +73,21 @@ class RssViewModelTest {
       """.trimIndent()
     )
     viewModel.importFeedsFromText()
+    waitUntil { viewModel.uiState.value.feeds.size == 2 }
 
     val state = viewModel.uiState.value
     assertEquals(2, state.feeds.size)
     assertEquals("https://second.example/rss", state.feeds[0].url)
     assertEquals("", state.bulkImportDraft)
     assertEquals(
-      "Imported 1 feeds. Skipped 2 duplicate feeds. Ignored 1 invalid lines.",
+      "Imported 1 feeds. Skipped 2 duplicate feeds or unreadable feeds. Ignored 1 invalid lines.",
       state.importMessage
     )
   }
 
   @Test
   fun importFeedsFromTextUsesSelectedFolder() {
-    val viewModel = RssViewModel()
+    val viewModel = newRssViewModel()
     viewModel.updateFolderTitleDraft("Research")
     viewModel.saveFolder()
     waitUntil { viewModel.uiState.value.folders.size == 1 }
@@ -96,18 +95,17 @@ class RssViewModelTest {
     viewModel.selectSource(RssSource.Folder(folderId))
 
     viewModel.importFeedsFromText("https://example.com/feed.xml")
+    waitUntil { viewModel.uiState.value.feeds.size == 1 }
 
     assertEquals(folderId, viewModel.uiState.value.feeds.single().folderId)
   }
 
   @Test
   fun selectSourceFiltersVisibleItems() {
-    val viewModel = RssViewModel()
-    viewModel.updateTitleDraft("A")
+    val viewModel = newRssViewModel()
     viewModel.updateUrlDraft("https://a.example/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.size == 1 }
-    viewModel.updateTitleDraft("B")
     viewModel.updateUrlDraft("https://b.example/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.size == 2 }
@@ -126,8 +124,7 @@ class RssViewModelTest {
 
   @Test
   fun unreadSourceShowsOnlyUnreadItems() {
-    val viewModel = RssViewModel()
-    viewModel.updateTitleDraft("Example")
+    val viewModel = newRssViewModel()
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.size == 1 }
@@ -138,6 +135,7 @@ class RssViewModelTest {
         RssItem(id = "item-2", feedId = feed.id, title = "Read", link = null, publishedAt = null, isRead = true)
       )
     )
+    waitUntil { viewModel.uiState.value.items.size == 2 }
 
     viewModel.selectSource(RssSource.Unread)
 
@@ -146,8 +144,7 @@ class RssViewModelTest {
 
   @Test
   fun searchQueryFiltersVisibleItemsByTitleAndContent() {
-    val viewModel = RssViewModel()
-    viewModel.updateTitleDraft("Example")
+    val viewModel = newRssViewModel()
     viewModel.updateUrlDraft("https://example.com/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.size == 1 }
@@ -179,13 +176,12 @@ class RssViewModelTest {
         activeFetches.decrementAndGet()
         completedFetches.incrementAndGet()
         Result.success(listOf(RssItem(title = "Article", link = null, publishedAt = null)))
-      }
+      },
+      feedLoader = { url -> Result.success(ParsedRssFeed(title = "Feed for $url", items = emptyList())) }
     )
-    viewModel.updateTitleDraft("A")
     viewModel.updateUrlDraft("https://a.example/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.size == 1 }
-    viewModel.updateTitleDraft("B")
     viewModel.updateUrlDraft("https://b.example/feed.xml")
     viewModel.saveFeed()
     waitUntil { viewModel.uiState.value.feeds.size == 2 }
@@ -198,7 +194,7 @@ class RssViewModelTest {
 
   @Test
   fun importFeedsFromTextReportsEmptyInput() {
-    val viewModel = RssViewModel()
+    val viewModel = newRssViewModel()
 
     viewModel.importFeedsFromText("  \n ")
 
@@ -207,13 +203,14 @@ class RssViewModelTest {
 
   @Test
   fun selectItemMarksItRead() {
-    val viewModel = RssViewModel()
+    val viewModel = newRssViewModel()
     val item = RssItem(
       title = "Article",
       link = "https://example.com/article",
       publishedAt = "2026-05-04"
     )
     viewModel.replaceItemsForTest(listOf(item))
+    waitUntil { viewModel.uiState.value.items.size == 1 }
 
     viewModel.selectItem(item)
 
@@ -222,6 +219,19 @@ class RssViewModelTest {
     assertTrue(requireNotNull(state.selectedItem).isRead)
     assertTrue(state.items.single().isRead)
   }
+}
+
+private fun newRssViewModel(): RssViewModel {
+  return RssViewModel(
+    feedLoader = { url ->
+      Result.success(
+        ParsedRssFeed(
+          title = "Feed for $url",
+          items = emptyList()
+        )
+      )
+    }
+  )
 }
 
 private fun waitUntil(predicate: () -> Boolean) {

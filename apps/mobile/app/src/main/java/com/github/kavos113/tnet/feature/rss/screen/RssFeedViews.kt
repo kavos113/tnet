@@ -1,34 +1,46 @@
 package com.github.kavos113.tnet.feature.rss.screen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssFolder
-import com.github.kavos113.tnet.ui.components.TnetCompactTextField
 import com.github.kavos113.tnet.ui.components.TnetListRow
-import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetRadiusSmall
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace1
 import com.github.kavos113.tnet.ui.components.TnetSpace2
+import com.github.kavos113.tnet.ui.theme.TnetBorder
 import com.github.kavos113.tnet.ui.theme.TnetPrimary
+import com.github.kavos113.tnet.ui.theme.TnetSurface
+import com.github.kavos113.tnet.ui.theme.TnetText
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
 internal fun RssFeedForm(
   uiState: RssUiState,
-  onTitleChange: (String) -> Unit,
   onUrlChange: (String) -> Unit,
   onFolderSelected: (String?) -> Unit,
   onBulkImportChange: (String) -> Unit,
@@ -37,51 +49,38 @@ internal fun RssFeedForm(
   onImportTextFile: () -> Unit,
   onCancel: () -> Unit
 ) {
-  TnetPanel {
-    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace2)) {
-      TnetCompactTextField(
-        value = uiState.titleDraft,
-        onValueChange = onTitleChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = "Title"
-      )
-      TnetCompactTextField(
-        value = uiState.urlDraft,
-        onValueChange = onUrlChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = "Feed URL"
-      )
-      RssFolderPicker(
-        folders = uiState.folders,
-        selectedFolderId = uiState.selectedFolderIdDraft,
-        onFolderSelected = onFolderSelected
-      )
+  Column(verticalArrangement = Arrangement.spacedBy(TnetSpace1)) {
+    RssCompactInput(
+      value = uiState.urlDraft,
+      onValueChange = onUrlChange,
+      modifier = Modifier.fillMaxWidth(),
+      placeholder = "Feed URL"
+    )
+    RssFolderPicker(
+      folders = uiState.folders,
+      selectedFolderId = uiState.selectedFolderIdDraft,
+      onFolderSelected = onFolderSelected
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetPrimaryButton(text = if (uiState.isEditing) "Save feed" else "Add feed", onClick = onSave)
+      if (uiState.isEditing) {
+        TnetSecondaryButton(text = "Cancel", onClick = onCancel)
+      }
       uiState.editingFeedId?.let {
-        Text(
-          text = "Editing feed",
-          style = MaterialTheme.typography.bodySmall,
-          color = TnetPrimary
-        )
+        Text(text = "Editing feed", style = MaterialTheme.typography.bodySmall, color = TnetPrimary)
       }
+    }
+    if (!uiState.isEditing) {
+      RssCompactInput(
+        value = uiState.bulkImportDraft,
+        onValueChange = onBulkImportChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = "Bulk import URLs",
+        singleLine = false
+      )
       Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
-        TnetPrimaryButton(text = if (uiState.isEditing) "Save feed" else "Add feed", onClick = onSave)
-        if (uiState.isEditing) {
-          TnetSecondaryButton(text = "Cancel", onClick = onCancel)
-        }
-      }
-      if (!uiState.isEditing) {
-        TnetCompactTextField(
-          value = uiState.bulkImportDraft,
-          onValueChange = onBulkImportChange,
-          modifier = Modifier.fillMaxWidth(),
-          label = "Bulk import URLs",
-          singleLine = false,
-          minLines = 4
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
-          TnetSecondaryButton(text = "Import URLs", onClick = onImportBulk)
-          TnetSecondaryButton(text = "Import .txt", onClick = onImportTextFile)
-        }
+        TnetSecondaryButton(text = "Import URLs", onClick = onImportBulk)
+        TnetSecondaryButton(text = "Import .txt", onClick = onImportTextFile)
       }
     }
   }
@@ -93,17 +92,52 @@ internal fun RssFolderForm(
   onTitleChange: (String) -> Unit,
   onSave: () -> Unit
 ) {
-  TnetPanel {
-    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace2)) {
-      TnetCompactTextField(
-        value = title,
-        onValueChange = onTitleChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = "Folder title"
-      )
-      TnetSecondaryButton(text = "Create folder", onClick = onSave)
-    }
+  Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+    RssCompactInput(
+      value = title,
+      onValueChange = onTitleChange,
+      modifier = Modifier
+        .weight(1f),
+      placeholder = "Folder title"
+    )
+    TnetSecondaryButton(text = "Create folder", onClick = onSave)
   }
+}
+
+@Composable
+private fun RssCompactInput(
+  value: String,
+  onValueChange: (String) -> Unit,
+  placeholder: String,
+  modifier: Modifier = Modifier,
+  singleLine: Boolean = true
+) {
+  val inputHeight = if (singleLine) 30.dp else 54.dp
+  BasicTextField(
+    value = value,
+    onValueChange = onValueChange,
+    modifier = modifier
+      .height(inputHeight)
+      .background(TnetSurface, RoundedCornerShape(TnetRadiusSmall))
+      .border(BorderStroke(1.dp, TnetBorder), RoundedCornerShape(TnetRadiusSmall))
+      .padding(horizontal = 8.dp, vertical = 4.dp),
+    singleLine = singleLine,
+    textStyle = MaterialTheme.typography.bodySmall.copy(color = TnetText),
+    cursorBrush = SolidColor(TnetPrimary),
+    decorationBox = { innerTextField ->
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .heightIn(min = 20.dp)
+          .defaultMinSize(minHeight = 20.dp)
+      ) {
+        if (value.isEmpty()) {
+          Text(text = placeholder, style = MaterialTheme.typography.bodySmall, color = TnetTextMuted)
+        }
+        innerTextField()
+      }
+    }
+  )
 }
 
 @Composable
@@ -112,13 +146,9 @@ private fun RssFolderPicker(
   selectedFolderId: String?,
   onFolderSelected: (String?) -> Unit
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-    Text(
-      text = "Folder",
-      style = MaterialTheme.typography.bodySmall,
-      color = TnetTextMuted
-    )
-    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+  Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+    Text(text = "Folder", style = MaterialTheme.typography.bodySmall, color = TnetTextMuted)
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace1)) {
       FilterChip(
         selected = selectedFolderId == null,
         onClick = { onFolderSelected(null) },
@@ -147,32 +177,32 @@ internal fun RssFeedRow(
 ) {
   TnetListRow(selected = selected, onClick = onClick) {
     Column(
-      verticalArrangement = Arrangement.spacedBy(6.dp)
+      verticalArrangement = Arrangement.spacedBy(TnetSpace1)
     ) {
-      Text(
-        text = feed.title,
-        style = MaterialTheme.typography.titleMedium
-      )
-      Text(
-        text = feed.url,
-        style = MaterialTheme.typography.bodyMedium,
-        color = TnetTextMuted
-      )
-      feed.lastRefreshLabel?.let {
+      Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
         Text(
-          text = if (isSyncing) "Syncing..." else it,
-          style = MaterialTheme.typography.bodySmall,
-          color = TnetPrimary
+          text = feed.title,
+          modifier = Modifier.weight(0.35f),
+          style = MaterialTheme.typography.titleSmall,
+          maxLines = 1
         )
-      }
-      if (isSyncing && feed.lastRefreshLabel == null) {
         Text(
-          text = "Syncing...",
+          text = feed.url,
+          modifier = Modifier.weight(0.65f),
           style = MaterialTheme.typography.bodySmall,
-          color = TnetPrimary
+          color = TnetTextMuted,
+          maxLines = 1
         )
       }
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val refreshText = if (isSyncing) "Syncing..." else feed.lastRefreshLabel ?: "Refresh"
+        Text(
+          text = refreshText,
+          modifier = Modifier.weight(1f),
+          style = MaterialTheme.typography.bodySmall,
+          color = if (isSyncing || feed.lastRefreshLabel != null) TnetPrimary else TnetTextMuted,
+          maxLines = 1
+        )
         TnetSecondaryButton(text = "Refresh", onClick = onRefresh)
         TnetSecondaryButton(text = "Edit", onClick = onEdit)
         TnetSecondaryButton(text = "Remove", onClick = onRemove)
@@ -222,11 +252,9 @@ private fun RssFeedFormPreview() {
     Surface(modifier = Modifier.padding(16.dp)) {
       RssFeedForm(
         uiState = RssUiState(
-          titleDraft = "TNET updates",
           urlDraft = "https://example.com/feed.xml",
           bulkImportDraft = "https://example.com/news.xml\nhttps://example.com/blog.xml"
         ),
-        onTitleChange = {},
         onUrlChange = {},
         onFolderSelected = {},
         onBulkImportChange = {},
@@ -246,11 +274,9 @@ private fun RssFeedFormEditingPreview() {
     Surface(modifier = Modifier.padding(16.dp)) {
       RssFeedForm(
         uiState = RssUiState(
-          titleDraft = "Research updates",
           urlDraft = "https://example.com/research.xml",
           editingFeedId = "feed-preview"
         ),
-        onTitleChange = {},
         onUrlChange = {},
         onFolderSelected = {},
         onBulkImportChange = {},

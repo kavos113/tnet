@@ -5,14 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssFolder
 import com.github.kavos113.tnet.feature.rss.model.InMemoryRssRepository
+import com.github.kavos113.tnet.feature.rss.model.ParsedRssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import com.github.kavos113.tnet.feature.rss.model.RssRepository
 import com.github.kavos113.tnet.feature.rss.model.createRssFeed
+import com.github.kavos113.tnet.feature.rss.model.fetchRssFeed
 import com.github.kavos113.tnet.feature.rss.model.fetchRssItems
 import com.github.kavos113.tnet.feature.rss.model.normalizeRssFeedUrl
 import com.github.kavos113.tnet.feature.rss.model.parseRssFeedUrlList
-import com.github.kavos113.tnet.feature.rss.model.updateRssFeed
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +26,8 @@ import kotlinx.coroutines.joinAll
 
 class RssViewModel(
   private val repository: RssRepository = InMemoryRssRepository(),
-  private val feedFetcher: (String) -> Result<List<RssItem>> = ::fetchRssItems
+  private val feedFetcher: (String) -> Result<List<RssItem>> = ::fetchRssItems,
+  private val feedLoader: (String) -> Result<ParsedRssFeed> = ::fetchRssFeed
 ) : ViewModel() {
   private val mutableUiState = MutableStateFlow(RssUiState())
   val uiState: StateFlow<RssUiState> = mutableUiState.asStateFlow()
@@ -56,8 +59,6 @@ class RssViewModel(
       }
     }
   }
-
-  fun updateTitleDraft(value: String) = mutableUiState.update { it.copy(titleDraft = value) }
 
   fun updateUrlDraft(value: String) = mutableUiState.update { it.copy(urlDraft = value) }
 
@@ -119,91 +120,108 @@ class RssViewModel(
   }
 
   fun saveFeed() {
-    var feedToSave: RssFeed? = null
-    mutableUiState.update { state ->
+    val request = mutableUiState.updateAndReturn { state ->
       val editingFeedId = state.editingFeedId
-      if (editingFeedId != null) {
-        val normalizedUrl = normalizeRssFeedUrl(state.urlDraft)
-          ?: return@update state.copy(error = "Enter an http or https feed URL.")
-        if (state.feeds.any { it.id != editingFeedId && normalizeRssFeedUrl(it.url) == normalizedUrl }) {
-          return@update state.copy(error = "Feed URL is already subscribed.")
-        }
-        val updatedFeeds = updateRssFeed(
-          feeds = state.feeds,
-          feedId = editingFeedId,
-          title = state.titleDraft,
-          url = state.urlDraft
-        ) ?: return@update state.copy(error = "Enter an http or https feed URL.")
-        val updatedFeed = updatedFeeds.first { it.id == editingFeedId }.copy(folderId = state.selectedFolderIdDraft)
-        feedToSave = updatedFeed
-
-        state.copy(
-          feeds = updatedFeeds.map { if (it.id == editingFeedId) updatedFeed else it },
-          editingFeedId = null
-        ).clearDraft()
-      } else {
-        val normalizedUrl = normalizeRssFeedUrl(state.urlDraft)
-          ?: return@update state.copy(error = "Enter an http or https feed URL.")
-        if (state.feeds.any { normalizeRssFeedUrl(it.url) == normalizedUrl }) {
-          return@update state.copy(error = "Feed URL is already subscribed.")
-        }
-        val feed = createRssFeed(
-          id = "feed-${state.nextFeedNumber}",
-          title = state.titleDraft,
-          url = state.urlDraft
-        ) ?: return@update state.copy(error = "Enter an http or https feed URL.")
-        val feedWithFolder = feed.copy(folderId = state.selectedFolderIdDraft)
-        feedToSave = feedWithFolder
-
-        state
-          .copy(
-            feeds = listOf(feedWithFolder) + state.feeds,
-            nextFeedNumber = state.nextFeedNumber + 1
-          )
-          .clearDraft()
+      val normalizedUrl = normalizeRssFeedUrl(state.urlDraft)
+        ?: return@updateAndReturn null to state.copy(error = "Enter an http or https feed URL.")
+      if (state.feeds.any { it.id != editingFeedId && normalizeRssFeedUrl(it.url) == normalizedUrl }) {
+        return@updateAndReturn null to state.copy(error = "Feed URL is already subscribed.")
       }
+      val feedId = editingFeedId ?: "feed-${state.nextFeedNumber}"
+      val folderId = state.selectedFolderIdDraft
+      Triple(feedId, normalizedUrl, folderId) to state.copy(error = null, importMessage = "Fetching feed title...")
+    } ?: return
+
+    viewModelScope.launch {
+      val parsedFeed = withContext(Dispatchers.IO) { feedLoader(request.second) }
+      val title = parsedFeed.getOrNull()?.title?.trim().orEmpty()
+      if (title.isBlank()) {
+        mutableUiState.update { it.copy(error = "Could not read RSS feed title.", importMessage = null) }
+        return@launch
+      }
+      val feed = createRssFeed(request.first, title, request.second)?.copy(folderId = request.third)
+      if (feed == null) {
+        mutableUiState.update { it.copy(error = "Enter an http or https feed URL.", importMessage = null) }
+        return@launch
+      }
+      val items = parsedFeed.getOrNull()?.items.orEmpty().withStableIds(feed.id)
+      mutableUiState.update { state ->
+        if (state.editingFeedId == null) {
+          state.copy(
+            feeds = listOf(feed) + state.feeds,
+            items = items + state.items.filterNot { it.feedId == feed.id },
+            nextFeedNumber = state.nextFeedNumber + 1
+          ).clearDraft()
+        } else {
+          state.copy(
+            feeds = state.feeds.map { if (it.id == feed.id) feed.copy(lastRefreshLabel = it.lastRefreshLabel) else it },
+            items = items + state.items.filterNot { it.feedId == feed.id },
+            editingFeedId = null
+          ).clearDraft()
+        }
+      }
+      repository.upsertFeed(feed)
+      repository.upsertItems(items)
     }
-    feedToSave?.let { feed -> viewModelScope.launch { repository.upsertFeed(feed) } }
   }
 
   fun importFeedsFromText(text: String? = null) {
-    var feedsToSave = emptyList<RssFeed>()
-    mutableUiState.update { state ->
+    val request = mutableUiState.updateAndReturn { state ->
       val source = text ?: state.bulkImportDraft
       val parsed = parseRssFeedUrlList(source)
       if (parsed.urls.isEmpty() && parsed.invalidLines.isEmpty()) {
-        return@update state.copy(error = "Enter one feed URL per line.", importMessage = null)
+        return@updateAndReturn null to state.copy(error = "Enter one feed URL per line.", importMessage = null)
       }
 
       val existingUrls = state.feeds.mapNotNull { normalizeRssFeedUrl(it.url) }.toSet()
       val urlsToImport = parsed.urls.filterNot { it in existingUrls }
       val existingSkipped = parsed.urls.size - urlsToImport.size
-      val feeds = urlsToImport.mapIndexedNotNull { index, url ->
-        createRssFeed(
-          id = "feed-${state.nextFeedNumber + index}",
-          title = "",
-          url = url
-        )?.copy(folderId = state.importFolderId())
-      }
-      feedsToSave = feeds
-      val skipped = existingSkipped + parsed.duplicateLines
-      val invalid = parsed.invalidLines.size
+      ImportRequest(
+        urls = urlsToImport,
+        firstFeedNumber = state.nextFeedNumber,
+        folderId = state.importFolderId(),
+        existingSkipped = existingSkipped,
+        duplicateSkipped = parsed.duplicateLines,
+        invalidCount = parsed.invalidLines.size
+      ) to state.copy(
+        bulkImportDraft = if (text == null) "" else state.bulkImportDraft,
+        importMessage = "Fetching feed titles...",
+        error = null
+      )
+    } ?: return
+
+    viewModelScope.launch {
+      val loadedFeeds = request.urls.mapIndexed { index, url ->
+        async(Dispatchers.IO) {
+          val parsedFeed = feedLoader(url).getOrNull() ?: return@async null
+          val title = parsedFeed.title?.trim().orEmpty()
+          if (title.isBlank()) return@async null
+          val feed = createRssFeed("feed-${request.firstFeedNumber + index}", title, url)
+            ?.copy(folderId = request.folderId)
+            ?: return@async null
+          feed to parsedFeed.items.withStableIds(feed.id)
+        }
+      }.mapNotNull { it.await() }
+      val feeds = loadedFeeds.map { it.first }
+      val items = loadedFeeds.flatMap { it.second }
+      val skipped = request.existingSkipped + request.duplicateSkipped + (request.urls.size - feeds.size)
       val messageParts = buildList {
         add("Imported ${feeds.size} feeds.")
-        if (skipped > 0) add("Skipped $skipped duplicate feeds.")
-        if (invalid > 0) add("Ignored $invalid invalid lines.")
+        if (skipped > 0) add("Skipped $skipped duplicate feeds or unreadable feeds.")
+        if (request.invalidCount > 0) add("Ignored ${request.invalidCount} invalid lines.")
       }
 
-      state.copy(
-        feeds = feeds + state.feeds,
-        nextFeedNumber = state.nextFeedNumber + feeds.size,
-        bulkImportDraft = if (text == null) "" else state.bulkImportDraft,
-        importMessage = messageParts.joinToString(" "),
-        error = if (feeds.isEmpty() && invalid > 0) "No valid new feed URLs found." else null
-      )
-    }
-    feedsToSave.forEach { feed ->
-      viewModelScope.launch { repository.upsertFeed(feed) }
+      mutableUiState.update { state ->
+        state.copy(
+          feeds = feeds + state.feeds,
+          items = items + state.items.filterNot { item -> feeds.any { it.id == item.feedId } },
+          nextFeedNumber = state.nextFeedNumber + request.urls.size,
+          importMessage = messageParts.joinToString(" "),
+          error = if (feeds.isEmpty() && request.invalidCount > 0) "No valid new feed URLs found." else null
+        )
+      }
+      feeds.forEach { repository.upsertFeed(it) }
+      repository.upsertItems(items)
     }
   }
 
@@ -213,7 +231,6 @@ class RssViewModel(
     mutableUiState.update {
       it.copy(
         editingFeedId = feed.id,
-        titleDraft = feed.title,
         urlDraft = feed.url,
         selectedFolderIdDraft = feed.folderId,
         error = null
@@ -333,6 +350,7 @@ class RssViewModel(
 
   internal fun replaceItemsForTest(items: List<RssItem>) {
     mutableUiState.update { it.copy(items = items) }
+    viewModelScope.launch { repository.upsertItems(items) }
   }
 }
 
@@ -348,9 +366,17 @@ private fun <T> MutableStateFlow<RssUiState>.updateAndReturn(
   return result
 }
 
+private data class ImportRequest(
+  val urls: List<String>,
+  val firstFeedNumber: Int,
+  val folderId: String?,
+  val existingSkipped: Int,
+  val duplicateSkipped: Int,
+  val invalidCount: Int
+)
+
 private fun RssUiState.clearDraft(): RssUiState {
   return copy(
-    titleDraft = "",
     urlDraft = "",
     selectedFolderIdDraft = null,
     importMessage = null,

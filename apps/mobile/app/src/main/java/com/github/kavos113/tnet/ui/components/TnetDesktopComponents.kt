@@ -164,7 +164,6 @@ fun TnetCompactTextField(
   OutlinedTextField(
     value = value,
     onValueChange = onValueChange,
-    modifier = modifier.defaultMinSize(minHeight = TnetControlHeightMedium),
     singleLine = singleLine,
     minLines = minLines,
     label = { Text(label, style = MaterialTheme.typography.bodySmall) },
