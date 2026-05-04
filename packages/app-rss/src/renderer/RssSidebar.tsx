@@ -33,9 +33,8 @@ export const RssSidebar = (): React.JSX.Element => {
   const dispatch = useRssDispatch();
   const [expandedFolderIds, setExpandedFolderIds] = useState<string[]>([]);
   const [newFolder, setNewFolder] = useState<WorkspaceNewEntryState>(emptyNewFolder);
-  const { tree, selectedView, selectedFeedId, selectedFolderId } = useRssSelector(
-    (state) => state.rss
-  );
+  const { tree, selectedView, selectedFeedId, selectedFolderId, isSidebarDetailsLoading } =
+    useRssSelector((state) => state.rss);
   const feedTree = useMemo(
     () => toRssTreeFileItems(tree.folders, tree.feeds),
     [tree.feeds, tree.folders]
@@ -201,6 +200,11 @@ export const RssSidebar = (): React.JSX.Element => {
           </button>
         ))}
         <section className={styles.directorySection} aria-label="RSS folders">
+          {isSidebarDetailsLoading ? (
+            <div className={styles.loadingStatus} role="status">
+              Loading folders and unread counts...
+            </div>
+          ) : null}
           <ul className={styles.fileList}>
             <WorkspaceFileTree
               items={feedTree}

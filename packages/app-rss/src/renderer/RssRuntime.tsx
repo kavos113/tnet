@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
+import { buildRssTree } from '@tnet/app-rss/shared/rssTree';
 import { rssTnetApi } from './rssTnetApi';
 import {
+  restoreRssFeedList,
   restoreRss,
   setRssError,
   setRssFeeds,
   setRssItems,
+  setRssSidebarDetailsLoading,
   setRssSyncing,
   setRssTree
 } from './rssSlice';
@@ -19,6 +22,15 @@ export const RssRuntime = (): null => {
 
     const restore = async (): Promise<void> => {
       const config = await rssTnetApi.rss.config.loadGlobal();
+      const initialFeeds = await rssTnetApi.rss.feeds.listBasic();
+      if (canceled) return;
+      dispatch(
+        restoreRssFeedList({
+          feeds: initialFeeds,
+          tree: buildRssTree([], initialFeeds),
+          settings: config.settings
+        })
+      );
       if (config.settings.syncOnStartup) {
         dispatch(setRssSyncing(true));
         await rssTnetApi.rss.feeds.sync().finally(() => dispatch(setRssSyncing(false)));
@@ -31,6 +43,7 @@ export const RssRuntime = (): null => {
       ]);
       if (canceled) return;
       dispatch(restoreRss({ folders, feeds, tree, items, settings: config.settings }));
+      dispatch(setRssSidebarDetailsLoading(false));
       intervalId = window.setInterval(
         () => {
           dispatch(setRssSyncing(true));
@@ -56,7 +69,10 @@ export const RssRuntime = (): null => {
 
     restore().catch((error: unknown) => {
       console.error('Failed to restore RSS app', error);
-      if (!canceled) dispatch(setRssError(error instanceof Error ? error.message : String(error)));
+      if (!canceled) {
+        dispatch(setRssSidebarDetailsLoading(false));
+        dispatch(setRssError(error instanceof Error ? error.message : String(error)));
+      }
     });
 
     return () => {

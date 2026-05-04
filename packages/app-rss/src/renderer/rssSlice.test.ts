@@ -5,6 +5,7 @@ import reducer, {
   appendRssItems,
   openRssSubscribe,
   restoreRss,
+  restoreRssFeedList,
   selectRssFeed,
   selectRssFolder,
   selectRssItem,
@@ -73,6 +74,36 @@ describe('rssSlice', () => {
     expect(state.isRestored).toBe(true);
     expect(state.selectedView).toBe('all');
     expect(state.nextCursor).toBe('next');
+    expect(state.isSidebarDetailsLoading).toBe(false);
+  });
+
+  it('restores a feed-only sidebar snapshot while details load', () => {
+    const settings = { ...defaultRssGlobalSettings(), defaultFilter: 'unread' as const };
+
+    const state = reducer(
+      undefined,
+      restoreRssFeedList({
+        feeds: [
+          {
+            id: 'feed-1',
+            title: 'Feed',
+            url: 'https://example.test/feed.xml',
+            sortOrder: 0,
+            enabled: true,
+            createdAt: '',
+            updatedAt: '',
+            unreadCount: 0
+          }
+        ],
+        tree: { folders: [], feeds: [] },
+        settings
+      })
+    );
+
+    expect(state.isRestored).toBe(true);
+    expect(state.selectedView).toBe('unread');
+    expect(state.feeds).toHaveLength(1);
+    expect(state.isSidebarDetailsLoading).toBe(true);
   });
 
   it('updates lists, selection, sync state, and errors', () => {

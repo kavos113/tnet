@@ -24,6 +24,7 @@ vi.mock('./rssTnetApi', () => ({
         archive: vi.fn()
       },
       feeds: {
+        listBasic: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
         move: vi.fn(),

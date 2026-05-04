@@ -45,6 +45,7 @@ describe('RSS repositories', () => {
     ]);
 
     expect(feeds.get(feed.id)?.unreadCount).toBe(1);
+    expect(feeds.listBasic()[0].unreadCount).toBe(0);
     const listed = items.list({ feedId: feed.id });
     expect(listed.items).toHaveLength(1);
     items.markRead(listed.items[0].id, true);

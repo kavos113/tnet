@@ -59,6 +59,12 @@
   list-style: none;
 }
 
+.loadingStatus {
+  padding: 4px 8px 8px;
+  font-size: 11px;
+  color: #667680;
+}
+
 .systemNode {
   width: 100%;
   min-width: 0;

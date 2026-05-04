@@ -106,6 +106,7 @@ export const tnetApi: DesktopTnetApi = {
     },
     feeds: {
       list: () => ipcRenderer.invoke(rssIpcChannels.feeds.list),
+      listBasic: () => ipcRenderer.invoke(rssIpcChannels.feeds.listBasic),
       create: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.create, request),
       update: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.update, request),
       importLocalXml: (request) => ipcRenderer.invoke(rssIpcChannels.feeds.importLocalXml, request),

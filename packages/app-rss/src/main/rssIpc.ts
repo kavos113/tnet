@@ -48,6 +48,7 @@ export const registerRssIpc = ({ userDataDir }: RegisterRssIpcOptions): void => 
   });
 
   ipcMain.handle(rssIpcChannels.feeds.list, async () => feedRepository.list());
+  ipcMain.handle(rssIpcChannels.feeds.listBasic, async () => feedRepository.listBasic());
   ipcMain.handle(rssIpcChannels.feeds.create, async (_event, request) => {
     const config = await loadRssGlobalConfig(userDataDir);
     const title =

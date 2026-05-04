@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRssGlobalSettings } from '@tnet/app-rss/shared/config';
 import { RssSidebar } from './RssSidebar';
-import rssReducer, { restoreRss } from './rssSlice';
+import rssReducer, { restoreRss, restoreRssFeedList } from './rssSlice';
 import { rssTnetApi } from './rssTnetApi';
 
 vi.mock('./rssTnetApi', () => ({
@@ -19,6 +19,7 @@ vi.mock('./rssTnetApi', () => ({
         listTree: vi.fn()
       },
       feeds: {
+        listBasic: vi.fn(),
         update: vi.fn(),
         move: vi.fn(),
         remove: vi.fn(),
@@ -223,6 +224,43 @@ describe('RssSidebar', () => {
 
     expect(store.getState().rss.isSubscribeOpen).toBe(true);
     expect(store.getState().rss.selectedFeedId).toBeUndefined();
+  });
+
+  it('shows a loading status while sidebar details are loading', () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRssFeedList({
+        feeds: [
+          {
+            id: 'feed-1',
+            title: 'Fast Feed',
+            url: 'https://example.com/feed.xml',
+            sortOrder: 1,
+            enabled: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            unreadCount: 0
+          }
+        ],
+        tree: {
+          folders: [],
+          feeds: [
+            {
+              kind: 'feed',
+              id: 'feed-1',
+              title: 'Fast Feed',
+              unreadCount: 0
+            }
+          ]
+        },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+
+    renderSidebar();
+
+    expect(screen.getByText('Fast Feed')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Loading folders and unread counts...');
   });
 
   const renderSidebar = (): void => {

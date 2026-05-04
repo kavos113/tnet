@@ -32,6 +32,7 @@ export const rssIpcChannels = {
   },
   feeds: {
     list: 'rss:feeds:list',
+    listBasic: 'rss:feeds:listBasic',
     create: 'rss:feeds:create',
     update: 'rss:feeds:update',
     importLocalXml: 'rss:feeds:importLocalXml',
@@ -71,6 +72,7 @@ export interface RssApi {
     };
     feeds: {
       list: () => Promise<RssFeed[]>;
+      listBasic: () => Promise<RssFeed[]>;
       create: (request: CreateRssFeedInput) => Promise<RssFeed>;
       update: (request: UpdateRssFeedInput) => Promise<RssFeed>;
       importLocalXml: (request: ImportLocalRssFeedInput) => Promise<RssFeed>;

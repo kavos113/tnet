@@ -23,6 +23,7 @@ interface RssState {
   isSubscribeOpen: boolean;
   settings: RssGlobalSettings;
   isRestored: boolean;
+  isSidebarDetailsLoading: boolean;
   isSyncing: boolean;
   syncProgress?: RssSyncProgress;
   error?: string;
@@ -43,6 +44,7 @@ const initialState: RssState = {
   isSubscribeOpen: true,
   settings: defaultRssGlobalSettings(),
   isRestored: false,
+  isSidebarDetailsLoading: false,
   isSyncing: false
 };
 
@@ -68,6 +70,22 @@ const rssSlice = createSlice({
       state.settings = action.payload.settings;
       state.selectedView = action.payload.settings.defaultFilter;
       state.isRestored = true;
+      state.isSidebarDetailsLoading = false;
+    },
+    restoreRssFeedList: (
+      state,
+      action: PayloadAction<{
+        feeds: RssFeed[];
+        tree: RssTreeSnapshot;
+        settings: RssGlobalSettings;
+      }>
+    ) => {
+      state.feeds = action.payload.feeds;
+      state.tree = action.payload.tree;
+      state.settings = action.payload.settings;
+      state.selectedView = action.payload.settings.defaultFilter;
+      state.isRestored = true;
+      state.isSidebarDetailsLoading = true;
     },
     setRssFolders: (state, action: PayloadAction<RssFolder[]>) => {
       state.folders = action.payload;
@@ -77,6 +95,9 @@ const rssSlice = createSlice({
     },
     setRssTree: (state, action: PayloadAction<RssTreeSnapshot>) => {
       state.tree = action.payload;
+    },
+    setRssSidebarDetailsLoading: (state, action: PayloadAction<boolean>) => {
+      state.isSidebarDetailsLoading = action.payload;
     },
     setRssItems: (state, action: PayloadAction<ListRssItemsResult>) => {
       state.items = action.payload.items;
@@ -138,6 +159,7 @@ const rssSlice = createSlice({
 export const {
   appendRssItems,
   openRssSubscribe,
+  restoreRssFeedList,
   restoreRss,
   selectRssFeed,
   selectRssFolder,
@@ -148,6 +170,7 @@ export const {
   setRssFolders,
   setRssItems,
   setRssSettings,
+  setRssSidebarDetailsLoading,
   setRssSyncProgress,
   setRssSyncing,
   setRssTree,

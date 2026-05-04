@@ -20,6 +20,7 @@ export const rssTnetApi: RssApi = {
     },
     feeds: {
       list: () => getApi().rss.feeds.list(),
+      listBasic: () => getApi().rss.feeds.listBasic(),
       create: (request) => getApi().rss.feeds.create(request),
       update: (request) => getApi().rss.feeds.update(request),
       importLocalXml: (request) => getApi().rss.feeds.importLocalXml(request),

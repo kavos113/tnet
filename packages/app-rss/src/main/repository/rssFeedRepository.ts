@@ -56,6 +56,13 @@ const selectFeedsSql = `
   LEFT JOIN rss_items i ON i.feed_id = f.id
 `;
 
+const selectBasicFeedsSql = `
+  SELECT f.id, f.folder_id, f.title, f.url, f.site_url, f.description, f.icon_url,
+         f.sort_order, f.enabled, f.last_synced_at, f.last_sync_error, f.etag,
+         f.last_modified, f.created_at, f.updated_at, 0 AS unread_count
+  FROM rss_feeds f
+`;
+
 export class RssFeedRepository {
   constructor(private readonly database: RssDatabase) {}
 
@@ -64,6 +71,16 @@ export class RssFeedRepository {
       .prepare(
         `${selectFeedsSql}
          GROUP BY f.id
+         ORDER BY f.folder_id IS NOT NULL, f.sort_order ASC, lower(f.title) ASC`
+      )
+      .all() as FeedRow[];
+    return rows.map(toFeed);
+  }
+
+  listBasic(): RssFeed[] {
+    const rows = this.database
+      .prepare(
+        `${selectBasicFeedsSql}
          ORDER BY f.folder_id IS NOT NULL, f.sort_order ASC, lower(f.title) ASC`
       )
       .all() as FeedRow[];

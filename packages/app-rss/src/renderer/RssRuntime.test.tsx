@@ -15,6 +15,7 @@ vi.mock('./rssTnetApi', () => ({
       },
       feeds: {
         sync: vi.fn(),
+        listBasic: vi.fn(),
         list: vi.fn()
       },
       folders: {
@@ -46,6 +47,7 @@ describe('RssRuntime', () => {
       syncedFeedIds: [],
       failedFeedIds: []
     });
+    vi.mocked(rssTnetApi.rss.feeds.listBasic).mockResolvedValue([]);
     vi.mocked(rssTnetApi.rss.folders.list).mockResolvedValue([]);
     vi.mocked(rssTnetApi.rss.feeds.list).mockResolvedValue([]);
     vi.mocked(rssTnetApi.rss.folders.listTree).mockResolvedValue({ folders: [], feeds: [] });
@@ -68,6 +70,62 @@ describe('RssRuntime', () => {
         timeout: 1000
       }
     );
+    rendered.unmount();
+  });
+
+  it('restores a basic feed list before detailed sidebar data finishes loading', async () => {
+    vi.mocked(rssTnetApi.rss.config.loadGlobal).mockResolvedValue({
+      settings: {
+        ...defaultRssGlobalSettings(),
+        syncIntervalMinutes: 60,
+        syncOnStartup: false
+      }
+    });
+    vi.mocked(rssTnetApi.rss.feeds.listBasic).mockResolvedValue([
+      {
+        id: 'feed-1',
+        title: 'Fast Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 0
+      }
+    ]);
+    let resolveDetailedFeeds: (
+      feeds: Awaited<ReturnType<typeof rssTnetApi.rss.feeds.list>>
+    ) => void = () => {};
+    vi.mocked(rssTnetApi.rss.feeds.list).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveDetailedFeeds = resolve;
+      })
+    );
+
+    const rendered = render(
+      <Provider store={store}>
+        <RssRuntime />
+      </Provider>
+    );
+
+    await waitFor(() => expect(store.getState().rss.feeds[0]?.title).toBe('Fast Feed'));
+    expect(store.getState().rss.isSidebarDetailsLoading).toBe(true);
+
+    resolveDetailedFeeds([
+      {
+        id: 'feed-1',
+        title: 'Fast Feed',
+        url: 'https://example.com/feed.xml',
+        sortOrder: 1,
+        enabled: true,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unreadCount: 5
+      }
+    ]);
+
+    await waitFor(() => expect(store.getState().rss.feeds[0]?.unreadCount).toBe(5));
+    expect(store.getState().rss.isSidebarDetailsLoading).toBe(false);
     rendered.unmount();
   });
 });
