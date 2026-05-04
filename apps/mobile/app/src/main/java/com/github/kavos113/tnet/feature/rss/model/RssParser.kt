@@ -2,32 +2,53 @@ package com.github.kavos113.tnet.feature.rss.model
 
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
+import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
 
 fun parseRssItems(xml: String): List<RssItem> {
+  val source = xml.trim()
+  if (source.startsWith("{")) return parseJsonFeedItems(source)
+
+  return runCatching {
+    parseXmlFeedItems(source)
+  }.getOrElse {
+    parseTolerantFeedItems(source)
+  }
+}
+
+private fun parseXmlFeedItems(xml: String): List<RssItem> {
   val document = DocumentBuilderFactory
     .newInstance()
     .apply {
       isNamespaceAware = true
-      setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+      enableFeatureIfSupported(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+      enableFeatureIfSupported("http://apache.org/xml/features/disallow-doctype-decl", true)
+      enableFeatureIfSupported("http://xml.org/sax/features/external-general-entities", false)
+      enableFeatureIfSupported("http://xml.org/sax/features/external-parameter-entities", false)
+      isExpandEntityReferences = false
     }
     .newDocumentBuilder()
     .parse(ByteArrayInputStream(xml.toByteArray(Charsets.UTF_8)))
 
-  val rssItems = document.getElementsByTagName("item")
-  if (rssItems.length > 0) {
-    return (0 until rssItems.length).mapNotNull { index ->
-      val element = rssItems.item(index) as? Element ?: return@mapNotNull null
-      val title = element.childText("title") ?: return@mapNotNull null
-      RssItem(
-        title = title,
-        link = element.childText("link"),
-        publishedAt = element.childText("pubDate")
-      )
-    }
-  }
+  val rootName = document.documentElement?.localName?.lowercase()
+  val rootTagName = document.documentElement?.tagName?.lowercase()
+  if (rootName == "feed") return parseAtomEntries(document.documentElement)
+  if (rootName != "rss" && rootName != "rdf" && rootTagName != "rdf:rdf") return emptyList()
 
-  val atomEntries = document.getElementsByTagName("entry")
+  val rssItems = document.getElementsByTagName("item")
+  return (0 until rssItems.length).mapNotNull { index ->
+    val element = rssItems.item(index) as? Element ?: return@mapNotNull null
+    val title = element.childText("title") ?: return@mapNotNull null
+    RssItem(
+      title = title,
+      link = element.childText("link"),
+      publishedAt = element.childText("pubDate") ?: element.childText("dc:date")
+    )
+  }
+}
+
+private fun parseAtomEntries(root: Element): List<RssItem> {
+  val atomEntries = root.getElementsByTagName("entry")
   return (0 until atomEntries.length).mapNotNull { index ->
     val element = atomEntries.item(index) as? Element ?: return@mapNotNull null
     val title = element.childText("title") ?: return@mapNotNull null
@@ -37,6 +58,122 @@ fun parseRssItems(xml: String): List<RssItem> {
       publishedAt = element.childText("published") ?: element.childText("updated")
     )
   }
+}
+
+private fun parseJsonFeedItems(json: String): List<RssItem> {
+  val itemsBody = Regex(""""items"\s*:\s*\[(.*)]""", RegexOption.DOT_MATCHES_ALL)
+    .find(json)
+    ?.groupValues
+    ?.get(1)
+    ?: return emptyList()
+
+  return Regex("""\{(.*?)}""", RegexOption.DOT_MATCHES_ALL)
+    .findAll(itemsBody)
+    .mapNotNull { match ->
+      val body = match.groupValues[1]
+      val title = body.jsonStringValue("title") ?: body.jsonStringValue("summary") ?: return@mapNotNull null
+      RssItem(
+        title = title,
+        link = body.jsonStringValue("url") ?: body.jsonStringValue("external_url"),
+        publishedAt = body.jsonStringValue("date_published") ?: body.jsonStringValue("date_modified")
+      )
+    }
+    .toList()
+}
+
+private fun parseTolerantFeedItems(xml: String): List<RssItem> {
+  val rssItems = Regex("""(?is)<item\b[^>]*>(.*?)</item>""")
+    .findAll(xml)
+    .mapNotNull { match ->
+      val body = match.groupValues[1]
+      val title = body.tagText("title") ?: return@mapNotNull null
+      RssItem(
+        title = title,
+        link = body.tagText("link"),
+        publishedAt = body.tagText("pubDate") ?: body.tagText("dc:date")
+      )
+    }
+    .toList()
+  if (rssItems.isNotEmpty()) return rssItems
+
+  return Regex("""(?is)<entry\b[^>]*>(.*?)</entry>""")
+    .findAll(xml)
+    .mapNotNull { match ->
+      val body = match.groupValues[1]
+      val title = body.tagText("title") ?: return@mapNotNull null
+      RssItem(
+        title = title,
+        link = body.atomLinkText(),
+        publishedAt = body.tagText("published") ?: body.tagText("updated")
+      )
+    }
+    .toList()
+}
+
+private fun DocumentBuilderFactory.enableFeatureIfSupported(
+  feature: String,
+  enabled: Boolean
+) {
+  runCatching {
+    setFeature(feature, enabled)
+  }
+}
+
+private fun String.tagText(tagName: String): String? {
+  return Regex("""(?is)<$tagName\b[^>]*>(.*?)</$tagName>""")
+    .find(this)
+    ?.groupValues
+    ?.get(1)
+    ?.cleanFeedText()
+}
+
+private fun String.atomLinkText(): String? {
+  val links = Regex("""(?is)<link\b([^>]*)>""").findAll(this)
+  val alternate = links.firstOrNull { match ->
+    val attrs = match.groupValues[1]
+    val rel = attrs.attr("rel")
+    rel == null || rel == "alternate"
+  } ?: return null
+  return alternate.groupValues[1].attr("href")
+}
+
+private fun String.attr(name: String): String? {
+  return Regex("""(?i)\b$name\s*=\s*["']([^"']+)["']""")
+    .find(this)
+    ?.groupValues
+    ?.get(1)
+    ?.decodeXmlEntities()
+}
+
+private fun String.jsonStringValue(name: String): String? {
+  return Regex(""""$name"\s*:\s*"((?:\\.|[^"\\])*)"""")
+    .find(this)
+    ?.groupValues
+    ?.get(1)
+    ?.replace("\\\"", "\"")
+    ?.replace("\\/", "/")
+    ?.replace("\\n", "\n")
+    ?.replace("\\t", "\t")
+    ?.takeIf { it.isNotBlank() }
+}
+
+private fun String.cleanFeedText(): String? {
+  return replace("<![CDATA[", "")
+    .replace("]]>", "")
+    .replace(Regex("""(?is)<script\b.*?</script>"""), "")
+    .replace(Regex("""(?is)<style\b.*?</style>"""), "")
+    .replace(Regex("""(?is)<[^>]+>"""), "")
+    .decodeXmlEntities()
+    .trim()
+    .takeIf { it.isNotEmpty() }
+}
+
+private fun String.decodeXmlEntities(): String {
+  return replace("&amp;", "&")
+    .replace("&lt;", "<")
+    .replace("&gt;", ">")
+    .replace("&quot;", "\"")
+    .replace("&apos;", "'")
 }
 
 private fun Element.childText(tagName: String): String? {
