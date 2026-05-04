@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,6 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.markdown.model.MarkdownBlock
 import com.github.kavos113.tnet.feature.markdown.model.TaskListItem
+import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace3
+import com.github.kavos113.tnet.ui.components.TnetSpace4
+import com.github.kavos113.tnet.ui.theme.TnetPrimary
+import com.github.kavos113.tnet.ui.theme.TnetSurfaceMuted
+import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
@@ -64,8 +70,8 @@ private fun MarkdownScreenContent(
   Column(
     modifier = modifier
       .fillMaxSize()
-      .padding(horizontal = 20.dp, vertical = 18.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
+      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
       text = "Markdown",
@@ -74,25 +80,21 @@ private fun MarkdownScreenContent(
     Text(
       text = "Open a Markdown document in read-only mode.",
       style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
+      color = TnetTextMuted
     )
-    Button(
-      onClick = onOpenDocument
-    ) {
-      Text("Open document")
-    }
+    TnetPrimaryButton(text = "Open document", onClick = onOpenDocument)
     uiState.selectedUri?.let {
       Text(
         text = it,
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = TnetTextMuted
       )
     }
     if (uiState.isLoading) {
       Text(
         text = "Loading document...",
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = TnetTextMuted
       )
     }
     uiState.error?.let {
@@ -116,15 +118,9 @@ private fun MarkdownBlocksPreview(
   blocks: List<MarkdownBlock>,
   modifier: Modifier = Modifier
 ) {
-  Surface(
-    modifier = modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetPanel(modifier = modifier.fillMaxWidth()) {
     Column(
       modifier = Modifier
-        .padding(14.dp)
         .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -195,7 +191,7 @@ private fun MarkdownBlockView(block: MarkdownBlock) {
       text = "Mermaid diagram\n${block.source}",
       style = MaterialTheme.typography.bodyMedium,
       fontFamily = FontFamily.Monospace,
-      color = MaterialTheme.colorScheme.primary
+      color = TnetPrimary
     )
   }
 }

@@ -4,23 +4,25 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,6 +38,15 @@ import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 import com.github.kavos113.tnet.feature.papers.screen.PapersScreen
 import com.github.kavos113.tnet.feature.rss.screen.RssScreen
 import com.github.kavos113.tnet.feature.tasks.screen.TasksScreen
+import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace2
+import com.github.kavos113.tnet.ui.components.TnetSpace3
+import com.github.kavos113.tnet.ui.components.TnetSpace4
+import com.github.kavos113.tnet.ui.theme.TnetBorder
+import com.github.kavos113.tnet.ui.theme.TnetSurfaceMuted
+import com.github.kavos113.tnet.ui.theme.TnetText
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +61,19 @@ fun TnetMobileApp(
     modifier = modifier.fillMaxSize(),
     topBar = {
       TopAppBar(
-        title = { Text(uiState.selectedDestination.label) }
+        title = {
+          Text(
+            text = uiState.selectedDestination.label,
+            style = MaterialTheme.typography.titleMedium
+          )
+        },
+        modifier = Modifier
+          .heightIn(min = 48.dp)
+          .border(BorderStroke(0.5.dp, TnetBorder)),
+        colors = TopAppBarDefaults.topAppBarColors(
+          containerColor = TnetSurfaceMuted,
+          titleContentColor = TnetText
+        )
       )
     },
     bottomBar = {
@@ -75,22 +97,31 @@ private fun TnetNavigationBar(
   selectedDestination: TnetMobileDestination,
   onDestinationSelected: (TnetMobileDestination) -> Unit
 ) {
-  NavigationBar {
+  Surface(
+    modifier = Modifier
+      .fillMaxWidth()
+      .border(BorderStroke(0.5.dp, TnetBorder)),
+    color = TnetSurfaceMuted,
+    tonalElevation = 0.dp,
+    shadowElevation = 0.dp
+  ) {
+    Row(
+      modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+      horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
     TnetMobileDestination.primaryDestinations.forEach { destination ->
-      NavigationBarItem(
-        selected = selectedDestination == destination,
+      val selected = selectedDestination == destination
+      TnetSecondaryButton(
+        text = destination.label,
+        selected = selected,
         onClick = { onDestinationSelected(destination) },
-        icon = {
-          Text(
-            text = destination.label.first().toString(),
-            fontWeight = FontWeight.SemiBold
-          )
-        },
-        label = { Text(destination.label) },
-        modifier = Modifier.semantics {
-          contentDescription = "${destination.label} tab"
-        }
+        modifier = Modifier
+          .weight(1f)
+          .semantics {
+            contentDescription = "${destination.label} tab"
+          }
       )
+    }
     }
   }
 }
@@ -125,13 +156,13 @@ private fun DestinationScreen(
     }
 
     if (destination == TnetMobileDestination.Settings) {
-      SettingsScreen(modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp))
+      SettingsScreen(modifier = Modifier.padding(horizontal = TnetSpace4, vertical = TnetSpace3))
       return@Surface
     }
 
     Column(
-      modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp)
+      modifier = Modifier.padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+      verticalArrangement = Arrangement.spacedBy(TnetSpace3)
     ) {
       Text(
         text = destination.headline,
@@ -151,15 +182,9 @@ private fun DestinationScreen(
 
 @Composable
 private fun PlaceholderPanel(destination: TnetMobileDestination) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetPanel {
     Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(10.dp)
+      verticalArrangement = Arrangement.spacedBy(TnetSpace2)
     ) {
       Text(
         text = "Initial scope",
@@ -217,7 +242,7 @@ private fun SettingsScreenContent(
 ) {
   Column(
     modifier = modifier.fillMaxSize(),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
+    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
       text = "Papers workspace",
@@ -228,13 +253,15 @@ private fun SettingsScreenContent(
       style = MaterialTheme.typography.bodyLarge,
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    Button(
-      onClick = onSelectWorkspace,
+    Box(
       modifier = Modifier.semantics {
         contentDescription = "Select Papers workspace"
       }
     ) {
-      Text("Select workspace")
+      TnetPrimaryButton(
+        text = "Select workspace",
+        onClick = onSelectWorkspace
+      )
     }
     Text(
       text = workspaceLabel,

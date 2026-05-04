@@ -6,14 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,6 +22,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.tasks.model.TaskFilter
 import com.github.kavos113.tnet.feature.tasks.model.TaskItem
 import com.github.kavos113.tnet.feature.tasks.model.TaskPriority
+import com.github.kavos113.tnet.ui.components.TnetCompactTextField
+import com.github.kavos113.tnet.ui.components.TnetListRow
+import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace2
+import com.github.kavos113.tnet.ui.components.TnetSpace3
+import com.github.kavos113.tnet.ui.components.TnetSpace4
+import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
@@ -70,8 +75,8 @@ private fun TasksScreenContent(
   Column(
     modifier = modifier
       .fillMaxSize()
-      .padding(horizontal = 20.dp, vertical = 18.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
+      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
       text = "Tasks",
@@ -80,7 +85,7 @@ private fun TasksScreenContent(
     Text(
       text = "Local task management for this device.",
       style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
+      color = TnetTextMuted
     )
     TaskForm(
       title = uiState.draftTitle,
@@ -138,44 +143,41 @@ private fun TaskForm(
   onSave: () -> Unit,
   onCancel: () -> Unit
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-    OutlinedTextField(
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+    TnetCompactTextField(
       value = title,
       onValueChange = onTitleChange,
       modifier = Modifier.fillMaxWidth(),
-      singleLine = true,
-      label = { Text("Task") }
+      label = "Task"
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-      OutlinedTextField(
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetCompactTextField(
         value = dueDate,
         onValueChange = onDueDateChange,
         modifier = Modifier.weight(1f),
-        singleLine = true,
-        label = { Text("Due date") }
+        label = "Due date"
       )
       PriorityButtons(
         selected = priority,
         onSelected = onPriorityChange
       )
     }
-    OutlinedTextField(
+    TnetCompactTextField(
       value = notes,
       onValueChange = onNotesChange,
       modifier = Modifier.fillMaxWidth(),
+      label = "Notes",
+      singleLine = false,
       minLines = 2,
-      label = { Text("Notes") }
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-      Button(onClick = onSave) {
-        Text(if (isEditing) "Save" else "Add")
-      }
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetPrimaryButton(text = if (isEditing) "Save" else "Add", onClick = onSave)
       if (isEditing) {
-        TextButton(onClick = onCancel) {
-          Text("Cancel")
-        }
+        TnetSecondaryButton(text = "Cancel", onClick = onCancel)
       }
     }
+  }
   }
 }
 
@@ -188,13 +190,9 @@ private fun PriorityButtons(
     TaskPriority.entries.forEach { priority ->
       val buttonText = priority.name
       if (priority == selected) {
-        Button(onClick = { onSelected(priority) }) {
-          Text(buttonText)
-        }
+        TnetPrimaryButton(text = buttonText, onClick = { onSelected(priority) })
       } else {
-        OutlinedButton(onClick = { onSelected(priority) }) {
-          Text(buttonText)
-        }
+        TnetSecondaryButton(text = buttonText, onClick = { onSelected(priority) })
       }
     }
   }
@@ -208,13 +206,9 @@ private fun TaskFilterRow(
   Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
     TaskFilter.entries.forEach { filter ->
       if (filter == selected) {
-        Button(onClick = { onSelected(filter) }) {
-          Text(filter.name)
-        }
+        TnetPrimaryButton(text = filter.name, onClick = { onSelected(filter) })
       } else {
-        OutlinedButton(onClick = { onSelected(filter) }) {
-          Text(filter.name)
-        }
+        TnetSecondaryButton(text = filter.name, onClick = { onSelected(filter) })
       }
     }
   }
@@ -255,15 +249,8 @@ private fun TaskRow(
   onEdit: () -> Unit,
   onSelect: () -> Unit
 ) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    onClick = onSelect,
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetListRow(onClick = onSelect) {
     Column(
-      modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
       verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
       Row(
@@ -291,11 +278,9 @@ private fun TaskRow(
           if (task.notes.isBlank()) null else "Notes"
         ).joinToString(" - "),
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = TnetTextMuted
       )
-      TextButton(onClick = onEdit) {
-        Text("Edit")
-      }
+      TnetSecondaryButton(text = "Edit", onClick = onEdit)
     }
   }
 }
@@ -306,17 +291,9 @@ private fun TaskDetail(
   onBack: () -> Unit,
   onEdit: () -> Unit
 ) {
-  Button(onClick = onBack) {
-    Text("Back to list")
-  }
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetSecondaryButton(text = "Back to list", onClick = onBack)
+  TnetPanel {
     Column(
-      modifier = Modifier.padding(14.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Text(
@@ -332,9 +309,7 @@ private fun TaskDetail(
       DetailLine("Due date", task.dueDate)
       DetailLine("Priority", task.priority.name)
       DetailLine("Notes", task.notes.ifBlank { null })
-      TextButton(onClick = onEdit) {
-        Text("Edit")
-      }
+      TnetSecondaryButton(text = "Edit", onClick = onEdit)
     }
   }
 }
@@ -348,7 +323,7 @@ private fun DetailLine(
   Text(
     text = "$label: $value",
     style = MaterialTheme.typography.bodyMedium,
-    color = MaterialTheme.colorScheme.onSurfaceVariant
+    color = TnetTextMuted
   )
 }
 

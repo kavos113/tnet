@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,6 +18,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
 import com.github.kavos113.tnet.feature.rss.model.RssItem
+import com.github.kavos113.tnet.ui.components.TnetCompactTextField
+import com.github.kavos113.tnet.ui.components.TnetListRow
+import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
+import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace2
+import com.github.kavos113.tnet.ui.components.TnetSpace3
+import com.github.kavos113.tnet.ui.components.TnetSpace4
+import com.github.kavos113.tnet.ui.theme.TnetPrimary
+import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
@@ -61,8 +68,8 @@ private fun RssScreenContent(
   Column(
     modifier = modifier
       .fillMaxSize()
-      .padding(horizontal = 20.dp, vertical = 18.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
+      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
       text = "RSS",
@@ -71,41 +78,35 @@ private fun RssScreenContent(
     Text(
       text = "Manage feeds and fetch articles on this device.",
       style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
+      color = TnetTextMuted
     )
-    OutlinedTextField(
-      value = uiState.titleDraft,
-      onValueChange = onTitleChange,
-      modifier = Modifier.fillMaxWidth(),
-      singleLine = true,
-      label = { Text("Title") }
-    )
-    OutlinedTextField(
-      value = uiState.urlDraft,
-      onValueChange = onUrlChange,
-      modifier = Modifier.fillMaxWidth(),
-      singleLine = true,
-      label = { Text("Feed URL") }
-    )
+    TnetPanel {
+      Column(verticalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+        TnetCompactTextField(
+          value = uiState.titleDraft,
+          onValueChange = onTitleChange,
+          modifier = Modifier.fillMaxWidth(),
+          label = "Title"
+        )
+        TnetCompactTextField(
+          value = uiState.urlDraft,
+          onValueChange = onUrlChange,
+          modifier = Modifier.fillMaxWidth(),
+          label = "Feed URL"
+        )
     uiState.editingFeedId?.let {
       Text(
         text = "Editing feed",
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.primary
+        color = TnetPrimary
       )
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-      Button(
-        onClick = onSave
-      ) {
-        Text(if (uiState.isEditing) "Save feed" else "Add feed")
-      }
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+      TnetPrimaryButton(text = if (uiState.isEditing) "Save feed" else "Add feed", onClick = onSave)
       if (uiState.isEditing) {
-        TextButton(
-          onClick = onCancel
-        ) {
-          Text("Cancel")
-        }
+        TnetSecondaryButton(text = "Cancel", onClick = onCancel)
+      }
+    }
       }
     }
     uiState.error?.let {
@@ -118,7 +119,7 @@ private fun RssScreenContent(
     if (uiState.feeds.isEmpty()) {
       Text(
         text = "No feeds yet.",
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = TnetTextMuted
       )
     } else {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -154,14 +155,8 @@ private fun RssFeedRow(
   onEdit: () -> Unit,
   onRemove: () -> Unit
 ) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetListRow {
     Column(
-      modifier = Modifier.padding(14.dp),
       verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
       Text(
@@ -171,25 +166,19 @@ private fun RssFeedRow(
       Text(
         text = feed.url,
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = TnetTextMuted
       )
       feed.lastRefreshLabel?.let {
         Text(
           text = it,
           style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.primary
+          color = TnetPrimary
         )
       }
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onRefresh) {
-          Text("Refresh")
-        }
-        TextButton(onClick = onEdit) {
-          Text("Edit")
-        }
-        TextButton(onClick = onRemove) {
-          Text("Remove")
-        }
+        TnetSecondaryButton(text = "Refresh", onClick = onRefresh)
+        TnetSecondaryButton(text = "Edit", onClick = onEdit)
+        TnetSecondaryButton(text = "Remove", onClick = onRemove)
       }
     }
   }
@@ -209,15 +198,8 @@ private fun RssItemList(
       style = MaterialTheme.typography.titleMedium
     )
     items.take(20).forEach { item ->
-      Surface(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { onItemSelected(item) },
-        tonalElevation = 1.dp,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainer
-      ) {
+      TnetListRow(onClick = { onItemSelected(item) }) {
         Column(
-          modifier = Modifier.padding(12.dp),
           verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Text(
@@ -228,7 +210,7 @@ private fun RssItemList(
             Text(
               text = it,
               style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
+              color = TnetTextMuted
             )
           }
         }
@@ -244,17 +226,9 @@ private fun RssItemDetail(
 ) {
   if (item == null) return
 
-  Button(onClick = onBack) {
-    Text("Back to articles")
-  }
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetSecondaryButton(text = "Back to articles", onClick = onBack)
+  TnetPanel {
     Column(
-      modifier = Modifier.padding(14.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
       Text(
@@ -265,14 +239,14 @@ private fun RssItemDetail(
         Text(
           text = it,
           style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant
+          color = TnetTextMuted
         )
       }
       item.link?.let {
         Text(
           text = it,
           style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.primary
+          color = TnetPrimary
         )
       }
     }

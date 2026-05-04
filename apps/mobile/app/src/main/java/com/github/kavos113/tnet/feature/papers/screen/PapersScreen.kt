@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +22,14 @@ import com.github.kavos113.tnet.feature.papers.model.PaperAiOutput
 import com.github.kavos113.tnet.feature.papers.model.PaperDetail
 import com.github.kavos113.tnet.feature.papers.model.PaperListItem
 import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
+import com.github.kavos113.tnet.ui.components.TnetListRow
+import com.github.kavos113.tnet.ui.components.TnetPanel
+import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace2
+import com.github.kavos113.tnet.ui.components.TnetSpace3
+import com.github.kavos113.tnet.ui.components.TnetSpace4
+import com.github.kavos113.tnet.ui.theme.TnetPrimary
+import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
 @Composable
@@ -49,8 +56,8 @@ private fun PapersScreenContent(
   Column(
     modifier = modifier
       .fillMaxSize()
-      .padding(horizontal = 20.dp, vertical = 18.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
+      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
       text = "Papers",
@@ -59,7 +66,7 @@ private fun PapersScreenContent(
     Text(
       text = "Read-only papers from a synced desktop workspace.",
       style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
+      color = TnetTextMuted
     )
     PapersWorkspaceStatus(
       workspaceUri = uiState.workspaceUri,
@@ -84,15 +91,9 @@ private fun PapersWorkspaceStatus(
   workspaceUri: String?,
   validation: PapersWorkspaceValidation?
 ) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetPanel {
     Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp)
+      verticalArrangement = Arrangement.spacedBy(TnetSpace2)
     ) {
       Text(
         text = "Workspace",
@@ -101,7 +102,7 @@ private fun PapersWorkspaceStatus(
       Text(
         text = workspaceUri ?: "Select a Papers workspace in Settings.",
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = TnetTextMuted
       )
       val status = when (validation) {
         null -> if (workspaceUri == null) "Not configured" else "Checking workspace..."
@@ -109,9 +110,9 @@ private fun PapersWorkspaceStatus(
         is PapersWorkspaceValidation.Invalid -> validation.reason
       }
       val statusColor = when (validation) {
-        is PapersWorkspaceValidation.Valid -> MaterialTheme.colorScheme.primary
+        is PapersWorkspaceValidation.Valid -> TnetPrimary
         is PapersWorkspaceValidation.Invalid -> MaterialTheme.colorScheme.error
-        null -> MaterialTheme.colorScheme.onSurfaceVariant
+        null -> TnetTextMuted
       }
       Text(
         text = status,
@@ -141,7 +142,7 @@ private fun PapersListPreview(
         Text(
           text = "No papers found.",
           style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant
+          color = TnetTextMuted
         )
       } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -162,15 +163,8 @@ private fun PaperRow(
   paper: PaperListItem,
   onClick: () -> Unit
 ) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    onClick = onClick,
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetListRow(onClick = onClick) {
     Column(
-      modifier = Modifier.padding(14.dp),
       verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
       Text(
@@ -186,7 +180,7 @@ private fun PaperRow(
         Text(
           text = details.joinToString(" - "),
           style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant
+          color = TnetTextMuted
         )
       }
     }
@@ -198,15 +192,13 @@ private fun PaperDetailPreview(
   paper: Result<PaperDetail?>?,
   onBack: () -> Unit
 ) {
-  Button(onClick = onBack) {
-    Text("Back to list")
-  }
+  TnetSecondaryButton(text = "Back to list", onClick = onBack)
 
   when {
     paper == null -> Text(
       text = "Loading paper...",
       style = MaterialTheme.typography.bodyMedium,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
+      color = TnetTextMuted
     )
 
     paper.isFailure -> Text(
@@ -218,7 +210,7 @@ private fun PaperDetailPreview(
     paper.getOrNull() == null -> Text(
       text = "Paper not found.",
       style = MaterialTheme.typography.bodyMedium,
-      color = MaterialTheme.colorScheme.onSurfaceVariant
+      color = TnetTextMuted
     )
 
     else -> PaperDetailCard(requireNotNull(paper.getOrThrow()))
@@ -227,15 +219,9 @@ private fun PaperDetailPreview(
 
 @Composable
 private fun PaperDetailCard(paper: PaperDetail) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    tonalElevation = 1.dp,
-    shape = MaterialTheme.shapes.medium,
-    color = MaterialTheme.colorScheme.surfaceContainer
-  ) {
+  TnetPanel {
     Column(
       modifier = Modifier
-        .padding(14.dp)
         .verticalScroll(rememberScrollState()),
       verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -279,7 +265,7 @@ private fun DetailLine(
   Text(
     text = "$label: $value",
     style = MaterialTheme.typography.bodyMedium,
-    color = MaterialTheme.colorScheme.onSurfaceVariant
+    color = TnetTextMuted
   )
 }
 
