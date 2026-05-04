@@ -10,7 +10,8 @@ data class PaperListItem(
   val title: String,
   val publishedYear: Int?,
   val venue: String?,
-  val pdfPath: String?
+  val pdfPath: String?,
+  val directoryPath: String
 )
 
 data class PaperDetail(
@@ -59,7 +60,7 @@ fun loadPaperList(
       validatePapersDatabase(it)
       it.rawQuery(
         """
-        SELECT id, title, published_year, venue, pdf_path
+        SELECT id, title, published_year, venue, pdf_path, directory_path
         FROM papers
         ORDER BY updated_at DESC
         LIMIT 100
@@ -73,7 +74,8 @@ fun loadPaperList(
             title = cursor.getString(1),
             publishedYear = if (cursor.isNull(2)) null else cursor.getInt(2),
             venue = if (cursor.isNull(3)) null else cursor.getString(3),
-            pdfPath = if (cursor.isNull(4)) null else cursor.getString(4)
+            pdfPath = if (cursor.isNull(4)) null else cursor.getString(4),
+            directoryPath = cursor.getString(5)
           )
         }
         papers

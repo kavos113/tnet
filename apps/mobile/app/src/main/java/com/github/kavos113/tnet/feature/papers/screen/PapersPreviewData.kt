@@ -9,7 +9,8 @@ internal val previewPaperListItem = PaperListItem(
   title = "Component previews for read-only research tools",
   publishedYear = 2026,
   venue = "Mobile Systems Notes",
-  pdfPath = "papers/previews.pdf"
+  pdfPath = "papers/previews.pdf",
+  directoryPath = "papers"
 )
 
 internal val previewPaperDetail = PaperDetail(

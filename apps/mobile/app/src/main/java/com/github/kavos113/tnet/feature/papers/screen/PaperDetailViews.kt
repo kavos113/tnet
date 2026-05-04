@@ -23,9 +23,12 @@ import com.github.kavos113.tnet.ui.theme.TnetTheme
 @Composable
 internal fun PaperDetailPreview(
   paper: Result<PaperDetail?>?,
-  onBack: () -> Unit
+  onBack: () -> Unit,
+  showBackButton: Boolean = true
 ) {
-  TnetSecondaryButton(text = "Back to list", onClick = onBack)
+  if (showBackButton) {
+    TnetSecondaryButton(text = "Back to list", onClick = onBack)
+  }
 
   when {
     paper == null -> Text(

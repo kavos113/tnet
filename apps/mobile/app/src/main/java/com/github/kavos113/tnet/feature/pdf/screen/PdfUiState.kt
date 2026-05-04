@@ -19,7 +19,11 @@ data class PdfUiState(
   val rotation: Int = 0,
   val scrollOffset: Int = 0,
   val error: String? = null,
-  val isLoading: Boolean = false
+  val isLoading: Boolean = false,
+  val isWorkspaceLoading: Boolean = false,
+  val isDrawerOpen: Boolean = false,
+  val expandedPaths: Set<String> = emptySet(),
+  val loadingDirectoryPaths: Set<String> = emptySet()
 ) {
   val canGoToPreviousPage: Boolean = pageIndex > 0 && !isLoading
   val canGoToNextPage: Boolean = pageIndex + 1 < pageCount && !isLoading

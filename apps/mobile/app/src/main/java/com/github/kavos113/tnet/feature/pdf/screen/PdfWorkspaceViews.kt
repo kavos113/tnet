@@ -38,12 +38,18 @@ internal fun PdfOpenedFiles(
 internal fun PdfWorkspaceFileTree(
   items: List<WorkspaceFileItem>,
   selectedPath: String?,
-  onOpenFile: (WorkspaceFileItem) -> Unit
+  expandedPaths: Set<String>,
+  loadingDirectoryPaths: Set<String>,
+  onOpenFile: (WorkspaceFileItem) -> Unit,
+  onToggleDirectory: (WorkspaceFileItem) -> Unit
 ) {
   TnetWorkspaceFileTree(
     items = items,
     selectedPath = selectedPath,
-    alwaysExpanded = true,
-    onOpenFile = onOpenFile
+    expandedPaths = expandedPaths,
+    loadingDirectoryPaths = loadingDirectoryPaths,
+    emptyDirectoryText = "No PDF files.",
+    onOpenFile = onOpenFile,
+    onToggleDirectory = onToggleDirectory
   )
 }

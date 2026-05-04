@@ -19,6 +19,16 @@ fun PapersScreen(
     onSearchQueryChange = viewModel::updateSearchQuery,
     onDirectoryFilterChange = viewModel::updateDirectoryFilter,
     onSortModeChange = viewModel::updateSortMode,
+    onSelectDirectory = viewModel::selectDirectory,
+    onToggleDirectory = viewModel::toggleDirectory,
+    onOpenDrawer = viewModel::openDrawer,
+    onCloseDrawer = viewModel::closeDrawer,
+    onDetailTabSelected = viewModel::selectDetailTab,
+    onPreviousPage = viewModel::goToPreviousPage,
+    onNextPage = viewModel::goToNextPage,
+    onZoomOut = viewModel::zoomOut,
+    onZoomIn = viewModel::zoomIn,
+    onRotate = viewModel::rotateClockwise,
     modifier = modifier
   )
 }
