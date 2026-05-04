@@ -4,19 +4,18 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +50,6 @@ import com.github.kavos113.tnet.ui.components.TnetSpace1
 import com.github.kavos113.tnet.ui.components.TnetSpace2
 import com.github.kavos113.tnet.ui.components.TnetSpace4
 import com.github.kavos113.tnet.ui.components.TnetStateMessage
-import com.github.kavos113.tnet.ui.theme.TnetBorder
 import com.github.kavos113.tnet.ui.theme.TnetSurface
 import com.github.kavos113.tnet.ui.theme.TnetSurfaceHover
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
@@ -144,23 +142,17 @@ internal fun RssScreenContent(
             .fillMaxHeight()
             .fillMaxWidth(0.94f)
             .padding(start = TnetSpace2)
+            .background(TnetSurface)
         ) {
-          androidx.compose.material3.Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = TnetSurface,
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(TnetSpace2)
           ) {
-            Box(
-              modifier = Modifier
-                .fillMaxSize()
-                .padding(TnetSpace2)
-            ) {
-              RssItemDetail(
-                item = uiState.selectedItem,
-                onBack = onItemBack
-              )
-            }
+            RssItemDetail(
+              item = uiState.selectedItem,
+              onBack = onItemBack
+            )
           }
         }
       }
@@ -335,12 +327,10 @@ private fun RssCompactTreeRow(
         color = if (selected) TnetSurfaceHover else TnetSurface,
         shape = RoundedCornerShape(TnetRadiusSmall)
       )
-      .border(
-        BorderStroke(0.5.dp, TnetBorder),
-        RoundedCornerShape(TnetRadiusSmall)
-      )
       .clickable(onClick = onClick)
-      .padding(horizontal = TnetSpace2, vertical = 1.dp)
+      .defaultMinSize(minHeight = 24.dp)
+      .padding(horizontal = TnetSpace2, vertical = 1.dp),
+    contentAlignment = Alignment.CenterStart
   ) {
     content()
   }

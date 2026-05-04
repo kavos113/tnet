@@ -2,20 +2,25 @@ package com.github.kavos113.tnet.feature.rss.screen
 
 import android.webkit.WebView
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
@@ -135,18 +140,17 @@ private fun RssCompactItemRow(
   onClick: () -> Unit,
   content: @Composable () -> Unit
 ) {
-  Surface(
-    modifier = Modifier.fillMaxWidth(),
-    onClick = onClick,
-    color = TnetSurface,
-    border = BorderStroke(0.5.dp, TnetBorder),
-    shape = androidx.compose.foundation.shape.RoundedCornerShape(TnetRadiusSmall),
-    tonalElevation = 0.dp,
-    shadowElevation = 0.dp
+  Box(
+    modifier = Modifier
+      .fillMaxWidth()
+      .background(TnetSurface, RoundedCornerShape(TnetRadiusSmall))
+      .border(BorderStroke(0.5.dp, TnetBorder), RoundedCornerShape(TnetRadiusSmall))
+      .clickable(onClick = onClick)
+      .defaultMinSize(minHeight = 34.dp)
+      .padding(horizontal = TnetSpace2, vertical = 3.dp),
+    contentAlignment = Alignment.CenterStart
   ) {
-    Box(modifier = Modifier.padding(horizontal = TnetSpace2, vertical = 4.dp)) {
-      content()
-    }
+    content()
   }
 }
 
@@ -232,7 +236,7 @@ private fun String.readablePreview(): String? {
 @Composable
 private fun RssItemListPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssItemList(
         selectedFeedTitle = "Mobile Android",
         items = previewRssItems,
@@ -246,7 +250,7 @@ private fun RssItemListPreview() {
 @Composable
 private fun RssItemListEmptyReadStatePreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssItemList(
         selectedFeedTitle = "Unread",
         items = previewRssItems.mapIndexed { index, item ->
@@ -266,7 +270,7 @@ private fun RssItemListEmptyReadStatePreview() {
 @Composable
 private fun RssItemDetailComponentPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssItemDetail(
         item = previewRssItems.first(),
         onBack = {}
@@ -279,7 +283,7 @@ private fun RssItemDetailComponentPreview() {
 @Composable
 private fun RssItemDetailNoContentPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssItemDetail(
         item = previewRssItems.first().copy(contentHtml = null, link = null),
         onBack = {}

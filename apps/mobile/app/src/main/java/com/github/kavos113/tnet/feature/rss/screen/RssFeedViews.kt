@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -215,7 +214,7 @@ internal fun RssFeedRow(
 @Composable
 private fun RssFeedRowPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssFeedRow(
         feed = previewRssFeed,
         onClick = {},
@@ -231,7 +230,7 @@ private fun RssFeedRowPreview() {
 @Composable
 private fun RssFeedRowSyncingPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssFeedRow(
         feed = previewRssFeed.copy(lastRefreshLabel = "Fetched 12 items"),
         selected = true,
@@ -249,7 +248,7 @@ private fun RssFeedRowSyncingPreview() {
 @Composable
 private fun RssFeedFormPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssFeedForm(
         uiState = RssUiState(
           urlDraft = "https://example.com/feed.xml",
@@ -271,7 +270,7 @@ private fun RssFeedFormPreview() {
 @Composable
 private fun RssFeedFormEditingPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssFeedForm(
         uiState = RssUiState(
           urlDraft = "https://example.com/research.xml",
@@ -293,7 +292,7 @@ private fun RssFeedFormEditingPreview() {
 @Composable
 private fun RssFolderFormPreview() {
   TnetTheme {
-    Surface(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.padding(16.dp)) {
       RssFolderForm(
         title = "Research",
         onTitleChange = {},
