@@ -14,6 +14,7 @@ navigationCompose = "2.9.8"
 room = "2.8.4"
 ksp = "2.2.10-2.0.2"
 coroutines = "1.10.2"
+flexmark = "0.64.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -30,6 +31,9 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+flexmark = { group = "com.vladsch.flexmark", name = "flexmark", version.ref = "flexmark" }
+flexmark-ext-tables = { group = "com.vladsch.flexmark", name = "flexmark-ext-tables", version.ref = "flexmark" }
+flexmark-ext-gfm-tasklist = { group = "com.vladsch.flexmark", name = "flexmark-ext-gfm-tasklist", version.ref = "flexmark" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }

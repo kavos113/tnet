@@ -35,6 +35,13 @@ android {
   buildFeatures {
     compose = true
   }
+  packaging {
+    resources {
+      excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      excludes += "/META-INF/LICENSE*"
+      excludes += "/META-INF/NOTICE*"
+    }
+  }
 }
 
 dependencies {
@@ -46,6 +53,9 @@ dependencies {
   implementation(libs.androidx.navigation.compose)
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.room.ktx)
+  implementation(libs.flexmark)
+  implementation(libs.flexmark.ext.tables)
+  implementation(libs.flexmark.ext.gfm.tasklist)
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.graphics)

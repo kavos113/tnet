@@ -65,4 +65,43 @@ class MarkdownBlocksTest {
       blocks
     )
   }
+
+  @Test
+  fun parseMarkdownBlocksKeepsInlineLinkAndImageAsParagraphText() {
+    val blocks = parseMarkdownBlocks(
+      "See [Project](https://example.com) and ![Diagram](images/diagram.png)."
+    )
+
+    assertEquals(
+      listOf(
+        MarkdownBlock.Paragraph("See Project and Diagram.")
+      ),
+      blocks
+    )
+  }
+
+  @Test
+  fun parseMarkdownBlocksTreatsHtmlAsPlainText() {
+    val blocks = parseMarkdownBlocks("<script>alert('x')</script>")
+
+    assertEquals(
+      listOf(MarkdownBlock.Paragraph("<script>alert('x')</script>")),
+      blocks
+    )
+  }
+
+  @Test
+  fun parseMarkdownBlocksDoesNotDropNestedListText() {
+    val blocks = parseMarkdownBlocks(
+      """
+      - Parent
+        - Child
+      """.trimIndent()
+    )
+
+    assertEquals(
+      listOf(MarkdownBlock.BulletList(listOf("Parent Child"))),
+      blocks
+    )
+  }
 }
