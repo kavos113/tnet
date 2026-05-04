@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { parseRssUrlList } from '@tnet/app-rss/shared/rssUrl';
+import { useMemo, useState } from 'react';
+import { normalizeRssUrl, parseRssUrlList } from '@tnet/app-rss/shared/rssUrl';
 import { rssTnetApi } from './rssTnetApi';
 import { setRssError, setRssFeeds, setRssTree } from './rssSlice';
-import { useRssDispatch } from './storeHooks';
+import { useRssDispatch, useRssSelector } from './storeHooks';
 import controlStyles from './RssControls.module.css';
 import styles from './RssSubscribePane.module.css';
 
@@ -16,8 +16,11 @@ export const RssSubscribePane = ({
   onFeedReady
 }: RssSubscribePaneProps): React.JSX.Element => {
   const dispatch = useRssDispatch();
+  const feeds = useRssSelector((state) => state.rss.feeds);
+  const existingFeedUrls = useMemo(() => new Set(feeds.map((feed) => feed.url)), [feeds]);
   const [feedUrl, setFeedUrl] = useState('');
   const [feedTitle, setFeedTitle] = useState('');
+  const [subscribeMessage, setSubscribeMessage] = useState('');
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [bulkUrls, setBulkUrls] = useState('');
   const [bulkMessage, setBulkMessage] = useState('');
@@ -34,11 +37,17 @@ export const RssSubscribePane = ({
 
   const addFeed = async (): Promise<void> => {
     if (!feedUrl.trim()) return;
+    const url = normalizeRssUrl(feedUrl);
+    if (existingFeedUrls.has(url)) {
+      setSubscribeMessage('Skipped existing feed.');
+      return;
+    }
     const feed = await rssTnetApi.rss.feeds.create({
       title: feedTitle,
-      url: feedUrl,
+      url,
       folderId: selectedFolderId
     });
+    setSubscribeMessage('');
     setFeedUrl('');
     setFeedTitle('');
     await refreshNavigation();
@@ -59,15 +68,22 @@ export const RssSubscribePane = ({
     setIsImportingBulkUrls(true);
     setBulkMessage('');
     const failedLines = [...parsed.invalidLines];
+    const knownUrls = new Set(existingFeedUrls);
     let importedCount = 0;
+    let skippedCount = 0;
 
     try {
       for (const url of parsed.urls) {
+        if (knownUrls.has(url)) {
+          skippedCount += 1;
+          continue;
+        }
         try {
           await rssTnetApi.rss.feeds.create({
             url,
             folderId: selectedFolderId
           });
+          knownUrls.add(url);
           importedCount += 1;
         } catch {
           failedLines.push(url);
@@ -78,15 +94,13 @@ export const RssSubscribePane = ({
 
       if (failedLines.length === 0) {
         setBulkUrls('');
-        setBulkMessage(`Imported ${importedCount} feed${importedCount === 1 ? '' : 's'}.`);
+        setBulkMessage(formatBulkImportMessage({ importedCount, skippedCount }));
         return;
       }
 
       setBulkUrls(failedLines.join('\n'));
       setBulkMessage(
-        importedCount > 0
-          ? `Imported ${importedCount} feed${importedCount === 1 ? '' : 's'}. Failed: ${failedLines.join(', ')}`
-          : `Failed to import: ${failedLines.join(', ')}`
+        `${formatBulkImportMessage({ importedCount, skippedCount })} Failed: ${failedLines.join(', ')}`
       );
     } finally {
       setIsImportingBulkUrls(false);
@@ -213,6 +227,11 @@ export const RssSubscribePane = ({
             Export OPML
           </button>
         </div>
+        {subscribeMessage ? (
+          <div className={styles.subscribeMessage} role="status">
+            {subscribeMessage}
+          </div>
+        ) : null}
       </form>
       {isBulkImportOpen ? (
         <form
@@ -266,4 +285,21 @@ export const RssSubscribePane = ({
       ) : null}
     </section>
   );
+};
+
+const formatBulkImportMessage = ({
+  importedCount,
+  skippedCount
+}: {
+  importedCount: number;
+  skippedCount: number;
+}): string => {
+  const parts: string[] = [];
+  if (importedCount > 0) {
+    parts.push(`Imported ${importedCount} feed${importedCount === 1 ? '' : 's'}.`);
+  }
+  if (skippedCount > 0) {
+    parts.push(`Skipped ${skippedCount} existing feed${skippedCount === 1 ? '' : 's'}.`);
+  }
+  return parts.join(' ') || 'No feeds imported.';
 };

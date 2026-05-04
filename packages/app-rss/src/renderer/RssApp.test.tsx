@@ -424,6 +424,39 @@ describe('RssApp', () => {
     });
   });
 
+  it('skips subscribing when the feed URL already exists', async () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [
+          {
+            id: 'feed-1',
+            title: 'Existing Feed',
+            url: 'https://example.com/feed.xml',
+            sortOrder: 1,
+            enabled: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            unreadCount: 0
+          }
+        ],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+    renderApp();
+
+    fireEvent.change(screen.getByLabelText('Feed URL'), {
+      target: { value: 'https://example.com/feed.xml#top' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+
+    expect(await screen.findByText('Skipped existing feed.')).toBeInTheDocument();
+    expect(rssTnetApi.rss.feeds.create).not.toHaveBeenCalled();
+  });
+
   it('bulk imports newline-delimited feed URLs', async () => {
     store = configureStore({ reducer: { rss: rssReducer } });
     store.dispatch(
@@ -476,6 +509,59 @@ describe('RssApp', () => {
       folderId: undefined
     });
     expect(await screen.findByText('Imported 2 feeds.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Feed URLs')).toHaveValue('');
+  });
+
+  it('skips existing feed URLs during bulk import', async () => {
+    store = configureStore({ reducer: { rss: rssReducer } });
+    store.dispatch(
+      restoreRss({
+        folders: [],
+        feeds: [
+          {
+            id: 'feed-1',
+            title: 'Existing Feed',
+            url: 'https://example.com/feed.xml',
+            sortOrder: 1,
+            enabled: true,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            unreadCount: 0
+          }
+        ],
+        tree: { folders: [], feeds: [] },
+        items: { items: [] },
+        settings: defaultRssGlobalSettings()
+      })
+    );
+    vi.mocked(rssTnetApi.rss.feeds.create).mockResolvedValueOnce({
+      id: 'feed-2',
+      title: 'New Feed',
+      url: 'https://example.org/rss',
+      sortOrder: 2,
+      enabled: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      unreadCount: 0
+    });
+    renderApp();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Bulk Import URLs' }));
+    fireEvent.change(screen.getByLabelText('Feed URLs'), {
+      target: {
+        value: 'https://example.com/feed.xml#top\nhttps://example.org/rss'
+      }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Import URLs' }));
+
+    await waitFor(() => expect(rssTnetApi.rss.feeds.create).toHaveBeenCalledTimes(1));
+    expect(rssTnetApi.rss.feeds.create).toHaveBeenCalledWith({
+      url: 'https://example.org/rss',
+      folderId: undefined
+    });
+    expect(
+      await screen.findByText('Imported 1 feed. Skipped 1 existing feed.')
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Feed URLs')).toHaveValue('');
   });
 

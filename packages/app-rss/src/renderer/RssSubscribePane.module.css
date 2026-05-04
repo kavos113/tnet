@@ -57,3 +57,12 @@
   border: 1px solid #d5dbe1;
   border-radius: 6px;
 }
+
+.subscribeMessage {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #334155;
+  background: #edf2f7;
+  border: 1px solid #d5dbe1;
+  border-radius: 6px;
+}
