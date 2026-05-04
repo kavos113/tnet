@@ -13,8 +13,22 @@ class PapersViewModelInstrumentedTest {
     val viewModel = PapersViewModel(application)
     viewModel.replacePapersForTest(
       listOf(
-        PaperListItem(id = "paper-1", title = "Android SQLite", publishedYear = 2026, venue = "Notes", pdfPath = "papers/a.pdf"),
-        PaperListItem(id = "paper-2", title = "Desktop Sync", publishedYear = 2025, venue = "Notes", pdfPath = "papers/b.pdf")
+        PaperListItem(
+          id = "paper-1",
+          title = "Android SQLite",
+          publishedYear = 2026,
+          venue = "Notes",
+          pdfPath = "papers/a.pdf",
+          directoryPath = "papers"
+        ),
+        PaperListItem(
+          id = "paper-2",
+          title = "Desktop Sync",
+          publishedYear = 2025,
+          venue = "Notes",
+          pdfPath = "papers/b.pdf",
+          directoryPath = "papers"
+        )
       )
     )
 
