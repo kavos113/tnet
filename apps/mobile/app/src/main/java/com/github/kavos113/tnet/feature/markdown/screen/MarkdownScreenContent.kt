@@ -253,9 +253,9 @@ private fun MarkdownDocumentSurface(
         modifier = Modifier.fillMaxWidth()
       )
     }
-    if (uiState.renderedHtml.isBlank() && !uiState.isLoading && !uiState.isWorkspaceLoading) {
+    if (!uiState.isLoading && !uiState.isWorkspaceLoading) {
       TnetSecondaryButton(
-        text = "Workspace",
+        text = if (uiState.renderedHtml.isBlank()) "Workspace" else "Files",
         onClick = onOpenDrawer,
         modifier = Modifier.align(Alignment.BottomStart)
       )

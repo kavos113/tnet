@@ -13,7 +13,9 @@ import com.github.kavos113.tnet.core.workspace.replaceWorkspaceDirectoryChildren
 import com.github.kavos113.tnet.core.workspace.workspaceNameFromTreeUri
 import com.github.kavos113.tnet.feature.markdown.model.parseMarkdownBlocks
 import com.github.kavos113.tnet.feature.markdown.model.readMarkdownDocument
+import com.github.kavos113.tnet.feature.markdown.model.readWorkspaceImageDataUrl
 import com.github.kavos113.tnet.feature.markdown.model.renderMarkdownHtml
+import com.github.kavos113.tnet.feature.markdown.model.resolveMarkdownImageLinks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -114,10 +116,23 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
       }
       mutableUiState.update { state ->
         result.fold(
-          onSuccess = {
+          onSuccess = { markdown ->
+            val resolvedMarkdown = state.activeWorkspace?.let { workspace ->
+              resolveMarkdownImageLinks(
+                markdown = markdown,
+                currentDocumentPath = selectedPath ?: state.selectedPath,
+                resolveImageDataUrl = { relativePath ->
+                  readWorkspaceImageDataUrl(
+                    context = getApplication(),
+                    workspaceUri = Uri.parse(workspace.uri),
+                    relativePath = relativePath
+                  )
+                }
+              )
+            } ?: markdown
             state.copy(
-              blocks = parseMarkdownBlocks(it),
-              renderedHtml = renderMarkdownHtml(it),
+              blocks = parseMarkdownBlocks(markdown),
+              renderedHtml = renderMarkdownHtml(resolvedMarkdown),
               error = null,
               isLoading = false
             )
