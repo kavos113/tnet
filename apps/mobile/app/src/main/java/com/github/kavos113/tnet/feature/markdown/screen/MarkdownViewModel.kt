@@ -7,13 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.github.kavos113.tnet.core.settings.TnetSettingsRepository
 import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
 import com.github.kavos113.tnet.core.workspace.WorkspaceRoot
-import com.github.kavos113.tnet.core.workspace.findWorkspaceFile
 import com.github.kavos113.tnet.core.workspace.loadWorkspaceDirectoryChildren
 import com.github.kavos113.tnet.core.workspace.loadWorkspaceRootFileTree
 import com.github.kavos113.tnet.core.workspace.replaceWorkspaceDirectoryChildren
 import com.github.kavos113.tnet.core.workspace.workspaceNameFromTreeUri
 import com.github.kavos113.tnet.feature.markdown.model.parseMarkdownBlocks
 import com.github.kavos113.tnet.feature.markdown.model.readMarkdownDocument
+import com.github.kavos113.tnet.feature.markdown.model.renderMarkdownHtml
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,7 +41,8 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
           it.copy(
             workspaceRoots = roots,
             activeWorkspace = active,
-            openedFiles = settings.markdownOpenedFiles,
+            selectedPath = it.selectedPath ?: settings.activeMarkdownPath,
+            selectedUri = it.selectedUri ?: settings.activeMarkdownUri,
             viewerPosition = settings.markdownViewerPosition
           )
         }
@@ -49,6 +50,15 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
           loadedWorkspaceUri = null
         } else if (active.uri != loadedWorkspaceUri) {
           loadWorkspace(active)
+        }
+        val selectedUri = settings.activeMarkdownUri
+        if (
+          selectedUri != null &&
+          mutableUiState.value.selectedUri == selectedUri &&
+          mutableUiState.value.renderedHtml.isBlank() &&
+          !mutableUiState.value.isLoading
+        ) {
+          openDocument(Uri.parse(selectedUri), selectedPath = settings.activeMarkdownPath)
         }
       }
     }
@@ -70,9 +80,8 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
       it.copy(
         selectedPath = file.relativePath,
         selectedUri = file.documentUri,
-        openedFiles = (listOf(file.relativePath) + it.openedFiles).distinct(),
-        recentUris = (listOf(file.relativePath) + it.recentUris).distinct().take(10),
         blocks = emptyList(),
+        renderedHtml = "",
         error = null,
         isLoading = true,
         isDrawerOpen = false
@@ -80,11 +89,6 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
     }
     persistSession()
     openDocument(normalizedUri, selectedPath = file.relativePath)
-  }
-
-  fun reopenPath(relativePath: String) {
-    val file = findWorkspaceFile(mutableUiState.value.fileTree, relativePath) ?: return
-    openWorkspaceFile(file)
   }
 
   fun openDocument(uri: Uri) {
@@ -97,8 +101,8 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
       it.copy(
         selectedPath = selectedPath ?: it.selectedPath,
         selectedUri = uriText,
-        recentUris = (listOf(selectedPath ?: uriText) + it.recentUris).distinct().take(10),
         blocks = emptyList(),
+        renderedHtml = "",
         error = null,
         isLoading = true
       )
@@ -113,6 +117,7 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
           onSuccess = {
             state.copy(
               blocks = parseMarkdownBlocks(it),
+              renderedHtml = renderMarkdownHtml(it),
               error = null,
               isLoading = false
             )
@@ -120,6 +125,7 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
           onFailure = {
             state.copy(
               blocks = emptyList(),
+              renderedHtml = "",
               error = it.message ?: "Unable to read document.",
               isLoading = false
             )
@@ -131,6 +137,10 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
 
   fun updateSearchQuery(value: String) {
     mutableUiState.update { it.copy(searchQuery = value) }
+  }
+
+  fun selectDrawerPanel(panel: MarkdownDrawerPanel) {
+    mutableUiState.update { it.copy(drawerPanel = panel) }
   }
 
   fun openDrawer() {
@@ -242,7 +252,8 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
     val state = mutableUiState.value
     viewModelScope.launch {
       settingsRepository.saveMarkdownSession(
-        openedFiles = state.openedFiles,
+        selectedPath = state.selectedPath,
+        selectedUri = state.selectedUri,
         viewerPosition = state.viewerPosition
       )
     }

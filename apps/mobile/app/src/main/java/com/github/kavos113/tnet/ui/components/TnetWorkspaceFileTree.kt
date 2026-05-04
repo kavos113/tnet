@@ -1,16 +1,31 @@
 package com.github.kavos113.tnet.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
+import com.github.kavos113.tnet.ui.theme.TnetSurfaceHover
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -29,7 +44,7 @@ fun TnetWorkspaceFileTree(
 ) {
   if (items.isEmpty()) return
   TnetPanel(modifier = modifier) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
       Text(
         text = title,
         style = MaterialTheme.typography.titleMedium
@@ -37,6 +52,7 @@ fun TnetWorkspaceFileTree(
       items.forEach { item ->
         TnetWorkspaceFileTreeItem(
           item = item,
+          depth = 0,
           selectedPath = selectedPath,
           expandedPaths = expandedPaths,
           loadingDirectoryPaths = loadingDirectoryPaths,
@@ -53,6 +69,7 @@ fun TnetWorkspaceFileTree(
 @Composable
 private fun TnetWorkspaceFileTreeItem(
   item: WorkspaceFileItem,
+  depth: Int,
   selectedPath: String?,
   expandedPaths: Set<String>,
   loadingDirectoryPaths: Set<String>,
@@ -61,41 +78,39 @@ private fun TnetWorkspaceFileTreeItem(
   onOpenFile: (WorkspaceFileItem) -> Unit,
   onToggleDirectory: ((WorkspaceFileItem) -> Unit)?
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+  Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
     if (item.isDirectory) {
       val isExpanded = alwaysExpanded || item.relativePath in expandedPaths
-      if (alwaysExpanded || onToggleDirectory == null) {
-        Text(
-          text = item.relativePath,
-          style = MaterialTheme.typography.labelSmall,
-          color = TnetTextMuted
-        )
-      } else {
-        TnetSecondaryButton(
-          text = "${if (isExpanded) "v" else ">"} ${item.name}",
-          onClick = { onToggleDirectory(item) },
-          modifier = Modifier.fillMaxWidth()
-        )
-      }
+      TnetWorkspaceTreeRow(
+        name = item.name,
+        depth = depth,
+        selected = false,
+        icon = if (isExpanded) Icons.Rounded.FolderOpen else Icons.Rounded.Folder,
+        leadingIcon = if (isExpanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+        onClick = if (alwaysExpanded || onToggleDirectory == null) null else {
+          { onToggleDirectory(item) }
+        }
+      )
       if (isExpanded) {
         if (item.relativePath in loadingDirectoryPaths) {
           Text(
             text = "Loading...",
             style = MaterialTheme.typography.bodySmall,
             color = TnetTextMuted,
-            modifier = Modifier.padding(start = TnetSpace3)
+            modifier = Modifier.padding(start = ((depth + 1) * 10).dp)
           )
         } else if (item.isChildrenLoaded && item.children.isEmpty()) {
           Text(
             text = emptyDirectoryText,
             style = MaterialTheme.typography.bodySmall,
             color = TnetTextMuted,
-            modifier = Modifier.padding(start = TnetSpace3)
+            modifier = Modifier.padding(start = ((depth + 1) * 10).dp)
           )
         }
         item.children.forEach { child ->
           TnetWorkspaceFileTreeItem(
             item = child,
+            depth = depth + 1,
             selectedPath = selectedPath,
             expandedPaths = expandedPaths,
             loadingDirectoryPaths = loadingDirectoryPaths,
@@ -107,13 +122,68 @@ private fun TnetWorkspaceFileTreeItem(
         }
       }
     } else {
-      TnetSecondaryButton(
-        text = item.relativePath,
+      TnetWorkspaceTreeRow(
+        name = item.name,
+        depth = depth,
         selected = selectedPath == item.relativePath,
-        onClick = { onOpenFile(item) },
-        modifier = Modifier.fillMaxWidth()
+        icon = Icons.Rounded.Description,
+        leadingIcon = null,
+        onClick = { onOpenFile(item) }
       )
     }
+  }
+}
+
+@Composable
+private fun TnetWorkspaceTreeRow(
+  name: String,
+  depth: Int,
+  selected: Boolean,
+  icon: androidx.compose.ui.graphics.vector.ImageVector,
+  leadingIcon: androidx.compose.ui.graphics.vector.ImageVector?,
+  onClick: (() -> Unit)?
+) {
+  val rowModifier = Modifier
+    .fillMaxWidth()
+    .padding(start = (depth * 10).dp)
+    .background(if (selected) TnetSurfaceHover else Color.Transparent)
+    .let { modifier ->
+      if (onClick == null) modifier else modifier.clickable(onClick = onClick)
+    }
+
+  Row(
+    modifier = rowModifier
+      .padding(horizontal = 2.dp, vertical = 2.dp),
+    horizontalArrangement = Arrangement.spacedBy(2.dp),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    if (leadingIcon == null) {
+      Icon(
+        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+        contentDescription = null,
+        tint = TnetTextMuted.copy(alpha = 0f),
+        modifier = Modifier.size(16.dp)
+      )
+    } else {
+      Icon(
+        imageVector = leadingIcon,
+        contentDescription = null,
+        tint = TnetTextMuted,
+        modifier = Modifier.size(16.dp)
+      )
+    }
+    Icon(
+      imageVector = icon,
+      contentDescription = null,
+      tint = TnetTextMuted,
+      modifier = Modifier.size(16.dp)
+    )
+    Text(
+      text = name,
+      style = MaterialTheme.typography.bodySmall,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis
+    )
   }
 }
 
@@ -144,6 +214,22 @@ private fun TnetWorkspaceFileTreePreview() {
       onOpenFile = {},
       onToggleDirectory = {},
       modifier = Modifier.padding(16.dp)
+    )
+  }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun TnetWorkspaceTreeRowPreview() {
+  TnetTheme {
+    TnetWorkspaceTreeRow(
+      name = "mobile.md",
+      depth = 2,
+      selected = true,
+      icon = Icons.Rounded.Description,
+      leadingIcon = null,
+      onClick = {}
     )
   }
 }

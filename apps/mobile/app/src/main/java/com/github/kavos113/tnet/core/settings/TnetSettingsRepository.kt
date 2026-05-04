@@ -22,6 +22,11 @@ class TnetSettingsRepository(
       pdfWorkspaceUris = preferences[PDF_WORKSPACE_URIS].decodeList(),
       activePdfWorkspaceUri = preferences[ACTIVE_PDF_WORKSPACE_URI],
       markdownOpenedFiles = preferences[MARKDOWN_OPENED_FILES].decodeList(),
+      activeMarkdownPath = selectActiveMarkdownPath(
+        activePath = preferences[ACTIVE_MARKDOWN_PATH],
+        legacyOpenedFiles = preferences[MARKDOWN_OPENED_FILES].decodeList()
+      ),
+      activeMarkdownUri = preferences[ACTIVE_MARKDOWN_URI],
       pdfOpenedFiles = preferences[PDF_OPENED_FILES].decodeList(),
       activePdfIndex = preferences[ACTIVE_PDF_INDEX] ?: -1,
       lastOpenedDestination = preferences[LAST_OPENED_DESTINATION],
@@ -65,9 +70,22 @@ class TnetSettingsRepository(
     }
   }
 
-  suspend fun saveMarkdownSession(openedFiles: List<String>, viewerPosition: Int) {
+  suspend fun saveMarkdownSession(
+    selectedPath: String?,
+    selectedUri: String?,
+    viewerPosition: Int
+  ) {
     context.tnetSettingsDataStore.edit { preferences ->
-      preferences[MARKDOWN_OPENED_FILES] = openedFiles.distinct().encodeList()
+      if (selectedPath.isNullOrBlank()) {
+        preferences.remove(ACTIVE_MARKDOWN_PATH)
+      } else {
+        preferences[ACTIVE_MARKDOWN_PATH] = selectedPath
+      }
+      if (selectedUri.isNullOrBlank()) {
+        preferences.remove(ACTIVE_MARKDOWN_URI)
+      } else {
+        preferences[ACTIVE_MARKDOWN_URI] = selectedUri
+      }
       preferences[MARKDOWN_VIEWER_POSITION] = viewerPosition.coerceAtLeast(0)
     }
   }
@@ -101,6 +119,8 @@ class TnetSettingsRepository(
     val PAPERS_DATABASE_URI = stringPreferencesKey("papers_database_uri")
     val MARKDOWN_WORKSPACE_URIS = stringPreferencesKey("markdown_workspace_uris")
     val ACTIVE_MARKDOWN_WORKSPACE_URI = stringPreferencesKey("active_markdown_workspace_uri")
+    val ACTIVE_MARKDOWN_PATH = stringPreferencesKey("active_markdown_path")
+    val ACTIVE_MARKDOWN_URI = stringPreferencesKey("active_markdown_uri")
     val PDF_WORKSPACE_URIS = stringPreferencesKey("pdf_workspace_uris")
     val ACTIVE_PDF_WORKSPACE_URI = stringPreferencesKey("active_pdf_workspace_uri")
     val MARKDOWN_OPENED_FILES = stringPreferencesKey("markdown_opened_files")
@@ -123,4 +143,11 @@ private fun String?.decodeList(): List<String> {
 
 private fun List<String>.encodeList(): String {
   return filter { it.isNotBlank() }.distinct().joinToString("\n")
+}
+
+internal fun selectActiveMarkdownPath(
+  activePath: String?,
+  legacyOpenedFiles: List<String>
+): String? {
+  return activePath ?: legacyOpenedFiles.firstOrNull()
 }

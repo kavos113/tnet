@@ -8,17 +8,17 @@ data class MarkdownUiState(
   val workspaceRoots: List<WorkspaceRoot> = emptyList(),
   val activeWorkspace: WorkspaceRoot? = null,
   val fileTree: List<WorkspaceFileItem> = emptyList(),
-  val openedFiles: List<String> = emptyList(),
   val selectedPath: String? = null,
   val selectedUri: String? = null,
+  val renderedHtml: String = "",
   val blocks: List<MarkdownBlock> = emptyList(),
-  val recentUris: List<String> = emptyList(),
   val searchQuery: String = "",
   val viewerPosition: Int = 0,
   val error: String? = null,
   val isLoading: Boolean = false,
   val isWorkspaceLoading: Boolean = false,
   val isDrawerOpen: Boolean = false,
+  val drawerPanel: MarkdownDrawerPanel = MarkdownDrawerPanel.Files,
   val expandedPaths: Set<String> = emptySet(),
   val loadingDirectoryPaths: Set<String> = emptySet()
 ) {
@@ -44,6 +44,11 @@ data class MarkdownUiState(
       }
     }
   }
+}
+
+enum class MarkdownDrawerPanel {
+  Files,
+  Search
 }
 
 private fun WorkspaceFileItem.flattenedNames(): List<String> {

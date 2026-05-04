@@ -3,12 +3,18 @@ package com.github.kavos113.tnet.feature.markdown.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -21,9 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
 import com.github.kavos113.tnet.ui.components.TnetCompactTextField
-import com.github.kavos113.tnet.ui.components.TnetPanel
 import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
+import com.github.kavos113.tnet.ui.components.TnetSpace2
 import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
 import com.github.kavos113.tnet.ui.components.TnetStateMessage
@@ -34,8 +40,8 @@ internal fun MarkdownScreenContent(
   uiState: MarkdownUiState,
   onOpenWorkspace: () -> Unit,
   onOpenFile: (WorkspaceFileItem) -> Unit,
-  onReopenPath: (String) -> Unit,
   onSearchQueryChange: (String) -> Unit,
+  onDrawerPanelSelected: (MarkdownDrawerPanel) -> Unit,
   onToggleDirectory: (WorkspaceFileItem) -> Unit,
   onOpenDrawer: () -> Unit,
   onCloseDrawer: () -> Unit,
@@ -71,13 +77,13 @@ internal fun MarkdownScreenContent(
           uiState = uiState,
           onOpenWorkspace = onOpenWorkspace,
           onOpenFile = onOpenFile,
-          onReopenPath = onReopenPath,
           onSearchQueryChange = onSearchQueryChange,
+          onDrawerPanelSelected = onDrawerPanelSelected,
           onToggleDirectory = onToggleDirectory,
           modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = TnetSpace4, vertical = TnetSpace3)
+            .padding(horizontal = TnetSpace3, vertical = TnetSpace2)
         )
       }
     }
@@ -95,46 +101,112 @@ private fun MarkdownWorkspacePanel(
   uiState: MarkdownUiState,
   onOpenWorkspace: () -> Unit,
   onOpenFile: (WorkspaceFileItem) -> Unit,
-  onReopenPath: (String) -> Unit,
   onSearchQueryChange: (String) -> Unit,
+  onDrawerPanelSelected: (MarkdownDrawerPanel) -> Unit,
   onToggleDirectory: (WorkspaceFileItem) -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
     modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(TnetSpace3)
+    verticalArrangement = Arrangement.spacedBy(TnetSpace2)
   ) {
     Text(
       text = "Markdown",
-      style = MaterialTheme.typography.headlineMedium
+      style = MaterialTheme.typography.titleLarge
     )
-    Text(
-      text = "Open Markdown files from a synced desktop workspace in read-only mode.",
-      style = MaterialTheme.typography.bodyLarge,
-      color = TnetTextMuted
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(TnetSpace2),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      TnetPrimaryButton(text = "Open workspace", onClick = onOpenWorkspace)
+      Text(
+        text = uiState.activeWorkspace?.name ?: "No workspace",
+        style = MaterialTheme.typography.bodySmall,
+        color = TnetTextMuted,
+        maxLines = 1,
+        modifier = Modifier.weight(1f)
+      )
+    }
+
+    MarkdownDrawerPanelSwitch(
+      selectedPanel = uiState.drawerPanel,
+      onPanelSelected = onDrawerPanelSelected
     )
-    TnetPrimaryButton(text = "Open workspace", onClick = onOpenWorkspace)
-    Text(
-      text = uiState.activeWorkspace?.name ?: "No Markdown workspace selected.",
-      style = MaterialTheme.typography.bodySmall,
-      color = TnetTextMuted
+
+    when (uiState.drawerPanel) {
+      MarkdownDrawerPanel.Files -> {
+        uiState.selectedPath?.let { path ->
+          Text(
+            text = path.substringAfterLast('/'),
+            style = MaterialTheme.typography.bodySmall,
+            color = TnetTextMuted
+          )
+        }
+        WorkspaceFileTree(
+          items = uiState.fileTree,
+          selectedPath = uiState.selectedPath,
+          expandedPaths = uiState.expandedPaths,
+          loadingDirectoryPaths = uiState.loadingDirectoryPaths,
+          onOpenFile = onOpenFile,
+          onToggleDirectory = onToggleDirectory
+        )
+      }
+
+      MarkdownDrawerPanel.Search -> {
+        TnetCompactTextField(
+          value = uiState.searchQuery,
+          onValueChange = onSearchQueryChange,
+          label = "Search document",
+          modifier = Modifier.fillMaxWidth()
+        )
+        Text(
+          text = "Matches: ${uiState.searchMatches}",
+          style = MaterialTheme.typography.bodySmall,
+          color = TnetTextMuted
+        )
+        Text(
+          text = "Outline: ${uiState.outline.joinToString(" > ").ifBlank { "No headings" }}",
+          style = MaterialTheme.typography.bodySmall,
+          color = TnetTextMuted
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun MarkdownDrawerPanelSwitch(
+  selectedPanel: MarkdownDrawerPanel,
+  onPanelSelected: (MarkdownDrawerPanel) -> Unit,
+  modifier: Modifier = Modifier
+) {
+  Row(
+    modifier = modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
+  ) {
+    FilterChip(
+      selected = selectedPanel == MarkdownDrawerPanel.Files,
+      onClick = { onPanelSelected(MarkdownDrawerPanel.Files) },
+      label = { Text("Files") },
+      leadingIcon = {
+        Icon(
+          imageVector = Icons.Rounded.FolderOpen,
+          contentDescription = null
+        )
+      },
+      modifier = Modifier.weight(1f)
     )
-    TnetCompactTextField(
-      value = uiState.searchQuery,
-      onValueChange = onSearchQueryChange,
-      label = "Search document"
-    )
-    MarkdownNavigationSummary(
-      uiState = uiState,
-      onReopenPath = onReopenPath
-    )
-    WorkspaceFileTree(
-      items = uiState.fileTree,
-      selectedPath = uiState.selectedPath,
-      expandedPaths = uiState.expandedPaths,
-      loadingDirectoryPaths = uiState.loadingDirectoryPaths,
-      onOpenFile = onOpenFile,
-      onToggleDirectory = onToggleDirectory
+    FilterChip(
+      selected = selectedPanel == MarkdownDrawerPanel.Search,
+      onClick = { onPanelSelected(MarkdownDrawerPanel.Search) },
+      label = { Text("Search") },
+      leadingIcon = {
+        Icon(
+          imageVector = Icons.Rounded.Search,
+          contentDescription = null
+        )
+      },
+      modifier = Modifier.weight(1f)
     )
   }
 }
@@ -170,8 +242,8 @@ private fun MarkdownDocumentSurface(
         modifier = Modifier.fillMaxWidth()
       )
 
-      uiState.blocks.isNotEmpty() -> MarkdownBlocksPreview(
-        blocks = uiState.blocks,
+      uiState.renderedHtml.isNotBlank() -> MarkdownHtmlPreview(
+        html = uiState.renderedHtml,
         modifier = Modifier.fillMaxSize()
       )
 
@@ -181,50 +253,11 @@ private fun MarkdownDocumentSurface(
         modifier = Modifier.fillMaxWidth()
       )
     }
-    if (uiState.blocks.isEmpty() && !uiState.isLoading && !uiState.isWorkspaceLoading) {
+    if (uiState.renderedHtml.isBlank() && !uiState.isLoading && !uiState.isWorkspaceLoading) {
       TnetSecondaryButton(
         text = "Workspace",
         onClick = onOpenDrawer,
         modifier = Modifier.align(Alignment.BottomStart)
-      )
-    }
-  }
-}
-
-@Composable
-private fun MarkdownNavigationSummary(
-  uiState: MarkdownUiState,
-  onReopenPath: (String) -> Unit
-) {
-  TnetPanel {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      Text(
-        text = "Opened files",
-        style = MaterialTheme.typography.titleMedium
-      )
-      if (uiState.openedFiles.isEmpty()) {
-        Text(
-          text = "No files opened.",
-          style = MaterialTheme.typography.bodySmall,
-          color = TnetTextMuted
-        )
-      }
-      uiState.openedFiles.forEach { path ->
-        TnetSecondaryButton(
-          text = path.substringAfterLast('/'),
-          selected = uiState.selectedPath == path,
-          onClick = { onReopenPath(path) }
-        )
-      }
-      Text(
-        text = "Outline: ${uiState.outline.joinToString(" > ").ifBlank { "No headings" }}",
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetTextMuted
-      )
-      Text(
-        text = "Search matches: ${uiState.searchMatches}",
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetTextMuted
       )
     }
   }

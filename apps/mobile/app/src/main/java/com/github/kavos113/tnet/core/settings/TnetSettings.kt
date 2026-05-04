@@ -8,6 +8,8 @@ data class TnetSettings(
   val pdfWorkspaceUris: List<String> = emptyList(),
   val activePdfWorkspaceUri: String? = null,
   val markdownOpenedFiles: List<String> = emptyList(),
+  val activeMarkdownPath: String? = null,
+  val activeMarkdownUri: String? = null,
   val pdfOpenedFiles: List<String> = emptyList(),
   val activePdfIndex: Int = -1,
   val lastOpenedDestination: String? = null,

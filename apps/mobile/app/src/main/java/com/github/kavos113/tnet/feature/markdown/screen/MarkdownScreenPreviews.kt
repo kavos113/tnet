@@ -14,12 +14,36 @@ private fun MarkdownScreenContentPreview() {
       uiState = MarkdownUiState(
         selectedUri = "content://workspace/docs/mobile-plan.md",
         searchQuery = "viewer",
+        renderedHtml = "<h1>Mobile Plan</h1><p>Kotlin + Jetpack Compose read-only viewer.</p>",
         blocks = previewMarkdownBlocks
       ),
       onOpenWorkspace = {},
       onOpenFile = {},
-      onReopenPath = {},
       onSearchQueryChange = {},
+      onDrawerPanelSelected = {},
+      onToggleDirectory = {},
+      onOpenDrawer = {},
+      onCloseDrawer = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MarkdownSearchPanelPreview() {
+  TnetTheme {
+    MarkdownScreenContent(
+      uiState = MarkdownUiState(
+        selectedUri = "content://workspace/docs/mobile-plan.md",
+        searchQuery = "viewer",
+        drawerPanel = MarkdownDrawerPanel.Search,
+        renderedHtml = "<h1>Mobile Plan</h1><p>Kotlin + Jetpack Compose read-only viewer.</p>",
+        blocks = previewMarkdownBlocks
+      ),
+      onOpenWorkspace = {},
+      onOpenFile = {},
+      onSearchQueryChange = {},
+      onDrawerPanelSelected = {},
       onToggleDirectory = {},
       onOpenDrawer = {},
       onCloseDrawer = {}
@@ -38,8 +62,8 @@ private fun MarkdownLoadingPreview() {
       ),
       onOpenWorkspace = {},
       onOpenFile = {},
-      onReopenPath = {},
       onSearchQueryChange = {},
+      onDrawerPanelSelected = {},
       onToggleDirectory = {},
       onOpenDrawer = {},
       onCloseDrawer = {}
