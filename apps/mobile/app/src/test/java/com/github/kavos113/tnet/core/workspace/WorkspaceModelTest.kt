@@ -38,4 +38,27 @@ class WorkspaceModelTest {
     assertEquals(file, findWorkspaceFile(tree, "docs/note.md"))
     assertNull(findWorkspaceFile(tree, "docs/missing.md"))
   }
+
+  @Test
+  fun replaceWorkspaceDirectoryChildrenMarksDirectoryLoaded() {
+    val child = WorkspaceFileItem(
+      name = "note.md",
+      relativePath = "docs/note.md",
+      documentUri = "content://workspace/docs/note.md",
+      isDirectory = false
+    )
+    val tree = listOf(
+      WorkspaceFileItem(
+        name = "docs",
+        relativePath = "docs",
+        documentUri = "content://workspace/docs",
+        isDirectory = true
+      )
+    )
+
+    val replaced = replaceWorkspaceDirectoryChildren(tree, "docs", listOf(child))
+
+    assertEquals(listOf(child), replaced.single().children)
+    assertTrue(replaced.single().isChildrenLoaded)
+  }
 }

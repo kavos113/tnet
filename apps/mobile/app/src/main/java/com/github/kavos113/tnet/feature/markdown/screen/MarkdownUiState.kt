@@ -16,7 +16,11 @@ data class MarkdownUiState(
   val searchQuery: String = "",
   val viewerPosition: Int = 0,
   val error: String? = null,
-  val isLoading: Boolean = false
+  val isLoading: Boolean = false,
+  val isWorkspaceLoading: Boolean = false,
+  val isDrawerOpen: Boolean = false,
+  val expandedPaths: Set<String> = emptySet(),
+  val loadingDirectoryPaths: Set<String> = emptySet()
 ) {
   val fileTreeEntries: List<String> = fileTree.flatMap { it.flattenedNames() }
   val outline: List<String> = blocks.filterIsInstance<MarkdownBlock.Heading>().map { it.text }

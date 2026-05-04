@@ -6,6 +6,7 @@ import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,12 +14,18 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -40,6 +47,7 @@ import com.github.kavos113.tnet.ui.components.TnetPrimaryButton
 import com.github.kavos113.tnet.ui.components.TnetSecondaryButton
 import com.github.kavos113.tnet.ui.components.TnetSpace3
 import com.github.kavos113.tnet.ui.components.TnetSpace4
+import com.github.kavos113.tnet.ui.components.TnetStateMessage
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -68,6 +76,9 @@ fun MarkdownScreen(
     onOpenFile = viewModel::openWorkspaceFile,
     onReopenPath = viewModel::reopenPath,
     onSearchQueryChange = viewModel::updateSearchQuery,
+    onToggleDirectory = viewModel::toggleDirectory,
+    onOpenDrawer = viewModel::openDrawer,
+    onCloseDrawer = viewModel::closeDrawer,
     modifier = modifier
   )
 }
@@ -79,12 +90,72 @@ private fun MarkdownScreenContent(
   onOpenFile: (WorkspaceFileItem) -> Unit,
   onReopenPath: (String) -> Unit,
   onSearchQueryChange: (String) -> Unit,
+  onToggleDirectory: (WorkspaceFileItem) -> Unit,
+  onOpenDrawer: () -> Unit,
+  onCloseDrawer: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  val drawerState = rememberDrawerState(
+    initialValue = if (uiState.isDrawerOpen) DrawerValue.Open else DrawerValue.Closed
+  )
+
+  LaunchedEffect(uiState.activeWorkspace) {
+    if (uiState.activeWorkspace == null) onOpenDrawer()
+  }
+  LaunchedEffect(uiState.isDrawerOpen) {
+    if (uiState.isDrawerOpen) {
+      drawerState.open()
+    } else {
+      drawerState.close()
+    }
+  }
+  LaunchedEffect(drawerState.currentValue) {
+    when {
+      drawerState.currentValue == DrawerValue.Open && !uiState.isDrawerOpen -> onOpenDrawer()
+      drawerState.currentValue == DrawerValue.Closed && uiState.isDrawerOpen -> onCloseDrawer()
+    }
+  }
+
+  ModalNavigationDrawer(
+    drawerState = drawerState,
+    gesturesEnabled = true,
+    drawerContent = {
+      ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.86f)) {
+        MarkdownWorkspacePanel(
+          uiState = uiState,
+          onOpenWorkspace = onOpenWorkspace,
+          onOpenFile = onOpenFile,
+          onReopenPath = onReopenPath,
+          onSearchQueryChange = onSearchQueryChange,
+          onToggleDirectory = onToggleDirectory,
+          modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = TnetSpace4, vertical = TnetSpace3)
+        )
+      }
+    }
+  ) {
+    MarkdownDocumentSurface(
+      uiState = uiState,
+      onOpenDrawer = onOpenDrawer,
+      modifier = modifier
+    )
+  }
+}
+
+@Composable
+private fun MarkdownWorkspacePanel(
+  uiState: MarkdownUiState,
+  onOpenWorkspace: () -> Unit,
+  onOpenFile: (WorkspaceFileItem) -> Unit,
+  onReopenPath: (String) -> Unit,
+  onSearchQueryChange: (String) -> Unit,
+  onToggleDirectory: (WorkspaceFileItem) -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
-    modifier = modifier
-      .fillMaxSize()
-      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+    modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(TnetSpace3)
   ) {
     Text(
@@ -114,33 +185,61 @@ private fun MarkdownScreenContent(
     WorkspaceFileTree(
       items = uiState.fileTree,
       selectedPath = uiState.selectedPath,
-      onOpenFile = onOpenFile
+      expandedPaths = uiState.expandedPaths,
+      loadingDirectoryPaths = uiState.loadingDirectoryPaths,
+      onOpenFile = onOpenFile,
+      onToggleDirectory = onToggleDirectory
     )
-    uiState.selectedUri?.let {
-      Text(
-        text = it,
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetTextMuted
+  }
+}
+
+@Composable
+private fun MarkdownDocumentSurface(
+  uiState: MarkdownUiState,
+  onOpenDrawer: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  Box(
+    modifier = modifier
+      .fillMaxSize()
+      .padding(horizontal = TnetSpace4, vertical = TnetSpace3)
+  ) {
+    when {
+      uiState.isWorkspaceLoading -> TnetStateMessage(
+        title = "Loading workspace...",
+        detail = "Reading top-level Markdown files.",
+        modifier = Modifier.fillMaxWidth()
       )
-    }
-    if (uiState.isLoading) {
-      Text(
-        text = "Loading document...",
-        style = MaterialTheme.typography.bodyMedium,
-        color = TnetTextMuted
+
+      uiState.isLoading -> TnetStateMessage(
+        title = "Loading document...",
+        detail = uiState.selectedPath ?: uiState.selectedUri,
+        modifier = Modifier.fillMaxWidth()
       )
-    }
-    uiState.error?.let {
-      Text(
-        text = it,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.error
+
+      uiState.error != null -> TnetStateMessage(
+        title = "Markdown error",
+        detail = uiState.error,
+        isError = true,
+        modifier = Modifier.fillMaxWidth()
       )
-    }
-    if (uiState.blocks.isNotEmpty()) {
-      MarkdownBlocksPreview(
+
+      uiState.blocks.isNotEmpty() -> MarkdownBlocksPreview(
         blocks = uiState.blocks,
-        modifier = Modifier.weight(1f)
+        modifier = Modifier.fillMaxSize()
+      )
+
+      else -> TnetStateMessage(
+        title = "No Markdown file selected",
+        detail = "Swipe from the left edge or open the workspace panel.",
+        modifier = Modifier.fillMaxWidth()
+      )
+    }
+    if (uiState.blocks.isEmpty() && !uiState.isLoading && !uiState.isWorkspaceLoading) {
+      TnetSecondaryButton(
+        text = "Workspace",
+        onClick = onOpenDrawer,
+        modifier = Modifier.align(Alignment.BottomStart)
       )
     }
   }
@@ -189,10 +288,14 @@ private fun MarkdownNavigationSummary(
 private fun WorkspaceFileTree(
   items: List<WorkspaceFileItem>,
   selectedPath: String?,
-  onOpenFile: (WorkspaceFileItem) -> Unit
+  expandedPaths: Set<String>,
+  loadingDirectoryPaths: Set<String>,
+  onOpenFile: (WorkspaceFileItem) -> Unit,
+  onToggleDirectory: (WorkspaceFileItem) -> Unit,
+  modifier: Modifier = Modifier
 ) {
   if (items.isEmpty()) return
-  TnetPanel {
+  TnetPanel(modifier = modifier) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
       Text(
         text = "Workspace files",
@@ -202,7 +305,10 @@ private fun WorkspaceFileTree(
         WorkspaceFileTreeItem(
           item = item,
           selectedPath = selectedPath,
-          onOpenFile = onOpenFile
+          expandedPaths = expandedPaths,
+          loadingDirectoryPaths = loadingDirectoryPaths,
+          onOpenFile = onOpenFile,
+          onToggleDirectory = onToggleDirectory
         )
       }
     }
@@ -213,21 +319,45 @@ private fun WorkspaceFileTree(
 private fun WorkspaceFileTreeItem(
   item: WorkspaceFileItem,
   selectedPath: String?,
-  onOpenFile: (WorkspaceFileItem) -> Unit
+  expandedPaths: Set<String>,
+  loadingDirectoryPaths: Set<String>,
+  onOpenFile: (WorkspaceFileItem) -> Unit,
+  onToggleDirectory: (WorkspaceFileItem) -> Unit
 ) {
   Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
     if (item.isDirectory) {
-      Text(
-        text = item.relativePath,
-        style = MaterialTheme.typography.labelSmall,
-        color = TnetTextMuted
+      val isExpanded = item.relativePath in expandedPaths
+      TnetSecondaryButton(
+        text = "${if (isExpanded) "v" else ">"} ${item.name}",
+        onClick = { onToggleDirectory(item) },
+        modifier = Modifier.fillMaxWidth()
       )
-      item.children.forEach { child ->
-        WorkspaceFileTreeItem(
-          item = child,
-          selectedPath = selectedPath,
-          onOpenFile = onOpenFile
-        )
+      if (isExpanded) {
+        if (item.relativePath in loadingDirectoryPaths) {
+          Text(
+            text = "Loading...",
+            style = MaterialTheme.typography.bodySmall,
+            color = TnetTextMuted,
+            modifier = Modifier.padding(start = TnetSpace3)
+          )
+        } else if (item.isChildrenLoaded && item.children.isEmpty()) {
+          Text(
+            text = "No Markdown files.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TnetTextMuted,
+            modifier = Modifier.padding(start = TnetSpace3)
+          )
+        }
+        item.children.forEach { child ->
+          WorkspaceFileTreeItem(
+            item = child,
+            selectedPath = selectedPath,
+            expandedPaths = expandedPaths,
+            loadingDirectoryPaths = loadingDirectoryPaths,
+            onOpenFile = onOpenFile,
+            onToggleDirectory = onToggleDirectory
+          )
+        }
       }
     } else {
       TnetSecondaryButton(
@@ -407,6 +537,44 @@ private fun MarkdownBlocksPreviewComponentPreview() {
   }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun WorkspaceFileTreePreview() {
+  TnetTheme {
+    WorkspaceFileTree(
+      items = listOf(
+        WorkspaceFileItem(
+          name = "docs",
+          relativePath = "docs",
+          documentUri = "content://workspace/docs",
+          isDirectory = true,
+          children = listOf(
+            WorkspaceFileItem(
+              name = "mobile.md",
+              relativePath = "docs/mobile.md",
+              documentUri = "content://workspace/docs/mobile.md",
+              isDirectory = false
+            )
+          ),
+          isChildrenLoaded = true
+        ),
+        WorkspaceFileItem(
+          name = "README.md",
+          relativePath = "README.md",
+          documentUri = "content://workspace/README.md",
+          isDirectory = false
+        )
+      ),
+      selectedPath = "docs/mobile.md",
+      expandedPaths = setOf("docs"),
+      loadingDirectoryPaths = emptySet(),
+      onOpenFile = {},
+      onToggleDirectory = {},
+      modifier = Modifier.padding(16.dp)
+    )
+  }
+}
+
 private val kotlinKeywords = setOf(
   "class",
   "data",
@@ -515,7 +683,10 @@ private fun MarkdownScreenContentPreview() {
       onOpenWorkspace = {},
       onOpenFile = {},
       onReopenPath = {},
-      onSearchQueryChange = {}
+      onSearchQueryChange = {},
+      onToggleDirectory = {},
+      onOpenDrawer = {},
+      onCloseDrawer = {}
     )
   }
 }
@@ -532,7 +703,10 @@ private fun MarkdownLoadingPreview() {
       onOpenWorkspace = {},
       onOpenFile = {},
       onReopenPath = {},
-      onSearchQueryChange = {}
+      onSearchQueryChange = {},
+      onToggleDirectory = {},
+      onOpenDrawer = {},
+      onCloseDrawer = {}
     )
   }
 }

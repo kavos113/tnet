@@ -8,7 +8,9 @@ import com.github.kavos113.tnet.core.settings.TnetSettingsRepository
 import com.github.kavos113.tnet.core.workspace.WorkspaceFileItem
 import com.github.kavos113.tnet.core.workspace.WorkspaceRoot
 import com.github.kavos113.tnet.core.workspace.findWorkspaceFile
-import com.github.kavos113.tnet.core.workspace.loadWorkspaceFileTree
+import com.github.kavos113.tnet.core.workspace.loadWorkspaceDirectoryChildren
+import com.github.kavos113.tnet.core.workspace.loadWorkspaceRootFileTree
+import com.github.kavos113.tnet.core.workspace.replaceWorkspaceDirectoryChildren
 import com.github.kavos113.tnet.core.workspace.workspaceNameFromTreeUri
 import com.github.kavos113.tnet.feature.markdown.model.parseMarkdownBlocks
 import com.github.kavos113.tnet.feature.markdown.model.readMarkdownDocument
@@ -23,6 +25,7 @@ import kotlinx.coroutines.withContext
 class MarkdownViewModel(application: Application) : AndroidViewModel(application) {
   private val settingsRepository = TnetSettingsRepository(application)
   private val mutableUiState = MutableStateFlow(MarkdownUiState())
+  private var loadedWorkspaceUri: String? = null
   val uiState: StateFlow<MarkdownUiState> = mutableUiState.asStateFlow()
 
   init {
@@ -42,7 +45,11 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
             viewerPosition = settings.markdownViewerPosition
           )
         }
-        if (active != null) loadWorkspace(active)
+        if (active == null) {
+          loadedWorkspaceUri = null
+        } else if (active.uri != loadedWorkspaceUri) {
+          loadWorkspace(active)
+        }
       }
     }
   }
@@ -67,7 +74,8 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
         recentUris = (listOf(file.relativePath) + it.recentUris).distinct().take(10),
         blocks = emptyList(),
         error = null,
-        isLoading = true
+        isLoading = true,
+        isDrawerOpen = false
       )
     }
     persistSession()
@@ -125,14 +133,86 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
     mutableUiState.update { it.copy(searchQuery = value) }
   }
 
+  fun openDrawer() {
+    mutableUiState.update { it.copy(isDrawerOpen = true) }
+  }
+
+  fun closeDrawer() {
+    mutableUiState.update { it.copy(isDrawerOpen = false) }
+  }
+
+  fun toggleDirectory(directory: WorkspaceFileItem) {
+    if (!directory.isDirectory) return
+    val state = mutableUiState.value
+    if (directory.relativePath in state.expandedPaths) {
+      mutableUiState.update { it.copy(expandedPaths = it.expandedPaths - directory.relativePath) }
+      return
+    }
+
+    mutableUiState.update {
+      it.copy(
+        expandedPaths = it.expandedPaths + directory.relativePath,
+        loadingDirectoryPaths = if (directory.isChildrenLoaded) {
+          it.loadingDirectoryPaths
+        } else {
+          it.loadingDirectoryPaths + directory.relativePath
+        }
+      )
+    }
+    if (directory.isChildrenLoaded) return
+
+    val root = state.activeWorkspace ?: return
+    viewModelScope.launch {
+      val result = withContext(Dispatchers.IO) {
+        loadWorkspaceDirectoryChildren(
+          contentResolver = getApplication<Application>().contentResolver,
+          workspaceUri = Uri.parse(root.uri),
+          directory = directory,
+          allowedExtensions = setOf(".md", ".markdown")
+        )
+      }
+      mutableUiState.update { current ->
+        result.fold(
+          onSuccess = { children ->
+            current.copy(
+              fileTree = replaceWorkspaceDirectoryChildren(
+                items = current.fileTree,
+                relativePath = directory.relativePath,
+                children = children
+              ),
+              error = null,
+              loadingDirectoryPaths = current.loadingDirectoryPaths - directory.relativePath
+            )
+          },
+          onFailure = {
+            current.copy(
+              error = it.message ?: "Unable to load workspace directory.",
+              loadingDirectoryPaths = current.loadingDirectoryPaths - directory.relativePath
+            )
+          }
+        )
+      }
+    }
+  }
+
   fun saveViewerPosition(position: Int) {
     mutableUiState.update { it.copy(viewerPosition = position.coerceAtLeast(0)) }
     persistSession()
   }
 
   private suspend fun loadWorkspace(root: WorkspaceRoot) {
+    loadedWorkspaceUri = root.uri
+    mutableUiState.update {
+      it.copy(
+        isWorkspaceLoading = true,
+        fileTree = emptyList(),
+        expandedPaths = emptySet(),
+        loadingDirectoryPaths = emptySet(),
+        error = null
+      )
+    }
     val result = withContext(Dispatchers.IO) {
-      loadWorkspaceFileTree(
+      loadWorkspaceRootFileTree(
         contentResolver = getApplication<Application>().contentResolver,
         workspaceUri = Uri.parse(root.uri),
         allowedExtensions = setOf(".md", ".markdown")
@@ -140,11 +220,18 @@ class MarkdownViewModel(application: Application) : AndroidViewModel(application
     }
     mutableUiState.update { state ->
       result.fold(
-        onSuccess = { state.copy(fileTree = it, error = null) },
+        onSuccess = {
+          state.copy(
+            fileTree = it,
+            error = null,
+            isWorkspaceLoading = false
+          )
+        },
         onFailure = {
           state.copy(
             fileTree = emptyList(),
-            error = it.message ?: "Permission lost or workspace unavailable. Re-select the workspace in Settings."
+            error = it.message ?: "Permission lost or workspace unavailable. Re-select the workspace in Settings.",
+            isWorkspaceLoading = false
           )
         }
       )
