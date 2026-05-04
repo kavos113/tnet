@@ -104,9 +104,7 @@ internal fun RssScreenContent(
           onImportBulk = onImportBulk,
           onImportTextFile = onImportTextFile,
           onCancel = onCancel,
-          onRefresh = onRefresh,
-          onEdit = onEdit,
-          onRemove = onRemove,
+          onSyncAll = onRefreshSelected,
           onSourceSelected = onSourceSelected,
           modifier = Modifier
             .fillMaxSize()
@@ -121,6 +119,9 @@ internal fun RssScreenContent(
         uiState = uiState,
         onOpenDrawer = onOpenDrawer,
         onRefreshSelected = onRefreshSelected,
+        onRefresh = onRefresh,
+        onEdit = onEdit,
+        onRemove = onRemove,
         onSearchQueryChange = onSearchQueryChange,
         onItemSelected = onItemSelected,
         modifier = Modifier.fillMaxSize()
@@ -173,9 +174,7 @@ private fun RssDrawerPanel(
   onImportBulk: () -> Unit,
   onImportTextFile: () -> Unit,
   onCancel: () -> Unit,
-  onRefresh: (RssFeed) -> Unit,
-  onEdit: (RssFeed) -> Unit,
-  onRemove: (RssFeed) -> Unit,
+  onSyncAll: () -> Unit,
   onSourceSelected: (RssSource) -> Unit,
   modifier: Modifier = Modifier
 ) {
@@ -183,15 +182,22 @@ private fun RssDrawerPanel(
     modifier = modifier,
     verticalArrangement = Arrangement.spacedBy(TnetSpace2)
   ) {
-    Text(text = "RSS", style = MaterialTheme.typography.titleLarge)
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(TnetSpace2),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(text = "RSS Feeds", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+      TnetPrimaryButton(text = if (uiState.isRefreshing) "Syncing" else "Sync All", onClick = onSyncAll)
+    }
     RssSourceRow(
-      title = "All feeds",
+      title = "All (${uiState.items.count { !it.isRead }})",
       icon = { Icon(Icons.Rounded.Inbox, contentDescription = null) },
       selected = uiState.selectedSource == RssSource.All,
       onClick = { onSourceSelected(RssSource.All) }
     )
     RssSourceRow(
-      title = "Unread",
+      title = "Unread (${uiState.items.count { !it.isRead }})",
       icon = { Icon(Icons.Rounded.MarkEmailUnread, contentDescription = null) },
       selected = uiState.selectedSource == RssSource.Unread,
       onClick = { onSourceSelected(RssSource.Unread) }
@@ -205,7 +211,7 @@ private fun RssDrawerPanel(
     }
     uiState.folders.forEach { folder ->
       RssSourceRow(
-        title = folder.title,
+        title = "${folder.title} (${uiState.unreadCountForFolder(folder.id)})",
         icon = {
           Icon(
             if (uiState.selectedSource == RssSource.Folder(folder.id)) {
@@ -225,6 +231,7 @@ private fun RssDrawerPanel(
           selected = uiState.selectedSource == RssSource.Feed(feed.id),
           indent = true,
           isSyncing = feed.id in uiState.syncingFeedIds,
+          unreadCount = uiState.unreadCount(feed.id),
           onClick = { onSourceSelected(RssSource.Feed(feed.id)) }
         )
       }
@@ -256,14 +263,13 @@ private fun RssDrawerPanel(
       Text(text = "No feeds yet.", color = TnetTextMuted)
     } else {
       uiState.feeds.filter { it.folderId == null }.forEach { feed ->
-        RssFeedRow(
+        RssFeedTreeRow(
           feed = feed,
           selected = uiState.selectedSource == RssSource.Feed(feed.id),
           isSyncing = feed.id in uiState.syncingFeedIds,
+          unreadCount = uiState.unreadCount(feed.id),
+          indent = false,
           onClick = { onSourceSelected(RssSource.Feed(feed.id)) },
-          onRefresh = { onRefresh(feed) },
-          onEdit = { onEdit(feed) },
-          onRemove = { onRemove(feed) }
         )
       }
     }
@@ -291,6 +297,7 @@ private fun RssFeedTreeRow(
   selected: Boolean,
   indent: Boolean,
   isSyncing: Boolean,
+  unreadCount: Int,
   onClick: () -> Unit
 ) {
   TnetListRow(selected = selected, onClick = onClick) {
@@ -299,10 +306,7 @@ private fun RssFeedTreeRow(
       horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
     ) {
       Icon(if (isSyncing) Icons.Rounded.Sync else Icons.Rounded.RssFeed, contentDescription = null)
-      Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(text = feed.title, style = MaterialTheme.typography.bodyMedium)
-        Text(text = feed.url, style = MaterialTheme.typography.bodySmall, color = TnetTextMuted, maxLines = 1)
-      }
+      Text(text = "${feed.title} ($unreadCount)", style = MaterialTheme.typography.bodyMedium, maxLines = 1)
     }
   }
 }
@@ -312,6 +316,9 @@ private fun RssArticleListSurface(
   uiState: RssUiState,
   onOpenDrawer: () -> Unit,
   onRefreshSelected: () -> Unit,
+  onRefresh: (RssFeed) -> Unit,
+  onEdit: (RssFeed) -> Unit,
+  onRemove: (RssFeed) -> Unit,
   onSearchQueryChange: (String) -> Unit,
   onItemSelected: (RssItem) -> Unit,
   modifier: Modifier = Modifier
@@ -319,24 +326,39 @@ private fun RssArticleListSurface(
   Column(
     modifier = modifier
       .fillMaxSize()
-      .verticalScroll(rememberScrollState())
-      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+      .padding(0.dp),
     verticalArrangement = Arrangement.spacedBy(TnetSpace2)
   ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2)) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = TnetSpace3, vertical = TnetSpace2),
+      horizontalArrangement = Arrangement.spacedBy(TnetSpace2),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
       TnetSecondaryButton(text = "Feeds", onClick = onOpenDrawer)
-      TnetPrimaryButton(
-        text = if (uiState.isRefreshing) "Syncing" else "Sync All",
-        onClick = onRefreshSelected
-      )
+      Text(text = uiState.selectedSourceTitle, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
     }
-    Text(text = uiState.selectedSourceTitle, style = MaterialTheme.typography.titleLarge)
     TnetCompactTextField(
       value = uiState.searchQuery,
       onValueChange = onSearchQueryChange,
       label = "Search items",
-      modifier = Modifier.fillMaxWidth()
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = TnetSpace3)
     )
+    uiState.selectedFeed?.let { feed ->
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = TnetSpace3),
+        horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
+      ) {
+        TnetSecondaryButton(text = if (feed.id in uiState.syncingFeedIds) "Syncing" else "Refresh", onClick = { onRefresh(feed) })
+        TnetSecondaryButton(text = "Rename", onClick = { onEdit(feed) })
+        TnetSecondaryButton(text = "Delete", onClick = { onRemove(feed) })
+      }
+    }
     when {
       uiState.visibleFeeds.isEmpty() -> TnetStateMessage(
         title = "No feeds selected",
@@ -359,6 +381,9 @@ private fun RssArticleListSurface(
       else -> RssItemList(
         selectedFeedTitle = uiState.selectedSourceTitle,
         items = uiState.visibleItems,
+        modifier = Modifier
+          .fillMaxWidth()
+          .weight(1f),
         onItemSelected = onItemSelected
       )
     }

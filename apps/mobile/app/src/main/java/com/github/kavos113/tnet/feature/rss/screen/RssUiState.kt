@@ -36,6 +36,9 @@ data class RssUiState(
     is RssSource.Folder -> folders.firstOrNull { it.id == source.folderId }?.title ?: "Folder"
     is RssSource.Feed -> feeds.firstOrNull { it.id == source.feedId }?.title ?: "Feed"
   }
+  val selectedFeed: RssFeed? = (selectedSource as? RssSource.Feed)?.let { source ->
+    feeds.firstOrNull { it.id == source.feedId }
+  }
   val visibleFeeds: List<RssFeed> = when (val source = selectedSource) {
     RssSource.All -> feeds
     RssSource.Unread -> feeds
@@ -50,6 +53,11 @@ data class RssUiState(
         item.title.contains(searchQuery, ignoreCase = true) ||
         item.contentHtml.orEmpty().contains(searchQuery, ignoreCase = true)
     }
+  fun unreadCount(feedId: String): Int = items.count { it.feedId == feedId && !it.isRead }
+  fun unreadCountForFolder(folderId: String): Int {
+    val feedIds = feeds.filter { it.folderId == folderId }.map { it.id }.toSet()
+    return items.count { it.feedId in feedIds && !it.isRead }
+  }
 }
 
 sealed interface RssSource {

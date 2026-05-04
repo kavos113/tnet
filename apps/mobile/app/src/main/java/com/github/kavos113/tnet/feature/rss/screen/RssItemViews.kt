@@ -1,6 +1,7 @@
 package com.github.kavos113.tnet.feature.rss.screen
 
 import android.webkit.WebView
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,16 +30,17 @@ import com.github.kavos113.tnet.ui.theme.TnetTheme
 internal fun RssItemList(
   selectedFeedTitle: String?,
   items: List<RssItem>,
+  modifier: Modifier = Modifier,
   onItemSelected: (RssItem) -> Unit
 ) {
   if (selectedFeedTitle == null || items.isEmpty()) return
 
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text(
-      text = selectedFeedTitle,
-      style = MaterialTheme.typography.titleMedium
-    )
-    items.forEach { item ->
+  LazyColumn(
+    modifier = modifier,
+    contentPadding = PaddingValues(0.dp),
+    verticalArrangement = Arrangement.spacedBy(0.dp)
+  ) {
+    items(items, key = { it.id.ifBlank { "${it.feedId}-${it.title}-${it.publishedAt}" } }) { item ->
       TnetListRow(onClick = { onItemSelected(item) }) {
         Column(
           verticalArrangement = Arrangement.spacedBy(3.dp)
