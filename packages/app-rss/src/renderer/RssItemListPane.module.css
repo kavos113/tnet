@@ -116,6 +116,10 @@
   height: 6px;
 }
 
+.loadMoreSentinel {
+  height: 1px;
+}
+
 @media (max-width: 860px) {
   .listPane {
     width: auto;

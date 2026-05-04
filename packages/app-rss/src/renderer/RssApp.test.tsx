@@ -1,5 +1,5 @@
 import { configureStore, type EnhancedStore } from '@reduxjs/toolkit';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultRssGlobalSettings } from '@tnet/app-rss/shared/config';
@@ -215,6 +215,75 @@ describe('RssApp', () => {
       )
     );
     expect(await screen.findByText('Second item')).toBeInTheDocument();
+  });
+
+  it('loads more items when the list bottom intersects', async () => {
+    const originalIntersectionObserver = globalThis.IntersectionObserver;
+    let intersectionCallback: IntersectionObserverCallback | undefined;
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    Object.defineProperty(globalThis, 'IntersectionObserver', {
+      configurable: true,
+      value: vi.fn(function MockIntersectionObserver(callback: IntersectionObserverCallback) {
+        intersectionCallback = callback;
+        return {
+          disconnect,
+          observe,
+          takeRecords: vi.fn(),
+          unobserve: vi.fn()
+        };
+      })
+    });
+    vi.mocked(rssTnetApi.rss.items.list).mockResolvedValueOnce({
+      items: [
+        {
+          id: 'item-1',
+          feedId: 'feed-1',
+          externalId: 'external-1',
+          title: 'First item',
+          starred: false,
+          fetchedAt: '2026-05-01T00:00:00.000Z'
+        }
+      ],
+      nextCursor: '2026-05-01T00:00:00.000Z'
+    });
+    vi.mocked(rssTnetApi.rss.items.list).mockResolvedValueOnce({
+      items: [
+        {
+          id: 'item-2',
+          feedId: 'feed-1',
+          externalId: 'external-2',
+          title: 'Second item',
+          starred: false,
+          fetchedAt: '2026-04-30T00:00:00.000Z'
+        }
+      ]
+    });
+
+    try {
+      renderApp();
+
+      expect(await screen.findByLabelText('Load more RSS items')).toBeInTheDocument();
+      expect(observe).toHaveBeenCalled();
+      act(() => {
+        intersectionCallback?.(
+          [{ isIntersecting: true } as IntersectionObserverEntry],
+          {} as IntersectionObserver
+        );
+      });
+
+      await waitFor(() =>
+        expect(rssTnetApi.rss.items.list).toHaveBeenCalledWith(
+          expect.objectContaining({ cursor: '2026-05-01T00:00:00.000Z' })
+        )
+      );
+      expect(await screen.findByText('Second item')).toBeInTheDocument();
+    } finally {
+      Object.defineProperty(globalThis, 'IntersectionObserver', {
+        configurable: true,
+        value: originalIntersectionObserver
+      });
+    }
   });
 
   it('hides item summaries when summary lines is zero', async () => {
