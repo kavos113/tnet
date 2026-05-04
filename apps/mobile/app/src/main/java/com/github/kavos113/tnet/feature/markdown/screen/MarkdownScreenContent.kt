@@ -217,48 +217,50 @@ private fun MarkdownDocumentSurface(
   onOpenDrawer: () -> Unit,
   modifier: Modifier = Modifier
 ) {
-  Box(
+  Column(
     modifier = modifier
       .fillMaxSize()
-      .padding(horizontal = TnetSpace4, vertical = TnetSpace3)
+      .padding(horizontal = TnetSpace4, vertical = TnetSpace3),
+    verticalArrangement = Arrangement.spacedBy(TnetSpace2)
   ) {
-    when {
-      uiState.isWorkspaceLoading -> TnetStateMessage(
-        title = "Loading workspace...",
-        detail = "Reading top-level Markdown files.",
-        modifier = Modifier.fillMaxWidth()
-      )
-
-      uiState.isLoading -> TnetStateMessage(
-        title = "Loading document...",
-        detail = uiState.selectedPath ?: uiState.selectedUri,
-        modifier = Modifier.fillMaxWidth()
-      )
-
-      uiState.error != null -> TnetStateMessage(
-        title = "Markdown error",
-        detail = uiState.error,
-        isError = true,
-        modifier = Modifier.fillMaxWidth()
-      )
-
-      uiState.renderedHtml.isNotBlank() -> MarkdownHtmlPreview(
-        html = uiState.renderedHtml,
-        modifier = Modifier.fillMaxSize()
-      )
-
-      else -> TnetStateMessage(
-        title = "No Markdown file selected",
-        detail = "Swipe from the left edge or open the workspace panel.",
-        modifier = Modifier.fillMaxWidth()
-      )
-    }
     if (!uiState.isLoading && !uiState.isWorkspaceLoading) {
       TnetSecondaryButton(
         text = if (uiState.renderedHtml.isBlank()) "Workspace" else "Files",
-        onClick = onOpenDrawer,
-        modifier = Modifier.align(Alignment.BottomStart)
+        onClick = onOpenDrawer
       )
+    }
+    Box(modifier = Modifier.weight(1f)) {
+      when {
+        uiState.isWorkspaceLoading -> TnetStateMessage(
+          title = "Loading workspace...",
+          detail = "Reading top-level Markdown files.",
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        uiState.isLoading -> TnetStateMessage(
+          title = "Loading document...",
+          detail = uiState.selectedPath ?: uiState.selectedUri,
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        uiState.error != null -> TnetStateMessage(
+          title = "Markdown error",
+          detail = uiState.error,
+          isError = true,
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        uiState.renderedHtml.isNotBlank() -> MarkdownHtmlPreview(
+          html = uiState.renderedHtml,
+          modifier = Modifier.fillMaxSize()
+        )
+
+        else -> TnetStateMessage(
+          title = "No Markdown file selected",
+          detail = "Swipe from the left edge or open the workspace panel.",
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
     }
   }
 }
