@@ -215,11 +215,44 @@ private fun RssItemListPreview() {
 
 @Preview(showBackground = true)
 @Composable
+private fun RssItemListEmptyReadStatePreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      RssItemList(
+        selectedFeedTitle = "Unread",
+        items = previewRssItems.mapIndexed { index, item ->
+          item.copy(
+            id = "item-$index",
+            isRead = index == 1,
+            contentHtml = "<p>${item.title} summary text for previewing the compact list row.</p>"
+          )
+        },
+        onItemSelected = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
 private fun RssItemDetailComponentPreview() {
   TnetTheme {
     Surface(modifier = Modifier.padding(16.dp)) {
       RssItemDetail(
         item = previewRssItems.first(),
+        onBack = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssItemDetailNoContentPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      RssItemDetail(
+        item = previewRssItems.first().copy(contentHtml = null, link = null),
         onBack = {}
       )
     }

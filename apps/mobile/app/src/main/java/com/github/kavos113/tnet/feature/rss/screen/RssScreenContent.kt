@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
+import com.github.kavos113.tnet.feature.rss.model.RssFolder
 import com.github.kavos113.tnet.feature.rss.model.RssItem
 import com.github.kavos113.tnet.ui.components.TnetListRow
 import com.github.kavos113.tnet.ui.components.TnetCompactTextField
@@ -395,12 +396,70 @@ private fun RssArticleListSurface(
 private fun RssScreenContentPreview() {
   TnetTheme {
     RssScreenContent(
-      uiState = RssUiState(
-        feeds = listOf(previewRssFeed, previewRssFeed.copy(id = "feed-2", title = "Engineering")),
-        titleDraft = "New feed",
-        urlDraft = "https://example.com/feed.xml",
-        items = previewRssItems.map { it.copy(feedId = "feed-preview") },
-        isDrawerOpen = false
+      uiState = previewRssUiState(isDrawerOpen = false),
+      onTitleChange = {},
+      onUrlChange = {},
+      onFolderTitleChange = {},
+      onFolderDraftSelected = {},
+      onBulkImportChange = {},
+      onSearchQueryChange = {},
+      onSave = {},
+      onSaveFolder = {},
+      onImportBulk = {},
+      onImportTextFile = {},
+      onCancel = {},
+      onRefresh = {},
+      onRefreshSelected = {},
+      onEdit = {},
+      onRemove = {},
+      onSourceSelected = {},
+      onOpenDrawer = {},
+      onCloseDrawer = {},
+      onItemSelected = {},
+      onItemBack = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssScreenContentDrawerPreview() {
+  TnetTheme {
+    RssScreenContent(
+      uiState = previewRssUiState(isDrawerOpen = true, syncingFeedIds = setOf("feed-preview")),
+      onTitleChange = {},
+      onUrlChange = {},
+      onFolderTitleChange = {},
+      onFolderDraftSelected = {},
+      onBulkImportChange = {},
+      onSearchQueryChange = {},
+      onSave = {},
+      onSaveFolder = {},
+      onImportBulk = {},
+      onImportTextFile = {},
+      onCancel = {},
+      onRefresh = {},
+      onRefreshSelected = {},
+      onEdit = {},
+      onRemove = {},
+      onSourceSelected = {},
+      onOpenDrawer = {},
+      onCloseDrawer = {},
+      onItemSelected = {},
+      onItemBack = {}
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssScreenContentDetailPreview() {
+  TnetTheme {
+    RssScreenContent(
+      uiState = previewRssUiState(
+        isDrawerOpen = false,
+        selectedItem = previewRssItems.first(),
+        isArticlePanelOpen = true
       ),
       onTitleChange = {},
       onUrlChange = {},
@@ -424,4 +483,101 @@ private fun RssScreenContentPreview() {
       onItemBack = {}
     )
   }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssDrawerPanelPreview() {
+  TnetTheme {
+    RssDrawerPanel(
+      uiState = previewRssUiState(syncingFeedIds = setOf("feed-preview")),
+      onTitleChange = {},
+      onUrlChange = {},
+      onFolderTitleChange = {},
+      onFolderDraftSelected = {},
+      onBulkImportChange = {},
+      onSave = {},
+      onSaveFolder = {},
+      onImportBulk = {},
+      onImportTextFile = {},
+      onCancel = {},
+      onSyncAll = {},
+      onSourceSelected = {},
+      modifier = Modifier.padding(16.dp)
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssArticleListSurfacePreview() {
+  TnetTheme {
+    RssArticleListSurface(
+      uiState = previewRssUiState(isDrawerOpen = false),
+      onOpenDrawer = {},
+      onRefreshSelected = {},
+      onRefresh = {},
+      onEdit = {},
+      onRemove = {},
+      onSearchQueryChange = {},
+      onItemSelected = {},
+      modifier = Modifier.fillMaxSize()
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssArticleListSurfaceEmptyPreview() {
+  TnetTheme {
+    RssArticleListSurface(
+      uiState = RssUiState(isFeedListLoading = false, isItemsLoading = false, isDrawerOpen = false),
+      onOpenDrawer = {},
+      onRefreshSelected = {},
+      onRefresh = {},
+      onEdit = {},
+      onRemove = {},
+      onSearchQueryChange = {},
+      onItemSelected = {},
+      modifier = Modifier.fillMaxSize()
+    )
+  }
+}
+
+private fun previewRssUiState(
+  isDrawerOpen: Boolean = false,
+  syncingFeedIds: Set<String> = emptySet(),
+  selectedItem: RssItem? = null,
+  isArticlePanelOpen: Boolean = false
+): RssUiState {
+  val folder = RssFolder(id = "folder-research", title = "Research")
+  val feed = previewRssFeed.copy(folderId = folder.id)
+  val engineeringFeed = previewRssFeed.copy(
+    id = "feed-2",
+    title = "Engineering",
+    url = "https://example.com/engineering.xml"
+  )
+  return RssUiState(
+    feeds = listOf(feed, engineeringFeed),
+    folders = listOf(folder),
+    titleDraft = "New feed",
+    urlDraft = "https://example.com/feed.xml",
+    folderTitleDraft = "Product",
+    bulkImportDraft = "https://example.com/news.xml",
+    selectedSource = RssSource.Feed(feed.id),
+    selectedItem = selectedItem,
+    items = previewRssItems.mapIndexed { index, item ->
+      item.copy(
+        id = "item-$index",
+        feedId = feed.id,
+        isRead = index == 1
+      )
+    },
+    isDrawerOpen = isDrawerOpen,
+    isFeedListLoading = false,
+    isItemsLoading = false,
+    isRefreshing = syncingFeedIds.isNotEmpty(),
+    syncingFeedIds = syncingFeedIds,
+    isArticlePanelOpen = isArticlePanelOpen
+  )
 }

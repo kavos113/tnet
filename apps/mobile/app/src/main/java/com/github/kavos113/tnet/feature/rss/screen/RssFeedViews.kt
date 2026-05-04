@@ -196,3 +196,83 @@ private fun RssFeedRowPreview() {
     }
   }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun RssFeedRowSyncingPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      RssFeedRow(
+        feed = previewRssFeed.copy(lastRefreshLabel = "Fetched 12 items"),
+        selected = true,
+        isSyncing = true,
+        onClick = {},
+        onRefresh = {},
+        onEdit = {},
+        onRemove = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssFeedFormPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      RssFeedForm(
+        uiState = RssUiState(
+          titleDraft = "TNET updates",
+          urlDraft = "https://example.com/feed.xml",
+          bulkImportDraft = "https://example.com/news.xml\nhttps://example.com/blog.xml"
+        ),
+        onTitleChange = {},
+        onUrlChange = {},
+        onFolderSelected = {},
+        onBulkImportChange = {},
+        onSave = {},
+        onImportBulk = {},
+        onImportTextFile = {},
+        onCancel = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssFeedFormEditingPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      RssFeedForm(
+        uiState = RssUiState(
+          titleDraft = "Research updates",
+          urlDraft = "https://example.com/research.xml",
+          editingFeedId = "feed-preview"
+        ),
+        onTitleChange = {},
+        onUrlChange = {},
+        onFolderSelected = {},
+        onBulkImportChange = {},
+        onSave = {},
+        onImportBulk = {},
+        onImportTextFile = {},
+        onCancel = {}
+      )
+    }
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RssFolderFormPreview() {
+  TnetTheme {
+    Surface(modifier = Modifier.padding(16.dp)) {
+      RssFolderForm(
+        title = "Research",
+        onTitleChange = {},
+        onSave = {}
+      )
+    }
+  }
+}
