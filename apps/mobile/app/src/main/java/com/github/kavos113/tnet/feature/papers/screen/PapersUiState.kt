@@ -6,6 +6,8 @@ import com.github.kavos113.tnet.feature.papers.model.PapersWorkspaceValidation
 
 data class PapersUiState(
   val workspaceUri: String? = null,
+  val databaseUri: String? = null,
+  val isSqliteOnlyMode: Boolean = false,
   val validation: PapersWorkspaceValidation? = null,
   val papers: Result<List<PaperListItem>>? = null,
   val selectedPaperId: String? = null,

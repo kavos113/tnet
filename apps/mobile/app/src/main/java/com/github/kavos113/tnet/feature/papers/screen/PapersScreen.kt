@@ -72,6 +72,8 @@ private fun PapersScreenContent(
     )
     PapersWorkspaceStatus(
       workspaceUri = uiState.workspaceUri,
+      databaseUri = uiState.databaseUri,
+      isSqliteOnlyMode = uiState.isSqliteOnlyMode,
       validation = uiState.validation
     )
     if (uiState.selectedPaperId == null) {
@@ -91,6 +93,8 @@ private fun PapersScreenContent(
 @Composable
 private fun PapersWorkspaceStatus(
   workspaceUri: String?,
+  databaseUri: String?,
+  isSqliteOnlyMode: Boolean,
   validation: PapersWorkspaceValidation?
 ) {
   TnetPanel {
@@ -102,12 +106,18 @@ private fun PapersWorkspaceStatus(
         style = MaterialTheme.typography.titleMedium
       )
       Text(
-        text = workspaceUri ?: "Select a Papers workspace in Settings.",
+        text = workspaceUri
+          ?: databaseUri
+          ?: "Select a Papers workspace or SQLite file in Settings.",
         style = MaterialTheme.typography.bodyMedium,
         color = TnetTextMuted
       )
       val status = when (validation) {
-        null -> if (workspaceUri == null) "Not configured" else "Checking workspace..."
+        null -> when {
+          isSqliteOnlyMode -> "SQLite-only mode: metadata is available, workspace PDFs are unavailable."
+          workspaceUri == null -> "Not configured"
+          else -> "Checking workspace..."
+        }
         is PapersWorkspaceValidation.Valid -> "Ready: ${validation.databaseUri}"
         is PapersWorkspaceValidation.Invalid -> validation.reason
       }
@@ -346,6 +356,8 @@ private fun PapersWorkspaceStatusPreview() {
     Surface(modifier = Modifier.padding(16.dp)) {
       PapersWorkspaceStatus(
         workspaceUri = "content://workspace/root",
+        databaseUri = null,
+        isSqliteOnlyMode = false,
         validation = PapersWorkspaceValidation.Valid(
           databaseUri = Uri.parse("content://workspace/root/.tnet/papers/papers.db")
         )

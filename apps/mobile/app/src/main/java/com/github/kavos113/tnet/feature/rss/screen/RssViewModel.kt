@@ -114,9 +114,24 @@ class RssViewModel : ViewModel() {
     }
   }
 
-  fun selectItem(item: RssItem) = mutableUiState.update { it.copy(selectedItem = item) }
+  fun selectItem(item: RssItem) = mutableUiState.update { state ->
+    state.copy(
+      selectedItem = item.copy(isRead = true),
+      items = state.items.map { candidate ->
+        if (candidate.link == item.link && candidate.title == item.title) {
+          candidate.copy(isRead = true)
+        } else {
+          candidate
+        }
+      }
+    )
+  }
 
   fun closeItem() = mutableUiState.update { it.copy(selectedItem = null) }
+
+  internal fun replaceItemsForTest(items: List<RssItem>) {
+    mutableUiState.update { it.copy(items = items) }
+  }
 }
 
 private fun RssUiState.clearDraft(): RssUiState {

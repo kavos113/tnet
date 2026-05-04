@@ -24,6 +24,10 @@ class MarkdownBlocksTest {
       | A | 1 |
       | B | 2 |
 
+      ![Diagram](images/diagram.png)
+
+      [Project](https://example.com)
+
       ```kotlin
       val x = 1
       ```
@@ -53,6 +57,8 @@ class MarkdownBlocksTest {
             listOf("B", "2")
           )
         ),
+        MarkdownBlock.ImageBlock(altText = "Diagram", source = "images/diagram.png"),
+        MarkdownBlock.LinkBlock(label = "Project", target = "https://example.com"),
         MarkdownBlock.CodeBlock(language = "kotlin", code = "val x = 1"),
         MarkdownBlock.MermaidBlock("graph TD\n  A-->B")
       ),

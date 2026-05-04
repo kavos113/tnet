@@ -23,7 +23,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     viewModelScope.launch {
       settingsRepository.settings.collect {
         val uri = it.papersWorkspaceUri
-        mutableUiState.update { state -> state.copy(selectedWorkspaceUri = uri) }
+        mutableUiState.update { state ->
+          state.copy(
+            selectedWorkspaceUri = uri,
+            selectedDatabaseUri = it.papersDatabaseUri
+          )
+        }
         if (uri != null) validateWorkspace(uri)
       }
     }
@@ -40,6 +45,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     viewModelScope.launch {
       settingsRepository.savePapersWorkspaceUri(uriText)
       validateWorkspace(uriText)
+    }
+  }
+
+  fun selectDatabase(uri: Uri) {
+    val uriText = uri.toString()
+    mutableUiState.update { it.copy(selectedDatabaseUri = uriText) }
+    viewModelScope.launch {
+      settingsRepository.savePapersDatabaseUri(uriText)
     }
   }
 

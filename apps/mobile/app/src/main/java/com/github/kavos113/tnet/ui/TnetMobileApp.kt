@@ -230,12 +230,24 @@ private fun SettingsScreen(modifier: Modifier = Modifier) {
     )
     viewModel.selectWorkspace(uri)
   }
+  val openDatabase = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.OpenDocument()
+  ) { uri: Uri? ->
+    if (uri == null) return@rememberLauncherForActivityResult
+
+    context.contentResolver.takePersistableUriPermission(
+      uri,
+      Intent.FLAG_GRANT_READ_URI_PERMISSION
+    )
+    viewModel.selectDatabase(uri)
+  }
   val workspaceLabel = uiState.selectedWorkspaceUri ?: "No Papers workspace selected."
 
   SettingsScreenContent(
     uiState = uiState,
     workspaceLabel = workspaceLabel,
     onSelectWorkspace = { openWorkspace.launch(null) },
+    onSelectDatabase = { openDatabase.launch(arrayOf("*/*")) },
     modifier = modifier
   )
 }
@@ -245,6 +257,7 @@ private fun SettingsScreenContent(
   uiState: SettingsUiState,
   workspaceLabel: String = uiState.selectedWorkspaceUri ?: "No Papers workspace selected.",
   onSelectWorkspace: () -> Unit,
+  onSelectDatabase: () -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -276,6 +289,15 @@ private fun SettingsScreenContent(
       color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     WorkspaceValidationText(uiState.workspaceValidation)
+    TnetSecondaryButton(
+      text = "Select SQLite file",
+      onClick = onSelectDatabase
+    )
+    Text(
+      text = uiState.selectedDatabaseUri ?: "No SQLite file selected.",
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
   }
 }
 
@@ -352,6 +374,7 @@ private fun SettingsScreenContentPreview() {
         )
       ),
       onSelectWorkspace = {},
+      onSelectDatabase = {},
       modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp)
     )
   }

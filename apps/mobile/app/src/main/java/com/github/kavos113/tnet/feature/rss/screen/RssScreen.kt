@@ -203,8 +203,9 @@ private fun RssItemList(
           verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
           Text(
-            text = item.title,
-            style = MaterialTheme.typography.bodyLarge
+            text = if (item.isRead) item.title else "Unread - ${item.title}",
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (item.isRead) TnetTextMuted else MaterialTheme.colorScheme.onSurface
           )
           item.publishedAt?.let {
             Text(

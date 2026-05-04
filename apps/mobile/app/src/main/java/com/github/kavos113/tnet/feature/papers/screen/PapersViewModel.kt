@@ -26,7 +26,10 @@ class PapersViewModel(application: Application) : AndroidViewModel(application) 
   init {
     viewModelScope.launch {
       settingsRepository.settings.collect { settings ->
-        loadWorkspace(settings.papersWorkspaceUri)
+        loadPapersSource(
+          workspaceUri = settings.papersWorkspaceUri,
+          databaseUri = settings.papersDatabaseUri
+        )
       }
     }
   }
@@ -50,10 +53,15 @@ class PapersViewModel(application: Application) : AndroidViewModel(application) 
     }
   }
 
-  private suspend fun loadWorkspace(workspaceUri: String?) {
+  private suspend fun loadPapersSource(
+    workspaceUri: String?,
+    databaseUri: String?
+  ) {
     mutableUiState.update {
       it.copy(
         workspaceUri = workspaceUri,
+        databaseUri = databaseUri,
+        isSqliteOnlyMode = workspaceUri == null && databaseUri != null,
         validation = null,
         papers = null,
         selectedPaperId = null,
@@ -61,8 +69,16 @@ class PapersViewModel(application: Application) : AndroidViewModel(application) 
       )
     }
 
-    val uri = workspaceUri ?: return
     val context = getApplication<Application>()
+    if (workspaceUri == null && databaseUri != null) {
+      val papers = withContext(Dispatchers.IO) {
+        loadPaperList(context, Uri.parse(databaseUri))
+      }
+      mutableUiState.update { it.copy(papers = papers) }
+      return
+    }
+
+    val uri = workspaceUri ?: return
     val validation = withContext(Dispatchers.IO) {
       validatePapersWorkspace(context.contentResolver, Uri.parse(uri))
     }
@@ -77,12 +93,17 @@ class PapersViewModel(application: Application) : AndroidViewModel(application) 
   }
 
   private fun loadPaperDetailFor(paperId: String) {
-    val validation = mutableUiState.value.validation as? PapersWorkspaceValidation.Valid ?: return
+    val state = mutableUiState.value
+    val databaseUri = when {
+      state.isSqliteOnlyMode && state.databaseUri != null -> Uri.parse(state.databaseUri)
+      state.validation is PapersWorkspaceValidation.Valid -> state.validation.databaseUri
+      else -> return
+    }
     val context = getApplication<Application>()
 
     viewModelScope.launch {
       val paper = withContext(Dispatchers.IO) {
-        loadPaperDetail(context, validation.databaseUri, paperId)
+        loadPaperDetail(context, databaseUri, paperId)
       }
       mutableUiState.update { it.copy(selectedPaper = paper) }
     }

@@ -14,7 +14,10 @@ class TnetSettingsRepository(
 ) {
   val settings: Flow<TnetSettings> = context.tnetSettingsDataStore.data.map { preferences ->
     TnetSettings(
-      papersWorkspaceUri = preferences[PAPERS_WORKSPACE_URI]
+      papersWorkspaceUri = preferences[PAPERS_WORKSPACE_URI],
+      papersDatabaseUri = preferences[PAPERS_DATABASE_URI],
+      lastOpenedDestination = preferences[LAST_OPENED_DESTINATION],
+      theme = preferences[THEME] ?: "light"
     )
   }
 
@@ -24,7 +27,22 @@ class TnetSettingsRepository(
     }
   }
 
+  suspend fun savePapersDatabaseUri(uri: String) {
+    context.tnetSettingsDataStore.edit { preferences ->
+      preferences[PAPERS_DATABASE_URI] = uri
+    }
+  }
+
+  suspend fun saveLastOpenedDestination(destination: String) {
+    context.tnetSettingsDataStore.edit { preferences ->
+      preferences[LAST_OPENED_DESTINATION] = destination
+    }
+  }
+
   private companion object {
     val PAPERS_WORKSPACE_URI = stringPreferencesKey("papers_workspace_uri")
+    val PAPERS_DATABASE_URI = stringPreferencesKey("papers_database_uri")
+    val LAST_OPENED_DESTINATION = stringPreferencesKey("last_opened_destination")
+    val THEME = stringPreferencesKey("theme")
   }
 }

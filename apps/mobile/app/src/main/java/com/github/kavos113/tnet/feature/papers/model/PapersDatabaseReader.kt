@@ -39,6 +39,10 @@ data class PaperAiOutput(
   val content: String
 )
 
+class UnsupportedPapersSchemaException(message: String) : IllegalStateException(message)
+
+class PapersDatabaseIntegrityException(message: String) : IllegalStateException(message)
+
 fun loadPaperList(
   context: Context,
   databaseUri: Uri
@@ -52,6 +56,7 @@ fun loadPaperList(
     )
 
     database.use {
+      validatePapersDatabase(it)
       it.rawQuery(
         """
         SELECT id, title, published_year, venue, pdf_path
@@ -91,6 +96,7 @@ fun loadPaperDetail(
     )
 
     database.use {
+      validatePapersDatabase(it)
       val base = it.rawQuery(
         """
         SELECT id, title, abstract, published_year, venue, doi, arxiv_id, url, pdf_path, directory_path
@@ -181,6 +187,31 @@ fun loadPaperDetail(
   }
 }
 
+private fun validatePapersDatabase(database: SQLiteDatabase) {
+  val schemaVersion = database.latestSchemaVersion()
+    ?: throw UnsupportedPapersSchemaException("Missing papers_schema_migrations table.")
+  if (schemaVersion != SUPPORTED_PAPERS_SCHEMA_VERSION) {
+    throw UnsupportedPapersSchemaException(
+      "Unsupported papers schema version: $schemaVersion. Supported version: $SUPPORTED_PAPERS_SCHEMA_VERSION."
+    )
+  }
+
+  val integrity = database.rawQuery("PRAGMA integrity_check", emptyArray()).use { cursor ->
+    if (cursor.moveToNext()) cursor.getString(0) else "empty integrity_check result"
+  }
+  if (integrity != "ok") {
+    throw PapersDatabaseIntegrityException("Papers database integrity check failed: $integrity")
+  }
+}
+
+private fun SQLiteDatabase.latestSchemaVersion(): Int? {
+  return runCatching {
+    rawQuery("SELECT MAX(version) FROM papers_schema_migrations", emptyArray()).use { cursor ->
+      if (cursor.moveToNext() && !cursor.isNull(0)) cursor.getInt(0) else null
+    }
+  }.getOrNull()
+}
+
 private fun copyDatabaseToWorkingFile(
   context: Context,
   databaseUri: Uri
@@ -192,7 +223,22 @@ private fun copyDatabaseToWorkingFile(
       input.copyTo(output)
     }
   }
+  copyDatabaseSidecars(databaseUri, target)
   return target
+}
+
+private fun copyDatabaseSidecars(
+  databaseUri: Uri,
+  target: File
+) {
+  if (databaseUri.scheme != "file") return
+  val sourcePath = databaseUri.path ?: return
+  listOf("-wal", "-shm").forEach { suffix ->
+    val source = File("$sourcePath$suffix")
+    if (source.isFile) {
+      source.copyTo(File("${target.absolutePath}$suffix"), overwrite = true)
+    }
+  }
 }
 
 private data class PaperDetailBase(
@@ -224,3 +270,5 @@ private fun SQLiteDatabase.loadStrings(
 private fun android.database.Cursor.getNullableString(index: Int): String? {
   return if (isNull(index)) null else getString(index)
 }
+
+private const val SUPPORTED_PAPERS_SCHEMA_VERSION = 1

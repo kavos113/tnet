@@ -21,8 +21,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -183,13 +186,54 @@ private fun MarkdownBlockView(block: MarkdownBlock) {
       }
     }
 
-    is MarkdownBlock.CodeBlock -> Text(
-      text = block.code,
+    is MarkdownBlock.CodeBlock -> CodeBlockView(block)
+
+    is MarkdownBlock.ImageBlock -> TnetPanel {
+      Text(
+        text = "Image: ${block.altText.ifBlank { block.source }}\n${block.source}",
+        style = MaterialTheme.typography.bodyMedium,
+        color = TnetTextMuted
+      )
+    }
+
+    is MarkdownBlock.LinkBlock -> Text(
+      text = "${block.label}: ${block.target}",
       style = MaterialTheme.typography.bodyMedium,
-      fontFamily = FontFamily.Monospace
+      color = MaterialTheme.colorScheme.primary
     )
 
     is MarkdownBlock.MermaidBlock -> MermaidBlockView(block.source)
+  }
+}
+
+@Composable
+private fun CodeBlockView(block: MarkdownBlock.CodeBlock) {
+  val keywordColor = MaterialTheme.colorScheme.primary
+  val plainColor = MaterialTheme.colorScheme.onSurface
+  TnetPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      block.language?.let {
+        Text(
+          text = it,
+          style = MaterialTheme.typography.labelSmall,
+          color = TnetTextMuted
+        )
+      }
+      Text(
+        text = buildAnnotatedString {
+          block.code.splitToSequence(" ").forEachIndexed { index, token ->
+            if (index > 0) append(" ")
+            val trimmed = token.trim('\n', '\t', ' ', '(', ')', '{', '}')
+            val color = if (trimmed in kotlinKeywords) keywordColor else plainColor
+            withStyle(SpanStyle(color = color)) {
+              append(token)
+            }
+          }
+        },
+        style = MaterialTheme.typography.bodyMedium,
+        fontFamily = FontFamily.Monospace
+      )
+    }
   }
 }
 
@@ -241,6 +285,23 @@ private fun MarkdownBlocksPreviewComponentPreview() {
     )
   }
 }
+
+private val kotlinKeywords = setOf(
+  "class",
+  "data",
+  "else",
+  "false",
+  "fun",
+  "if",
+  "interface",
+  "object",
+  "return",
+  "sealed",
+  "true",
+  "val",
+  "var",
+  "when"
+)
 
 @Preview(showBackground = true)
 @Composable

@@ -28,6 +28,16 @@ sealed interface MarkdownBlock {
     val code: String
   ) : MarkdownBlock
 
+  data class ImageBlock(
+    val altText: String,
+    val source: String
+  ) : MarkdownBlock
+
+  data class LinkBlock(
+    val label: String,
+    val target: String
+  ) : MarkdownBlock
+
   data class MermaidBlock(
     val source: String
   ) : MarkdownBlock
@@ -73,6 +83,18 @@ fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
         level = level,
         text = line.drop(level).trim()
       )
+      index += 1
+      continue
+    }
+
+    imageBlock(line)?.let { image ->
+      blocks += image
+      index += 1
+      continue
+    }
+
+    linkBlock(line)?.let { link ->
+      blocks += link
       index += 1
       continue
     }
@@ -129,6 +151,22 @@ fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
   }
 
   return blocks
+}
+
+private fun imageBlock(line: String): MarkdownBlock.ImageBlock? {
+  val match = Regex("""!\[([^]]*)]\(([^)]+)\)""").matchEntire(line.trim()) ?: return null
+  return MarkdownBlock.ImageBlock(
+    altText = match.groupValues[1],
+    source = match.groupValues[2]
+  )
+}
+
+private fun linkBlock(line: String): MarkdownBlock.LinkBlock? {
+  val match = Regex("""\[([^]]+)]\(([^)]+)\)""").matchEntire(line.trim()) ?: return null
+  return MarkdownBlock.LinkBlock(
+    label = match.groupValues[1],
+    target = match.groupValues[2]
+  )
 }
 
 private fun codeFenceLanguage(line: String): String? {
