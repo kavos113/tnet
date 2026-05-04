@@ -17,11 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
@@ -35,6 +39,9 @@ import com.github.kavos113.tnet.ui.theme.TnetBorder
 import com.github.kavos113.tnet.ui.theme.TnetSurface
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 internal fun RssItemList(
@@ -63,7 +70,7 @@ internal fun RssItemList(
               color = if (item.isRead) TnetTextMuted else MaterialTheme.colorScheme.onSurface,
               maxLines = 1
             )
-            item.publishedAt?.let {
+            item.publishedAt?.readableRssDate()?.let {
               Text(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
@@ -92,6 +99,7 @@ internal fun RssItemDetail(
   onBack: () -> Unit
 ) {
   if (item == null) return
+  val uriHandler = LocalUriHandler.current
 
   Column(
     modifier = Modifier.fillMaxSize(),
@@ -106,13 +114,18 @@ internal fun RssItemDetail(
         maxLines = 2
       )
     }
-    val meta = listOfNotNull(item.publishedAt, item.link).joinToString(" - ")
-    if (meta.isNotBlank()) {
-      Text(
-        text = meta,
-        style = MaterialTheme.typography.bodySmall,
-        color = TnetTextMuted
-      )
+    Row(horizontalArrangement = Arrangement.spacedBy(TnetSpace2), verticalAlignment = Alignment.CenterVertically) {
+      item.publishedAt?.readableRssDate()?.let {
+        Text(
+          text = it,
+          modifier = Modifier.weight(1f),
+          style = MaterialTheme.typography.bodySmall,
+          color = TnetTextMuted
+        )
+      }
+      item.link?.takeIf { it.isNotBlank() }?.let { link ->
+        RssArticleLinkButton(onClick = { uriHandler.openUri(link) })
+      }
     }
     val contentHtml = item.contentHtml
     if (contentHtml == null) {
@@ -132,6 +145,22 @@ internal fun RssItemDetail(
         )
       }
     }
+  }
+}
+
+@Composable
+private fun RssArticleLinkButton(onClick: () -> Unit) {
+  Row(
+    modifier = Modifier
+      .background(TnetSurface, RoundedCornerShape(TnetRadiusSmall))
+      .border(BorderStroke(1.dp, TnetBorder), RoundedCornerShape(TnetRadiusSmall))
+      .clickable(onClick = onClick)
+      .padding(horizontal = TnetSpace2, vertical = 4.dp),
+    horizontalArrangement = Arrangement.spacedBy(TnetSpace1),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = null, modifier = Modifier.padding(0.dp))
+    Text(text = "Open article", style = MaterialTheme.typography.labelMedium, color = TnetTextMuted)
   }
 }
 
@@ -231,6 +260,32 @@ private fun String.readablePreview(): String? {
     .trim()
     .takeIf { it.isNotEmpty() }
 }
+
+private fun String.readableRssDate(): String? {
+  val value = trim().takeIf { it.isNotEmpty() } ?: return null
+  val output = SimpleDateFormat("MMM d, yyyy HH:mm", Locale.US)
+  for (pattern in rssDatePatterns) {
+    val parser = SimpleDateFormat(pattern, Locale.US).apply {
+      isLenient = true
+      if (pattern.endsWith("'Z'")) {
+        timeZone = TimeZone.getTimeZone("UTC")
+      }
+    }
+    val parsed = runCatching { parser.parse(value) }.getOrNull()
+    if (parsed != null) return output.format(parsed)
+  }
+  return value
+}
+
+private val rssDatePatterns = listOf(
+  "EEE, dd MMM yyyy HH:mm:ss zzz",
+  "EEE, dd MMM yyyy HH:mm:ss Z",
+  "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+  "yyyy-MM-dd'T'HH:mm:ssX",
+  "yyyy-MM-dd'T'HH:mm:ss'Z'",
+  "yyyy-MM-dd'T'HH:mm:ss",
+  "yyyy-MM-dd"
+)
 
 @Preview(showBackground = true)
 @Composable

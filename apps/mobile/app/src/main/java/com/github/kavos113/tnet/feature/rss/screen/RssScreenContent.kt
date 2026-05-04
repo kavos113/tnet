@@ -4,7 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,16 +16,21 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Inbox
 import androidx.compose.material.icons.rounded.MarkEmailUnread
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RssFeed
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.DrawerValue
@@ -37,6 +44,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.github.kavos113.tnet.feature.rss.model.RssFeed
@@ -50,8 +60,11 @@ import com.github.kavos113.tnet.ui.components.TnetSpace1
 import com.github.kavos113.tnet.ui.components.TnetSpace2
 import com.github.kavos113.tnet.ui.components.TnetSpace4
 import com.github.kavos113.tnet.ui.components.TnetStateMessage
+import com.github.kavos113.tnet.ui.theme.TnetBorder
+import com.github.kavos113.tnet.ui.theme.TnetPrimary
 import com.github.kavos113.tnet.ui.theme.TnetSurface
 import com.github.kavos113.tnet.ui.theme.TnetSurfaceHover
+import com.github.kavos113.tnet.ui.theme.TnetText
 import com.github.kavos113.tnet.ui.theme.TnetTextMuted
 import com.github.kavos113.tnet.ui.theme.TnetTheme
 
@@ -131,6 +144,13 @@ internal fun RssScreenContent(
         onItemSelected = onItemSelected,
         modifier = Modifier.fillMaxSize()
       )
+      if (uiState.isArticlePanelOpen) {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.22f))
+        )
+      }
       AnimatedVisibility(
         visible = uiState.isArticlePanelOpen,
         enter = slideInHorizontally(animationSpec = tween(220), initialOffsetX = { it }),
@@ -364,24 +384,34 @@ private fun RssArticleListSurface(
       TnetSecondaryButton(text = "Feeds", onClick = onOpenDrawer)
       Text(text = uiState.selectedSourceTitle, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
     }
-    TnetCompactTextField(
-      value = uiState.searchQuery,
-      onValueChange = onSearchQueryChange,
-      label = "Search items",
+    Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = TnetSpace2)
-    )
-    uiState.selectedFeed?.let { feed ->
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = TnetSpace2),
-        horizontalArrangement = Arrangement.spacedBy(TnetSpace2)
-      ) {
-        TnetSecondaryButton(text = if (feed.id in uiState.syncingFeedIds) "Syncing" else "Refresh", onClick = { onRefresh(feed) })
-        TnetSecondaryButton(text = "Edit", onClick = { onEdit(feed) })
-        TnetSecondaryButton(text = "Delete", onClick = { onRemove(feed) })
+        .padding(horizontal = TnetSpace2),
+      horizontalArrangement = Arrangement.spacedBy(TnetSpace1),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      RssListSearchField(
+        value = uiState.searchQuery,
+        onValueChange = onSearchQueryChange,
+        modifier = Modifier.weight(1f)
+      )
+      uiState.selectedFeed?.let { feed ->
+        RssToolbarIconButton(
+          imageVector = Icons.Rounded.Refresh,
+          contentDescription = if (feed.id in uiState.syncingFeedIds) "Syncing" else "Refresh",
+          onClick = { onRefresh(feed) }
+        )
+        RssToolbarIconButton(
+          imageVector = Icons.Rounded.Edit,
+          contentDescription = "Edit",
+          onClick = { onEdit(feed) }
+        )
+        RssToolbarIconButton(
+          imageVector = Icons.Rounded.Delete,
+          contentDescription = "Delete",
+          onClick = { onRemove(feed) }
+        )
       }
     }
     when {
@@ -412,6 +442,57 @@ private fun RssArticleListSurface(
         onItemSelected = onItemSelected
       )
     }
+  }
+}
+
+@Composable
+private fun RssListSearchField(
+  value: String,
+  onValueChange: (String) -> Unit,
+  modifier: Modifier = Modifier
+) {
+  BasicTextField(
+    value = value,
+    onValueChange = onValueChange,
+    modifier = modifier
+      .height(30.dp)
+      .background(TnetSurface, RoundedCornerShape(TnetRadiusSmall))
+      .border(BorderStroke(1.dp, TnetBorder), RoundedCornerShape(TnetRadiusSmall))
+      .padding(horizontal = 8.dp, vertical = 4.dp),
+    singleLine = true,
+    textStyle = MaterialTheme.typography.bodySmall.copy(color = TnetText),
+    cursorBrush = SolidColor(TnetPrimary),
+    decorationBox = { innerTextField ->
+      Box(contentAlignment = Alignment.CenterStart) {
+        if (value.isEmpty()) {
+          Text(text = "Search items", style = MaterialTheme.typography.bodySmall, color = TnetTextMuted)
+        }
+        innerTextField()
+      }
+    }
+  )
+}
+
+@Composable
+private fun RssToolbarIconButton(
+  imageVector: ImageVector,
+  contentDescription: String,
+  onClick: () -> Unit
+) {
+  Box(
+    modifier = Modifier
+      .size(30.dp)
+      .background(TnetSurface, RoundedCornerShape(TnetRadiusSmall))
+      .border(BorderStroke(1.dp, TnetBorder), RoundedCornerShape(TnetRadiusSmall))
+      .clickable(onClick = onClick),
+    contentAlignment = Alignment.Center
+  ) {
+    Icon(
+      imageVector = imageVector,
+      contentDescription = contentDescription,
+      modifier = Modifier.size(18.dp),
+      tint = TnetTextMuted
+    )
   }
 }
 
