@@ -309,6 +309,52 @@ describe('RequesterApp', () => {
     );
   });
 
+  it('searches within the displayed response body with Ctrl+F', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [activeRequest],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(activeRequest));
+    sendRequest.mockResolvedValue({
+      requestSnapshot: activeRequestSnapshot,
+      response: {
+        status: 200,
+        statusText: 'OK',
+        headers: [],
+        bodyText: '{"ok":true,"message":"ok"}',
+        bodyBase64: 'eyJvayI6dHJ1ZSwibWVzc2FnZSI6Im9rIn0=',
+        contentType: 'application/json',
+        byteSize: 26,
+        durationMs: 12,
+        isBodyTruncated: false,
+        previewType: 'json'
+      }
+    });
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    const responseBodyCode = await screen.findByLabelText('Response body code');
+    fireEvent.keyDown(responseBodyCode, { key: 'f', ctrlKey: true });
+    fireEvent.change(screen.getByLabelText('Search response body'), { target: { value: 'ok' } });
+
+    expect(screen.getByLabelText('Response body search match count')).toHaveTextContent('1/2');
+    expect(document.querySelectorAll('[data-response-search-match="true"]')).toHaveLength(2);
+
+    fireEvent.keyDown(screen.getByLabelText('Search response body'), { key: 'Enter' });
+    expect(screen.getByLabelText('Response body search match count')).toHaveTextContent('2/2');
+  });
+
   it('loads only the active request history and shows a historical response when clicked', async () => {
     const store = createStore();
     store.dispatch(

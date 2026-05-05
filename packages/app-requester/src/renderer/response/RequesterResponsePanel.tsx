@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type {
   RequesterExecutionErrorSnapshot,
   RequesterExtractionRule,
@@ -12,6 +12,7 @@ import contentStyles from './RequesterResponseContent.module.css';
 import headersStyles from './RequesterResponseHeaders.module.css';
 import historyStyles from './RequesterResponseHistory.module.css';
 import { RequesterExchangeSummary } from './RequesterExchangeSummary';
+import { getTextSearchMatchRanges } from './responseBodySearch';
 import styles from './RequesterResponsePanel.module.css';
 import {
   getRequestLanguage,
@@ -285,6 +286,11 @@ const RequesterResponseBody = ({
       ? 'preview'
       : 'code'
   );
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const activeMatchRef = useRef<HTMLElement | null>(null);
   const { height: previewHeight, startResize } = useVerticalResize(260, 160, 640);
   const canShowCode =
     response.previewType === 'json' ||
@@ -305,6 +311,44 @@ const RequesterResponseBody = ({
     () => highlightRequesterBody(displayBody, language),
     [displayBody, language]
   );
+  const searchMatches = useMemo(
+    () => getTextSearchMatchRanges(displayBody, searchQuery),
+    [displayBody, searchQuery]
+  );
+  const hasSearchQuery = searchQuery.length > 0;
+  const normalizedActiveMatchIndex =
+    searchMatches.length === 0 ? 0 : Math.min(activeMatchIndex, searchMatches.length - 1);
+
+  useEffect(() => {
+    if (!isSearchOpen) return;
+    searchInputRef.current?.focus();
+    searchInputRef.current?.select();
+  }, [isSearchOpen]);
+
+  useEffect(() => {
+    setActiveMatchIndex(0);
+  }, [searchQuery, displayBody]);
+
+  useEffect(() => {
+    if (searchMatches.length === 0) return;
+    activeMatchRef.current?.scrollIntoView({ block: 'center', inline: 'nearest' });
+  }, [normalizedActiveMatchIndex, searchMatches.length]);
+
+  const openSearch = (): void => {
+    setActiveTab('code');
+    setIsSearchOpen(true);
+  };
+  const closeSearch = (): void => {
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    setActiveMatchIndex(0);
+  };
+  const moveSearchMatch = (direction: 1 | -1): void => {
+    if (searchMatches.length === 0) return;
+    setActiveMatchIndex(
+      (current) => (current + direction + searchMatches.length) % searchMatches.length
+    );
+  };
 
   return (
     <section className={contentStyles.viewer} aria-label="Response body">
@@ -330,17 +374,84 @@ const RequesterResponseBody = ({
           </button>
         </div>
       ) : null}
+      {canShowCode && isSearchOpen ? (
+        <div className={contentStyles.searchBar} role="search">
+          <input
+            ref={searchInputRef}
+            aria-label="Search response body"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                closeSearch();
+              }
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                moveSearchMatch(event.shiftKey ? -1 : 1);
+              }
+            }}
+          />
+          <span aria-label="Response body search match count">
+            {hasSearchQuery
+              ? `${searchMatches.length === 0 ? 0 : normalizedActiveMatchIndex + 1}/${searchMatches.length}`
+              : '0/0'}
+          </span>
+          <button
+            type="button"
+            className={contentStyles.searchButton}
+            onClick={() => moveSearchMatch(-1)}
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            className={contentStyles.searchButton}
+            onClick={() => moveSearchMatch(1)}
+          >
+            Next
+          </button>
+          <button type="button" className={contentStyles.searchButton} onClick={closeSearch}>
+            Close
+          </button>
+        </div>
+      ) : null}
       <div className={contentStyles.viewerFrame} style={{ height: previewHeight }}>
         {visibleTab === 'preview' ? (
           <ResponsePreview response={response} />
         ) : response.previewType === 'binary' && !response.bodyText ? (
           <p className={contentStyles.emptyBody}>Binary response body cannot be previewed.</p>
         ) : (
-          <pre className={`${contentStyles.body} hljs`}>
-            <code
-              className={`${language ? `language-${language}` : undefined} ${contentStyles.code}`}
-              dangerouslySetInnerHTML={{ __html: highlightedBody }}
-            />
+          <pre
+            className={`${contentStyles.body} hljs`}
+            role="textbox"
+            aria-label="Response body code"
+            aria-readonly="true"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+                event.preventDefault();
+                openSearch();
+              }
+            }}
+          >
+            {hasSearchQuery ? (
+              <code
+                className={`${language ? `language-${language}` : undefined} ${contentStyles.code}`}
+              >
+                <ResponseSearchHighlightedBody
+                  text={displayBody}
+                  matches={searchMatches}
+                  activeMatchIndex={normalizedActiveMatchIndex}
+                  activeMatchRef={activeMatchRef}
+                />
+              </code>
+            ) : (
+              <code
+                className={`${language ? `language-${language}` : undefined} ${contentStyles.code}`}
+                dangerouslySetInnerHTML={{ __html: highlightedBody }}
+              />
+            )}
           </pre>
         )}
       </div>
@@ -394,6 +505,50 @@ const RequesterRequestBody = ({
       />
     </section>
   );
+};
+
+const ResponseSearchHighlightedBody = ({
+  text,
+  matches,
+  activeMatchIndex,
+  activeMatchRef
+}: {
+  text: string;
+  matches: Array<{ start: number; end: number }>;
+  activeMatchIndex: number;
+  activeMatchRef: RefObject<HTMLElement | null>;
+}): React.JSX.Element => {
+  if (matches.length === 0) return <>{text}</>;
+
+  const nodes: React.ReactNode[] = [];
+  let cursor = 0;
+
+  for (const [index, match] of matches.entries()) {
+    if (match.start > cursor) {
+      nodes.push(text.slice(cursor, match.start));
+    }
+
+    const isActive = index === activeMatchIndex;
+    nodes.push(
+      <mark
+        className={isActive ? contentStyles.searchMatchActive : contentStyles.searchMatch}
+        data-response-search-match="true"
+        key={`${match.start}:${match.end}`}
+        ref={(element) => {
+          if (isActive) activeMatchRef.current = element;
+        }}
+      >
+        {text.slice(match.start, match.end)}
+      </mark>
+    );
+    cursor = match.end;
+  }
+
+  if (cursor < text.length) {
+    nodes.push(text.slice(cursor));
+  }
+
+  return <>{nodes}</>;
 };
 
 const ResponsePreview = ({
