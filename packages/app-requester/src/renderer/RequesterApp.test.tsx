@@ -203,6 +203,112 @@ describe('RequesterApp', () => {
     );
   });
 
+  it('formats a JSON request body before sending', async () => {
+    const store = createStore();
+    const requestWithJsonBody: RequesterRequestDetail = {
+      ...activeRequest,
+      bodyMode: 'json',
+      bodyText: '{"name":"Ada","tags":["admin"]}'
+    };
+    const formattedBody = '{\n  "name": "Ada",\n  "tags": [\n    "admin"\n  ]\n}';
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [requestWithJsonBody],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(requestWithJsonBody));
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Format' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() =>
+      expect(saveRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bodyMode: 'json',
+          bodyText: formattedBody
+        })
+      )
+    );
+    expect(sendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bodyMode: 'json',
+        bodyText: formattedBody
+      })
+    );
+  });
+
+  it('keeps an invalid JSON request body unchanged when formatting fails', async () => {
+    const store = createStore();
+    const requestWithInvalidJsonBody: RequesterRequestDetail = {
+      ...activeRequest,
+      bodyMode: 'json',
+      bodyText: '{"name":}'
+    };
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [requestWithInvalidJsonBody],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(requestWithInvalidJsonBody));
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Format' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Invalid JSON:');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() =>
+      expect(saveRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bodyMode: 'json',
+          bodyText: '{"name":}'
+        })
+      )
+    );
+  });
+
+  it('formats JSON response bodies for display', async () => {
+    const store = createStore();
+    store.dispatch(
+      restoreRequester({
+        activeWorkspaceId: 'workspace-1',
+        workspaces: [{ id: 'workspace-1', name: 'Local' }],
+        requests: [activeRequest],
+        settings: defaultRequesterWorkspaceSettings()
+      })
+    );
+    store.dispatch(setActiveRequesterRequest(activeRequest));
+
+    render(
+      <Provider store={store}>
+        <RequesterApp />
+      </Provider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+
+    await waitFor(() =>
+      expect(document.querySelector('code.language-json')?.textContent).toBe('{\n  "ok": true\n}')
+    );
+  });
+
   it('loads only the active request history and shows a historical response when clicked', async () => {
     const store = createStore();
     store.dispatch(
@@ -286,7 +392,9 @@ describe('RequesterApp', () => {
 
     await waitFor(() => expect(getHistory).toHaveBeenCalledWith({ historyId: 'history-1' }));
     expect(screen.getAllByText('201 Created')[0]).toBeInTheDocument();
-    expect(document.querySelector('code.language-json')?.textContent).toBe('{"created":true}');
+    expect(document.querySelector('code.language-json')?.textContent).toBe(
+      '{\n  "created": true\n}'
+    );
     expect(screen.getByText('content-type')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Request' }));
     expect(screen.getByText('accept')).toBeInTheDocument();

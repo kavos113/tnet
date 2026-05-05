@@ -16,6 +16,26 @@
   text-transform: uppercase;
 }
 
+.bodyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bodyHeader > span {
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.formatError {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
 .bodyEditor select,
 .bodyEditor textarea {
   border: 1px solid var(--gray);

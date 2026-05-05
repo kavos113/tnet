@@ -19,6 +19,7 @@ import {
   highlightRequesterBody
 } from './requesterHighlight';
 import { useVerticalResize } from './useVerticalResize';
+import { formatJsonText } from '../requesterJsonFormat';
 
 interface RequesterResponsePanelProps {
   request?: RequesterRequestSnapshot;
@@ -295,9 +296,14 @@ const RequesterResponseBody = ({
     response.previewType === 'pdf';
   const visibleTab = canShowPreview && activeTab === 'preview' ? 'preview' : 'code';
   const language = getResponseLanguage(response);
+  const displayBody = useMemo(() => {
+    if (language !== 'json') return response.bodyText;
+    const formatted = formatJsonText(response.bodyText);
+    return formatted.ok ? formatted.value : response.bodyText;
+  }, [language, response.bodyText]);
   const highlightedBody = useMemo(
-    () => highlightRequesterBody(response.bodyText, language),
-    [language, response.bodyText]
+    () => highlightRequesterBody(displayBody, language),
+    [displayBody, language]
   );
 
   return (

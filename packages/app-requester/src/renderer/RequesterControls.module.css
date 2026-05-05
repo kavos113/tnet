@@ -43,3 +43,8 @@
   border: 0;
   border-radius: 4px;
 }
+
+.secondaryButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
