@@ -55,4 +55,59 @@ describe('Google Calendar mapper', () => {
       allDay: true
     });
   });
+
+  it('maps Google event date-times to JST local timestamps', () => {
+    const testCases = [
+      {
+        name: 'UTC event',
+        start: '2026-05-02T10:00:00Z',
+        end: '2026-05-02T11:30:00Z',
+        expectedStartsAt: '2026-05-02T19:00:00.000',
+        expectedEndsAt: '2026-05-02T20:30:00.000'
+      },
+      {
+        name: 'offset event',
+        start: '2026-05-02T10:00:00-04:00',
+        end: '2026-05-02T11:00:00-04:00',
+        expectedStartsAt: '2026-05-02T23:00:00.000',
+        expectedEndsAt: '2026-05-03T00:00:00.000'
+      }
+    ];
+
+    for (const testCase of testCases) {
+      const [occurrence] = googleEventToOccurrence(
+        {
+          id: testCase.name,
+          summary: testCase.name,
+          start: { dateTime: testCase.start },
+          end: { dateTime: testCase.end }
+        },
+        'source-1'
+      );
+
+      expect(occurrence, testCase.name).toMatchObject({
+        startsAt: testCase.expectedStartsAt,
+        endsAt: testCase.expectedEndsAt,
+        allDay: false
+      });
+    }
+  });
+
+  it('maps Google task event date-times to JST deadlines', () => {
+    const [occurrence] = googleEventToSubscribedTaskOccurrence(
+      {
+        id: 'task-1',
+        summary: 'Timed deadline',
+        start: { dateTime: '2026-05-02T09:30:00Z' },
+        end: { dateTime: '2026-05-02T10:00:00Z' }
+      },
+      'source-1'
+    );
+
+    expect(occurrence).toMatchObject({
+      deadlineDate: '2026-05-02',
+      deadlineTime: '18:30',
+      allDay: false
+    });
+  });
 });

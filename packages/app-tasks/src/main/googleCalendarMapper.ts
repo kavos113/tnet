@@ -5,6 +5,8 @@ import type {
 import { addLocalDays } from '@tnet/app-tasks/shared/dateHelpers';
 import type { GoogleCalendarEvent } from './googleCalendarService';
 
+const googleCalendarDisplayTimeZone = 'Asia/Tokyo';
+
 export const googleEventToOccurrence = (
   event: GoogleCalendarEvent,
   sourceId: string
@@ -65,9 +67,30 @@ const googleEventDateTime = (
   if (!value.dateTime) return undefined;
   const date = new Date(value.dateTime);
   return {
-    value: Number.isNaN(date.getTime()) ? value.dateTime : date.toISOString(),
+    value: Number.isNaN(date.getTime())
+      ? value.dateTime
+      : formatDateInGoogleCalendarDisplayTimeZone(date),
     allDay: false
   };
+};
+
+const formatDateInGoogleCalendarDisplayTimeZone = (date: Date): string => {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: googleCalendarDisplayTimeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    })
+      .formatToParts(date)
+      .map((part) => [part.type, part.value])
+  );
+  const milliseconds = String(date.getUTCMilliseconds()).padStart(3, '0');
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}.${milliseconds}`;
 };
 
 const normalizeGoogleEventEnd = (

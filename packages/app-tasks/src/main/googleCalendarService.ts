@@ -105,6 +105,7 @@ export class GoogleCalendarService {
       calendarId: source.uri || 'primary',
       timeMin,
       timeMax,
+      timeZone: 'Asia/Tokyo',
       singleEvents: true,
       orderBy: 'startTime'
     });

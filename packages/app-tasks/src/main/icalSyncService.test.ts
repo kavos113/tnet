@@ -300,7 +300,9 @@ describe('IcalSyncService', () => {
     ).toEqual([
       expect.objectContaining({
         sourceId: source.id,
-        title: 'Google planning'
+        title: 'Google planning',
+        startsAt: '2026-05-02T19:00:00.000',
+        endsAt: '2026-05-02T20:00:00.000'
       })
     ]);
     database.close();
@@ -348,7 +350,7 @@ describe('IcalSyncService', () => {
         sourceId: source.id,
         title: 'Google deadline',
         deadlineDate: '2026-05-02',
-        deadlineTime: '09:30'
+        deadlineTime: '18:30'
       })
     ]);
     database.close();

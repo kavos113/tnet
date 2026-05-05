@@ -184,6 +184,7 @@ describe('GoogleCalendarService', () => {
       calendarId: 'primary',
       timeMin: '2026-05-01T00:00:00.000Z',
       timeMax: '2026-05-31T23:59:59.999Z',
+      timeZone: 'Asia/Tokyo',
       singleEvents: true,
       orderBy: 'startTime'
     });
