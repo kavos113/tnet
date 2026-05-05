@@ -153,7 +153,16 @@ export const tnetApi: DesktopTnetApi = {
     },
     llm: {
       getInlineCompletion: (request) =>
-        ipcRenderer.invoke(markdownIpcChannels.llm.getInlineCompletion, request)
+        ipcRenderer.invoke(markdownIpcChannels.llm.getInlineCompletion, request),
+      startInlineCompletionStream: (request) =>
+        ipcRenderer.invoke(markdownIpcChannels.llm.startInlineCompletionStream, request),
+      cancelInlineCompletionStream: (request) =>
+        ipcRenderer.invoke(markdownIpcChannels.llm.cancelInlineCompletionStream, request),
+      onInlineCompletionStreamEvent: (listener) => {
+        const handler = (_event, streamEvent): void => listener(streamEvent);
+        ipcRenderer.on(markdownIpcChannels.llm.inlineCompletionStreamEvent, handler);
+        return () => ipcRenderer.off(markdownIpcChannels.llm.inlineCompletionStreamEvent, handler);
+      }
     }
   },
   papers: {

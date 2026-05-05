@@ -9,6 +9,9 @@ export interface InlineCompletionProvider {
   complete: (
     request: InlineCompletionRequest,
     config: LlmSettings,
-    signal: AbortSignal
+    signal: AbortSignal,
+    options?: {
+      onDelta?: (delta: string) => void;
+    }
   ) => Promise<InlineCompletionResult | null>;
 }

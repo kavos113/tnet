@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 import type {
   InlineCompletionContext,
-  InlineCompletionResult
+  InlineCompletionRequestOptions,
+  InlineCompletionResult,
+  InlineCompletionStreamEvent
 } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { textByteLength } from '@tnet/shared/file/largeFile';
 import { toWorkspaceRelativePath } from '@tnet/shared/path/pathUtils';
@@ -26,7 +28,8 @@ export interface ActiveWorkspaceApi {
   getKeywordContent: (filePath: string, name: string) => Promise<string | null>;
   getInlineCompletion: (
     filePath: string,
-    context: InlineCompletionContext
+    context: InlineCompletionContext,
+    options?: InlineCompletionRequestOptions
   ) => Promise<InlineCompletionResult | null>;
 }
 
@@ -128,17 +131,50 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
   const getInlineCompletion = useCallback(
     async (
       filePath: string,
-      context: InlineCompletionContext
+      context: InlineCompletionContext,
+      options: InlineCompletionRequestOptions = {}
     ): Promise<InlineCompletionResult | null> => {
       if (!rootPath) return null;
       if (!llmSettings.llmInlineCompletionEnabled) return null;
       if (context.trigger === 'automatic' && !llmSettings.llmAutomaticTrigger) return null;
-      return markdownTnetApi.markdown.llm.getInlineCompletion({
+      const request = {
         ...context,
         workspaceRoot: rootPath,
         filePath: toWorkspaceRelativePath(rootPath, filePath),
         language: 'markdown'
-      });
+      } as const;
+      if (!options.onPartialText) {
+        return markdownTnetApi.markdown.llm.getInlineCompletion(request);
+      }
+
+      const streamRequestId = createInlineCompletionStreamRequestId();
+      let streamedText = '';
+      const unsubscribe = markdownTnetApi.markdown.llm.onInlineCompletionStreamEvent(
+        (event: InlineCompletionStreamEvent) => {
+          if (event.requestId !== streamRequestId) return;
+          if (event.type !== 'delta') return;
+          streamedText += event.delta ?? '';
+          options.onPartialText?.(streamedText);
+        }
+      );
+      const abortStream = (): void => {
+        markdownTnetApi.markdown.llm
+          .cancelInlineCompletionStream({ streamRequestId })
+          .catch((error: unknown) => {
+            console.warn('Failed to cancel inline completion stream', error);
+          });
+      };
+      options.signal?.addEventListener('abort', abortStream, { once: true });
+
+      try {
+        return await markdownTnetApi.markdown.llm.startInlineCompletionStream({
+          ...request,
+          streamRequestId
+        });
+      } finally {
+        unsubscribe();
+        options.signal?.removeEventListener('abort', abortStream);
+      }
     },
     [rootPath, llmSettings.llmAutomaticTrigger, llmSettings.llmInlineCompletionEnabled]
   );
@@ -156,3 +192,6 @@ export const useActiveMarkdownWorkspaceApi = (): ActiveWorkspaceApi => {
     getInlineCompletion
   };
 };
+
+const createInlineCompletionStreamRequestId = (): string =>
+  `inline-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;

@@ -28,6 +28,7 @@ const createRequest = (
 describe('getInlineCompletion', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   const createWorkspace = async (config: Partial<MarkdownProjectConfig> = {}): Promise<string> => {
@@ -86,6 +87,7 @@ describe('getInlineCompletion', () => {
       })
     });
     vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const workspaceRoot = await createWorkspace({
       llm: {
         ...defaultMarkdownProjectConfig().llm,
@@ -107,6 +109,10 @@ describe('getInlineCompletion', () => {
       expect.objectContaining({
         method: 'POST'
       })
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      'Local HTTP inline completion output:',
+      ' from local model'
     );
   });
 

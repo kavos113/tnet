@@ -9,7 +9,7 @@ interface LocalHttpInlineCompletionResponse {
 
 export const localHttpProvider: InlineCompletionProvider = {
   name: 'local-http',
-  complete: async (request, config, signal) => {
+  complete: async (request, config, signal, options) => {
     if (!config.llmEndpoint.trim()) return null;
 
     const response = await fetch(config.llmEndpoint, {
@@ -28,7 +28,9 @@ export const localHttpProvider: InlineCompletionProvider = {
 
     const payload = (await response.json()) as LocalHttpInlineCompletionResponse;
     const text = payload.text ?? payload.completion ?? '';
+    console.log('Local HTTP inline completion output:', text);
     if (!text.trim()) return null;
+    options?.onDelta?.(text);
 
     return {
       id: payload.id ?? `local-http-${request.cursorOffset}`,

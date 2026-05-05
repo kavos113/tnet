@@ -49,7 +49,13 @@ export const markdownTnetApi: MarkdownTnetApi = {
       workspace: (request) => getMarkdownApi().markdown.search.workspace(request)
     },
     llm: {
-      getInlineCompletion: (request) => getMarkdownApi().markdown.llm.getInlineCompletion(request)
+      getInlineCompletion: (request) => getMarkdownApi().markdown.llm.getInlineCompletion(request),
+      startInlineCompletionStream: (request) =>
+        getMarkdownApi().markdown.llm.startInlineCompletionStream(request),
+      cancelInlineCompletionStream: (request) =>
+        getMarkdownApi().markdown.llm.cancelInlineCompletionStream(request),
+      onInlineCompletionStreamEvent: (listener) =>
+        getMarkdownApi().markdown.llm.onInlineCompletionStreamEvent(listener)
     }
   }
 };

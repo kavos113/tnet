@@ -1,6 +1,7 @@
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { InlineCompletionResult } from '@tnet/markdown-editor/shared/inlineCompletion/inlineCompletionTypes';
 import { acceptInlineCompletion, rejectInlineCompletion } from './inlineCompletionCommands';
 import { inlineCompletionExtension } from './inlineCompletionExtension';
 
@@ -47,6 +48,10 @@ describe('inlineCompletionExtension', () => {
         prefix: 'Hello',
         suffix: '',
         trigger: 'automatic'
+      }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        onPartialText: expect.any(Function)
       })
     );
     expect(parent.querySelector('.inline-completion-ghost')?.textContent).toBe(' world');
@@ -55,6 +60,105 @@ describe('inlineCompletionExtension', () => {
     expect(view.state.doc.toString()).toBe('Hello world');
     expect(view.state.selection.main.head).toBe('Hello world'.length);
     expect(parent.querySelector('.inline-completion-ghost')).toBeNull();
+
+    view.destroy();
+  });
+
+  it('renders streaming ghost text before the requester resolves', async () => {
+    let resolveCompletion: ((completion: InlineCompletionResult) => void) | undefined;
+    const requestInlineCompletion = vi.fn((_context, options) => {
+      options?.onPartialText?.(' wor');
+      return new Promise<InlineCompletionResult>((resolve) => {
+        resolveCompletion = resolve;
+      });
+    });
+    const view = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: 'Hello',
+        extensions: [
+          inlineCompletionExtension({
+            requestInlineCompletion,
+            debounceMs: 0
+          })
+        ]
+      })
+    });
+
+    view.dispatch({ selection: { anchor: 5 } });
+    await vi.runAllTimersAsync();
+
+    expect(parent.querySelector('.inline-completion-ghost')?.textContent).toBe(' wor');
+    resolveCompletion?.({
+      id: 'completion-1',
+      text: ' world',
+      provider: 'mock',
+      model: 'mock-inline-completion'
+    });
+    await Promise.resolve();
+
+    expect(parent.querySelector('.inline-completion-ghost')?.textContent).toBe(' world');
+
+    view.destroy();
+  });
+
+  it('aborts stale streaming requests and ignores later chunks', async () => {
+    const abortSignals: AbortSignal[] = [];
+    const partialCallbacks: Array<(text: string) => void> = [];
+    const requestInlineCompletion = vi.fn((_context, options) => {
+      if (options?.signal) abortSignals.push(options.signal);
+      if (options?.onPartialText) partialCallbacks.push(options.onPartialText);
+      options?.onPartialText?.(' wor');
+      return new Promise<InlineCompletionResult | null>(() => undefined);
+    });
+    const view = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: 'Hello',
+        extensions: [
+          inlineCompletionExtension({
+            requestInlineCompletion,
+            debounceMs: 0
+          })
+        ]
+      })
+    });
+
+    view.dispatch({ selection: { anchor: 5 } });
+    await vi.runAllTimersAsync();
+    expect(parent.querySelector('.inline-completion-ghost')?.textContent).toBe(' wor');
+
+    view.dispatch({ changes: { from: 5, insert: '!' } });
+    expect(abortSignals[0]?.aborted).toBe(true);
+    partialCallbacks[0]?.(' world');
+    expect(parent.querySelector('.inline-completion-ghost')).toBeNull();
+
+    view.destroy();
+  });
+
+  it('accepts the currently streamed partial ghost text', async () => {
+    const requestInlineCompletion = vi.fn((_context, options) => {
+      options?.onPartialText?.(' wor');
+      return new Promise<InlineCompletionResult | null>(() => undefined);
+    });
+    const view = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: 'Hello',
+        extensions: [
+          inlineCompletionExtension({
+            requestInlineCompletion,
+            debounceMs: 0
+          })
+        ]
+      })
+    });
+
+    view.dispatch({ selection: { anchor: 5 } });
+    await vi.runAllTimersAsync();
+
+    expect(acceptInlineCompletion(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe('Hello wor');
 
     view.destroy();
   });

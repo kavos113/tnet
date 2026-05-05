@@ -12,7 +12,7 @@ const inlineCompletionInstructions = [
 
 export const lmStudioProvider: InlineCompletionProvider = {
   name: 'lm-studio',
-  complete: async (request, config, signal) => {
+  complete: async (request, config, signal, options) => {
     if (!config.llmModel.trim()) return null;
 
     const client = new OpenAI({
@@ -22,25 +22,69 @@ export const lmStudioProvider: InlineCompletionProvider = {
       timeout: config.llmRequestTimeoutMs
     });
 
-    const response = await client.responses.create(
+    const params = {
+      model: config.llmModel,
+      messages: [
+        {
+          role: 'system' as const,
+          content: inlineCompletionInstructions
+        },
+        {
+          role: 'user' as const,
+          content: buildInlineCompletionPrompt(request)
+        }
+      ],
+      temperature: 0.2,
+      max_tokens: 128
+    };
+
+    if (options?.onDelta) {
+      const stream = await client.chat.completions.create(
+        {
+          ...params,
+          stream: true
+        },
+        { signal }
+      );
+      let text = '';
+      let responseId = `lm-studio-${request.cursorOffset}`;
+      let model = config.llmModel;
+      for await (const chunk of stream) {
+        responseId = chunk.id || responseId;
+        model = chunk.model || model;
+        const delta = chunk.choices[0]?.delta.content ?? '';
+        if (!delta) continue;
+        text += delta;
+        options.onDelta(delta);
+      }
+      console.log('LM Studio inline completion output:', text);
+      if (!text.trim()) return null;
+
+      return {
+        id: responseId,
+        text,
+        provider: 'lm-studio',
+        model
+      };
+    }
+
+    const response = await client.chat.completions.create(
       {
-        model: config.llmModel,
-        instructions: inlineCompletionInstructions,
-        input: buildInlineCompletionPrompt(request),
-        temperature: 0.2,
-        max_output_tokens: 128
+        ...params,
+        stream: false
       },
       { signal }
     );
 
-    const text = response.output_text;
+    const text = response.choices[0]?.message.content ?? '';
+    console.log('LM Studio inline completion output:', text);
     if (!text.trim()) return null;
 
     return {
       id: response.id,
       text,
       provider: 'lm-studio',
-      model: response.model ?? config.llmModel
+      model: response.model
     };
   }
 };

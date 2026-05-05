@@ -10,7 +10,7 @@ const inlineCompletionInstructions = [
 
 export const geminiSdkProvider: InlineCompletionProvider = {
   name: 'gemini-sdk',
-  complete: async (request, config, signal) => {
+  complete: async (request, config, signal, options) => {
     if (!config.llmModel.trim()) return null;
 
     const ai = new GoogleGenAI({
@@ -21,7 +21,7 @@ export const geminiSdkProvider: InlineCompletionProvider = {
       }
     });
 
-    const response = await ai.models.generateContent({
+    const params = {
       model: config.llmModel,
       contents: buildInlineCompletionPrompt(request),
       config: {
@@ -30,9 +30,36 @@ export const geminiSdkProvider: InlineCompletionProvider = {
         maxOutputTokens: 128,
         abortSignal: signal
       }
-    });
+    };
+
+    if (options?.onDelta) {
+      const stream = await ai.models.generateContentStream(params);
+      let text = '';
+      let responseId = `gemini-sdk-${request.cursorOffset}`;
+      let model = config.llmModel;
+      for await (const response of stream) {
+        responseId = response.responseId ?? responseId;
+        model = response.modelVersion ?? model;
+        const delta = response.text ?? '';
+        if (!delta) continue;
+        text += delta;
+        options.onDelta(delta);
+      }
+      console.log('Gemini inline completion output:', text);
+      if (!text.trim()) return null;
+
+      return {
+        id: responseId,
+        text,
+        provider: 'gemini-sdk',
+        model
+      };
+    }
+
+    const response = await ai.models.generateContent(params);
 
     const text = response.text ?? '';
+    console.log('Gemini inline completion output:', text);
     if (!text.trim()) return null;
 
     return {

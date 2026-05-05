@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { shallowEqual } from 'react-redux';
 import type {
   InlineCompletionContext,
+  InlineCompletionRequestOptions,
   InlineCompletionResult
 } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { largeMarkdownFileThresholdBytes } from '@tnet/shared/file/largeFile';
@@ -78,9 +79,12 @@ const EditorGroupView = ({ groupId, onOpenPdfLink }: EditorGroupViewProps): Reac
   }, [workspaceApi.getInlineCompletion]);
 
   const requestInlineCompletion = useCallback(
-    (context: InlineCompletionContext): Promise<InlineCompletionResult | null> => {
+    (
+      context: InlineCompletionContext,
+      options?: InlineCompletionRequestOptions
+    ): Promise<InlineCompletionResult | null> => {
       if (!activeFilePath) return Promise.resolve(null);
-      return getInlineCompletionRef.current(activeFilePath, context);
+      return getInlineCompletionRef.current(activeFilePath, context, options);
     },
     [activeFilePath]
   );

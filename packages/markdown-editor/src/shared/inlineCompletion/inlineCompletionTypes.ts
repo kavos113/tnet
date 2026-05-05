@@ -20,3 +20,8 @@ export interface InlineCompletionResult {
   provider: string;
   model: string;
 }
+
+export interface InlineCompletionRequestOptions {
+  signal?: AbortSignal;
+  onPartialText?: (text: string) => void;
+}

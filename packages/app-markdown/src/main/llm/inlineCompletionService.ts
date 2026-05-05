@@ -39,7 +39,11 @@ const isAbortError = (error: unknown): boolean => {
 };
 
 export const getInlineCompletion = async (
-  request: InlineCompletionRequest
+  request: InlineCompletionRequest,
+  options: {
+    signal?: AbortSignal;
+    onDelta?: (delta: string) => void;
+  } = {}
 ): Promise<InlineCompletionResult | null> => {
   const { llm } = await loadMarkdownProjectConfig(request.workspaceRoot);
   if (!llm.llmInlineCompletionEnabled) return null;
@@ -47,18 +51,23 @@ export const getInlineCompletion = async (
   const requestTimeoutMs = inlineCompletionTimeoutMs(llm.llmRequestTimeoutMs);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
+  const abortFromExternalSignal = (): void => controller.abort();
+  if (options.signal?.aborted) controller.abort();
+  options.signal?.addEventListener('abort', abortFromExternalSignal, { once: true });
 
   try {
     const provider = providerByType[llm.llmProvider] ?? mockInlineCompletionProvider;
     return await provider.complete(
       request,
       { ...llm, llmRequestTimeoutMs: requestTimeoutMs },
-      controller.signal
+      controller.signal,
+      { onDelta: options.onDelta }
     );
   } catch (error: unknown) {
     if (isAbortError(error)) return null;
     throw error;
   } finally {
     clearTimeout(timeout);
+    options.signal?.removeEventListener('abort', abortFromExternalSignal);
   }
 };

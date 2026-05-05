@@ -1,20 +1,22 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { InlineCompletionRequest } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import { defaultMarkdownProjectConfig } from '@tnet/app-markdown/shared/config';
 import { lmStudioProvider } from './lmStudioProvider';
 
 const openAiConstructors = vi.hoisted(() => [] as unknown[]);
-const responsesCreate = vi.hoisted(() => vi.fn());
+const chatCompletionsCreate = vi.hoisted(() => vi.fn());
 
 vi.mock('openai', () => ({
   default: vi.fn(function OpenAIMock(
-    this: { responses: { create: typeof responsesCreate } },
+    this: { chat: { completions: { create: typeof chatCompletionsCreate } } },
     options: unknown
   ) {
     openAiConstructors.push(options);
-    this.responses = {
-      create: responsesCreate
+    this.chat = {
+      completions: {
+        create: chatCompletionsCreate
+      }
     };
   })
 }));
@@ -33,12 +35,17 @@ const request: InlineCompletionRequest = {
 describe('lmStudioProvider', () => {
   beforeEach(() => {
     openAiConstructors.length = 0;
-    responsesCreate.mockReset();
-    responsesCreate.mockResolvedValue({
+    chatCompletionsCreate.mockReset();
+    chatCompletionsCreate.mockResolvedValue({
       id: 'lmstudio-response-1',
-      output_text: ' Then $G$ has an identity element.',
+      choices: [{ message: { content: ' Then $G$ has an identity element.' } }],
       model: 'local-model'
     });
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('requests an inline completion through an LM Studio OpenAI-compatible endpoint', async () => {
@@ -64,13 +71,23 @@ describe('lmStudioProvider', () => {
       maxRetries: 0,
       timeout: 60000
     });
-    expect(responsesCreate).toHaveBeenCalledWith(
+    expect(chatCompletionsCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         model: 'local-model',
-        input: expect.stringContaining('Let $G$ be a group.'),
-        max_output_tokens: 128
+        messages: expect.arrayContaining([
+          expect.objectContaining({
+            role: 'user',
+            content: expect.stringContaining('Let $G$ be a group.')
+          })
+        ]),
+        max_tokens: 128
       }),
       { signal: controller.signal }
+    );
+    expect(chatCompletionsCreate.mock.calls[0]?.[0]).not.toHaveProperty('reasoning');
+    expect(console.log).toHaveBeenCalledWith(
+      'LM Studio inline completion output:',
+      ' Then $G$ has an identity element.'
     );
   });
 
@@ -88,5 +105,47 @@ describe('lmStudioProvider', () => {
     expect(openAiConstructors[0]).toMatchObject({
       baseURL: 'http://localhost:1234/v1'
     });
+  });
+
+  it('streams LM Studio inline completion chunks', async () => {
+    const deltas: string[] = [];
+    chatCompletionsCreate.mockResolvedValue(
+      (async function* () {
+        yield {
+          id: 'lmstudio-stream',
+          choices: [{ delta: { content: ' local' } }],
+          model: 'local-model'
+        };
+        yield {
+          id: 'lmstudio-stream',
+          choices: [{ delta: { content: ' text' } }],
+          model: 'local-model'
+        };
+      })()
+    );
+
+    await expect(
+      lmStudioProvider.complete(
+        request,
+        {
+          ...defaultMarkdownProjectConfig().llm,
+          llmProvider: 'lm-studio',
+          llmModel: 'local-model'
+        },
+        new AbortController().signal,
+        { onDelta: (delta) => deltas.push(delta) }
+      )
+    ).resolves.toMatchObject({
+      id: 'lmstudio-stream',
+      text: ' local text',
+      provider: 'lm-studio',
+      model: 'local-model'
+    });
+
+    expect(chatCompletionsCreate.mock.calls[0]?.[0]).toMatchObject({
+      stream: true
+    });
+    expect(chatCompletionsCreate.mock.calls[0]?.[0]).not.toHaveProperty('reasoning');
+    expect(deltas).toEqual([' local', ' text']);
   });
 });

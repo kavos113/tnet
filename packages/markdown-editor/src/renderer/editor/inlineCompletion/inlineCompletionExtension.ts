@@ -9,6 +9,7 @@ import {
 } from '@codemirror/view';
 import type {
   InlineCompletionContext,
+  InlineCompletionRequestOptions,
   InlineCompletionTrigger,
   InlineCompletionResult
 } from '@tnet/markdown-editor/shared/inlineCompletion/inlineCompletionTypes';
@@ -22,7 +23,8 @@ import {
 } from './inlineCompletionState';
 
 export type InlineCompletionRequester = (
-  context: InlineCompletionContext
+  context: InlineCompletionContext,
+  options?: InlineCompletionRequestOptions
 ) => Promise<InlineCompletionResult | null>;
 
 export interface InlineCompletionExtensionOptions {
@@ -47,6 +49,7 @@ const isAbortError = (error: unknown): boolean => {
 class InlineCompletionPlugin implements PluginValue {
   private timer: number | null = null;
   private requestId = 0;
+  private requestController: AbortController | null = null;
 
   constructor(
     private readonly view: EditorView,
@@ -56,6 +59,7 @@ class InlineCompletionPlugin implements PluginValue {
   update(update: ViewUpdate): void {
     if (!update.docChanged && !update.selectionSet) return;
     this.clearTimer();
+    this.abortRequest();
     this.requestId += 1;
 
     if (!this.options.requestInlineCompletion) return;
@@ -66,6 +70,7 @@ class InlineCompletionPlugin implements PluginValue {
 
   requestManual(): void {
     this.clearTimer();
+    this.abortRequest();
     this.requestId += 1;
     this.view.dispatch({ effects: clearInlineCompletionEffect.of() });
 
@@ -75,6 +80,7 @@ class InlineCompletionPlugin implements PluginValue {
 
   destroy(): void {
     this.clearTimer();
+    this.abortRequest();
     this.requestId += 1;
   }
 
@@ -91,30 +97,50 @@ class InlineCompletionPlugin implements PluginValue {
 
     const requestId = this.requestId;
     const position = view.state.selection.main.head;
+    const controller = new AbortController();
+    this.requestController = controller;
     const context = buildEditorInlineCompletionContext(view.state, trigger, {
       maxPrefixChars: this.options.maxPrefixChars,
       maxSuffixChars: this.options.maxSuffixChars
     });
 
-    requestInlineCompletion(context)
+    const applyGhostText = (text: string, id = `inline-partial-${requestId}`): void => {
+      if (!text.trim()) return;
+      if (requestId !== this.requestId) return;
+      if (view.state.selection.main.head !== position) return;
+      if (completionStatus(view.state)) return;
+
+      view.dispatch({
+        effects: setInlineCompletionEffect.of({
+          id,
+          text,
+          from: position
+        })
+      });
+    };
+
+    requestInlineCompletion(context, {
+      signal: controller.signal,
+      onPartialText: (text) => applyGhostText(text)
+    })
       .then((completion) => {
         if (!completion?.text.trim()) return;
-        if (requestId !== this.requestId) return;
-        if (view.state.selection.main.head !== position) return;
-        if (completionStatus(view.state)) return;
-
-        view.dispatch({
-          effects: setInlineCompletionEffect.of({
-            id: completion.id,
-            text: completion.text,
-            from: position
-          })
-        });
+        applyGhostText(completion.text, completion.id);
       })
       .catch((error: unknown) => {
         if (isAbortError(error)) return;
         console.warn('Failed to load inline completion', error);
+      })
+      .finally(() => {
+        if (this.requestController === controller) {
+          this.requestController = null;
+        }
       });
+  }
+
+  private abortRequest(): void {
+    this.requestController?.abort();
+    this.requestController = null;
   }
 }
 

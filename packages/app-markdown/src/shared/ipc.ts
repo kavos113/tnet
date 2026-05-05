@@ -1,6 +1,9 @@
 import type {
   InlineCompletionRequest,
-  InlineCompletionResult
+  InlineCompletionResult,
+  InlineCompletionStreamCancelRequest,
+  InlineCompletionStreamEvent,
+  InlineCompletionStreamRequest
 } from '@tnet/app-markdown/shared/llm/inlineCompletionTypes';
 import type {
   WorkspaceSearchIndexStats,
@@ -66,7 +69,10 @@ export const markdownIpcChannels = {
     workspace: 'markdown:search:workspace'
   },
   llm: {
-    getInlineCompletion: 'markdown:llm:getInlineCompletion'
+    getInlineCompletion: 'markdown:llm:getInlineCompletion',
+    startInlineCompletionStream: 'markdown:llm:startInlineCompletionStream',
+    cancelInlineCompletionStream: 'markdown:llm:cancelInlineCompletionStream',
+    inlineCompletionStreamEvent: 'markdown:llm:inlineCompletionStreamEvent'
   }
 } as const;
 
@@ -96,6 +102,13 @@ export interface MarkdownApi {
       getInlineCompletion: (
         request: InlineCompletionRequest
       ) => Promise<InlineCompletionResult | null>;
+      startInlineCompletionStream: (
+        request: InlineCompletionStreamRequest
+      ) => Promise<InlineCompletionResult | null>;
+      cancelInlineCompletionStream: (request: InlineCompletionStreamCancelRequest) => Promise<void>;
+      onInlineCompletionStreamEvent: (
+        listener: (event: InlineCompletionStreamEvent) => void
+      ) => () => void;
     };
   };
 }
