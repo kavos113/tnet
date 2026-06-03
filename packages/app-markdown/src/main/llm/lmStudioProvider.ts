@@ -56,6 +56,7 @@ export const lmStudioProvider: InlineCompletionProvider = {
         if (!delta) continue;
         text += delta;
         options.onDelta(delta);
+        console.log('LM Studio inline completion delta:', delta);
       }
       console.log('LM Studio inline completion output:', text);
       if (!text.trim()) return null;

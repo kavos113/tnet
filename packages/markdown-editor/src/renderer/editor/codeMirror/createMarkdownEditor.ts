@@ -8,6 +8,7 @@ import { basicSetup } from 'codemirror';
 import { latexCompletion, tagCompletion } from './completions';
 import { markdownDecorationPlugin } from './markdownDecorations';
 import { markdownEditorTheme } from './editorTheme';
+import { markdownTabEditingExtension } from './markdownTabEditing';
 import { tableEditingExtension } from './tableEditing/tableEditingExtension';
 import {
   inlineCompletionExtension,
@@ -72,6 +73,7 @@ export const createMarkdownEditor = ({
         maxSuffixChars: inlineCompletionMaxSuffixChars
       }),
       tableEditingExtension(),
+      markdownTabEditingExtension(),
       imagePasteExtension(savePastedImage),
       ...editorExtensions,
       EditorView.lineWrapping

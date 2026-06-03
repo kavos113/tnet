@@ -30,10 +30,10 @@ import {
 } from './workspaceSearchIndexService';
 
 const fileTemplate = `<keyword name="" type="n">
-### 螟画焚繝ｻ譚｡莉ｶ
+### 変数・条件
 
 
-### 荳ｻ蠑ｵ
+### 主張
 
 </keyword>
 
